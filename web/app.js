@@ -291,26 +291,31 @@
   // Mushaf page images are downloaded per edition (EdStore.java), not shipped in the app; the web build has them all.
   var ED_BASE = "https://raw.githubusercontent.com/drmalek1987/quran-karim/editions/";
   function edReady(id) { return !window.EdBridge || EdBridge.state(id) === "ready"; }
+  // A download starts at once and runs in the background; Settings › التحميلات shows its progress. One at a time
+  // (EdStore), so later picks wait in a queue. When the pages arrive, the pick that asked for them goes on.
+  var edQ = [], edPct = {}, edThen = {};
   function needEd(id, then) {
     if (id === "text" || !EDS[id] || edReady(id)) { then(); return; }
-    var d = document.createElement("div"); d.className = "wel"; d.style.zIndex = 9999;
-    d.innerHTML = '<div class="wel-card"><h2>' + EDS[id].name + '</h2><p>صفحات المصحف هتتنزل مرة واحدة (حوالي ' + (ED_MB[id] || "") + ' ميجا) وبعدها تشتغل من غير إنترنت.</p>' +
-      '<div class="dl-bar" style="height:10px;border-radius:5px;background:#0002;overflow:hidden"><i style="display:block;height:100%;width:0;background:#2e7d5b"></i></div><p class="dl-t"></p>' +
-      '<div class="wel-btns"><button class="wel-skip">إلغاء</button><button class="wel-next">تنزيل</button></div></div>';
-    document.body.appendChild(d);
-    var bar = d.querySelector(".dl-bar i"), t = d.querySelector(".dl-t"), go = d.querySelector(".wel-next");
-    d.querySelector(".wel-skip").onclick = function () { window.onEdDl = null; d.remove(); };
-    go.onclick = function () {
-      go.disabled = true; t.textContent = "جارٍ التنزيل…";
-      window.onEdDl = function (e, v) {
-        if (e !== id) return;
-        if (v === "done") { window.onEdDl = null; d.remove(); paintEdDl(); then(); }
-        else if (v === "error") { go.disabled = false; go.textContent = "حاول تاني"; t.textContent = "التنزيل فشل. اتأكد من الإنترنت وحاول تاني."; }
-        else { bar.style.width = v + "%"; t.textContent = v + "%"; }
-      };
-      EdBridge.download(id, ED_BASE + id + ".zip");
-    };
+    edThen[id] = then;
+    if (edQ.indexOf(id) < 0) edQ.push(id);
+    toast(window.LANG === "en" ? "Downloading " + T(EDS[id].name) + ". Follow it in Settings › Downloads." : "بدأ تنزيل " + EDS[id].name + "، تقدر تتابعه من الإعدادات › التحميلات");
+    edNext(); paintEdDl();
   }
+  function edNext() {
+    if (!edQ.length || edQ.some(function (k) { return EdBridge.state(k) === "busy"; })) return;
+    edPct[edQ[0]] = 0; EdBridge.download(edQ[0], ED_BASE + edQ[0] + ".zip");
+  }
+  window.onEdDl = function (e, v) {
+    if (v === "done" || v === "error") {
+      edQ = edQ.filter(function (k) { return k !== e; }); delete edPct[e];
+      var th = edThen[e]; delete edThen[e];
+      if (v === "done") { toast(window.LANG === "en" ? T(EDS[e].name) + " is ready" : "خلص تنزيل " + EDS[e].name); if (th) th(); }
+      else { edPct[e] = -1; toast(window.LANG === "en" ? "The download failed. Check the internet and try again." : "التنزيل فشل. اتأكد من الإنترنت وحاول تاني."); }
+      paintEdDl(); edNext(); return;
+    }
+    edPct[e] = v;
+    var s = document.querySelector('[data-dlp="' + e + '"]'); if (s) { s.querySelector("i").style.width = v + "%"; s.nextElementSibling.textContent = v + "%"; }
+  };
   // Settings: each edition with its download state, to fetch or free it.
   function paintEdDl() {
     var box = document.getElementById("edDl"); if (!box) return;
@@ -318,14 +323,16 @@
     var ids = ["kfgqpc", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }), any = false;
     box.innerHTML = ids.map(function (k) {
       var st = EdBridge.state(k); if (st === "ready") any = true;
-      return '<div class="dl-item"><div><b>' + EDS[k].name + "</b><small>" + (st === "ready" ? "✓ على الموبايل · " + ED_MB[k] + " ميجا" : st === "busy" ? "جارٍ التنزيل…" : "مش متنزّلة · " + ED_MB[k] + " ميجا") + "</small></div>" +
-        '<button class="btn" data-dl="' + k + '">' + (st === "ready" ? "حذف" : st === "busy" ? "…" : "تنزيل") + "</button></div>";
+      var wait = st !== "ready" && edQ.indexOf(k) >= 0, p = edPct[k] || 0;
+      return '<div class="dl-item"><div><b>' + EDS[k].name + "</b>" + (wait ? '<span class="dl-p" data-dlp="' + k + '"><i style="width:' + p + '%"></i></span><small>' + (st === "busy" ? p + "%" : "في الانتظار…") + "</small>" :
+        "<small>" + (st === "ready" ? "✓ على الموبايل · " + ED_MB[k] + " ميجا" : edPct[k] === -1 ? "التنزيل فشل · " + ED_MB[k] + " ميجا" : "مش متنزّلة · " + ED_MB[k] + " ميجا") + "</small>") + "</div>" +
+        (wait ? "" : '<button class="btn" data-dl="' + k + '">' + (st === "ready" ? "حذف" : edPct[k] === -1 ? "حاول تاني" : "تنزيل") + "</button>") + "</div>";
     }).join("");
     document.getElementById("dlAll").hidden = !any;
     box.querySelectorAll("[data-dl]").forEach(function (b) { b.onclick = function () {
       var k = b.dataset.dl, st = EdBridge.state(k);
       if (st === "ready") { if (confirm(window.LANG === "en" ? "Delete the " + T(EDS[k].name) + " pages from the phone?" : "تحذف صفحات " + EDS[k].name + " من الموبايل؟")) { EdBridge.remove(k); edGone(k); } }
-      else if (st !== "busy") needEd(k, function () {});
+      else if (st !== "busy") { delete edPct[k]; needEd(k, function () {}); }
     }; });
   }
   // A deleted edition that is open: the reader goes on in the text until another edition is chosen.

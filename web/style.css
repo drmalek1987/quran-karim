@@ -938,3 +938,11 @@ body.fs .bar, body.fs #tabbar, body.fs .page-tools, body.fs .page-nav, body.fs .
 .dl-all { border-color: #b3261e; color: #b3261e; justify-self: start; }
 
 html.en .ar-only, html:not(.en) .en-only { display: none !important; }
+
+/* 4.0: downloads as a drop-down list in Settings, with a progress bar per edition */
+.dl-box > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+.dl-box > summary::-webkit-details-marker { display: none; }
+.dl-box > summary::after { content: "▾"; font-size: 1.1em; transition: transform .2s; }
+.dl-box[open] > summary::after { transform: rotate(180deg); }
+.dl-p { display: block; height: 6px; border-radius: 3px; background: #0002; overflow: hidden; margin: 6px 0 2px; min-width: 120px; }
+.dl-p i { display: block; height: 100%; background: #2e7d5b; transition: width .3s; }
