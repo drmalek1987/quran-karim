@@ -41,9 +41,6 @@
         <button data-v="text">نص</button>
       </div>
     </div>
-    <div class="row row-col">صفحات المصاحف على الموبايل
-      <div id="edDl"></div>
-    </div>
     <div class="row row-col">طريقة التقليب
       <div class="seg seg-wrap" id="flip">
         <button data-v="curl">ثني الورقة</button>
@@ -102,6 +99,12 @@
         <button data-v="dark">داكن</button>
       </div>
     </div>
+    <h3 class="set-group" id="dlGroup">التحميلات</h3>
+    <div class="row row-col" id="dlRow">
+      <p class="hint">صفحات كل طبعة بتتنزل مرة واحدة وتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.</p>
+      <div id="edDl" class="dl-list"></div>
+      <button class="btn dl-all" id="dlAll">حذف كل الطبعات</button>
+    </div>
     <h3 class="set-group">الصوت والتطبيق</h3>
     <div class="row">القارئ
       <select id="reciter" class="sel-field" aria-label="القارئ"></select>
@@ -127,15 +130,15 @@
         <button data-v="en">English</button>
       </div>
     </div>
-    <details class="about-box">
+    <details class="about-box ar-only">
       <summary>حول التطبيق</summary>
       <p class="about"><b>القرآن الكريم</b> · الإصدار 3.9<br>
-      تطبيق مجاني بدون إعلانات، يعمل بدون إنترنت (ما عدا تحميل صوت القارئ أول مرة).</p>
+      تطبيق مجاني بدون إعلانات، يعمل بدون إنترنت (ما عدا تحميل صفحات الطبعة وصوت القارئ أول مرة).</p>
       <p class="about"><b>الخصوصية</b><br>
       التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» يستخدم خدمة التعرّف على الكلام الموجودة في الموبايل (غالبًا من جوجل)، وقد ترسل الصوت لخوادمها لتحويله لكلام، والتطبيق نفسه لا يحفظ الصوت ولا يرسله.
-      الإنترنت يُستخدم فقط لتحميل صوت القارئ من everyayah.com، ثم يُحفظ على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط.</p>
+      الإنترنت يُستخدم فقط لتحميل صفحات الطبعة اللي تختارها (من GitHub) وصوت القارئ من everyayah.com، وبعدها يتحفظوا على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط.</p>
       <p class="about"><b>المصاحف وحقوق النشر</b><br>
-      النص القرآني بالرسم العثماني (رواية حفص) من موسوعة القرآن الكريم quranenc.com فك ضغط الكتب بمكتبة Brotli من Google (رخصة MIT).
+      النص القرآني بالرسم العثماني (رواية حفص) من موسوعة القرآن الكريم quranenc.com
       عبر مشروع quran-json (رخصة CC BY-SA 4.0)، وقد طوبق حرفًا بحرف مع نص مجمع الملك فهد لطباعة المصحف الشريف.
       الخط: Amiri Quran وخط الواجهة Cairo (رخصة SIL OFL).
       ألوان التجويد من بيانات مشروع quran-tajweed (cpfair، رخصة CC BY 4.0) بنسخة quran-tajweed-embedded، مطابَقة حرفًا بحرف على نص المصحف.
@@ -143,11 +146,32 @@
       الترجمة الإنجليزية: ترجمة Saheeh International من مشروع tanzil.net عبر quran-json.
       البلاغة من أقسام «البلاغة» في «إعراب القرآن وبيانه» لمحيي الدين درويش. المتشابهات من بيانات Quran_Mutashabihat_Data (رخصة CC0).
       ألوان التجويد في عرض النص من بيانات التجويد المفتوحة.
+      ألوان المصحف الموضوعي من «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار.
+      فك ضغط الكتب بمكتبة Brotli من Google (رخصة MIT).
       الأذكار من «حصن المسلم»، وآياتها بصوت القارئ المختار، وباقيها بالصوت العربي الموجود على الجهاز (Text-to-Speech).
       التفاسير والإعراب من مشروع tafsir_api، ومعاني الكلمات من نصوص المعاجم في مدوّنة OpenITI، وجذور الكلمات من مدوّنة القرآن العربية (Quranic Arabic Corpus).
       طبعة الملك فهد: صفحات مصحف المدينة النبوية المطبوع من مجمع الملك فهد لطباعة المصحف الشريف (بخط عثمان طه).
       طبعة الشمرلي: صفحات الطبعة الثانية (٥٢٢ صفحة) بخط محمد سعد إبراهيم الشهير بحداد، المتاحة للنسخ والتداول لغير الأغراض التجارية.
       <span data-ed="harmain">طبعة الحرمين: صفحات نسخة دار مصر للطباعة (سعيد جودة السحار) المرفوعة. البحث ينقل إلى صفحة الآية نفسها ويظللها بالأصفر فوق الصورة.</span>
+      </p>
+    </details>
+    <details class="about-box en-only">
+      <summary>About the app</summary>
+      <p class="about"><b>The Noble Quran</b> · version 3.9<br>
+      A free app with no ads. It works offline, except for downloading an edition's pages and the reciter's audio the first time.</p>
+      <p class="about"><b>Privacy</b><br>
+      The app collects no data and sends nothing anywhere; it needs no account and has no ads. Your location is used and kept on the phone only, for the qibla and prayer times. Reminders and adhan alerts are prepared on the phone itself. The microphone is used only if you choose «Record yourself» in the memorisation test; the recording stays on the phone and is not saved or sent. «Recite aloud» uses the phone's own speech recognition service (usually Google's), which may send the audio to its servers; the app itself neither keeps nor sends it.
+      The internet is used only to download the pages of the edition you choose (from GitHub) and the reciter's audio from everyayah.com; both are then kept on the phone. Bookmarks, khatma and settings stay on your phone.</p>
+      <p class="about"><b>Mushafs and credits</b><br>
+      Quran text in the Uthmani script (Hafs) from quranenc.com via quran-json (CC BY-SA 4.0), checked letter by letter against the King Fahd Complex text.
+      Fonts: Amiri Quran, and Cairo for the interface (SIL OFL).
+      Tajweed colours from the quran-tajweed data (cpfair, CC BY 4.0). The ten qira'at from Ibn al-Jazari's Tahbir al-Taysir (OpenITI).
+      English translation: Saheeh International, from tanzil.net via quran-json.
+      Thematic colours from «al-Tafsil al-Mawdu'i», with the permission of Dar al-Fajr al-Islami; idea and preparation by Marwan Nour al-Din Sawar.
+      Adhkar from Hisn al-Muslim. Tafsir and i'rab from tafsir_api; word meanings from the OpenITI dictionaries. Book decompression with Google's Brotli library (MIT).
+      King Fahd edition: the printed Madinah mushaf pages of the King Fahd Complex (calligraphy by Uthman Taha).
+      Shamarly edition: the 2nd edition pages (522 pages) by Muhammad Sa'd Ibrahim (Haddad), free to copy and share for non-commercial use.
+      <span data-ed="harmain">Haramain edition: the Dar Misr (Sa'id Jouda al-Sahhar) pages.</span>
       </p>
     </details>
     <button id="closeSettings" class="primary">تم</button>

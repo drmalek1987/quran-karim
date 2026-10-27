@@ -290,7 +290,6 @@
   });
   // Mushaf page images are downloaded per edition (EdStore.java), not shipped in the app; the web build has them all.
   var ED_BASE = "https://raw.githubusercontent.com/drmalek1987/quran-karim/editions/";
-  var ED_MB = { kfgqpc: 56, shamarly: 46, harmain: 48 };
   function edReady(id) { return !window.EdBridge || EdBridge.state(id) === "ready"; }
   function needEd(id, then) {
     if (id === "text" || !EDS[id] || edReady(id)) { then(); return; }
@@ -315,19 +314,30 @@
   // Settings: each edition with its download state, to fetch or free it.
   function paintEdDl() {
     var box = document.getElementById("edDl"); if (!box) return;
-    if (!window.EdBridge) { box.parentNode.hidden = true; return; }
-    box.innerHTML = ["kfgqpc", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) {
-      var st = EdBridge.state(k);
-      return '<div class="row">' + EDS[k].name + ' <button class="btn" data-dl="' + k + '">' + (st === "ready" ? "حذف (" + ED_MB[k] + " ميجا)" : st === "busy" ? "جارٍ التنزيل…" : "تنزيل (" + ED_MB[k] + " ميجا)") + "</button></div>";
+    if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; }); return; }
+    var ids = ["kfgqpc", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }), any = false;
+    box.innerHTML = ids.map(function (k) {
+      var st = EdBridge.state(k); if (st === "ready") any = true;
+      return '<div class="dl-item"><div><b>' + EDS[k].name + "</b><small>" + (st === "ready" ? "✓ على الموبايل · " + ED_MB[k] + " ميجا" : st === "busy" ? "جارٍ التنزيل…" : "مش متنزّلة · " + ED_MB[k] + " ميجا") + "</small></div>" +
+        '<button class="btn" data-dl="' + k + '">' + (st === "ready" ? "حذف" : st === "busy" ? "…" : "تنزيل") + "</button></div>";
     }).join("");
+    document.getElementById("dlAll").hidden = !any;
     box.querySelectorAll("[data-dl]").forEach(function (b) { b.onclick = function () {
-      var k = b.dataset.dl;
-      if (EdBridge.state(k) === "ready") {
-        if (k === edition && mode === "pages") { alert("اختار مصحف تاني الأول قبل حذف ده."); return; }
-        if (confirm("تحذف صفحات " + EDS[k].name + " من الموبايل؟")) { EdBridge.remove(k); paintEdDl(); }
-      } else needEd(k, function () {});
+      var k = b.dataset.dl, st = EdBridge.state(k);
+      if (st === "ready") { if (confirm(window.LANG === "en" ? "Delete the " + T(EDS[k].name) + " pages from the phone?" : "تحذف صفحات " + EDS[k].name + " من الموبايل؟")) { EdBridge.remove(k); edGone(k); } }
+      else if (st !== "busy") needEd(k, function () {});
     }; });
   }
+  // A deleted edition that is open: the reader goes on in the text until another edition is chosen.
+  function edGone(k) {
+    if (k === edition && mode === "pages") { mode = "text"; save("mode", "text"); applySettings(); if (/^#\/p\//.test(location.hash)) location.hash = "#/"; }
+    paintEdDl();
+  }
+  document.getElementById("dlAll").onclick = function () {
+    if (!window.EdBridge || !confirm("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.")) return;
+    ["kfgqpc", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
+  };
+  var ED_MB = { kfgqpc: 43, shamarly: 31, harmain: 46 };
   // Without the pages of the chosen edition (skipped download, or deleted) the reader opens the text until one is fetched.
   if (mode === "pages" && !edReady(edition) && load("onboarded", false)) mode = "text";
   // A tap on an edition not yet on the phone downloads it first, then goes on as a normal tap.
@@ -444,7 +454,7 @@
       html += hero("سورة " + Q.s[last[0] - 1][0], "الآية " + ar(last[1]));
     } else html += hero("سورة الفاتحة", "ابدأ القراءة من أول المصحف");
     var hj = hijri(new Date()), fs = fastOf(new Date());
-    if (hj) html += '<div class="hj-bar">' + ic("moon") + "<span>" + new Date().toLocaleDateString("ar-EG", { weekday: "long" }) + " " + hj.text + "</span>" + (fs ? "<small>يُستحب صيامه: " + fs + "</small>" : "") + "</div>";
+    if (hj) html += '<div class="hj-bar">' + ic("moon") + "<span>" + new Date().toLocaleDateString(window.LANG === "en" ? "en-GB" : "ar-EG", { weekday: "long" }) + " " + hj.text + "</span>" + (fs ? "<small>يُستحب صيامه: " + fs + "</small>" : "") + "</div>";
     html += '<div class="home-row"><button class="mini" id="tPrayer">' + ic("clock") + "<span>" + prayerTileText() + "</span></button>" + goalCard() + "</div>";
     html += khatmaCard();
     view.innerHTML = html + '<div id="idx"></div>';
@@ -2155,7 +2165,7 @@
     try {
       var parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(d), o = {};
       parts.forEach(function (x) { if (x.type !== "literal") o[x.type] = parseInt(x.value, 10); });
-      o.text = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(d);
+      o.text = new Intl.DateTimeFormat(window.LANG === "en" ? "en-u-ca-islamic-umalqura" : "ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(d);
       return o;
     } catch (e) { return null; }
   }
