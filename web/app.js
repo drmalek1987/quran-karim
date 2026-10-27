@@ -154,8 +154,8 @@
   var EDS = {
     harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0 }
   };
-  if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", min: 1 }, window.ED_KFGQPC);
-  if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", min: 2 }, window.ED_SHAMARLY);
+  if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1 }, window.ED_KFGQPC);
+  if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2 }, window.ED_SHAMARLY);
   // The Google Play build leaves out the scanned edition, which has no publishing licence (build.sh with PLAY=1 sets this in flags.js).
   if (window.NO_HARMAIN) { delete EDS.harmain; document.querySelectorAll('[data-ed="harmain"]').forEach(function (x) { x.remove(); }); }
   var edition = load("edition", "kfgqpc");
