@@ -150,8 +150,7 @@
   // Each edition: its page images (dir), the page of every ayah (p) and the ayah's boxes on its page (r: [page, x0, y0, x1, y1]
   // in per-mille of the page), the pages of the Quran text (first..last) and the page numbers that exist (min..count-1).
   // طبعة الحرمين = the scanned PDF (web/pages, data in quran-data.js); طبعة الملك فهد = drawn from the King Fahd Complex
-  // page fonts by tools/kfgqpc (web/editions/kfgqpc, data in editions/kfgqpc.js); طبعة الشمرلي = typeset with the Complex's
-  // Hafs font to the Shamarly page and line layout by tools/shamarly (web/editions/shamarly, pages 2..522).
+  // and طبعة الشمرلي = the printed PDFs (web/editions/<id>, data in editions/<id>.js; Shamarly pages 2..522), downloaded per edition.
   var EDS = {
     harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0 }
   };
