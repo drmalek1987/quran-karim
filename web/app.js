@@ -337,7 +337,7 @@
     if (!window.EdBridge || !confirm("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.")) return;
     ["kfgqpc", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
   };
-  var ED_MB = { kfgqpc: 43, shamarly: 31, harmain: 46 };
+  var ED_MB = { kfgqpc: 52, shamarly: 39, harmain: 46 };
   // Without the pages of the chosen edition (skipped download, or deleted) the reader opens the text until one is fetched.
   if (mode === "pages" && !edReady(edition) && load("onboarded", false)) mode = "text";
   // A tap on an edition not yet on the phone downloads it first, then goes on as a normal tap.
