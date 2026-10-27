@@ -85,6 +85,14 @@ public class MainActivity extends Activity {
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
                 String url = req.getUrl().toString();
                 if (url.startsWith(AudioCache.PREFIX)) return audio.serve(url);
+                // Tafsir and other books are stored Brotli-compressed in the APK (tools/brotli_books.py).
+                if (url.startsWith(EdStore.ASSET + "books/") && url.endsWith(".js")) {
+                    try {
+                        String rel = Uri.decode(url.substring("file:///android_asset/".length()));
+                        return new WebResourceResponse("application/javascript", "utf-8",
+                            new org.brotli.dec.BrotliInputStream(getAssets().open(rel + ".br")));
+                    } catch (Exception e) { return null; }
+                }
                 return eds != null ? eds.serve(url) : null;
             }
 

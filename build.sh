@@ -33,14 +33,18 @@ for ED in kfgqpc shamarly harmain; do
 done
 ls -la "$OUT/editions-zips"
 
+python3 -I "$HERE/tools/brotli_books.py" "$OUT/assets/web/books"
+
 "$BT/aapt2" compile --dir "$HERE/android/res" -o "$OUT/res.zip"
 "$BT/aapt2" link -o "$OUT/unsigned.apk" -I "$ANDROID_JAR" \
   --manifest "$HERE/android/AndroidManifest.xml" \
-  --min-sdk-version 21 --target-sdk-version 36 \
+  -0 br --min-sdk-version 21 --target-sdk-version 36 \
   -A "$OUT/assets" --java "$OUT/gen" "$OUT/res.zip"
 
-javac -nowarn -Xlint:-options --release 8 -cp "$ANDROID_JAR" -d "$OUT/classes" \
+LIBS=$(ls "$HERE"/android/libs/*.jar | tr '\n' ':')
+javac -nowarn -Xlint:-options --release 8 -cp "$ANDROID_JAR:$LIBS" -d "$OUT/classes" \
   $(find "$HERE/android/src" "$OUT/gen" -name '*.java')
+for j in "$HERE"/android/libs/*.jar; do (cd "$OUT/classes" && unzip -qo "$j" '*.class'); done
 "$BT/dx" --dex --output="$OUT/classes.dex" "$OUT/classes"
 (cd "$OUT" && zip -q -j unsigned.apk classes.dex)
 
