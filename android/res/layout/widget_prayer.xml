@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/wp_root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="14dp" android:background="@drawable/widget_bg"
+    android:gravity="center" android:layoutDirection="rtl">
+    <TextView android:id="@+id/wp_label" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="الصلاة القادمة" android:textColor="#ffe0b44a" android:textSize="12sp" android:textStyle="bold" android:gravity="center" />
+    <TextView android:id="@+id/wp_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#ffffffff" android:textSize="26sp" android:textStyle="bold" android:gravity="center" />
+    <TextView android:id="@+id/wp_time" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#e6ffffff" android:textSize="15sp" android:gravity="center" />
+    <Chronometer android:id="@+id/wp_left" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="4dp" android:textColor="#ffffffff" android:textSize="20sp" android:gravity="center" />
+    <TextView android:id="@+id/wp_place" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#b3ffffff" android:textSize="11sp" android:gravity="center" />
+</LinearLayout>

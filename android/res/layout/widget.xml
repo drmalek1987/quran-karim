@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="14dp" android:background="@drawable/widget_bg"
+    android:layoutDirection="rtl">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="آية اليوم" android:textColor="#ffe0b44a" android:textSize="12sp" android:textStyle="bold" android:gravity="start" />
+    <TextView android:id="@+id/w_ayah" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:textColor="#ffffffff" android:textSize="17sp" android:gravity="center" android:maxLines="5" android:ellipsize="end"
+        android:lineSpacingMultiplier="1.15" android:layout_marginTop="4dp" />
+    <TextView android:id="@+id/w_ref" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#ccffffff" android:textSize="11sp" android:gravity="center" />
+    <TextView android:id="@+id/w_cont" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:background="@drawable/widget_btn"
+        android:textColor="#ff0f6b4f" android:textSize="13sp" android:textStyle="bold" android:gravity="center" />
+</LinearLayout>

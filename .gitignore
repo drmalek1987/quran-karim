@@ -1,0 +1,11 @@
+build/
+*.apk
+*.idsig
+*.aab
+keys/
+*.keystore
+*.jks
+source/
+web/editions/*/
+web/pages/
+web/tjpages/

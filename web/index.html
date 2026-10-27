@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a4535">
+<title>القرآن الكريم</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <button id="btnBack" class="icon-btn" aria-label="رجوع" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+  <h1 id="title">القرآن الكريم</h1>
+  <button id="btnIndex" class="icon-btn idx-btn" aria-label="الفهرس"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>الفهرس</button>
+  <button id="btnAuto" class="icon-btn auto-btn" aria-label="تمرير تلقائي"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v13M6 11l6 6 6-6M5 21h14"/></svg></button>
+  <button id="btnSearch" class="icon-btn" aria-label="بحث"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+  <button id="btnSettings" class="icon-btn" aria-label="الإعدادات"><svg class="ic" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
+</header>
+
+<main id="view"></main>
+
+<div id="index" class="index-page" hidden>
+  <header class="bar">
+    <button id="closeIndex" class="icon-btn" aria-label="إغلاق"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <h1>فهرس السور</h1>
+  </header>
+  <main id="indexBody"></main>
+</div>
+
+<div id="settings" class="sheet" hidden>
+  <div class="sheet-body">
+    <h2>الإعدادات</h2>
+    <h3 class="set-group">القراءة</h3>
+    <div class="row row-col">المصحف
+      <div class="seg seg-wrap" id="mode">
+        <button data-v="kfgqpc">طبعة الملك فهد</button>
+        <button data-v="shamarly">طبعة الشمرلي</button>
+        <button data-v="harmain" data-ed="harmain">طبعة الحرمين</button>
+        <button data-v="text">نص</button>
+      </div>
+    </div>
+    <div class="row row-col">صفحات المصاحف على الموبايل
+      <div id="edDl"></div>
+    </div>
+    <div class="row row-col">طريقة التقليب
+      <div class="seg seg-wrap" id="flip">
+        <button data-v="curl">ثني الورقة</button>
+        <button data-v="slide">انزلاق أفقي</button>
+        <button data-v="off">أفقي بدون تأثير</button>
+        <button data-v="v">عمودي</button>
+      </div>
+    </div>
+    <div class="row">صفحتان متجاورتان على التابلت بالعرض
+      <div class="seg" id="spreadSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
+    <div class="row">الترجمة الإنجليزية تحت الآيات
+      <div class="seg" id="trSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
+    <h3 class="set-group">لون الصفحة</h3>
+    <div class="row">لون صفحة المصحف
+      <div class="swatches" id="pageBg">
+        <button data-v="#fbf7ee" style="background:#fbf7ee" aria-label="ورقي"></button>
+        <button data-v="#ffffff" style="background:#ffffff" aria-label="أبيض"></button>
+        <button data-v="#f4ecd8" style="background:#f4ecd8" aria-label="كريمي"></button>
+        <button data-v="#c8c8c8" style="background:#c8c8c8" aria-label="رمادي"></button>
+        <button data-v="#4d4d4d" style="background:#4d4d4d" aria-label="رمادي داكن"></button>
+        <button data-v="#12161a" style="background:#12161a" aria-label="ليلي"></button>
+        <button data-v="#000000" style="background:#000000" aria-label="أسود"></button>
+        <label aria-label="لون من اختيارك"><input type="color" id="pageBgPick"></label>
+      </div>
+    </div>
+    <div class="row">ألوان التجويد
+      <div class="seg" id="tjSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
+    <label class="row">حجم خط النص
+      <input id="fontSize" type="range" min="18" max="48" step="1">
+    </label>
+    <div class="row">مظهر التطبيق
+      <div class="seg" id="theme">
+        <button data-v="auto">زي الموبايل</button>
+        <button data-v="sun">مع المغرب</button>
+        <button data-v="light">فاتح</button>
+        <button data-v="dark">داكن</button>
+      </div>
+    </div>
+    <h3 class="set-group">الصوت والتطبيق</h3>
+    <div class="row">القارئ
+      <select id="reciter" class="sel-field" aria-label="القارئ"></select>
+    </div>
+    <div class="row row-col">اهتزاز عند الضغط على الأزرار والآيات
+      <div class="seg" id="hapticSet">
+        <button data-v="0">إيقاف</button>
+        <button data-v="1">خفيف</button>
+        <button data-v="2">متوسط</button>
+        <button data-v="3">قوي</button>
+      </div>
+    </div>
+    <div class="row row-col">نسخة احتياطية (العلامات والختمة والملاحظات والحفظ والإعدادات)
+      <div class="seg">
+        <button id="bkOut">حفظ نسخة</button>
+        <button id="bkIn">استرجاع</button>
+      </div>
+      <input type="file" id="bkFile" accept="application/json,.json" hidden>
+    </div>
+    <div class="row">لغة التطبيق
+      <div class="seg" id="langSet">
+        <button data-v="ar">العربية</button>
+        <button data-v="en">English</button>
+      </div>
+    </div>
+    <details class="about-box">
+      <summary>حول التطبيق</summary>
+      <p class="about"><b>القرآن الكريم</b> · الإصدار 3.9<br>
+      تطبيق مجاني بدون إعلانات، يعمل بدون إنترنت (ما عدا تحميل صوت القارئ أول مرة).</p>
+      <p class="about"><b>الخصوصية</b><br>
+      التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» يستخدم خدمة التعرّف على الكلام الموجودة في الموبايل (غالبًا من جوجل)، وقد ترسل الصوت لخوادمها لتحويله لكلام، والتطبيق نفسه لا يحفظ الصوت ولا يرسله.
+      الإنترنت يُستخدم فقط لتحميل صوت القارئ من everyayah.com، ثم يُحفظ على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط.</p>
+      <p class="about"><b>المصاحف وحقوق النشر</b><br>
+      النص القرآني بالرسم العثماني (رواية حفص) من موسوعة القرآن الكريم quranenc.com أسماء السور في ترويسات طبعتي الملك فهد والشمرلي بخط Surah Name V4 لأحمد علاء الغريب.
+      عبر مشروع quran-json (رخصة CC BY-SA 4.0)، وقد طوبق حرفًا بحرف مع نص مجمع الملك فهد لطباعة المصحف الشريف.
+      الخط: Amiri Quran وخط الواجهة Cairo (رخصة SIL OFL).
+      ألوان التجويد من بيانات مشروع quran-tajweed (cpfair، رخصة CC BY 4.0) بنسخة quran-tajweed-embedded، مطابَقة حرفًا بحرف على نص المصحف.
+      القراءات العشر وأصولها من «تحبير التيسير في القراءات العشر» لابن الجزري من مدوّنة OpenITI.
+      الترجمة الإنجليزية: ترجمة Saheeh International من مشروع tanzil.net عبر quran-json.
+      البلاغة من أقسام «البلاغة» في «إعراب القرآن وبيانه» لمحيي الدين درويش. المتشابهات من بيانات Quran_Mutashabihat_Data (رخصة CC0).
+      ألوان التجويد على طبعتي الملك فهد والشمرلي مرسومة من نفس بيانات التجويد المفتوحة.
+      الأذكار من «حصن المسلم»، وآياتها بصوت القارئ المختار، وباقيها بالصوت العربي الموجود على الجهاز (Text-to-Speech).
+      التفاسير والإعراب من مشروع tafsir_api، ومعاني الكلمات من نصوص المعاجم في مدوّنة OpenITI، وجذور الكلمات من مدوّنة القرآن العربية (Quranic Arabic Corpus).
+      طبعة الملك فهد: مصحف المدينة النبوية (طبعة ١٤٢١هـ، بخط عثمان طه) مرسوم من خطوط صفحات مجمع الملك فهد لطباعة المصحف الشريف، والمجمع يأذن باستخدام خطوطه مجانًا في البرامج والنشر الرقمي، وترتيب الأسطر من مشروع mushaf-layout.
+      طبعة الشمرلي: ٥٢٢ صفحة على ترتيب طبعة الشمرلي (كل آية تنتهي في نفس الصفحة والسطر)، مكتوبة بخط حفص لمجمع الملك فهد المأذون باستخدامه، ومواضع نهايات الآيات من مشروع Shamarly المفتوح.
+      <span data-ed="harmain">طبعة الحرمين: صفحات نسخة دار مصر للطباعة (سعيد جودة السحار) المرفوعة. البحث ينقل إلى صفحة الآية نفسها ويظللها بالأصفر فوق الصورة.</span>
+      </p>
+    </details>
+    <button id="closeSettings" class="primary">تم</button>
+  </div>
+</div>
+
+<script src="flags.js"></script>
+<script src="i18n.js"></script>
+<script src="quran-data.js"></script>
+<script src="editions/kfgqpc.js"></script>
+<script src="editions/shamarly.js"></script>
+<script src="azkar.js"></script>
+<script src="duas.js"></script>
+<script src="topics.js"></script>
+<script src="books/index.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
