@@ -83,6 +83,14 @@
         <button data-v="off">إيقاف</button>
       </div>
     </div>
+    <div class="row row-col">ألوان المصحف الموضوعي (على صفحات المصحف)
+      <div class="seg" id="thmSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+      <details class="thm-key"><summary>معاني الألوان</summary><ul id="thmLegend"></ul>
+        <p class="hint">تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. كل موضوع بدرجتين من لونه عشان يبان أوله وآخره.</p></details>
+    </div>
     <label class="row">حجم خط النص
       <input id="fontSize" type="range" min="18" max="48" step="1">
     </label>
@@ -149,6 +157,7 @@
 <script src="flags.js"></script>
 <script src="i18n.js"></script>
 <script src="quran-data.js"></script>
+<script src="thematic.js"></script>
 <script src="editions/kfgqpc.js"></script>
 <script src="editions/shamarly.js"></script>
 <script src="azkar.js"></script>

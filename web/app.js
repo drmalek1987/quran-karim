@@ -234,6 +234,7 @@
     document.querySelectorAll("#mode button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (mode === "text" ? "text" : edition)); });
     document.querySelectorAll("#flip button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (turnMode === "v" ? "v" : flipMode)); });
     document.querySelectorAll("#tjSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === tjOn); });
+    document.querySelectorAll("#thmSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === thmOn); });
     document.querySelectorAll("#trSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === trOn); });
     document.querySelectorAll("#langSet button").forEach(function (b) {
     b.classList.toggle("on", b.dataset.v === (window.LANG || "ar"));
@@ -358,6 +359,16 @@
       if (/^#\/(s|a)\//.test(location.hash)) { var keep = window.scrollY; route(); sheet.hidden = false; window.scrollTo(0, keep); }
     });
   });
+  document.querySelectorAll("#thmSet button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      thmOn = b.dataset.v === "on"; save("thematic", thmOn); applySettings();
+      if (/^#\/p\//.test(location.hash)) { route(); sheet.hidden = false; }
+    });
+  });
+  setTimeout(function () {
+    var lg = document.getElementById("thmLegend"); if (!lg) return;
+    lg.innerHTML = THM_NAMES.map(function (t, i) { return '<li><i style="background:linear-gradient(90deg,' + THM_COL[i][0] + " 50%," + THM_COL[i][1] + ' 50%)"></i>' + t + "</li>"; }).join("");
+  }, 0);
   document.querySelectorAll("#trSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       trOn = b.dataset.v === "on"; save("translation", trOn); applySettings();
@@ -669,7 +680,22 @@
   // Tajweed colours on the scan: a transparent layer with the ink of each tajweed letter recoloured
   // (tools/page_geometry/tajweed_pages.py). Shown when the setting is on (CSS, :root.tjpg).
   function tjLayer(n) {
-    return EDS[edition].tj && n >= Q.first && n <= Q.last ? '<img class="tjo" alt="" loading="lazy" src="' + EDS[edition].tj + pad(n) + '.webp" onerror="this.remove()">' : "";
+    return (EDS[edition].tj && n >= Q.first && n <= Q.last ? '<img class="tjo" alt="" loading="lazy" src="' + EDS[edition].tj + pad(n) + '.webp" onerror="this.remove()">' : "") + thmLayer(n);
+  }
+  // «التفصيل الموضوعي» colours (thematic.js, Dar al-Fajr al-Islami): each ayah's boxes tinted by its topic colour.
+  var thmOn = load("thematic", false), thmPages = null, thmEd = null;
+  var THM_COL = [["#e6f6fa", "#c9ebf2"], ["#e9f5e6", "#cfeac6"], ["#f8dde0", "#efbfc3"], ["#fdf8dc", "#fbefaa"], ["#ece3f0", "#d8c9e8"], ["#fee4d4", "#fdcdb0"], ["#fde3ef", "#f9cadf"]];
+  var THM_NAMES = ["آيات الله في الكون والأنفس، وفضله على عباده", "النبي ﷺ والمؤمنون وجزاؤهم والجنة", "آيات الأحكام", "قصص الرسل والأنبياء والأمم السابقة", "القرآن الكريم، وصفات الإنسان، والرد على المشركين، وسنة الله في خلقه", "يوم القيامة وعلاماته، والموت والقبر والحساب والحشر والبعث", "جهنم وأوصافها، وعذاب المشركين والكافرين فيها"];
+  function thmLayer(n) {
+    if (!thmOn || !window.THEMATIC || !Q.r) return "";
+    if (thmEd !== edition || !thmPages) {
+      thmPages = {}; thmEd = edition;
+      Q.r.forEach(function (sur, si) { sur.forEach(function (bs, ai) { (bs || []).forEach(function (b) { (thmPages[b[0]] = thmPages[b[0]] || []).push([si, ai, b]); }); }); });
+    }
+    return (thmPages[n] || []).map(function (x) {
+      var k = THEMATIC[x[0]].charCodeAt(x[1]) - 97, b = x[2]; if (!(k >= 0)) return "";
+      return '<i class="thm" style="background:' + THM_COL[k >> 1][k & 1] + ";left:" + b[1] / 10 + "%;top:" + b[2] / 10 + "%;width:" + (b[3] - b[1]) / 10 + "%;height:" + (b[4] - b[2]) / 10 + '%"></i>';
+    }).join("");
   }
   // Tablet held sideways: two pages side by side like an open mushaf (the even page on the right, as printed: 2-3, 4-5, ...).
   function spreadOn() { return mode === "pages" && spreadPref && window.innerWidth > window.innerHeight && window.innerWidth >= 900 && window.innerHeight >= 500; }

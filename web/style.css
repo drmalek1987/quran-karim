@@ -921,3 +921,10 @@ body.has-tabs .player { bottom: 70px; }
 
 /* full screen on the mushaf (a tap on the page) */
 body.fs .bar, body.fs #tabbar, body.fs .page-tools, body.fs .page-nav, body.fs .vbar, body.fs .player { display: none !important; }
+
+/* «التفصيل الموضوعي» topic colours over the page (app.js thmLayer) */
+.page-box .thm { position: absolute; mix-blend-mode: multiply; pointer-events: none; opacity: .9; }
+.thm-key summary { cursor: pointer; margin-top: 8px; font-size: 14px; }
+.thm-key ul { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 6px; font-size: 13px; }
+.thm-key li { display: flex; gap: 8px; align-items: flex-start; }
+.thm-key li i { flex: none; width: 34px; height: 16px; border-radius: 4px; border: 1px solid #0002; margin-top: 2px; }
