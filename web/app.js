@@ -703,6 +703,12 @@
   var thmOn = load("thematic", false), thmPages = null, thmEd = null;
   var THM_COL = [["#e6f6fa", "#c9ebf2"], ["#e9f5e6", "#cfeac6"], ["#f8dde0", "#efbfc3"], ["#fdf8dc", "#fbefaa"], ["#ece3f0", "#d8c9e8"], ["#fee4d4", "#fdcdb0"], ["#fde3ef", "#f9cadf"]];
   var THM_NAMES = ["آيات الله في الكون والأنفس، وفضله على عباده", "النبي ﷺ والمؤمنون وجزاؤهم والجنة", "آيات الأحكام", "قصص الرسل والأنبياء والأمم السابقة", "القرآن الكريم، وصفات الإنسان، والرد على المشركين، وسنة الله في خلقه", "يوم القيامة وعلاماته، والموت والقبر والحساب والحشر والبعث", "جهنم وأوصافها، وعذاب المشركين والكافرين فيها"];
+  // The colour key under the pages, while the thematic colours are on.
+  function thmKey() {
+    if (!thmOn || !window.THEMATIC) return "";
+    return '<details class="thm-key page-thm"><summary>معاني ألوان المصحف الموضوعي</summary><ul>' + THM_NAMES.map(function (t, i) {
+      return '<li><i style="background:linear-gradient(90deg,' + THM_COL[i][0] + " 50%," + THM_COL[i][1] + ' 50%)"></i>' + t + "</li>"; }).join("") + "</ul></details>";
+  }
   function thmLayer(n) {
     if (!thmOn || !window.THEMATIC || !Q.r) return "";
     if (thmEd !== edition || !thmPages) {
@@ -729,7 +735,7 @@
     document.body.classList.add("vread");
     for (var p = Q.min; p < Q.count; p++)
       html += '<div class="page-box vp" data-p="' + p + '" style="padding-top:' + ratio + '%"><img loading="lazy" alt="صفحة ' + p + '" src="' + ed.dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
-    view.innerHTML = html + '</div><div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
+    view.innerHTML = html + "</div>" + thmKey() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
       '</button><button id="vDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>";
     var list = view.querySelector(".vpages"), hl0 = hl;
     function boxOf(p) { return list.querySelector('.page-box[data-p="' + p + '"]'); }
@@ -859,7 +865,7 @@
     view.innerHTML = cap + '<div class="page-wrap' + (sp ? " spread" : "") + '">' + (sp ? '<div class="spread-row">' : "") + pages.map(function (p) {
         return '<div class="page-box" data-p="' + p + '"><img' + (p === n ? ' id="pg"' : "") + ' alt="صفحة ' + p + '" src="' + EDS[edition].dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
       }).join("") + (sp ? "</div>" : "") + "</div>" +
-      '<div class="page-tools"><button id="pHifz">' + ic(hifz.on ? "eye" : "eyeoff") + (hifz.on ? "إنهاء وضع الحفظ" : "وضع الحفظ") + '</button><button id="pMark">' + ic("mark") + 'علامة على هذه الصفحة</button><a class="tj-key" href="#/tajweed">' + ic("book") + "دليل ألوان التجويد</a></div>" +
+      '<div class="page-tools"><button id="pHifz">' + ic(hifz.on ? "eye" : "eyeoff") + (hifz.on ? "إنهاء وضع الحفظ" : "وضع الحفظ") + '</button><button id="pMark">' + ic("mark") + 'علامة على هذه الصفحة</button><a class="tj-key" href="#/tajweed">' + ic("book") + "دليل ألوان التجويد</a></div>" + thmKey() +
       '<p class="page-info">' + info + "</p>" +
       '<div class="page-nav"><button id="pPrev">' + ic("right") + 'السابقة</button><input id="pNum" type="number" inputmode="numeric" min="' + Q.min + '" max="' + (Q.count - 1) +
       '" value="' + n + '"><button id="pNext">التالية' + ic("left") + '</button>' +

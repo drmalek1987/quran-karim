@@ -946,3 +946,9 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
 .dl-box[open] > summary::after { transform: rotate(180deg); }
 .dl-p { display: block; height: 6px; border-radius: 3px; background: #0002; overflow: hidden; margin: 6px 0 2px; min-width: 120px; }
 .dl-p i { display: block; height: 100%; background: #2e7d5b; transition: width .3s; }
+.page-thm { margin: 6px 12px; padding: 4px 12px; border-radius: 12px; background: var(--card, #fff); }
+/* Vertical reading: listen and night buttons keep their look in every theme and page colour */
+.vbar button { width: 46px; height: 46px; border: 0; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: var(--gold-soft); color: var(--gold); box-shadow: 0 2px 8px #0003; filter: none !important; mix-blend-mode: normal; -webkit-appearance: none; appearance: none; }
+.vbar .play-btn { background: var(--grad); color: #fff; }
+.vbar .ic { width: 22px; height: 22px; }

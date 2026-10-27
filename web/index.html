@@ -8,6 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
+<script>
+  // The chosen look is set before anything is drawn, so a reload (e.g. after a language change) never shows the light theme first.
+  try { var th = JSON.parse(localStorage.getItem("q.theme") || '"auto"'); if (th === "light" || th === "dark") document.documentElement.setAttribute("data-theme", th); } catch (e) {}
+</script>
 </head>
 <body>
 <header class="bar">
@@ -137,6 +141,13 @@
       <p class="about"><b>الخصوصية</b><br>
       التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» يستخدم خدمة التعرّف على الكلام الموجودة في الموبايل (غالبًا من جوجل)، وقد ترسل الصوت لخوادمها لتحويله لكلام، والتطبيق نفسه لا يحفظ الصوت ولا يرسله.
       الإنترنت يُستخدم فقط لتحميل صفحات الطبعة اللي تختارها (من GitHub) وصوت القارئ من everyayah.com، وبعدها يتحفظوا على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط.</p>
+      <p class="about"><b>أذونات التطبيق</b><br>
+      الإنترنت: لتحميل صفحات الطبعات وصوت القارئ.<br>
+      الموقع (تقريبي ودقيق): لاتجاه القبلة ومواقيت الصلاة، ويُطلب فقط لما تدوس «حدّد موقعك».<br>
+      الإشعارات: للأذان والتذكيرات.<br>
+      المنبّهات الدقيقة والتشغيل مع بدء الموبايل: عشان الأذان والتذكيرات تيجي في وقتها حتى بعد إعادة تشغيل الموبايل.<br>
+      الميكروفون وإعدادات الصوت: لـ«سجّل تلاوتك» و«التسميع بالصوت» فقط، ويُطلب وقت ما تستخدمهم.<br>
+      الاهتزاز: لاهتزاز خفيف عند اللمس (تقدر تقفله من الإعدادات).</p>
       <p class="about"><b>المصاحف وحقوق النشر</b><br>
       النص القرآني بالرسم العثماني (رواية حفص) من موسوعة القرآن الكريم quranenc.com
       عبر مشروع quran-json (رخصة CC BY-SA 4.0)، وقد طوبق حرفًا بحرف مع نص مجمع الملك فهد لطباعة المصحف الشريف.
@@ -162,6 +173,13 @@
       <p class="about"><b>Privacy</b><br>
       The app collects no data and sends nothing anywhere; it needs no account and has no ads. Your location is used and kept on the phone only, for the qibla and prayer times. Reminders and adhan alerts are prepared on the phone itself. The microphone is used only if you choose «Record yourself» in the memorisation test; the recording stays on the phone and is not saved or sent. «Recite aloud» uses the phone's own speech recognition service (usually Google's), which may send the audio to its servers; the app itself neither keeps nor sends it.
       The internet is used only to download the pages of the edition you choose (from GitHub) and the reciter's audio from everyayah.com; both are then kept on the phone. Bookmarks, khatma and settings stay on your phone.</p>
+      <p class="about"><b>App permissions</b><br>
+      Internet: to download edition pages and the reciter's audio.<br>
+      Location (approximate and precise): for the qibla and prayer times, asked only when you tap «Set your location».<br>
+      Notifications: for the adhan and reminders.<br>
+      Exact alarms and start at boot: so the adhan and reminders come on time, even after the phone restarts.<br>
+      Microphone and audio settings: only for «Record yourself» and «Recite aloud», asked when you use them.<br>
+      Vibration: a light buzz on taps (can be turned off in Settings).</p>
       <p class="about"><b>Mushafs and credits</b><br>
       Quran text in the Uthmani script (Hafs) from quranenc.com via quran-json (CC BY-SA 4.0), checked letter by letter against the King Fahd Complex text.
       Fonts: Amiri Quran, and Cairo for the interface (SIL OFL).
