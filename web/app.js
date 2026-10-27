@@ -294,11 +294,11 @@
   // A download starts at once and runs in the background; Settings › التحميلات shows its progress. One at a time
   // (EdStore), so later picks wait in a queue. When the pages arrive, the pick that asked for them goes on.
   var edQ = [], edPct = {}, edThen = {};
-  function needEd(id, then) {
+  function needEd(id, then, quiet) {
     if (id === "text" || !EDS[id] || edReady(id)) { then(); return; }
     edThen[id] = then;
     if (edQ.indexOf(id) < 0) edQ.push(id);
-    toast(window.LANG === "en" ? "Downloading " + T(EDS[id].name) + ". Follow it in Settings › Downloads." : "بدأ تنزيل " + EDS[id].name + "، تقدر تتابعه من الإعدادات › التحميلات");
+    if (!quiet) toast(window.LANG === "en" ? "Downloading " + T(EDS[id].name) + ". Follow it in Settings › Downloads." : "بدأ تنزيل " + EDS[id].name + "، تقدر تتابعه من الإعدادات › التحميلات");
     edNext(); paintEdDl();
   }
   function edNext() {
@@ -313,9 +313,13 @@
       else { edPct[e] = -1; toast(window.LANG === "en" ? "The download failed. Check the internet and try again." : "التنزيل فشل. اتأكد من الإنترنت وحاول تاني."); }
       paintEdDl(); edNext(); return;
     }
+    var s = document.querySelector('[data-dlp="' + e + '"]');
+    if (v === "wait") { if (s) s.nextElementSibling.textContent = "النت فاصل، التنزيل هيكمّل لوحده…"; return; }
     edPct[e] = v;
-    var s = document.querySelector('[data-dlp="' + e + '"]'); if (s) { s.querySelector("i").style.width = v + "%"; s.nextElementSibling.textContent = v + "%"; }
+    if (s) { s.querySelector("i").style.width = v + "%"; s.nextElementSibling.textContent = v + "%"; }
   };
+  // A download cut off when the app was closed goes on by itself from where it stopped.
+  setTimeout(function () { if (window.EdBridge) ["kfgqpc", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "part") needEd(k, function () {}, true); }); }, 1500);
   // Settings: each edition with its download state, to fetch or free it.
   function paintEdDl() {
     var box = document.getElementById("edDl"); if (!box) return;
