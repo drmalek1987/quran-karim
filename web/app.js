@@ -289,7 +289,7 @@
     });
   });
   // Mushaf page images are downloaded per edition (EdStore.java), not shipped in the app; the web build has them all.
-  var ED_BASE = "https://github.com/OWNER/REPO/releases/download/editions-v1/";
+  var ED_BASE = "https://raw.githubusercontent.com/drmalek1987/quran-karim/editions/";
   var ED_MB = { kfgqpc: 56, shamarly: 46, harmain: 48 };
   function edReady(id) { return !window.EdBridge || EdBridge.state(id) === "ready"; }
   function needEd(id, then) {
