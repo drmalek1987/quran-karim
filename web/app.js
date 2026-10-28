@@ -1594,20 +1594,51 @@
     rd.done = fin ? 0 : ws.length;
     if (!rd.s) {
       rd.heard = rd.heard.concat(fresh).slice(-14);
-      if (rd.heard.length < 3) return;
-      var near = voiceAyahs(rd.heard.join(" "));
-      if (!near.length || near[0][0] < 0.75 || (near[1] && near[1][0] === near[0][0] && near[1][4] === near[0][4] && near[1][3] === near[0][3])) return;
-      rd.w = 0; rd.s = near[0][1]; rd.a = near[0][2]; fresh = rd.heard; rd.heard = [];
+      if (rd.heard.length < 4) return;
+      // ayahs on the open page are the likeliest; a found ayah must stand clear of the next best
+      var m = /^#\/p\/(\d+)/.exec(location.hash), op = m ? +m[1] : 0;
+      var near = voiceAyahs(rd.heard.join(" ")).map(function (x) { var pg = pageOf(x[1], x[2]); return [x[0] + (op && (pg === op || pg === op + 1) ? 0.15 : 0)].concat(x.slice(1)); })
+        .sort(function (x, y) { return y[0] - x[0] || y[4] - x[4] || y[3] - x[3]; });
+      if (!near.length || near[0][0] < 0.7 || (near[1] && near[0][0] - near[1][0] < 0.1)) return;
+      rd.w = 0; rd.s = near[0][1]; rd.a = near[0][2]; fresh = rd.heard; rd.heard = []; rd.miss = 0;
       toast("سورة " + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a));
       rdGo(rd.s, rd.a);
     }
     fresh.forEach(function (hw) {
-      var aw = rdWords(rd.s, rd.a).map(norm);
-      for (var j = rd.w; j < Math.min(aw.length, rd.w + 4); j++) if (rdSame(hw, aw[j])) { rd.w = j + 1; break; }
-      if (rd.w >= aw.length) rdNext();
+      var aw = rdWords(rd.s, rd.a).map(norm), hit = false;
+      for (var j = rd.w; j < Math.min(aw.length, rd.w + 4); j++) if (rdSame(hw, aw[j])) { rd.w = j + 1; hit = true; break; }
+      // the reader may already be in the next ayah (the end of this one was missed)
+      if (!hit && rd.w >= aw.length - 3 && rd.a < Q.s[rd.s - 1][3]) {
+        var nw = rdWords(rd.s, rd.a + 1).map(norm);
+        for (var k = 0; k < Math.min(3, nw.length); k++) if (rdSame(hw, nw[k])) { rdNext(); rd.w = k + 1; hit = true; break; }
+      }
+      rd.miss = hit ? 0 : (rd.miss || 0) + 1;
+      if (rd.w >= aw.length && hit) rdNext();
     });
-    if (rd.s && rd.w >= rdWords(rd.s, rd.a).length) rd.w = rdWords(rd.s, rd.a).length - 1;
+    // lost: many words that fit nowhere near; look for the place again from what is heard next
+    if (rd.miss >= 8) { rd.s = 0; rd.heard = []; rd.miss = 0; }
+    if (rd.s && rd.w >= rdWords(rd.s, rd.a).length) rdNext();
     rdPaint();
+  }
+  // Of the recogniser's guesses, the one that fits the ayah being read best (or, before it is found, any ayah best).
+  function rdPick(alts) {
+    if (alts.length < 2) return alts[0];
+    var best = alts[0], bs = -1;
+    alts.forEach(function (t) {
+      var ws = norm(t).split(/\s+/).filter(Boolean), sc = 0;
+      if (rd.s) { var aw = rdWords(rd.s, rd.a).concat(rd.a < Q.s[rd.s - 1][3] ? rdWords(rd.s, rd.a + 1) : []).map(norm); ws.forEach(function (w) { if (aw.some(function (x) { return rdSame(w, x); })) sc++; }); }
+      else { var n = voiceAyahs(rd.heard.concat(ws).join(" ")); sc = n.length ? n[0][0] : 0; }
+      if (sc > bs) { bs = sc; best = t; }
+    });
+    return best;
+  }
+  // The open page's ayahs, given to the recogniser so it expects these words.
+  function rdHints() {
+    if (!window.ReciteBridge || !ReciteBridge.setHints) return;
+    var m = /^#\/p\/(\d+)/.exec(location.hash), p = m ? +m[1] : 0, out = [];
+    if (!p) return;
+    for (var si = 0; si < 114; si++) for (var ai = 0; ai < Q.s[si][3]; ai++) { var r = Q.r[si] && Q.r[si][ai]; if (r && r.some(function (b) { return b[0] === p || b[0] === p + 1; })) out.push(norm(Q.q[si][ai])); }
+    try { ReciteBridge.setHints(out.join("\n")); } catch (e) {}
   }
   function rdStop() { if (!rd.on) return; rd.on = false; try { ReciteBridge.stop(); } catch (e) {} rdPaint(); }
   function rdToggle() {
@@ -1615,10 +1646,10 @@
     if (!window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
     reciteStop(); player.stop();
     rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0 };
-    ReciteBridge.start(); rdPaint();
+    rdHints(); ReciteBridge.start(); rdPaint();
   }
   document.addEventListener("click", function (e) { if (e.target.closest("#rdMic")) rdToggle(); });
-  window.addEventListener("hashchange", function () { if (rd.on && !/^#\/p\//.test(location.hash)) rdStop(); else setTimeout(rdPaint, 50); });
+  window.addEventListener("hashchange", function () { if (rd.on && !/^#\/p\//.test(location.hash)) rdStop(); else { setTimeout(rdPaint, 50); if (rd.on) rdHints(); } });
 
   // ---------- الأوامر الصوتية ----------
   // The mic on the search screen hears one sentence with the phone's speech recogniser (ReciteBridge, shared with the
@@ -1711,9 +1742,10 @@
   }
   var reciteOnRecite = window.onRecite;
   window.onRecite = function (text, kind) {
+    var alts = (text || "").split("\n"); text = alts[0];
     if (rd.on) {
       if (kind.indexOf("state:") === 0) { var st0 = kind.slice(6); if (st0 === "noperm") toast("محتاج إذن الميكروفون للقراءة بالصوت"); if (st0 !== "listening" && st0.indexOf("error") !== 0) { rd.on = false; rdPaint(); } return; }
-      return rdHear(text, kind === "final");
+      return rdHear(rdPick(alts), kind === "final");
     }
     if (!voice.on) return reciteOnRecite(text, kind);
     if (kind.indexOf("state:") === 0) {

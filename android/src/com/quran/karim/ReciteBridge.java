@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 /**
  * Listens to the reader reciting from memory with the phone's own Arabic speech recogniser, exposed as window.ReciteBridge.
- * The page gets window.onRecite(text, final) with the words heard so far, and window.onRecite("", "state:<s>") for
+ * The page gets window.onRecite(text, final) with the words heard so far (up to 3 guesses, best first, one per line), and window.onRecite("", "state:<s>") for
  * "listening", "stopped", "noperm", "none" (no recogniser on the phone) or "error:<code>". The recogniser stops after
  * every pause, so it is started again until the page calls stop().
  */
@@ -23,6 +23,7 @@ class ReciteBridge {
     private final WebView web;
     private SpeechRecognizer rec;
     private boolean on = false;
+    private ArrayList<String> hints = new ArrayList<String>();
 
     ReciteBridge(Activity activity, WebView web) { this.activity = activity; this.web = web; }
 
@@ -46,6 +47,14 @@ class ReciteBridge {
                 on = true; listen();
             }
         });
+    }
+
+    // Words the reader is expected to say (the open mushaf page), passed to the recogniser as biasing phrases (Android 13+).
+    @JavascriptInterface
+    public void setHints(String lines) {
+        ArrayList<String> h = new ArrayList<String>();
+        for (String x : lines.split("\n")) if (x.trim().length() > 0 && h.size() < 500) h.add(x.trim());
+        hints = h;
     }
 
     @JavascriptInterface
@@ -83,14 +92,18 @@ class ReciteBridge {
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ar-SA");
         i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-        i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        if (android.os.Build.VERSION.SDK_INT >= 33 && !hints.isEmpty()) i.putStringArrayListExtra("android.speech.extra.BIASING_STRINGS", hints);
         i.putExtra("android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS", 2500L);
         try { rec.startListening(i); } catch (Exception e) { on = false; tell("", "state:error:start"); }
     }
 
     private void send(Bundle b, String kind) {
         ArrayList<String> r = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        if (r != null && !r.isEmpty()) tell(r.get(0), kind);
+        if (r == null || r.isEmpty()) return;
+        StringBuilder all = new StringBuilder();   // the best guess first, then the others, one per line
+        for (String x : r) { if (all.length() > 0) all.append('\n'); all.append(x); }
+        tell(all.toString(), kind);
     }
 
     void shutdown() { on = false; if (rec != null) { rec.destroy(); rec = null; } }
