@@ -754,7 +754,7 @@
     document.body.classList.add("vread");
     for (var p = Q.min; p < Q.count; p++)
       html += '<div class="page-box vp" data-p="' + p + '" style="padding-top:' + ratio + '%"><img loading="lazy" alt="صفحة ' + p + '" src="' + ed.dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
-    view.innerHTML = html + "</div>" + thmKey() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
+    view.innerHTML = html + "</div>" + thmKey() + rdMicHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
       '</button><button id="vDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>";
     var list = view.querySelector(".vpages"), hl0 = hl;
     function boxOf(p) { return list.querySelector('.page-box[data-p="' + p + '"]'); }
@@ -776,6 +776,8 @@
       save(edKey("lastPage"), p);
       trackPage(p);
     }
+    rdPage = { pages: null, mark: function (s, a) { mark(s, a); ayahBar(null); var b = Q.r[s - 1][a - 1][0], bx = b && boxOf(b[0]);
+      if (bx) { var r = bx.getBoundingClientRect(), y = r.top + r.height * b[2] / 1000; if (y < 80 || y > innerHeight * 0.7) window.scrollBy({ top: y - innerHeight * 0.3, behavior: "smooth" }); } }, box: boxOf, turn: null };
     function mark(s, a) {
       list.querySelectorAll(".ayah-box").forEach(function (x) { x.remove(); });
       hl0 = s ? { s: s, a: a } : null;
@@ -890,9 +892,10 @@
       '" value="' + n + '"><button id="pNext">التالية' + ic("left") + '</button>' +
       '<button id="pPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") + "</button>" +
       '<button id="pDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>" +
-      (cap ? "" : '<p class="hint page-tip">اضغط على أي آية في الصفحة لتظليلها ونسخها.</p>');
+      (cap ? "" : '<p class="hint page-tip">اضغط على أي آية في الصفحة لتظليلها ونسخها.</p>') + rdMicHtml();
     var box = view.querySelector('.page-box[data-p="' + n + '"]'), boxes = view.querySelectorAll(".page-box");
     function boxOf(p) { return view.querySelector('.page-box[data-p="' + p + '"]'); }
+    rdPage = { pages: pages, mark: function (s, a) { mark(s, a); ayahBar(null); }, box: boxOf, turn: function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); } };
     function mark(s, a, q) {
       view.querySelectorAll(".ayah-box:not(.play)").forEach(function (x) { x.remove(); });
       hl = s ? { s: s, a: a, q: q || "" } : null;
@@ -1530,6 +1533,93 @@
   }
   function reciteStop() { if (recite.on) { recite.on = false; try { ReciteBridge.stop(); } catch (e) {} } }
 
+  // ---------- القراءة بالصوت على صفحات المصحف ----------
+  // The mic in the corner of the mushaf pages: the reader recites, the ayah is found from the words heard (voiceAyahs) and
+  // opened, then followed word by word as the reading goes on: the ayah is lit on the scan, the word being read is shown
+  // in a caption and boxed on the scan (its place estimated from the letters of the ayah's line pieces, as the scans have
+  // no word boxes), and at the end of the page the page is turned.
+  var rdPage = null;
+  var rd = { on: false, s: 0, a: 0, w: 0, heard: [], done: 0 };
+  function rdMicHtml() { return '<button id="rdMic" class="rd-mic' + (rd.on ? " on" : "") + '" aria-label="القراءة بالصوت">' + ic("mic") + "</button>" + (rd.on ? rdCapHtml() : ""); }
+  function rdWords(s, a) { return Q.t[s - 1][a - 1].split(" "); }
+  function rdCapHtml() {
+    if (!rd.s) return '<div class="rd-cap"><small>سامعك… ابدأ القراءة من أي آية</small></div>';
+    return '<div class="rd-cap"><small>سورة ' + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a) + "</small><div>" + rdWords(rd.s, rd.a).map(function (w, i) {
+      return i === rd.w ? "<mark>" + w + "</mark>" : w; }).join(" ") + "</div></div>";
+  }
+  function rdPaint() {
+    var b = document.getElementById("rdMic"); if (b) b.classList.toggle("on", rd.on);
+    var c = document.querySelector(".rd-cap"); if (c) c.remove();
+    if (rd.on && b) { b.insertAdjacentHTML("afterend", rdCapHtml()); if (rd.s) ayahBar(null); }
+    document.querySelectorAll(".rd-word").forEach(function (x) { x.remove(); });
+    if (!rd.on || !rd.s || !rdPage) return;
+    // the word's box: the ayah's letters spread over its line pieces (right to left, in reading order)
+    var ws = rdWords(rd.s, rd.a), rs = (Q.r[rd.s - 1] && Q.r[rd.s - 1][rd.a - 1]) || [], len = function (w) { return norm(w).length + 1; };
+    var total = ws.reduce(function (t, w) { return t + len(w); }, 0), from = 0;
+    for (var i = 0; i < rd.w; i++) from += len(ws[i]);
+    var to = from + len(ws[rd.w] || ""), span = rs.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0;
+    rs.forEach(function (r) {
+      var w = r[3] - r[1], a0 = acc / span * total, a1 = (acc + w) / span * total; acc += w;
+      var x0 = Math.max(from, a0), x1 = Math.min(to, a1); if (x1 <= x0) return;
+      var bx = rdPage.box(r[0]); if (!bx) return;
+      var right = r[3] - (x0 - a0) / (a1 - a0) * w, left = r[3] - (x1 - a0) / (a1 - a0) * w;
+      var d = document.createElement("div"); d.className = "rd-word";
+      d.style.cssText = "left:" + left / 10 + "%;top:" + r[2] / 10 + "%;width:" + (right - left) / 10 + "%;height:" + (r[4] - r[2]) / 10 + "%";
+      bx.appendChild(d);
+    });
+  }
+  function rdSame(x, y) {
+    if (x === y) return true;
+    if (x.length < 3 || y.length < 3) return false;
+    var sx = skel(x), sy = skel(y); if (sx === sy) return true;
+    if (Math.abs(x.length - y.length) > 1) return false;
+    var d = 0, i = 0, j = 0;
+    while (i < x.length && j < y.length) { if (x[i] === y[j]) { i++; j++; continue; } if (++d > 1) return false; if (x.length > y.length) i++; else if (y.length > x.length) j++; else { i++; j++; } }
+    return d + (x.length - i) + (y.length - j) <= 1;
+  }
+  function rdGo(s, a) {
+    var p = pageOf(s, a); rd.s = s; rd.a = a;
+    if (rdPage && (rdPage.pages ? rdPage.pages.indexOf(p) >= 0 : rdPage.box(p))) { rdPage.mark(s, a); rdPaint(); return; }
+    location.hash = "#/p/" + p + "?a=" + s + ":" + a;
+  }
+  function rdNext() {
+    var s = rd.s, a = rd.a + 1;
+    if (a > Q.s[s - 1][3]) { s++; a = 1; }
+    if (s > 114) { rdStop(); toast("صدق الله العظيم"); return; }
+    rd.w = 0; rdGo(s, a);
+  }
+  // Words heard since the last call, matched forward in the ayah (a few may be missed or misheard).
+  function rdHear(text, fin) {
+    var ws = norm(text).split(/\s+/).filter(Boolean), fresh = ws.slice(rd.done);
+    rd.done = fin ? 0 : ws.length;
+    if (!rd.s) {
+      rd.heard = rd.heard.concat(fresh).slice(-14);
+      if (rd.heard.length < 3) return;
+      var near = voiceAyahs(rd.heard.join(" "));
+      if (!near.length || near[0][0] < 0.75 || (near[1] && near[1][0] === near[0][0] && near[1][4] === near[0][4] && near[1][3] === near[0][3])) return;
+      rd.w = 0; rd.s = near[0][1]; rd.a = near[0][2]; fresh = rd.heard; rd.heard = [];
+      toast("سورة " + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a));
+      rdGo(rd.s, rd.a);
+    }
+    fresh.forEach(function (hw) {
+      var aw = rdWords(rd.s, rd.a).map(norm);
+      for (var j = rd.w; j < Math.min(aw.length, rd.w + 4); j++) if (rdSame(hw, aw[j])) { rd.w = j + 1; break; }
+      if (rd.w >= aw.length) rdNext();
+    });
+    if (rd.s && rd.w >= rdWords(rd.s, rd.a).length) rd.w = rdWords(rd.s, rd.a).length - 1;
+    rdPaint();
+  }
+  function rdStop() { if (!rd.on) return; rd.on = false; try { ReciteBridge.stop(); } catch (e) {} rdPaint(); }
+  function rdToggle() {
+    if (rd.on) return rdStop();
+    if (!window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
+    reciteStop(); player.stop();
+    rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0 };
+    ReciteBridge.start(); rdPaint();
+  }
+  document.addEventListener("click", function (e) { if (e.target.closest("#rdMic")) rdToggle(); });
+  window.addEventListener("hashchange", function () { if (rd.on && !/^#\/p\//.test(location.hash)) rdStop(); else setTimeout(rdPaint, 50); });
+
   // ---------- الأوامر الصوتية ----------
   // The mic on the search screen hears one sentence with the phone's speech recogniser (ReciteBridge, shared with the
   // hifz test). A command («افتح سورة الكهف»، «صفحة خمسين»، «آية الكرسي»، «شغّل»…) is carried out; anything else is
@@ -1621,6 +1711,10 @@
   }
   var reciteOnRecite = window.onRecite;
   window.onRecite = function (text, kind) {
+    if (rd.on) {
+      if (kind.indexOf("state:") === 0) { var st0 = kind.slice(6); if (st0 === "noperm") toast("محتاج إذن الميكروفون للقراءة بالصوت"); if (st0 !== "listening" && st0.indexOf("error") !== 0) { rd.on = false; rdPaint(); } return; }
+      return rdHear(text, kind === "final");
+    }
     if (!voice.on) return reciteOnRecite(text, kind);
     if (kind.indexOf("state:") === 0) {
       var st = kind.slice(6);
