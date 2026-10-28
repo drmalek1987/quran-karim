@@ -16,6 +16,10 @@
 
   var WD = { "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri", "السبت": "Sat" };
   var D = {
+    "أوامر صوتية": "Voice commands", "أقرب آيات لقراءتك": "Closest ayahs to your recitation", "بيشغّل التلاوة": "Playing the recitation", "وقف": "Stopped",
+    "سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.": "Listening… say a command such as «افتح سورة الكهف» or «صفحة خمسين», or recite an ayah.",
+    "🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها.": "🎤 Tap the mic and say a command in Arabic: «افتح سورة الكهف», «صفحة خمسين», «الجزء الثلاثين», «سورة البقرة آية مية», «آية الكرسي», «شغّل», «وقف», «الصفحة التالية», «مواقيت الصلاة», «أذكار الصباح». Or recite an ayah to find where it is.",
+    "الأوامر الصوتية شغالة في التطبيق على الموبايل بس": "Voice commands work in the phone app only", "محتاج إذن الميكروفون للأوامر الصوتية": "Voice commands need the microphone permission",
     // 3.9: downloads, thematic colours, edition download
     "التحميلات": "Downloads", "صفحات كل طبعة بتتنزل مرة واحدة وتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.": "Each edition's pages download once and then work offline. Delete any edition to free space, and download it again whenever you like.",
     "معاني ألوان المصحف الموضوعي": "What the thematic colours mean", "حذف كل الطبعات": "Delete all editions", "في الانتظار…": "Waiting…", "النت فاصل، التنزيل هيكمّل لوحده…": "No connection; the download will resume by itself…", "التنزيل فشل · # ميجا": "Download failed · # MB", "حذف": "Delete", "تنزيل": "Download", "✓ على الموبايل · # ميجا": "✓ On this phone · # MB", "مش متنزّلة · # ميجا": "Not downloaded · # MB", "جارٍ التنزيل…": "Downloading…",

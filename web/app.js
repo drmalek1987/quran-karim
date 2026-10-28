@@ -646,8 +646,8 @@
   function showSearch(q) {
     titleEl.textContent = "البحث";
     btnBack.hidden = false;
-    view.innerHTML = '<input id="q" class="input" type="search" placeholder="ابحث في الآيات والسور والأذكار، أو ٢:٢٥٥" autocomplete="off">' +
-      '<div id="res"></div>';
+    view.innerHTML = '<div class="q-row"><input id="q" class="input" type="search" placeholder="ابحث في الآيات والسور والأذكار، أو ٢:٢٥٥" autocomplete="off">' +
+      '<button id="qMic" class="q-mic" aria-label="أوامر صوتية">' + ic("mic") + "</button></div>" + '<p class="hint q-mic-hint" hidden></p><div id="res"></div>';
     var input = document.getElementById("q"), res = document.getElementById("res");
     input.value = q || lastQuery;
     var timer, hq = "";
@@ -655,7 +655,8 @@
       hq = "";
       var raw = input.value.trim(); lastQuery = raw;
       history.replaceState(null, "", "#/search?q=" + encodeURIComponent(raw));
-      if (!raw) { res.innerHTML = '<p class="hint">ابحث بالكلمات دون تشكيل، مثل: الصلاة، يؤمنون، الرحمن. أو اكتب رقم السورة والآية مثل 2:255.</p>' + SEARCH_HELP; return; }
+      if (!raw) { res.innerHTML = '<p class="hint">ابحث بالكلمات دون تشكيل، مثل: الصلاة، يؤمنون، الرحمن. أو اكتب رقم السورة والآية مثل 2:255.</p>' +
+        '<p class="hint">🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها.</p>' + SEARCH_HELP; return; }
       var m = en(raw).match(/^(\d{1,3})\s*[:\/\-\s]\s*(\d{1,3})$/);
       if (m) {
         var s = +m[1], a = +m[2];
@@ -687,6 +688,20 @@
         " · الجزء " + ar(juzOf(s, a)) + " · صفحة " + ar(pageOf(s, a)) + '</div><div class="txt">' + highlight(s, a, hq) + "</div></div>";
     }
     input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(run, 200); });
+    var mic = document.getElementById("qMic"), mh = view.querySelector(".q-mic-hint");
+    mic.onclick = function () {
+      voiceListen(function (text, kind) {
+        if (kind === "listening") { mic.classList.add("on"); mh.hidden = false; mh.textContent = "سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية."; return; }
+        if (kind === "end") { mic.classList.remove("on"); return; }
+        input.value = text; mic.classList.toggle("on", kind !== "final");
+        if (kind !== "final") return;
+        mh.hidden = true;
+        var near = voiceAyahs(text);
+        if (!(near.length && near[0][0] >= 0.85) && voiceRun(text)) return;
+        run();
+        if (near.length) res.insertAdjacentHTML("afterbegin", '<div class="sr-sec"><b>أقرب آيات لقراءتك</b></div>' + near.map(function (x) { return item(x[1], x[2]); }).join(""));
+      });
+    };
     // Opens the ayah highlighted on its mushaf page (or in the text view), with the search word marked.
     res.addEventListener("click", function (e) {
       var d = e.target.closest(".result"); if (!d) return;
@@ -1514,6 +1529,109 @@
     recite.on = true; recite.k = rNext(); recite.pos = 0; recite.base = null; ReciteBridge.start(); hifzBar();
   }
   function reciteStop() { if (recite.on) { recite.on = false; try { ReciteBridge.stop(); } catch (e) {} } }
+
+  // ---------- الأوامر الصوتية ----------
+  // The mic on the search screen hears one sentence with the phone's speech recogniser (ReciteBridge, shared with the
+  // hifz test). A command («افتح سورة الكهف»، «صفحة خمسين»، «آية الكرسي»، «شغّل»…) is carried out; anything else is
+  // written in the search box, and words recited from the Quran also list the closest ayahs.
+  var voice = { on: false, cb: null };
+  var NUM_W = { "صفر": 0, "واحد": 1, "واحده": 1, "اول": 1, "اولي": 1, "اثنين": 2, "اتنين": 2, "اثنان": 2, "ثاني": 2, "ثانيه": 2, "ثلاث": 3, "ثلاثه": 3, "تلاته": 3, "تلات": 3, "ثالث": 3, "اربع": 4, "اربعه": 4, "رابع": 4,
+    "خمس": 5, "خمسه": 5, "خامس": 5, "ست": 6, "سته": 6, "سادس": 6, "سبع": 7, "سبعه": 7, "سابع": 7, "ثمان": 8, "ثماني": 8, "ثمانيه": 8, "تمانيه": 8, "تمن": 8, "ثامن": 8, "تسع": 9, "تسعه": 9, "تاسع": 9,
+    "عشر": 10, "عشره": 10, "عاشر": 10, "حداشر": 11, "اتناشر": 12, "تلتاشر": 13, "اربعتاشر": 14, "خمستاشر": 15, "ستاشر": 16, "سبعتاشر": 17, "تمنتاشر": 18, "تسعتاشر": 19,
+    "عشرين": 20, "عشرون": 20, "ثلاثين": 30, "تلاتين": 30, "اربعين": 40, "خمسين": 50, "ستين": 60, "سبعين": 70, "ثمانين": 80, "تمانين": 80, "تسعين": 90,
+    "ميه": 100, "مائه": 100, "مية": 100, "ميتين": 200, "مئتين": 200, "مائتين": 200, "تلتميه": 300, "ثلاثمائه": 300, "ربعميه": 400, "اربعمائه": 400, "خمسميه": 500, "خمسمائه": 500, "ستميه": 600, "ستمائه": 600 };
+  // The first number in the words, from digits or from Arabic number words («مية وخمسة وعشرين» = 125).
+  function voiceNum(words) {
+    var n = 0, got = false;
+    for (var i = 0; i < words.length; i++) {
+      var w = en(words[i]);
+      if (/^\d+$/.test(w)) return +w;
+      var x = w.replace(/^و/, ""), v = NUM_W[x];
+      if (v === undefined && /^(ال)/.test(x)) v = NUM_W[x.slice(2)];
+      if (v === undefined) { if (got) break; continue; }
+      if (v === 10 && got && n % 10 && n < 10) n += 10; else n += v;
+      got = true;
+    }
+    return got ? n : null;
+  }
+  function voiceSurah(t) {
+    var best = 0, bl = 0;
+    for (var i = 0; i < 114; i++) {
+      var nm = norm(Q.s[i][0]).replace(/^ال/, "");
+      if (nm.length > bl && (" " + t + " ").replace(/ ال/g, " ").indexOf(" " + nm + " ") >= 0) { best = i + 1; bl = nm.length; }
+    }
+    return best;
+  }
+  function voiceRun(raw) {
+    var t = norm(raw).replace(/[إأآ]/g, "ا").replace(/ة/g, "ه").replace(/\s+/g, " ").trim(), w = t.split(" ");
+    var has = function (re) { return re.test(t); }, num = voiceNum(w), go = function (h, msg) { toast(msg); location.hash = h; return true; };
+    if (has(/^(شغل|اقرا|استمع|سمعني|ابدا القراءه)/)) {
+      var f = /^#\/p\/(\d+)/.exec(location.hash), pg = f ? +f[1] : 0, fa = pg ? firstAyahOfPage(pg) : null;
+      var sm = /^#\/s\/(\d+)/.exec(location.hash);
+      if (fa) player.play(fa[0], fa[1]); else if (sm) player.play(+sm[1], 1); else return false;
+      toast("بيشغّل التلاوة"); return true;
+    }
+    if (has(/^(وقف|اسكت|ايقاف|اقف)/)) { player.stop(); toast("وقف"); return true; }
+    if (has(/(الصفحه )?(التاليه|اللي بعدها|بعدها|الجايه)$/) && document.getElementById("pNext")) { document.getElementById("pNext").click(); return true; }
+    if (has(/(الصفحه )?(السابقه|اللي قبلها|قبلها)$/) && document.getElementById("pPrev")) { document.getElementById("pPrev").click(); return true; }
+    if (has(/ايه الكرسي/)) return go("#/p/" + pageOf(2, 255) + "?a=2:255", "آية الكرسي");
+    if (has(/صفح/) && num) { if (num >= Q.min && num < Q.count) return go("#/p/" + num, "صفحة " + ar(num)); toast("الطبعة دي صفحاتها لحد " + ar(Q.count - 1)); return true; }
+    if (has(/(جزء|الجزء)/) && num >= 1 && num <= 30) {
+      for (var p = Q.min; p < Q.count; p++) if (juzOfPage(p) === num) return go("#/p/" + p, "الجزء " + ar(num));
+    }
+    var pl = [[/مواقيت|الاذان|اوقات الصلاه/, "#/prayer", "مواقيت الصلاة"], [/القبله/, "#/qibla", "القبلة"], [/اذكار الصباح/, "#/azkar/m", "أذكار الصباح"], [/اذكار المساء/, "#/azkar/e", "أذكار المساء"],
+      [/الاذكار|اذكار/, "#/azkar", "الأذكار"], [/الختمه/, "#/khatma", "الختمة"], [/التسبيح|السبحه/, "#/tasbih", "التسبيح"], [/الامساكيه/, "#/imsakia", "الإمساكية"], [/التجويد/, "#/tajweed", "دليل التجويد"], [/الرئيسيه|البدايه/, "#/", "الرئيسية"]];
+    for (var i = 0; i < pl.length; i++) if (pl[i][0].test(t)) return go(pl[i][1], pl[i][2]);
+    var sur = voiceSurah(t);
+    if (sur && (has(/سوره|افتح|اقرا/) || w.length <= 2)) {
+      var am = /(ايه|الايه|ايات)\s+(.*)$/.exec(t), a = am ? voiceNum(am[2].split(" ")) : null;
+      if (!a && has(/ايه/) && num) a = num;
+      a = a && a <= Q.s[sur - 1][3] ? a : 1;
+      if (mode === "pages") return go("#/p/" + pageOf(sur, a) + (a > 1 ? "?a=" + sur + ":" + a : ""), "سورة " + Q.s[sur - 1][0] + (a > 1 ? " · الآية " + ar(a) : ""));
+      return go("#/s/" + sur + "/" + a, "سورة " + Q.s[sur - 1][0]);
+    }
+    if (has(/الاعدادات/)) { document.getElementById("btnSettings").click(); return true; }
+    return false;
+  }
+  // Recited words: the ayahs whose words they share most, in order (the recogniser may drop or change a few).
+  function voiceAyahs(raw) {
+    var ws = norm(raw).split(/\s+/).filter(function (x) { return x.length > 1; });
+    if (ws.length < 3) return [];
+    if (!index) buildIndex();
+    // words heard in order in a text; a short ayah is also read on into the next two, as one recites them together
+    function hits(tx) { var h = 0, pos = 0; for (var k = 0; k < ws.length; k++) { var j = tx.indexOf(" " + ws[k], pos); if (j >= 0) { h++; pos = j + 1; } } return h; }
+    var out = [];
+    for (var i = 0; i < index.length; i++) {
+      var best = 0, own = 0;
+      [2, 3].forEach(function (c) {
+        var tx = index[i][c];
+        own = Math.max(own, hits(tx));
+        for (var d = 1; d <= 2; d++) { var r = index[i + d]; if (r && r[0] === index[i][0]) tx += r[c]; }
+        best = Math.max(best, hits(tx));
+      });
+      // the ayah where the recitation starts: its own first heard word counts most
+      if (best / ws.length >= 0.6) out.push([best / ws.length, index[i][0], index[i][1], own, index[i][2].indexOf(" " + ws[0] + " ") >= 0 || index[i][3].indexOf(" " + ws[0] + " ") >= 0 ? 1 : 0]);
+    }
+    return out.sort(function (x, y) { return y[0] - x[0] || y[4] - x[4] || y[3] - x[3]; }).slice(0, 5);
+  }
+  function voiceListen(cb) {
+    if (!window.ReciteBridge) return toast("الأوامر الصوتية شغالة في التطبيق على الموبايل بس");
+    if (voice.on) { voice.on = false; try { ReciteBridge.stop(); } catch (e) {} return; }
+    reciteStop(); voice.on = true; voice.cb = cb; ReciteBridge.start();
+  }
+  var reciteOnRecite = window.onRecite;
+  window.onRecite = function (text, kind) {
+    if (!voice.on) return reciteOnRecite(text, kind);
+    if (kind.indexOf("state:") === 0) {
+      var st = kind.slice(6);
+      if (st === "noperm") toast("محتاج إذن الميكروفون للأوامر الصوتية");
+      else if (st === "none") toast("الموبايل مفيهوش خدمة التعرّف على الكلام");
+      if (st !== "listening") { voice.on = false; voice.cb && voice.cb(null, "end"); } else voice.cb && voice.cb(null, "listening");
+      return;
+    }
+    if (kind === "final") { voice.on = false; try { ReciteBridge.stop(); } catch (e) {} }
+    voice.cb && voice.cb(text, kind);
+  };
 
   // ---------- العلامات وخطة الختمة ----------
   // Bookmarks: [{n: name, s, a, t: time}]. The khatma plan reads the mushaf pages Q.first..Q.last in `days` days:

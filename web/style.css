@@ -952,3 +952,11 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
   background: var(--gold-soft); color: var(--gold); box-shadow: 0 2px 8px #0003; filter: none !important; mix-blend-mode: normal; -webkit-appearance: none; appearance: none; }
 .vbar .play-btn { background: var(--grad); color: #fff; }
 .vbar .ic { width: 22px; height: 22px; }
+/* 4.2: voice commands and voice search on the search screen */
+.q-row { display: flex; gap: 8px; align-items: center; }
+.q-row .input { flex: 1; min-width: 0; }
+.q-mic { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--grad); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.q-mic .ic { width: 22px; height: 22px; }
+.q-mic.on { animation: micPulse 1.2s infinite; }
+@keyframes micPulse { 0% { box-shadow: 0 0 0 0 #d6303166; } 70% { box-shadow: 0 0 0 14px #d6303100; } 100% { box-shadow: 0 0 0 0 #d6303100; } }
+.q-mic.on { background: #d63031; }
