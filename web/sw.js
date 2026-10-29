@@ -1,6 +1,6 @@
 // Caches the whole app so it works offline after the first visit.
-var CACHE = "quran-v29";
-var FILES = ["./", "index.html", "style.css", "app.js", "azkar.js", "duas.js", "topics.js", "flags.js", "i18n.js", "quran-data.js", "thematic.js", "fonts/amiri-quran.woff2", "fonts/cairo-400.woff2", "fonts/cairo-600.woff2", "fonts/cairo-700.woff2",
+var CACHE = "quran-v30";
+var FILES = ["./", "index.html", "style.css", "app.js", "asr.js", "azkar.js", "duas.js", "topics.js", "flags.js", "i18n.js", "quran-data.js", "thematic.js", "fonts/amiri-quran.woff2", "fonts/cairo-400.woff2", "fonts/cairo-600.woff2", "fonts/cairo-700.woff2",
   "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));

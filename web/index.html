@@ -113,6 +113,13 @@
     <div class="row">القارئ
       <select id="reciter" class="sel-field" aria-label="القارئ"></select>
     </div>
+    <div class="row">التعرف على التلاوة
+      <select id="asrSet" class="sel-field" aria-label="التعرف على التلاوة">
+        <option value="phone">تعرّف الموبايل</option>
+        <option value="asrbase">موديل القرآن (whisper)</option>
+        <option value="asrft">الموديل المتدرب (تجربة)</option>
+      </select>
+    </div>
     <div class="row row-col">اهتزاز عند الضغط على الأزرار والآيات
       <div class="seg" id="hapticSet">
         <button data-v="0">إيقاف</button>
@@ -136,7 +143,7 @@
     </div>
     <details class="about-box ar-only">
       <summary>حول التطبيق</summary>
-      <p class="about"><b>القرآن الكريم</b> · الإصدار 4.3<br>
+      <p class="about"><b>القرآن الكريم</b> · الإصدار 4.4<br>
       تطبيق مجاني بدون إعلانات، يعمل بدون إنترنت (ما عدا تحميل صفحات الطبعة وصوت القارئ أول مرة).</p>
       <p class="about"><b>الخصوصية</b><br>
       التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» يستخدم خدمة التعرّف على الكلام الموجودة في الموبايل (غالبًا من جوجل)، وقد ترسل الصوت لخوادمها لتحويله لكلام، والتطبيق نفسه لا يحفظ الصوت ولا يرسله.
@@ -168,7 +175,7 @@
     </details>
     <details class="about-box en-only">
       <summary>About the app</summary>
-      <p class="about"><b>The Noble Quran</b> · version 4.3<br>
+      <p class="about"><b>The Noble Quran</b> · version 4.4<br>
       A free app with no ads. It works offline, except for downloading an edition's pages and the reciter's audio the first time.</p>
       <p class="about"><b>Privacy</b><br>
       The app collects no data and sends nothing anywhere; it needs no account and has no ads. Your location is used and kept on the phone only, for the qibla and prayer times. Reminders and adhan alerts are prepared on the phone itself. The microphone is used only if you choose «Record yourself» in the memorisation test; the recording stays on the phone and is not saved or sent. «Recite aloud» uses the phone's own speech recognition service (usually Google's), which may send the audio to its servers; the app itself neither keeps nor sends it.
@@ -206,6 +213,7 @@
 <script src="duas.js"></script>
 <script src="topics.js"></script>
 <script src="books/index.js"></script>
+<script src="asr.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

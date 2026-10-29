@@ -294,8 +294,17 @@
   // A download starts at once and runs in the background; Settings › التحميلات shows its progress. One at a time
   // (EdStore), so later picks wait in a queue. When the pages arrive, the pick that asked for them goes on.
   var edQ = [], edPct = {}, edThen = {};
+  // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
+  var ASRM = { asrbase: { name: "موديل القرآن", mb: 153 }, asrft: { name: "الموديل المتدرب", mb: 153 } };
+  function asrPacks(m) { return ["asrrt", m, m + "p"]; }
+  function asrReady(m) { return !!window.EdBridge && asrPacks(m).every(function (k) { return EdBridge.state(k) === "ready"; }); }
+  function needAsr(m, then) {
+    var ps = asrPacks(m), i = 0;
+    toast("بدأ تنزيل " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
+    (function go() { if (i >= ps.length) return then(); needEd(ps[i++], go, true); })();
+  }
   function needEd(id, then, quiet) {
-    if (id === "text" || !EDS[id] || edReady(id)) { then(); return; }
+    if (id === "text" || !(EDS[id] || /^asr/.test(id)) || edReady(id)) { then(); return; }
     edThen[id] = then;
     if (edQ.indexOf(id) < 0) edQ.push(id);
     if (!quiet) toast(window.LANG === "en" ? "Downloading " + T(EDS[id].name) + ". Follow it in Settings › Downloads." : "بدأ تنزيل " + EDS[id].name + "، تقدر تتابعه من الإعدادات › التحميلات");
@@ -309,7 +318,7 @@
     if (v === "done" || v === "error") {
       edQ = edQ.filter(function (k) { return k !== e; }); delete edPct[e];
       var th = edThen[e]; delete edThen[e];
-      if (v === "done") { toast(window.LANG === "en" ? T(EDS[e].name) + " is ready" : "خلص تنزيل " + EDS[e].name); if (th) th(); }
+      if (v === "done") { if (!/^asr/.test(e) || th) { if (!/^asr/.test(e)) toast(window.LANG === "en" ? T(EDS[e].name) + " is ready" : "خلص تنزيل " + EDS[e].name); } if (th) th(); }
       else { edPct[e] = -1; toast(window.LANG === "en" ? "The download failed. Check the internet and try again." : "التنزيل فشل. اتأكد من الإنترنت وحاول تاني."); }
       paintEdDl(); edNext(); return;
     }
@@ -325,6 +334,7 @@
     var box = document.getElementById("edDl"); if (!box) return;
     if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; }); return; }
     var ids = ["kfgqpc", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }), any = false;
+    paintAsrDl();
     box.innerHTML = ids.map(function (k) {
       var st = EdBridge.state(k); if (st === "ready") any = true;
       var wait = st !== "ready" && edQ.indexOf(k) >= 0, p = edPct[k] || 0;
@@ -349,6 +359,29 @@
     ["kfgqpc", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
   };
   var ED_MB = { kfgqpc: 52, shamarly: 39, harmain: 46 };
+  // Settings › Downloads: each recitation model, to fetch or free it.
+  function paintAsrDl() {
+    var box = document.getElementById("asrDl");
+    if (!box) { box = document.createElement("div"); box.id = "asrDl"; box.className = "dl-list"; document.getElementById("edDl").after(box); }
+    box.innerHTML = Object.keys(ASRM).map(function (m) {
+      var ps = asrPacks(m), ok = asrReady(m), q = ps.filter(function (k) { return edQ.indexOf(k) >= 0; });
+      var cur = q.filter(function (k) { return EdBridge.state(k) === "busy"; })[0], p = cur ? edPct[cur] || 0 : 0;
+      var step = cur ? ps.indexOf(cur) + 1 : 0;
+      return '<div class="dl-item"><div><b>' + ASRM[m].name + "</b>" + (q.length ? '<span class="dl-p" data-dlp="' + (cur || q[0]) + '"><i style="width:' + p + '%"></i></span><small>' + (cur ? "جزء " + step + " من 3 · " + p + "%" : "في الانتظار…") + "</small>" :
+        "<small>" + (ok ? "✓ على الموبايل · " : "مش متنزّل · ") + ASRM[m].mb + " ميجا</small>") + "</div>" +
+        (q.length ? "" : '<button class="btn" data-asrdl="' + m + '">' + (ok ? "حذف" : "تنزيل") + "</button>") + "</div>";
+    }).join("");
+    box.querySelectorAll("[data-asrdl]").forEach(function (b) { b.onclick = function () {
+      var m = b.dataset.asrdl;
+      if (asrReady(m)) {
+        if (!confirm("تحذف " + ASRM[m].name + " من الموبايل؟")) return;
+        EdBridge.remove(m); EdBridge.remove(m + "p");
+        if (!Object.keys(ASRM).some(asrReady)) EdBridge.remove("asrrt");
+        if (asrSel.value === m) { asrSel.value = "phone"; save("asr", "phone"); }
+        paintEdDl();
+      } else needAsr(m, paintEdDl);
+    }; });
+  }
   // Without the pages of the chosen edition (skipped download, or deleted) the reader opens the text until one is fetched.
   if (mode === "pages" && !edReady(edition) && load("onboarded", false)) mode = "text";
   // A tap on an edition not yet on the phone downloads it first, then goes on as a normal tap.
@@ -1640,13 +1673,32 @@
     for (var si = 0; si < 114; si++) for (var ai = 0; ai < Q.s[si][3]; ai++) { var r = Q.r[si] && Q.r[si][ai]; if (r && r.some(function (b) { return b[0] === p || b[0] === p + 1; })) out.push(norm(Q.q[si][ai])); }
     try { ReciteBridge.setHints(out.join("\n")); } catch (e) {}
   }
-  function rdStop() { if (!rd.on) return; rd.on = false; try { ReciteBridge.stop(); } catch (e) {} rdPaint(); }
+  // The recogniser: the phone's own (ReciteBridge), or a Quran model run on the phone (asr.js), chosen in Settings.
+  var asrSel = document.getElementById("asrSet");
+  asrSel.value = load("asr", "phone"); if (!asrSel.value) asrSel.value = "phone";
+  asrSel.onchange = function () {
+    var m = asrSel.value; save("asr", m);
+    if (m !== "phone" && window.EdBridge && !asrReady(m)) needAsr(m, function () { toast("خلص تنزيل " + ASRM[m].name); paintEdDl(); });
+  };
+  function asrModel() { var m = load("asr", "phone"); return m !== "phone" && window.Asr && asrReady(m) ? m : null; }
+  function rdStop() { if (!rd.on) return; rd.on = false; try { if (window.Asr) Asr.stop(); ReciteBridge.stop(); } catch (e) {} rdPaint(); }
   function rdToggle() {
     if (rd.on) return rdStop();
-    if (!window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
+    var m = asrModel();
+    if (!m && load("asr", "phone") !== "phone" && window.EdBridge) return toast("الموديل لسه بيتنزّل، تابعه من الإعدادات › التحميلات");
+    if (!m && !window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
     reciteStop(); player.stop();
     rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0 };
-    rdHints(); ReciteBridge.start(); rdPaint();
+    if (m) {
+      Asr.start(m, function (t, k) {
+        if (k === "final") { if (window.onRecite) onRecite(t, "final"); return; }
+        if (k === "state:busy") toast("بيجهّز الموديل…");
+        else if (k === "state:listening") toast("ابدأ القراءة");
+        else if (k === "state:noperm") { toast("محتاج إذن الميكروفون"); rdStop(); }
+        else if (k.indexOf("state:error") === 0) { toast("الموديل وقف: " + k.slice(12)); rdStop(); }
+      });
+    } else { rdHints(); ReciteBridge.start(); }
+    rdPaint();
   }
   document.addEventListener("click", function (e) { if (e.target.closest("#rdMic")) rdToggle(); });
   window.addEventListener("hashchange", function () { if (rd.on && !/^#\/p\//.test(location.hash)) rdStop(); else { setTimeout(rdPaint, 50); if (rd.on) rdHints(); } });

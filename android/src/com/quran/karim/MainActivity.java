@@ -93,6 +93,7 @@ public class MainActivity extends Activity {
                             new org.brotli.dec.BrotliInputStream(getAssets().open(rel + ".br")));
                     } catch (Exception e) { return null; }
                 }
+                if (url.startsWith(EdStore.ASR)) return eds != null ? eds.serveAsr(url) : null;
                 return eds != null ? eds.serve(url) : null;
             }
 

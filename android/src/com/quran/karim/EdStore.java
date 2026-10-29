@@ -45,6 +45,23 @@ class EdStore {
         }
     }
 
+    // The recitation-recognition packs (web/asr.js): the runtime and the models, asked at https://asr.app/<pack>/<file>.
+    static final String ASR = "https://asr.app/";
+    WebResourceResponse serveAsr(String url) {
+        String rel = url.substring(ASR.length());
+        int q = rel.indexOf('?'); if (q >= 0) rel = rel.substring(0, q);
+        if (!rel.matches("asr[a-z]*/[A-Za-z0-9_.-]+") || rel.contains("..")) return null;
+        String type = rel.endsWith(".js") || rel.endsWith(".mjs") ? "text/javascript" : rel.endsWith(".wasm") ? "application/wasm"
+            : rel.endsWith(".json") ? "application/json" : "application/octet-stream";
+        java.util.Map<String, String> h = new java.util.HashMap<String, String>();
+        h.put("Access-Control-Allow-Origin", "*");
+        try {
+            return new WebResourceResponse(type, null, 200, "OK", h, new FileInputStream(new File(dir, "asr/" + rel)));
+        } catch (Exception e) {
+            return new WebResourceResponse(type, null, 404, "Not Found", h, new java.io.ByteArrayInputStream(new byte[0]));
+        }
+    }
+
     private static boolean okId(String id) { return id != null && id.matches("[a-z]+"); }
 
     @JavascriptInterface
@@ -134,7 +151,7 @@ class EdStore {
     public void remove(String id) {
         if (!okId(id) || id.equals(busy)) return;
         new File(dir, id + ".ok").delete(); new File(dir, id + ".zip.part").delete();
-        String[] sub = id.equals("harmain") ? new String[] { "pages", "tjpages" } : new String[] { "editions/" + id, "editions/" + id + "-tj" };
+        String[] sub = id.startsWith("asr") ? new String[] { "asr/" + id } : id.equals("harmain") ? new String[] { "pages", "tjpages" } : new String[] { "editions/" + id, "editions/" + id + "-tj" };
         for (String s : sub) wipe(new File(dir, s));
     }
 
