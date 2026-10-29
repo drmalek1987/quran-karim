@@ -5,7 +5,8 @@
 import os, sys, io, json, random, re, time, glob, collections, threading
 import numpy as np, soundfile as sf, librosa, torch
 D = os.path.dirname(os.path.abspath(__file__)); os.chdir(D)
-STEPS, BS, LR, EVAL, K = int(os.environ.get('STEPS', 6000)), 16, 1e-5, 500, 3
+STEPS, BS, LR, EVAL, K = int(os.environ.get('STEPS', 6000)), int(os.environ.get('BS', 8)), 1e-5, 500, 3
+ACC = max(1, 16 // BS)   # gradient accumulation keeps an effective batch of 16 within 6 GB of GPU memory
 TOKEN = os.environ.get('HF_TOKEN', '').strip()
 BASE = 'deepdml/whisper-base-ar-quran-mix-norm'
 WTOK = open('hf_write_token.txt').read().strip() if os.path.exists('hf_write_token.txt') else ''
@@ -91,8 +92,8 @@ def ed(a, b):
     return p[-1]
 def cer(model, proc, items, folder):
     model.eval(); E = L = 0
-    for i in range(0, len(items), 16):
-        ch = items[i:i + 16]
+    for i in range(0, len(items), 8):
+        ch = items[i:i + 8]
         f = proc.feature_extractor([sf.read(os.path.join(folder, x['id'] + '.wav'), dtype='float32')[0] for x in ch], sampling_rate=16000, return_tensors='pt').input_features.to('cuda', torch.float16)
         with torch.no_grad(), torch.autocast('cuda', dtype=torch.float16):
             out = proc.batch_decode(model.generate(f, language='ar', task='transcribe', max_new_tokens=200, no_repeat_ngram_size=3), skip_special_tokens=True)
@@ -139,11 +140,11 @@ def main():
     rng = np.random.default_rng(1); noise = [rng.standard_normal(16000 * 10).astype(np.float32), np.cumsum(rng.standard_normal(16000 * 10)).astype(np.float32)]
     noise[1] -= np.convolve(noise[1], np.ones(400) / 400, 'same')
     dl = torch.utils.data.DataLoader(DS(train, proc, noise), batch_size=BS, shuffle=True, num_workers=4, drop_last=True, persistent_workers=True, collate_fn=keep)
-    opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=0.01); scaler = torch.cuda.amp.GradScaler()
+    opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=0.01); scaler = torch.amp.GradScaler('cuda')
     st = json.load(open('out/last/state.json')) if os.path.exists('out/last/state.json') else {'step': 0}
     if os.path.exists('out/last/opt.pt'): opt.load_state_dict(torch.load('out/last/opt.pt'))
     prefix = proc.tokenizer.convert_tokens_to_ids(['<|startoftranscript|>', '<|ar|>', '<|transcribe|>', '<|notimestamps|>']); eot = proc.tokenizer.eos_token_id
-    best = min([v['tlog_test'] for v in res.values()]); t0 = time.time(); losses = []
+    best = min([v['tlog_test'] for v in res.values()]); t0 = time.time(); losses = []; micro = 0
     model.train()
     while st['step'] < STEPS:
         for b in dl:
@@ -151,17 +152,19 @@ def main():
             s = st['step']
             for g in opt.param_groups: g['lr'] = LR * min(1, (s + 1) / 200) * max(0.05, 1 - s / STEPS)
             feats = torch.stack([f for f, _ in b]).to('cuda')
-            toks = [prefix + proc.tokenizer.encode(' ' + t, add_special_tokens=False)[:400] + [eot] for _, t in b]
+            toks = [prefix + proc.tokenizer.encode(' ' + t, add_special_tokens=False)[:200] + [eot] for _, t in b]
             Lm = max(map(len, toks)); ids = torch.full((len(b), Lm), eot); lab = torch.full((len(b), Lm), -100)
             for i, t in enumerate(toks): ids[i, :len(t)] = torch.tensor(t); lab[i, :len(t) - 1] = torch.tensor(t[1:])
             with torch.autocast('cuda', dtype=torch.float16):
                 lg = model(input_features=feats, decoder_input_ids=ids[:, :-1].cuda()).logits
                 loss = torch.nn.functional.cross_entropy(lg.float().reshape(-1, lg.size(-1)), lab[:, :-1].reshape(-1).cuda(), ignore_index=-100)
-            scaler.scale(loss).backward(); scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            scaler.step(opt); scaler.update(); opt.zero_grad(); st['step'] += 1; losses.append(loss.item())
+            del lg; scaler.scale(loss / ACC).backward(); micro += 1; losses.append(loss.item())
+            if micro % ACC: continue
+            scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            scaler.step(opt); scaler.update(); opt.zero_grad(); st['step'] += 1
             if st['step'] % 50 == 0:
                 left = (time.time() - t0) / 50 * (STEPS - st['step']) / 3600; t0 = time.time()
-                log('step %d/%d  loss %.3f  about %.1f h left' % (st['step'], STEPS, np.mean(losses[-50:]), left))
+                log('step %d/%d  loss %.3f  about %.1f h left' % (st['step'], STEPS, np.mean(losses[-50 * ACC:]), left))
             if st['step'] % EVAL == 0 or st['step'] == STEPS:
                 r = {'tlog_test': cer(model, proc, test, 'data/clips'), 'ha': cer(model, proc, ha, 'ha_test')}; res['step %d' % st['step']] = r
                 json.dump(res, open('results.json', 'w'), indent=1)
