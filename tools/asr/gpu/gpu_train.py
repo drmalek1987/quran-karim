@@ -34,7 +34,7 @@ def fetch():
     import fsspec, pyarrow.parquet as pq
     from concurrent.futures import ThreadPoolExecutor
     os.makedirs('data/clips', exist_ok=True)
-    fs = fsspec.filesystem('https', headers={'Authorization': 'Bearer ' + TOKEN}, client_kwargs={'trust_env': True})
+    fs = fsspec.filesystem('https', headers={'Authorization': 'Bearer ' + TOKEN}, client_kwargs={'trust_env': True, 'timeout': __import__('aiohttp').ClientTimeout(total=None, sock_connect=30, sock_read=60)})
     sv = {k: v for k, v in json.load(open('survey.json', encoding='utf8')).items() if k.startswith('clean') and isinstance(v, dict)}
     got = collections.Counter(); lock = threading.Lock()
     for f in glob.glob('data/clips/meta-*.json'):
