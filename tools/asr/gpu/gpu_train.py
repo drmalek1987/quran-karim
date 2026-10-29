@@ -8,9 +8,23 @@ D = os.path.dirname(os.path.abspath(__file__)); os.chdir(D)
 STEPS, BS, LR, EVAL, K = int(os.environ.get('STEPS', 6000)), 16, 1e-5, 500, 3
 TOKEN = os.environ.get('HF_TOKEN', '').strip()
 BASE = 'deepdml/whisper-base-ar-quran-mix-norm'
+WTOK = open('hf_write_token.txt').read().strip() if os.path.exists('hf_write_token.txt') else ''
+_last = [0]
+def report(force=False):   # copies progress.txt and results.json to a private Hugging Face repo so Claude can follow along
+    if not WTOK or (not force and time.time() - _last[0] < 600): return
+    _last[0] = time.time()
+    def up():
+        try:
+            from huggingface_hub import HfApi
+            api = HfApi(token=WTOK); repo = api.whoami()['name'] + '/quran-train-progress'
+            api.create_repo(repo, repo_type='dataset', private=True, exist_ok=True)
+            for f in ('progress.txt', 'results.json'):
+                if os.path.exists(f): api.upload_file(path_or_fileobj=f, path_in_repo=f, repo_id=repo, repo_type='dataset')
+        except Exception as e: print('report failed:', e, flush=True)
+    threading.Thread(target=up, daemon=True).start()
 def log(*a):
     s = time.strftime('%H:%M:%S ') + ' '.join(map(str, a)); print(s, flush=True)
-    open('progress.txt', 'a', encoding='utf8').write(s + '\n')
+    open('progress.txt', 'a', encoding='utf8').write(s + '\n'); report('MEASURE' in s or 'DONE' in s)
 T = re.compile('[ؐ-ًؚ-ٰٟۖ-ۭ࣓-ࣿـ]')
 def norm(t):
     t = T.sub('', t); t = re.sub('[ٱأإآ]', 'ا', t); t = re.sub('[ىی]', 'ي', t)
@@ -55,7 +69,7 @@ def fetch():
     with ThreadPoolExecutor(8) as ex:
         for d, (k, c) in enumerate(ex.map(one, todo)):
             n += c if isinstance(c, int) else 0
-            if d % 10 == 0 or not isinstance(c, int): log('fetch %d/%d shards, %d clips' % (d + 1, len(todo), n), '' if isinstance(c, int) else k + ' ' + c)
+            log('fetch %d/%d shards, %d clips' % (d + 1, len(todo), n), '' if isinstance(c, int) else k + ' ' + c)
 
 def split():
     if os.path.exists('data/train.json'): return
