@@ -6,7 +6,8 @@ from gpu_train import norm, ed, log, WTOK
 from huggingface_hub import hf_hub_download, HfApi
 import nemo.collections.asr as A
 MODELS = {'nvidia-fastconformer-ar': ('nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0', 'stt_ar_fastconformer_hybrid_large_pcd_v1.0.nemo'),
-          'fastconformer-quran': ('Muno459/fastconformer-quran', 'nemo/fastconformer-quran.nemo')}
+          'fastconformer-quran': ('Muno459/fastconformer-quran', 'nemo/fastconformer-quran.nemo'),
+          'mohammed-quran-everyayah': ('mohammed/fastconformer-quran-ar', 'phase3_full/phase3_full_wer0.0014.nemo')}
 test = json.load(open('data/test.json', encoding='utf8')); ha = json.load(open('ha_test/meta-ha.json', encoding='utf8'))
 out = json.load(open('compare.json', encoding='utf8')) if os.path.exists('compare.json') else {}
 for name, (repo, fn) in MODELS.items():
