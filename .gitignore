@@ -10,3 +10,8 @@ web/editions/*/
 web/pages/
 web/tjpages/
 __pycache__/
+web/thmnotes/
+editions-zips/
+/*.png
+gpu-train.zip
+tools/asr/gpu/ha_test/

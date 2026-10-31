@@ -8,6 +8,8 @@ D = os.path.dirname(os.path.abspath(__file__)); os.chdir(D)
 STEPS, BS, LR, EVAL, K = int(os.environ.get('STEPS', 6000)), int(os.environ.get('BS', 8)), 1e-5, 500, 3
 ACC = max(1, 16 // BS)   # gradient accumulation keeps an effective batch of 16 within 6 GB of GPU memory
 TOKEN = os.environ.get('HF_TOKEN', '').strip()
+R2 = os.environ.get('ROUND') == '2'   # round 2: also trains on pieces of ayahs (2-6 words cut out with word timings)
+OUT, RES = ('out2', 'results2.json') if R2 else ('out', 'results.json')
 BASE = 'deepdml/whisper-base-ar-quran-mix-norm'
 WTOK = open('hf_write_token.txt').read().strip() if os.path.exists('hf_write_token.txt') else ''
 _last = [0]
@@ -19,7 +21,7 @@ def report(force=False):   # copies progress.txt and results.json to a private H
             from huggingface_hub import HfApi
             api = HfApi(token=WTOK); repo = api.whoami()['name'] + '/quran-train-progress'
             api.create_repo(repo, repo_type='dataset', private=True, exist_ok=True)
-            for f in ('progress.txt', 'results.json'):
+            for f in ('progress.txt', 'results.json', 'results2.json'):
                 if os.path.exists(f): api.upload_file(path_or_fileobj=f, path_in_repo=f, repo_id=repo, repo_type='dataset')
         except Exception as e: print('report failed:', e, flush=True)
     threading.Thread(target=up, daemon=True).start()
@@ -94,11 +96,48 @@ def cer(model, proc, items, folder):
     model.eval(); E = L = 0
     for i in range(0, len(items), 8):
         ch = items[i:i + 8]
-        f = proc.feature_extractor([sf.read(os.path.join(folder, x['id'] + '.wav'), dtype='float32')[0] for x in ch], sampling_rate=16000, return_tensors='pt').input_features.to('cuda', torch.float16)
+        f = proc.feature_extractor([sf.read(os.path.join(x.get('dir', folder), x['id'] + '.wav'), dtype='float32')[0] for x in ch], sampling_rate=16000, return_tensors='pt').input_features.to('cuda', torch.float16)
         with torch.no_grad(), torch.autocast('cuda', dtype=torch.float16):
             out = proc.batch_decode(model.generate(f, language='ar', task='transcribe', max_new_tokens=200, no_repeat_ngram_size=3), skip_special_tokens=True)
         for x, h in zip(ch, out): r = norm(x['text']); E += min(ed(norm(h), r), len(r)); L += len(r)
     model.train(); return round(100 * E / L, 1)
+
+def make_frags(proc, items, tag, per=1):
+    # cuts 1-6 word pieces out of whole-ayah clips: out/best transcribes with word timings, and only words that match
+    # the true text are used, so every piece's text is the real ayah text for exactly that stretch of audio
+    import difflib
+    from transformers import WhisperForConditionalGeneration, GenerationConfig
+    path = 'data/frags-%s.json' % tag
+    if os.path.exists(path): return json.load(open(path, encoding='utf8'))
+    os.makedirs('data/frags', exist_ok=True)
+    m = WhisperForConditionalGeneration.from_pretrained('out/best').cuda().eval(); m.generation_config = GenerationConfig.from_pretrained('openai/whisper-base')
+    out = []; random.seed(11)
+    for n, x in enumerate(items):
+        try:
+            y = sf.read('data/clips/%s.wav' % x['id'], dtype='float32')[0]
+            f = proc.feature_extractor(y, sampling_rate=16000, return_tensors='pt').input_features.to('cuda')
+            with torch.no_grad():
+                g = m.generate(f, language='ar', task='transcribe', max_new_tokens=200, return_token_timestamps=True, return_dict_in_generate=True)
+            ids, ts = g.sequences[0].tolist(), g.token_timestamps[0].tolist()
+            words = []   # [text, start, end]
+            for k, (t, tm) in enumerate(zip(ids, ts)):
+                if t >= proc.tokenizer.eos_token_id: continue
+                piece = proc.tokenizer.decode([t])
+                if piece.startswith(' ') or not words: words.append([piece, tm, tm])
+                else: words[-1][0] += piece
+                words[-1][2] = ts[k + 1] if k + 1 < len(ts) else tm
+            orig = x['text'].split(); ref = [norm(w) for w in orig]; hyp = [norm(w[0]) for w in words]
+            blocks = [b for b in difflib.SequenceMatcher(None, hyp, ref, autojunk=False).get_matching_blocks() if b.size >= 2]
+            for _ in range(per):
+                if not blocks: break
+                b = random.choice(blocks); L = random.randint(1, min(6, b.size)); o = random.randint(0, b.size - L)
+                a0, a1 = words[b.a + o][1] - 0.15, words[b.a + o + L - 1][2] + 0.2
+                if a1 - a0 < 0.5 or a1 * 16000 > len(y) + 1600: continue
+                k = '%s_f%d' % (x['id'], len(out)); sf.write('data/frags/%s.wav' % k, y[max(0, int(a0 * 16000)):int(a1 * 16000)], 16000)
+                out.append({'id': k, 'text': ' '.join(orig[b.b + o:b.b + o + L]), 'dir': 'data/frags'})
+        except Exception as e: print('frag skip', x['id'], e, flush=True)
+        if n % 1000 == 0: log('pieces %s: %d of %d clips done, %d pieces' % (tag, n, len(items), len(out)))
+    json.dump(out, open(path, 'w', encoding='utf8'), ensure_ascii=False); del m; torch.cuda.empty_cache(); return out
 
 def keep(b): return b
 
@@ -106,7 +145,7 @@ class DS(torch.utils.data.Dataset):
     def __init__(s, items, proc, noise): s.items, s.proc, s.noise = items, proc, noise
     def __len__(s): return len(s.items)
     def __getitem__(s, i):
-        x = s.items[i]; y = sf.read('data/clips/%s.wav' % x['id'], dtype='float32')[0]
+        x = s.items[i]; y = sf.read('%s/%s.wav' % (x.get('dir', 'data/clips'), x['id']), dtype='float32')[0]
         if random.random() < 0.2:   # light changes only: tlog is already real phones and rooms
             r = random.random()
             if r < 0.4: y = librosa.resample(y, orig_sr=16000, target_sr=int(16000 * random.uniform(0.9, 1.1)))
@@ -125,26 +164,35 @@ def main():
     fetch(); split()
     base = snapshot_download(BASE, token=TOKEN or None)
     proc = WhisperProcessor.from_pretrained(base)
-    src = 'out/last' if os.path.exists('out/last/config.json') else base
+    src = OUT + '/last' if os.path.exists(OUT + '/last/config.json') else base
     model = WhisperForConditionalGeneration.from_pretrained(src).cuda()
     model.generation_config = GenerationConfig.from_pretrained('openai/whisper-base')
     model.config.forced_decoder_ids = None; model.generation_config.forced_decoder_ids = None
     train, test = json.load(open('data/train.json', encoding='utf8')), json.load(open('data/test.json', encoding='utf8'))
     ha = json.load(open('ha_test/meta-ha.json', encoding='utf8'))
-    res = json.load(open('results.json')) if os.path.exists('results.json') else {}
+    ftest = []
+    if R2:
+        train = train + make_frags(proc, train, 'train'); ftest = make_frags(proc, test, 'test')
+        log('round 2: %d training items with pieces, %d test pieces' % (len(train), len(ftest)))
+    def measure(m):
+        r = {'tlog_test': cer(m, proc, test, 'data/clips'), 'ha': cer(m, proc, ha, 'ha_test')}
+        if ftest: r['pieces'] = cer(m, proc, ftest, 'data/frags')
+        return r
+    def score(r): return r['tlog_test'] + r.get('pieces', r['ha'] if R2 else 0)
+    res = json.load(open(RES)) if os.path.exists(RES) else {}
     if 'base' not in res:
         log('measuring the base model ...')
         bm = WhisperForConditionalGeneration.from_pretrained(base).cuda(); bm.generation_config = model.generation_config
-        res['base'] = {'tlog_test': cer(bm, proc, test, 'data/clips'), 'ha': cer(bm, proc, ha, 'ha_test')}; del bm
-        json.dump(res, open('results.json', 'w'), indent=1); log('base model: errors %% tlog test %s, your voice %s' % (res['base']['tlog_test'], res['base']['ha']))
+        res['base'] = measure(bm); del bm
+        json.dump(res, open(RES, 'w'), indent=1); log('base model: errors %', res['base'])
     rng = np.random.default_rng(1); noise = [rng.standard_normal(16000 * 10).astype(np.float32), np.cumsum(rng.standard_normal(16000 * 10)).astype(np.float32)]
     noise[1] -= np.convolve(noise[1], np.ones(400) / 400, 'same')
     dl = torch.utils.data.DataLoader(DS(train, proc, noise), batch_size=BS, shuffle=True, num_workers=4, drop_last=True, persistent_workers=True, collate_fn=keep)
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=0.01); scaler = torch.amp.GradScaler('cuda')
-    st = json.load(open('out/last/state.json')) if os.path.exists('out/last/state.json') else {'step': 0}
-    if os.path.exists('out/last/opt.pt'): opt.load_state_dict(torch.load('out/last/opt.pt'))
+    st = json.load(open(OUT + '/last/state.json')) if os.path.exists(OUT + '/last/state.json') else {'step': 0}
+    if os.path.exists(OUT + '/last/opt.pt'): opt.load_state_dict(torch.load(OUT + '/last/opt.pt'))
     prefix = proc.tokenizer.convert_tokens_to_ids(['<|startoftranscript|>', '<|ar|>', '<|transcribe|>', '<|notimestamps|>']); eot = proc.tokenizer.eos_token_id
-    best = min([v['tlog_test'] for v in res.values()]); t0 = time.time(); losses = []; micro = 0
+    best = min(score(v) for v in res.values()); t0 = time.time(); losses = []; micro = 0
     model.train()
     while st['step'] < STEPS:
         for b in dl:
@@ -166,13 +214,13 @@ def main():
                 left = (time.time() - t0) / 50 * (STEPS - st['step']) / 3600; t0 = time.time()
                 log('step %d/%d  loss %.3f  about %.1f h left' % (st['step'], STEPS, np.mean(losses[-50 * ACC:]), left))
             if st['step'] % EVAL == 0 or st['step'] == STEPS:
-                r = {'tlog_test': cer(model, proc, test, 'data/clips'), 'ha': cer(model, proc, ha, 'ha_test')}; res['step %d' % st['step']] = r
-                json.dump(res, open('results.json', 'w'), indent=1)
-                log('MEASURE step %d: errors %% tlog test %s (base %s), your voice %s (base %s)' % (st['step'], r['tlog_test'], res['base']['tlog_test'], r['ha'], res['base']['ha']))
-                os.makedirs('out/last', exist_ok=True); model.save_pretrained('out/last'); proc.save_pretrained('out/last')
-                torch.save(opt.state_dict(), 'out/last/opt.pt'); json.dump(st, open('out/last/state.json', 'w'))
-                if r['tlog_test'] < best:
-                    best = r['tlog_test']; model.save_pretrained('out/best'); proc.save_pretrained('out/best'); log('  new best model saved in out\\best')
+                r = measure(model); res['step %d' % st['step']] = r
+                json.dump(res, open(RES, 'w'), indent=1)
+                log('MEASURE step %d: errors %% %s  (base %s)' % (st['step'], r, res['base']))
+                os.makedirs(OUT + '/last', exist_ok=True); model.save_pretrained(OUT + '/last'); proc.save_pretrained(OUT + '/last')
+                torch.save(opt.state_dict(), OUT + '/last/opt.pt'); json.dump(st, open(OUT + '/last/state.json', 'w'))
+                if score(r) < best:
+                    best = score(r); model.save_pretrained(OUT + '/best'); proc.save_pretrained(OUT + '/best'); log('  new best model saved in ' + OUT + '\\best')
     log('DONE. Send Claude the file results.json (or the last lines above).')
 
 if __name__ == '__main__': main()

@@ -18,6 +18,8 @@ async function go(h, ms = 700) { await ev(h => { location.hash = h; }, h); await
 async function fresh(ctx, vp) {
   p = await ctx.newPage(); await p.setViewportSize(vp || { width: 390, height: 844 }); await p.addInitScript(() => { window.QA_NOFS = true; });
   p.on('pageerror', e => errs.push(e.message));
+  // confirm() before deleting: accepted, unless a check answers the dialog itself first
+  p.on('dialog', d => setTimeout(() => d.accept().catch(() => {}), 0));
   await p.route(/everyayah\.com/, r => r.fulfill({ path: BEEP, contentType: 'audio/mpeg', headers: { 'Access-Control-Allow-Origin': '*' } }));
 }
 
@@ -230,9 +232,10 @@ async function fresh(ctx, vp) {
     await p.click('.z-sort button[data-o=book]'); await wait(300); return ok; });
   await check(G12, 'الأذكار المئوية: تخصيص العدد بيتحفظ', async () => { const c = p.locator('.zikr', { hasText: 'عشر رقاب' }).first(); await c.locator('.z-nbtn').click(); await c.locator('.z-nopts button', { hasText: '٣٣' }).first().click();
     const r = await c.locator('.z-count small').innerText(); await c.locator('.z-nbtn').click(); await c.locator('.z-nopts button', { hasText: 'الأصلي' }).click(); return assert(r.includes('٣٣'), r); });
-  await check(G12, '«استمع للكل» بيكرر كل ذكر بعدده والعدّادات بتخلص', async () => { await ev(() => localStorage.removeItem('q.azkar.e')); await go('#/azkar/e', 900); await p.click('#zAll');
+  await check(G12, '«استمع للآيات» بيقرأ آيات الأذكار بس، والأذكار التانية من غير صوت', async () => { await ev(() => localStorage.removeItem('q.azkar.e')); await go('#/azkar/e', 900);
+    const r = await ev(() => [document.querySelectorAll('.zikr').length, document.querySelectorAll('.zikr .z-play').length]); await p.click('#zAll');
     for (let i = 0; i < 90 && (await p.textContent('#zAll')).includes('إيقاف'); i++) await wait(1000);
-    return ev(() => document.querySelector('.z-progress').textContent.includes('أتممت الأذكار')); });
+    return assert(r[1] > 0 && r[1] < r[0] && (await p.textContent('#zAll')).includes('استمع'), JSON.stringify(r)); });
   await check(G12, 'مكافآت الختمة ظاهرة في شاشة الختمة', async () => { await go('#/khatma', 700); return ev(() => !!document.querySelector('.rw-badges, .rw, [class^=rw-]')); });
   await check(G12, 'صفحة الآية: الترجمة والبلاغة والمتشابهات', async () => { await go('#/a/2/255', 900); await p.click('#ayTr'); await wait(800); const tr = await ev(() => !!document.querySelector('.ay-tr'));
     await p.click('.ay-tabs button[data-t=balagha]'); await wait(1500); const bal = await ev(() => document.getElementById('ayBody').textContent.length > 30);
@@ -307,8 +310,8 @@ async function fresh(ctx, vp) {
   await check(G14, 'اختبار الحفظ: إخفاء كلمات وكشفها والدرجة', async () => { await go('#/hifztest/112', 800); const n = await ev(() => document.querySelectorAll('.ht-w').length); await p.click('.ht-w >> nth=0'); await p.click('#htDone'); await wait(300);
     const r = await ev(() => [document.querySelectorAll('.ht-w.shown').length, document.getElementById('htRes').textContent, JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112]]);
     return assert(n > 0 && r[0] === n && /٪/.test(r[1]) && r[2] && r[2].score < 100, n + JSON.stringify(r)); });
-  await check(G14, 'البحث الموحد بيلاقي السور والأذكار والأدعية', async () => { await go('#/search?q=' + encodeURIComponent('الكهف'), 1200); const s1 = await ev(() => !!document.querySelector('.sr-chips a[href="#/s/18/1"]'));
-    await go('#/search?q=' + encodeURIComponent('أموت وأحيا'), 1000); const s2 = await ev(() => !!document.querySelector('.sr-zk[href="#/duas/sleep"]')); return assert(s1 && s2, s1 + ',' + s2); });
+  await check(G14, 'البحث في القرآن بس: السور والآيات، من غير الأذكار والأدعية', async () => { await go('#/search?q=' + encodeURIComponent('الكهف'), 1200); const s1 = await ev(() => !!document.querySelector('.sr-chips a[href="#/s/18/1"]'));
+    await go('#/search?q=' + encodeURIComponent('أموت وأحيا'), 1000); const s2 = await ev(() => !!document.querySelector('.sr-zk')); return assert(s1 && !s2, s1 + ',' + s2); });
   await check(G14, 'الإعدادات فيها أزرار للأقسام ومعاينة الخط', async () => { await p.click('#btnSettings'); const r = await ev(() => [document.querySelectorAll('.set-jump button').length, !!document.querySelector('.set-prev')]); await closeS(); return assert(r[0] >= 3 && r[1], JSON.stringify(r)); });
   await check(G14, 'بيانات ودجت الصلاة الجاية (3 أيام)', async () => { await go('#/', 2500); const w = await ev(() => AppBridge.widget); return assert(w && w.prayers.length === 15 && w.prayers[0].n && w.place === 'القاهرة', JSON.stringify(w && w.prayers.slice(0, 1))); });
   const G15 = 'مزايا نسخة 3.8';
@@ -363,6 +366,32 @@ async function fresh(ctx, vp) {
       const t = await ev(y => Asr.transcribe('asrnv', Float32Array.from(y)), y); const ref = nrm(m.text); E += Math.min(ed(nrm(t), ref), ref.length); L += ref.length;
     }
     const cer = Math.round(100 * E / L); return assert(cer < 35, cer + '%') && cer + '%'; });
+  const G17 = 'نسخة 4.6 (قائمة 31 أكتوبر)';
+  await check(G17, 'الإعدادات: التحميلات قبل «حول التطبيق»، والقوايم المفتوحة بتتقفل لما الإعدادات تتقفل', async () => { await go('#/', 500); await p.click('#btnSettings');
+    const order = await ev(() => { const d = document.getElementById('dlGroup'), a = document.querySelector('.about-box'); return !!(d.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) && d.nextElementSibling === a; });
+    await ev(() => { document.getElementById('dlGroup').open = true; document.querySelector('.about-box').open = true; }); await closeS(); await wait(100);
+    const closed = await ev(() => !document.getElementById('dlGroup').open && !document.querySelector('.about-box').open);
+    const hint = await ev(() => !document.getElementById('dlRow').textContent.includes('مرة واحدة'));
+    return assert(order && closed && hint, JSON.stringify([order, closed, hint])); });
+  await check(G17, 'أقسام الإعدادات ليها شريط ملوّن يميّزها', async () => { await p.click('#btnSettings'); const r = await ev(() => { const g = document.querySelector('#settings .set-group'); const c = getComputedStyle(g); return [c.backgroundColor, c.borderInlineStartWidth]; }); await closeS(); return assert(r[0] !== 'rgba(0, 0, 0, 0)' && parseFloat(r[1]) >= 3, JSON.stringify(r)); });
+  await check(G17, 'مايك الصفحة بيستخبى والإعدادات مفتوحة', async () => { await go('#/p/50', 900); await p.click('#btnSettings'); await wait(150); const h = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); await closeS(); await wait(150); const v = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); return assert(h === 'none' && v !== 'none', h + ',' + v); });
+  await check(G17, 'حذف علامة بيسأل الأول', async () => { await ev(() => localStorage.setItem('q.marks', JSON.stringify([{ p: 5, n: 'أ' }]))); await go('#/khatma', 600); let asked = false; p.once('dialog', d => { asked = true; d.dismiss(); }); await p.click('.marks li:first-child .mk-del'); await wait(200); const n = await ev(() => document.querySelectorAll('.marks li').length); return assert(asked && n === 1, asked + ',' + n); });
+  await check(G17, 'الإحصائيات: الصفحة بتتحسب مرة واحدة حتى لو اتفتحت تاني', async () => { await ev(() => localStorage.removeItem('q.stats')); await go('#/p/60', 500); await go('#/p/61', 500); await go('#/p/60', 500);
+    const r = await ev(() => { const a = JSON.parse(localStorage.getItem('q.stats'))[Object.keys(JSON.parse(localStorage.getItem('q.stats')))[0]]; return [a.length, new Set(a).size, a.every(x => x > 1000)]; }); return assert(r[0] === r[1] && r[2] && r[0] > 0, JSON.stringify(r)); });
+  await check(G17, 'السبحة: ذكر من عندك وعدد من اختيارك', async () => { await ev(() => localStorage.removeItem('q.tasbih')); await go('#/tasbih', 600);
+    p.once('dialog', d => d.accept('يا حي يا قيوم')); await p.click('#tsbAdd'); await wait(300); p.once('dialog', d => d.accept('٢٥')); await p.click('#tsbGoal'); await wait(300);
+    const r = await ev(() => [document.getElementById('tsbTxt').textContent, document.getElementById('tsbOf').textContent, JSON.parse(localStorage.getItem('q.tasbih')).goal]); return assert(r[0] === 'يا حي يا قيوم' && r[2] === 25, JSON.stringify(r)); });
+  await check(G17, 'اختبار الحفظ بالصوت: الكلمة المخفية تظهر لو اتقرت صح وتحمرّ لو غلط', async () => { await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/hifztest/112', 800);
+    await p.click('#htMic'); await ev(() => { onRecite('', 'state:listening'); onRecite('قل هو الله احد', 'final'); onRecite('الله الصمد', 'final'); onRecite('لم يكتب', 'partial'); onRecite('لم يكتب ولم يقرا', 'final'); });
+    const r = await ev(() => [document.querySelectorAll('.ht-w.ok').length, document.querySelectorAll('.ht-w.miss').length]); await ev(() => { delete window.ReciteBridge; });
+    return assert(r[0] >= 6 && r[1] >= 1, JSON.stringify(r)); });
+  await check(G17, 'المصحف بيدخل ملء الشاشة لوحده بعد ثانيتين، والرجوع بيقفله الأول', async () => { await go('#/', 400); await ev(() => { window.QA_NOFS = false; }); await go('#/p/70', 2600);
+    const on = await ev(() => document.body.classList.contains('fs')); const b1 = await ev(() => qBack()); const off = await ev(() => !document.body.classList.contains('fs')); const b2 = await ev(() => qBack()); const b3 = await ev(() => qBack());
+    await ev(() => { window.QA_NOFS = true; }); return assert(on && b1 && off && b2 && !b3, JSON.stringify([on, b1, off, b2, b3])); });
+  await check(G17, 'الأذكار: الصوت للآيات بس', async () => { await go('#/azkar/m', 800); const r = await ev(() => [...document.querySelectorAll('.zikr')].every(z => !z.querySelector('.z-play') || /سورة/.test(z.querySelector('.z-src').textContent))); return assert(r, String(r)); });
+  await check(G17, 'هامش المصحف الموضوعي تحت الصفحة (صورة الهامش المطبوع)', async () => { await ev(() => localStorage.setItem('q.thematic', 'true')); await p.reload(); await go('#/p/27', 900);
+    await ev(() => { document.getElementById('thmNotes').open = true; }); await wait(800); const r = await ev(() => { const i = document.querySelector('.thm-notes img'); return i && [i.getAttribute('src'), i.naturalWidth]; }); await ev(() => localStorage.setItem('q.thematic', 'false'));
+    return assert(r && /thmnotes\/\d{3}\.webp/.test(r[0]), JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

@@ -185,7 +185,9 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
 .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); }
 .seg button.on { background: var(--accent); color: var(--accent-ink); box-shadow: 0 2px 8px rgba(15, 107, 79, .3); }
 /* The reading choices (three editions and text) take their own line under the label, wrapping on narrow phones. */
-.set-group { font-size: 13px; font-weight: 700; color: var(--accent); margin: 18px 6px 8px; }
+/* Each big settings section opens with a tinted band, so the groups stand apart. */
+.set-group { font-size: 15px; font-weight: 700; color: var(--accent); margin: 22px 0 10px; padding: 9px 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); border-inline-start: 4px solid var(--accent); }
 .set-group:first-of-type { margin-top: 4px; }
 .row.row-col { flex-direction: column; align-items: stretch; gap: 10px; }
 .seg-wrap { flex-wrap: wrap; }
@@ -351,7 +353,7 @@ body.reading.pgview { background: var(--bg); }
 body.reading.pgview .page-info { color: var(--text); }
 /* Lists and the text view stretch a little at their ends and spring back (elastic() in app.js). */
 html, body { overscroll-behavior-y: none; }
-#view.springback { transition: transform .35s cubic-bezier(.2, .9, .3, 1.2); }
+#view.springback, .springback { transition: transform .35s cubic-bezier(.2, .9, .3, 1.2); }
 body.reading .quran, body.reading .basmala, body.reading .page-info { color: var(--pink); }
 .page-box { background: var(--pbg); isolation: isolate; }
 .page-box img { mix-blend-mode: multiply; }
@@ -946,7 +948,12 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
 .dl-box[open] > summary::after { transform: rotate(180deg); }
 .dl-p { display: block; height: 6px; border-radius: 3px; background: #0002; overflow: hidden; margin: 6px 0 2px; min-width: 120px; }
 .dl-p i { display: block; height: 100%; background: #2e7d5b; transition: width .3s; }
-.page-thm { margin: 6px 12px; padding: 4px 12px; border-radius: 12px; background: var(--card, #fff); }
+/* Under the pages it reads like the tajweed guide link: same size, colour and icon; the key opens beneath it. */
+.page-thm { margin: 6px 12px; text-align: center; }
+.page-thm > summary { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12.5px; color: var(--accent); list-style: none; padding: 4px 2px; }
+.page-thm > summary::-webkit-details-marker { display: none; }
+.page-thm > summary .ic { width: 15px; height: 15px; }
+.page-thm ul { text-align: start; padding: 8px 12px; border-radius: 12px; background: var(--card, #fff); }
 /* Vertical reading: listen and night buttons keep their look in every theme and page colour */
 .vbar button { width: 46px; height: 46px; border: 0; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
   background: var(--gold-soft); color: var(--gold); box-shadow: 0 2px 8px #0003; filter: none !important; mix-blend-mode: normal; -webkit-appearance: none; appearance: none; }
@@ -973,3 +980,11 @@ body.fs .rd-mic:not(.on) { display: none; }
 .rd-cap mark { background: #ffe066; color: #000; border-radius: 4px; padding: 0 2px; }
 body.has-player .rd-cap { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84px); }
 .rd-word { position: absolute; border: 2px solid #e67e22; border-radius: 6px; background: #ffd43b55; pointer-events: none; z-index: 3; }
+
+body.sheet-open .rd-mic { display: none; }
+.tsb-ph .tsb-add { border-style: dashed; color: var(--accent); }
+.tsb-x { font-style: normal; margin-inline-start: 4px; opacity: .7; padding: 0 4px; }
+.thm-notes { display: grid; gap: 6px; margin-top: 6px; }
+.thm-notes img { width: 100%; border-radius: 8px; background: #fff; }
+.thm-notes small { color: var(--muted); font-size: 12px; }
+#idxMic.on { color: #d63031; animation: micPulse 1.2s infinite; }

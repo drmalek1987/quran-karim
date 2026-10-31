@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="style.css">
 <script>
   // The chosen look is set before anything is drawn, so a reload (e.g. after a language change) never shows the light theme first.
-  try { var th = JSON.parse(localStorage.getItem("q.theme") || '"auto"'); if (th === "light" || th === "dark") document.documentElement.setAttribute("data-theme", th); } catch (e) {}
+  try { var th = JSON.parse(localStorage.getItem("q.theme") || '"auto"'); var now = JSON.parse(localStorage.getItem("q.themeNow") || '""'); if (th === "sun" && now) th = now; if (th === "light" || th === "dark") document.documentElement.setAttribute("data-theme", th); } catch (e) {}
 </script>
 </head>
 <body>
@@ -29,6 +29,7 @@
   <header class="bar">
     <button id="closeIndex" class="icon-btn" aria-label="إغلاق"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     <h1>فهرس السور</h1>
+    <button id="idxMic" class="icon-btn" aria-label="اقرأ آية وأنا أفتحها" hidden><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
   </header>
   <main id="indexBody"></main>
 </div>
@@ -103,12 +104,6 @@
         <button data-v="dark">داكن</button>
       </div>
     </div>
-    <details class="dl-box" id="dlGroup"><summary class="set-group">التحميلات</summary>
-    <div class="row row-col" id="dlRow">
-      <p class="hint">صفحات كل طبعة بتتنزل مرة واحدة وتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.</p>
-      <div id="edDl" class="dl-list"></div>
-      <button class="btn dl-all" id="dlAll">حذف كل الطبعات</button>
-    </div></details>
     <h3 class="set-group">الصوت والتطبيق</h3>
     <div class="row">القارئ
       <select id="reciter" class="sel-field" aria-label="القارئ"></select>
@@ -142,6 +137,12 @@
         <button data-v="en">English</button>
       </div>
     </div>
+    <details class="dl-box" id="dlGroup"><summary class="set-group">التحميلات</summary>
+    <div class="row row-col" id="dlRow">
+      <p class="hint">الطبعات المتنزّلة بتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.</p>
+      <div id="edDl" class="dl-list"></div>
+      <button class="btn dl-all" id="dlAll">حذف كل الطبعات</button>
+    </div></details>
     <details class="about-box ar-only">
       <summary>حول التطبيق</summary>
       <p class="about"><b>القرآن الكريم</b> · الإصدار 4.4<br>

@@ -192,4 +192,19 @@ class AppBridge {
             activity.startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + activity.getPackageName())));
         } catch (Exception e) { }
     }
+
+    /** Whether the app may show notifications at all (the user can turn them off in the phone's settings). */
+    @JavascriptInterface
+    public boolean notificationsOn() {
+        android.app.NotificationManager nm = (android.app.NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+        return nm == null || Build.VERSION.SDK_INT < 24 || nm.areNotificationsEnabled();
+    }
+
+    /** The app's page in the phone's settings (notifications, battery, autostart on some phones). */
+    @JavascriptInterface
+    public void openAppSettings() {
+        try {
+            activity.startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + activity.getPackageName())));
+        } catch (Exception e) { }
+    }
 }

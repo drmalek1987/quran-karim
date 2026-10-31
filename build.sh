@@ -31,6 +31,8 @@ for ED in kfgqpc shamarly harmain; do
   [ -n "$HAVE" ] || continue
   (cd "$W" && zip -q -0 -r "$OUT/editions-zips/$ED.zip" $HAVE && rm -rf $HAVE)
 done
+# The thematic mushaf's page margins (tools/thematic_notes.py) are downloaded the same way, on first use.
+[ -d "$OUT/assets/web/thmnotes" ] && (cd "$OUT/assets/web" && zip -q -0 -r "$OUT/editions-zips/thmnotes.zip" thmnotes && rm -rf thmnotes)
 ls -la "$OUT/editions-zips"
 
 python3 -I "$HERE/tools/brotli_books.py" "$OUT/assets/web/books"
