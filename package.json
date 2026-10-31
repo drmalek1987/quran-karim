@@ -1,0 +1,17 @@
+{
+  "name": "quran-karim",
+  "private": true,
+  "version": "4.6.0",
+  "description": "Quran Karim app: Android (WebView) and iOS (Capacitor) share web/",
+  "scripts": {
+    "ios:add": "cap add ios",
+    "ios:sync": "cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0"
+  }
+}

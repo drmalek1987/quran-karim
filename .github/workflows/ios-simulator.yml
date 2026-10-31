@@ -1,0 +1,42 @@
+name: iOS simulator build
+on:
+  push:
+    branches: [ "claude/**", main ]
+    paths: [ "web/**", "ios-native/**", "capacitor.config.json", "package.json", ".github/workflows/ios-simulator.yml" ]
+  workflow_dispatch:
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Capacitor iOS project
+        run: |
+          npm install
+          npx cap add ios
+          npx cap sync ios
+          cp ios-native/*.swift ios/App/App/ 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'لتحديد اتجاه القبلة ومواقيت الصلاة'" ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'لتسميع القرآن بصوتك'" ios/App/App/Info.plist
+      - name: Build for simulator
+        run: |
+          cd ios/App
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -40
+      - name: Run in simulator and take screenshots
+        run: |
+          DEV=$(xcrun simctl list devices available | grep -m1 -E "iPhone 1[5-7]" | grep -oE "[0-9A-F-]{36}")
+          echo "device $DEV"
+          xcrun simctl boot "$DEV"; xcrun simctl bootstatus "$DEV" -b
+          APP=$(find ios/App/build -name "App.app" -path "*iphonesimulator*" | head -1)
+          xcrun simctl install "$DEV" "$APP"
+          mkdir -p shots
+          xcrun simctl launch "$DEV" com.quran.karim
+          sleep 15; xcrun simctl io "$DEV" screenshot shots/1-launch.png
+          sleep 15; xcrun simctl io "$DEV" screenshot shots/2-after-30s.png
+          (cd "$(dirname "$APP")" && zip -qry "$GITHUB_WORKSPACE/shots/QuranKarim-simulator.app.zip" App.app)
+      - uses: actions/upload-artifact@v4
+        with: { name: ios-simulator, path: shots/ }

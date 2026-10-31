@@ -1,0 +1,6 @@
+{
+  "appId": "com.quran.karim",
+  "appName": "القرآن الكريم",
+  "webDir": "web",
+  "ios": { "contentInset": "never", "backgroundColor": "#0f5132" }
+}
