@@ -103,6 +103,38 @@ class NvAsr {
         } catch (Exception e) { return false; }
     }
 
+    // Sends the waiting clips to the relay Space (which writes them to the private dataset), deleting each one once it
+    // is accepted. Runs in the background; stops at the first network failure and tries again next time.
+    @JavascriptInterface
+    public void upload(final String device) {
+        new Thread(new Runnable() { public void run() {
+            File d = new File(act.getFilesDir(), "donate"); File[] l = d.listFiles(); if (l == null) return;
+            for (File w : l) {
+                if (!w.getName().endsWith(".wav")) continue;
+                File j = new File(d, w.getName().replace(".wav", ".json"));
+                try {
+                    String b = "----qk" + System.nanoTime();
+                    java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL("https://drabdelraman-quran-voice-relay.hf.space/clip").openConnection();
+                    c.setDoOutput(true); c.setConnectTimeout(15000); c.setReadTimeout(30000);
+                    c.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + b);
+                    OutputStream o = c.getOutputStream();
+                    String meta = j.exists() ? new String(readAll(j), "UTF-8") : "{}";
+                    o.write(("--" + b + "\r\nContent-Disposition: form-data; name=\"meta\"\r\n\r\n" + meta + "\r\n").getBytes("UTF-8"));
+                    o.write(("--" + b + "\r\nContent-Disposition: form-data; name=\"device\"\r\n\r\n" + device + "\r\n").getBytes("UTF-8"));
+                    o.write(("--" + b + "\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"c.wav\"\r\nContent-Type: audio/wav\r\n\r\n").getBytes("UTF-8"));
+                    o.write(readAll(w)); o.write(("\r\n--" + b + "--\r\n").getBytes("UTF-8")); o.close();
+                    int code = c.getResponseCode(); c.disconnect();
+                    if (code == 200 || code == 400) { w.delete(); j.delete(); } else return;
+                } catch (Exception e) { return; }
+            }
+        } }).start();
+    }
+
+    private static byte[] readAll(File f) throws java.io.IOException {
+        java.io.FileInputStream in = new java.io.FileInputStream(f);
+        try { byte[] b = new byte[(int) f.length()]; int n = 0; while (n < b.length) { int r = in.read(b, n, b.length - n); if (r < 0) break; n += r; } return b; } finally { in.close(); }
+    }
+
     @JavascriptInterface
     public int donated() { String[] l = new File(act.getFilesDir(), "donate").list(); return l == null ? 0 : l.length / 2; }
 

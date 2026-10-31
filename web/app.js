@@ -450,6 +450,13 @@
     });
   });
   donatePaint();
+  // Waiting clips go out when the app opens (and again after each hifz voice test); a random id, not tied to the person.
+  function donateSend() {
+    if (load("donate", 0) !== 1 || !window.NvBridge || !NvBridge.upload) return;
+    var id = load("donateId", ""); if (!id) { id = Math.random().toString(36).slice(2, 12); save("donateId", id); }
+    try { NvBridge.upload(id); } catch (e) {}
+  }
+  setTimeout(donateSend, 5000);
   document.querySelectorAll("#hapticSet button").forEach(function (b) {
     b.addEventListener("click", function () { save("hapticLevel", +b.dataset.v); applySettings(); });
   });
@@ -3113,6 +3120,7 @@
         try { NvBridge.donate(JSON.stringify({ text: htv.ws.slice(htv.seg, htv.ptr).map(function (e) { return e.textContent; }).join(" "), src: "hifz", v: 1 })); } catch (e) {}
       htv.seg = null;
     }
+    if (htv.ptr >= htv.exp.length) setTimeout(donateSend, 1000);
     if (htv.ptr >= htv.exp.length) { htv.on = false; Mic.stop(); htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; toast("خلصت الآيات، دوس «خلصت» للنتيجة"); }
   };
 
