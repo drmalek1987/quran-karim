@@ -158,6 +158,12 @@
   if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2 }, window.ED_SHAMARLY);
   // The Google Play build leaves out the scanned edition, which has no publishing licence (build.sh with PLAY=1 sets this in flags.js).
   if (window.NO_HARMAIN) { delete EDS.harmain; document.querySelectorAll('[data-ed="harmain"]').forEach(function (x) { x.remove(); }); }
+  // iOS: downloaded pages live under the app's file URL (web/ios/ed-bridge.js); Android serves them at their asset paths.
+  function edBase() {
+    var b = window.EdBridge && EdBridge.base; if (!b) return;
+    Object.keys(EDS).forEach(function (k) { var e = EDS[k]; if (!e.d0) { e.d0 = e.dir; e.t0 = e.tj; } e.dir = b + e.d0; e.tj = e.t0 && b + e.t0; });
+  }
+  edBase(); window.onEdBase = function () { edBase(); if (/^#\/p\//.test(location.hash)) route(); };
   var edition = load("edition", "kfgqpc");
   if (!EDS[edition]) edition = EDS.kfgqpc ? "kfgqpc" : "harmain";
   function useEdition(id) {
