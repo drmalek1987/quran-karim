@@ -59,6 +59,11 @@ def snap(R):
                 nx = (s, a + 1) if a + 1 < len(R[s]) else (s + 1, 0) if s + 1 < 114 else None
                 if nx and R[nx[0]][nx[1]][0][0] == p and R[nx[0]][nx[1]][0][2] == y0: R[nx[0]][nx[1]][0][3] = round(m[0])
                 snapped += 1
+    # a piece left with no width (the medallion closed the line) is dropped, unless it is the ayah's only one
+    for sur in R:
+        for i, a in enumerate(sur):
+            keep = [b for b in a if b[3] - b[1] >= 4]
+            sur[i] = keep or [[a[0][0], min(a[0][1], a[0][3]), a[0][2], max(a[0][1], a[0][3]) + 4, a[0][4]]]
     return snapped
 if __name__ == '__main__' and len(sys.argv) == 1:
     print('snapped', snap(R))
