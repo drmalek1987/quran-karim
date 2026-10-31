@@ -158,6 +158,9 @@ class NvAsr {
         for (int i = 0; i < vocab.length; i++) vocab[i] = v.getString(i);
         // ONNX Runtime's native libraries come with the model download (asr/asrnv/lib), keeping the APK under 50 MB.
         System.setProperty("onnxruntime.native.path", new File(dir, "asrnv/lib").getAbsolutePath());
+        // Loaded first by full path: the JNI library needs libonnxruntime.so, which the app's linker namespace finds
+        // only once it is already loaded (it does not search asrnv/lib).
+        System.load(new File(dir, "asrnv/lib/libonnxruntime.so").getAbsolutePath());
         env = OrtEnvironment.getEnvironment();
         OrtSession.SessionOptions o = new OrtSession.SessionOptions();
         o.setIntraOpNumThreads(Math.max(1, Math.min(4, Runtime.getRuntime().availableProcessors())));
