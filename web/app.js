@@ -441,6 +441,15 @@
       if (/^#\/s\//.test(location.hash)) { var keep = window.scrollY; route(); sheet.hidden = false; window.scrollTo(0, keep); }
     });
   });
+  // Training clips are only kept after an explicit yes; switching it off deletes nothing already sent but stops new clips.
+  function donatePaint() { var v = load("donate", 0); document.querySelectorAll("#donateSet button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === v); }); }
+  document.querySelectorAll("#donateSet button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.dataset.v === "1" && !confirm("توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟")) return;
+      save("donate", +b.dataset.v); donatePaint();
+    });
+  });
+  donatePaint();
   document.querySelectorAll("#hapticSet button").forEach(function (b) {
     b.addEventListener("click", function () { save("hapticLevel", +b.dataset.v); applySettings(); });
   });
@@ -3086,15 +3095,24 @@
     }
     var ws = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean), fresh = ws.slice(htv.done);
     htv.done = kind === "final" ? 0 : ws.length;
+    if (htv.seg == null) { htv.seg = htv.ptr; htv.clean = true; }
     fresh.forEach(function (hw) {
       for (var j = htv.ptr; j < Math.min(htv.exp.length, htv.ptr + 4); j++) if (rdSame(hw, htv.exp[j])) {
         for (var k = htv.ptr; k < j; k++) if (htv.ws[k].classList.contains("ht-w")) htv.miss(htv.ws[k]);   // skipped
         var e = htv.ws[j]; if (e.classList.contains("ht-w") && !e.classList.contains("shown")) e.classList.add("shown", "ok");
+        if (j !== htv.ptr) htv.clean = false;
         htv.ptr = j + 1; htv.bad = 0; return;
       }
+      htv.clean = false;
       // a wrong word where a hidden one was expected: after two misses in a row it counts as wrong and the test moves on
       if (++htv.bad >= 2 && htv.ptr < htv.exp.length) { if (htv.ws[htv.ptr].classList.contains("ht-w")) htv.miss(htv.ws[htv.ptr]); htv.ptr++; htv.bad = 0; }
     });
+    if (kind === "final") {
+      // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip
+      if (htv.clean && htv.ptr > htv.seg && Mic.cur === "nv" && load("donate", 0) === 1 && window.NvBridge && NvBridge.donate)
+        try { NvBridge.donate(JSON.stringify({ text: htv.ws.slice(htv.seg, htv.ptr).map(function (e) { return e.textContent; }).join(" "), src: "hifz", v: 1 })); } catch (e) {}
+      htv.seg = null;
+    }
     if (htv.ptr >= htv.exp.length) { htv.on = false; Mic.stop(); htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; toast("خلصت الآيات، دوس «خلصت» للنتيجة"); }
   };
 
