@@ -27,7 +27,18 @@ async def clip(audio: UploadFile, meta: str = Form(...), device: str = Form(""))
         operations=[CommitOperationAdd("clips/%s.wav" % cid, b), CommitOperationAdd("clips/%s.json" % cid, json.dumps(m, ensure_ascii=False).encode())])
     return {"ok": True}
 
-# Gradio Space entry: HF runs `python app.py`; serve the API (and an empty status page) on port 7860.
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+# Gradio Space entry (free hardware here is ZeroGPU, which only keeps Gradio apps alive): a tiny status page mounted
+# next to the API, plus the `spaces` import ZeroGPU looks for.
+import gradio as gr
+try:
+    import spaces
+    @spaces.GPU
+    def _noop(): return 0
+except Exception: pass
+with gr.Blocks() as demo:
+    gr.Markdown("Quran voice relay: receives clips that readers chose to share.")
+# The Space starts the Gradio server itself, so the API routes are added onto Gradio's own FastAPI app.
+demo.launch(prevent_thread_lock=True, ssr_mode=False)
+for r in app.routes:
+    if getattr(r, "path", "") == "/clip": demo.app.router.routes.insert(0, r)
+demo.block_thread()
