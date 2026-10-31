@@ -299,7 +299,7 @@
   // (EdStore), so later picks wait in a queue. When the pages arrive, the pick that asked for them goes on.
   var edQ = [], edPct = {}, edThen = {};
   // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
-  var ASRM = { asrnv: { name: "موديل NVIDIA", mb: 113 }, asrbase: { name: "موديل القرآن", mb: 153 }, asrft: { name: "الموديل المتدرب", mb: 153 } };
+  var ASRM = { asrnv: { name: "موديل NVIDIA", mb: 120 }, asrbase: { name: "موديل القرآن", mb: 153 }, asrft: { name: "الموديل المتدرب", mb: 153 } };
   function asrPacks(m) { return ["asrrt", m, m + "p"]; }
   function asrReady(m) { return !!window.EdBridge && asrPacks(m).every(function (k) { return EdBridge.state(k) === "ready"; }); }
   function needAsr(m, then) {

@@ -49,6 +49,7 @@ javac -nowarn -Xlint:-options --release 8 -cp "$ANDROID_JAR:$LIBS" -d "$OUT/clas
 for j in "$HERE"/android/libs/*.jar; do (cd "$OUT/classes" && unzip -qo "$j" '*.class'); done
 "$BT/dx" --dex --output="$OUT/classes.dex" "$OUT/classes"
 (cd "$OUT" && zip -q -j unsigned.apk classes.dex)
+# ONNX Runtime native libraries (NvAsr.java) are not in the APK: they ship inside the asrnv model pack (asr/asrnv/lib).
 
 "$BT/zipalign" -f -p 4 "$OUT/unsigned.apk" "$OUT/aligned.apk"
 
