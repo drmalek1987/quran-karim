@@ -3100,7 +3100,7 @@
       var st = kind.slice(6);
       if (st === "busy") toast("بيجهّز الموديل…");
       else if (st === "listening") toast("سمّع من حفظك");
-      else { if (st === "noperm") toast("محتاج إذن الميكروفون"); else if (st.indexOf("error") === 0) toast("المايك وقف، دوس عليه تاني"); htv.on = false; htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; }
+      else { if (st === "noperm") toast("محتاج إذن الميكروفون"); else if (st.indexOf("error") === 0) toast("المايك وقف (" + st.slice(6) + ")، دوس عليه تاني"); htv.on = false; htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; }
       return;
     }
     var ws = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean), fresh = ws.slice(htv.done);

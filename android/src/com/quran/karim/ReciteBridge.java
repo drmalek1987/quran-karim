@@ -68,6 +68,10 @@ class ReciteBridge {
         if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) start(); else tell("", "state:noperm");
     }
 
+    private int fails = 0;
+    // Restart a moment later: starting again inside the recogniser's own callback makes some phones answer "busy".
+    private void later() { new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() { public void run() { listen(); } }, 300); }
+
     private void listen() {
         if (!on) return;
         if (rec == null) {
@@ -80,11 +84,14 @@ class ReciteBridge {
                 public void onEndOfSpeech() { }
                 public void onEvent(int t, Bundle b) { }
                 public void onPartialResults(Bundle b) { send(b, "partial"); }
-                public void onResults(Bundle b) { send(b, "final"); listen(); }
+                public void onResults(Bundle b) { fails = 0; send(b, "final"); later(); }
                 public void onError(int e) {
                     // No match and silence just mean a pause: listen again. Anything else is reported and ends the session.
-                    if (e == SpeechRecognizer.ERROR_NO_MATCH || e == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) { listen(); return; }
-                    on = false; tell("", "state:error:" + e);
+                    if (e == SpeechRecognizer.ERROR_NO_MATCH || e == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) { fails = 0; later(); return; }
+                    // Busy, client, network and server errors are often passing (MIUI's recogniser throws them on a quick
+                    // restart): drop the recogniser and try again a few times before reporting.
+                    if (e != SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS && ++fails <= 3) { try { rec.destroy(); } catch (Exception x) {} rec = null; later(); return; }
+                    fails = 0; on = false; tell("", "state:error:" + e);
                 }
             });
         }
