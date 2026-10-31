@@ -370,7 +370,7 @@
     if (!window.EdBridge || !confirm("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.")) return;
     ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
   };
-  var ED_MB = { kfgqpc: 52, kfold: 37, shamarly: 39, harmain: 46, thmnotes: 9 };
+  var ED_MB = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46, thmnotes: 9 };
   // Settings › Downloads: each recitation model, to fetch or free it.
   function paintAsrDl() {
     var box = document.getElementById("asrDl");
@@ -400,7 +400,7 @@
   document.getElementById("mode").addEventListener("click", function (ev) {
     var b = ev.target.closest("button"); if (!b || edReady(b.dataset.v) || b.dataset.v === "text") return;
     ev.stopPropagation(); ev.preventDefault();
-    var mb = { kfgqpc: 52, kfold: 37, shamarly: 39, harmain: 46 }[b.dataset.v], st = window.EdBridge && EdBridge.state(b.dataset.v);
+    var mb = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46 }[b.dataset.v], st = window.EdBridge && EdBridge.state(b.dataset.v);
     if (st !== "busy" && edQ.indexOf(b.dataset.v) < 0 && !confirm(window.LANG === "en" ? T(EDS[b.dataset.v].name) + " is not on the phone yet. Download it (about " + mb + " MB)?" : EDS[b.dataset.v].name + " مش متنزّلة على الموبايل. تنزّلها؟ (حوالي " + mb + " ميجا)")) return;
     needEd(b.dataset.v, function () { b.click(); });
   }, true);
