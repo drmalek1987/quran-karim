@@ -4,6 +4,8 @@ on:
     branches: [ "claude/**", main ]
     paths: [ "web/**", "ios-native/**", "capacitor.config.json", "package.json", ".github/workflows/ios-simulator.yml" ]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   ios:
     runs-on: macos-15
@@ -40,3 +42,8 @@ jobs:
           (cd "$(dirname "$APP")" && zip -qry "$GITHUB_WORKSPACE/shots/QuranKarim-simulator.app.zip" App.app)
       - uses: actions/upload-artifact@v4
         with: { name: ios-simulator, path: shots/ }
+      - name: Publish screenshots to ios-shots branch
+        run: |
+          mkdir -p /tmp/pub && cp shots/*.png /tmp/pub/ && cd /tmp/pub
+          git init -q -b ios-shots && git add . && git -c user.name=ci -c user.email=ci@local commit -qm "shots ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ios-shots
