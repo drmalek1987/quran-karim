@@ -397,4 +397,10 @@ async function fresh(ctx, vp) {
   for (const r of out) console.log(r.join('\t'));
   const f = out.filter(r => r[2] === 'FAIL').length; console.log('TOTAL', out.length, 'FAIL', f);
   require('fs').writeFileSync(__dirname + '/ui-results.json', JSON.stringify(out));
+  // Arabic shows reversed in Windows consoles, so also write an RTL HTML report and open it in the browser there.
+  const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const rows = out.map(r => `<tr class="${r[2]}"><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${esc(r[3])}</td></tr>`).join('');
+  const html = `<!doctype html><meta charset="utf-8"><title>QA</title><style>body{font-family:Tahoma;direction:rtl}td{padding:3px 8px;border-bottom:1px solid #ddd}.FAIL{background:#fdd}.PASS td:nth-child(3){color:green}</style><h2>المجموع ${out.length} — فشل ${f}</h2><table>${rows}</table>`;
+  const rep = __dirname + '/ui-report.html'; require('fs').writeFileSync(rep, html); console.log('REPORT', rep);
+  if (process.platform === 'win32') require('child_process').exec(`start "" "${rep}"`);
 })();
