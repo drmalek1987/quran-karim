@@ -11,4 +11,4 @@ web/pages/
 web/tjpages/
 __pycache__/
 node_modules/
-ios/
+/ios/
