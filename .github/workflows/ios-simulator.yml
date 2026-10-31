@@ -18,6 +18,7 @@ jobs:
         run: |
           npm install
           npx cap add ios
+          cat ios-native/ci-test.js >> web/ios/ed-bridge.js
           npx cap sync ios
           cp ios-native/*.swift ios/App/App/ 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'لتحديد اتجاه القبلة ومواقيت الصلاة'" ios/App/App/Info.plist
@@ -39,6 +40,8 @@ jobs:
           xcrun simctl launch "$DEV" com.quran.karim
           sleep 15; xcrun simctl io "$DEV" screenshot shots/1-launch.png
           sleep 15; xcrun simctl io "$DEV" screenshot shots/2-after-30s.png
+          sleep 90; xcrun simctl io "$DEV" screenshot shots/3-kingfahd-p3.png
+          sleep 60; xcrun simctl io "$DEV" screenshot shots/4-later.png
           (cd "$(dirname "$APP")" && zip -qry "$GITHUB_WORKSPACE/shots/QuranKarim-simulator.app.zip" App.app)
       - uses: actions/upload-artifact@v4
         with: { name: ios-simulator, path: shots/ }
