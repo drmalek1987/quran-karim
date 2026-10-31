@@ -1,4 +1,4 @@
-fastapi==0.115.0
-uvicorn==0.30.6
-python-multipart==0.0.9
-huggingface_hub==0.25.1
+fastapi
+uvicorn
+python-multipart
+huggingface_hub

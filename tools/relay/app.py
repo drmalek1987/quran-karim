@@ -26,3 +26,8 @@ async def clip(audio: UploadFile, meta: str = Form(...), device: str = Form(""))
     api.create_commit(REPO, repo_type="dataset", commit_message="clip",
         operations=[CommitOperationAdd("clips/%s.wav" % cid, b), CommitOperationAdd("clips/%s.json" % cid, json.dumps(m, ensure_ascii=False).encode())])
     return {"ok": True}
+
+# Gradio Space entry: HF runs `python app.py`; serve the API (and an empty status page) on port 7860.
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
