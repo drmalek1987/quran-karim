@@ -64,6 +64,16 @@ if os.path.exists(ek):
     ok("طبعة الملك فهد: 604 صورة صفحة", kp == ["%03d.avif" % n for n in range(1, 605)], len(kp))
     ok("طبعة الملك فهد: البقرة تبدأ صفحة 2 والناس في 604 وآية الكرسي في 42", E["p"][1][0] == 2 and E["p"][113][0] == 604 and E["p"][1][254] == 42, (E["p"][1][0], E["p"][113][0], E["p"][1][254]))
 
+# Older King Fahd print (tools/kfold): the scans of HA's PDF with the King Fahd edition's lines
+eo = os.path.join(W, "editions/kfold.js")
+if os.path.exists(eo):
+    e = open(eo, encoding="utf8").read(); E = json.loads(e[e.index("=") + 1:].rstrip().rstrip(";"))
+    ok("طبعة الملك فهد القديمة: مكان كل آية (6236)", all(len(E["r"][i]) == Q["s"][i][3] and all(E["r"][i]) for i in range(114)))
+    ok("طبعة الملك فهد القديمة: كل المربعات جوه الصفحة", all(0 <= b[1] < b[3] <= 1000 and 0 <= b[2] < b[4] <= 1000 for s_ in E["r"] for a_ in s_ for b in a_))
+    kp = sorted(os.listdir(os.path.join(W, "editions/kfold")))
+    ok("طبعة الملك فهد القديمة: 604 صورة صفحة", kp == ["%03d.avif" % n for n in range(1, 605)], len(kp))
+    ok("طبعة الملك فهد القديمة: البقرة صفحة 2 والناس 604 وآية الكرسي 42", E["p"][1][0] == 2 and E["p"][113][0] == 604 and E["p"][1][254] == 42)
+
 # Shamarly-layout edition (tools/shamarly)
 es = os.path.join(W, "editions/shamarly.js")
 if os.path.exists(es):

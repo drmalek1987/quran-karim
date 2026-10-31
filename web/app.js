@@ -155,6 +155,9 @@
     harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0 }
   };
   if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1 }, window.ED_KFGQPC);
+  // طبعة الملك فهد القديمة = the scanned older Madinah print (HA's PDF, PDF page = page + 3). Its lines are the same as the
+  // King Fahd edition's, so its ayah boxes are those boxes moved onto the scan's text frame (tools/kfold/make_edition.py).
+  if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1 }, window.ED_KFOLD);
   if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2 }, window.ED_SHAMARLY);
   // The Google Play build leaves out the scanned edition, which has no publishing licence (build.sh with PLAY=1 sets this in flags.js).
   if (window.NO_HARMAIN) { delete EDS.harmain; document.querySelectorAll('[data-ed="harmain"]').forEach(function (x) { x.remove(); }); }
@@ -332,12 +335,12 @@
     if (s) { s.querySelector("i").style.width = v + "%"; s.nextElementSibling.textContent = v + "%"; }
   };
   // A download cut off when the app was closed goes on by itself from where it stopped.
-  setTimeout(function () { if (window.EdBridge) ["kfgqpc", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "part" && edPaused().indexOf(k) < 0) needEd(k, function () {}, true); }); }, 1500);
+  setTimeout(function () { if (window.EdBridge) ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "part" && edPaused().indexOf(k) < 0) needEd(k, function () {}, true); }); }, 1500);
   // Settings: each edition with its download state, to fetch or free it.
   function paintEdDl() {
     var box = document.getElementById("edDl"); if (!box) return;
     if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; }); return; }
-    var ids = ["kfgqpc", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).concat(window.THEMATIC ? ["thmnotes"] : []), any = false;
+    var ids = ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).concat(window.THEMATIC ? ["thmnotes"] : []), any = false;
     var nm = function (k) { return EDS[k] ? EDS[k].name : "هامش المصحف الموضوعي"; };
     paintAsrDl();
     box.innerHTML = ids.map(function (k) {
@@ -365,9 +368,9 @@
   }
   document.getElementById("dlAll").onclick = function () {
     if (!window.EdBridge || !confirm("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.")) return;
-    ["kfgqpc", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
+    ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
   };
-  var ED_MB = { kfgqpc: 52, shamarly: 39, harmain: 46, thmnotes: 9 };
+  var ED_MB = { kfgqpc: 52, kfold: 37, shamarly: 39, harmain: 46, thmnotes: 9 };
   // Settings › Downloads: each recitation model, to fetch or free it.
   function paintAsrDl() {
     var box = document.getElementById("asrDl");
@@ -397,7 +400,7 @@
   document.getElementById("mode").addEventListener("click", function (ev) {
     var b = ev.target.closest("button"); if (!b || edReady(b.dataset.v) || b.dataset.v === "text") return;
     ev.stopPropagation(); ev.preventDefault();
-    var mb = { kfgqpc: 52, shamarly: 39, harmain: 46 }[b.dataset.v], st = window.EdBridge && EdBridge.state(b.dataset.v);
+    var mb = { kfgqpc: 52, kfold: 37, shamarly: 39, harmain: 46 }[b.dataset.v], st = window.EdBridge && EdBridge.state(b.dataset.v);
     if (st !== "busy" && edQ.indexOf(b.dataset.v) < 0 && !confirm(window.LANG === "en" ? T(EDS[b.dataset.v].name) + " is not on the phone yet. Download it (about " + mb + " MB)?" : EDS[b.dataset.v].name + " مش متنزّلة على الموبايل. تنزّلها؟ (حوالي " + mb + " ميجا)")) return;
     needEd(b.dataset.v, function () { b.click(); });
   }, true);
@@ -807,7 +810,7 @@
     return '<details class="thm-key page-thm" id="thmNotes"><summary>' + ic("book") + 'هامش المصحف الموضوعي</summary><div class="thm-notes"></div></details>';
   }
   function kfPagesOf(n) {
-    if (edition === "kfgqpc" || !window.ED_KFGQPC) return [n];
+    if (edition === "kfgqpc" || edition === "kfold" || !window.ED_KFGQPC) return [n];
     var out = [];
     for (var s = 0; s < 114; s++) for (var x = 0; x < Q.p[s].length; x++) if (Q.p[s][x] === n) { var k = ED_KFGQPC.p[s][x]; if (out.indexOf(k) < 0) out.push(k); }
     return out.sort(function (x, y) { return x - y; });
@@ -846,7 +849,7 @@
   var vCur = 0, vHold = false;
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   function showPagesV(n, hl) {
-    var ed = EDS[edition], ratio = edition === "harmain" ? 160.6 : edition === "kfgqpc" ? 143.7 : 141.4, html = '<div class="vpages">';
+    var ed = EDS[edition], ratio = edition === "harmain" ? 160.6 : edition === "kfgqpc" ? 143.7 : edition === "kfold" ? 143.5 : 141.4, html = '<div class="vpages">';
     btnBack.hidden = false;
     document.body.classList.add("vread");
     for (var p = Q.min; p < Q.count; p++)
@@ -2929,7 +2932,7 @@
     function paint() {
       var dots = '<div class="wel-dots">' + [0, 1, 2].map(function (i) { return "<i" + (i === step ? ' class="on"' : "") + "></i>"; }).join("") + "</div>", body;
       if (step === 0) body = '<div class="wel-ic">' + ic("book") + "</div><h2>أهلًا بيك في القرآن الكريم</h2><p>اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</p>" +
-        '<div class="wel-opts">' + ["kfgqpc", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) { return '<button data-e="' + k + '"' + (k === edition && mode === "pages" ? ' class="on"' : "") + ">" + EDS[k].name + "</button>"; }).join("") +
+        '<div class="wel-opts">' + ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) { return '<button data-e="' + k + '"' + (k === edition && mode === "pages" ? ' class="on"' : "") + ">" + EDS[k].name + "</button>"; }).join("") +
         '<button data-e="text"' + (mode === "text" ? ' class="on"' : "") + ">نص مشكول (بدون صور)</button></div>";
       else if (step === 1) {
         var loc = load("qiblaLoc", null);

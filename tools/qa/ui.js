@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 const W = 'file:///mnt/project-files/quran-app/web/index.html';
 const BEEP = __dirname + '/beep.mp3';
 const out = [];
-// ED=kfgqpc (default), ED=shamarly or ED=harmain: which mushaf edition the run reads.
+// ED=kfgqpc (default), ED=kfold, ED=shamarly or ED=harmain: which mushaf edition the run reads.
 const ED = process.env.ED || 'kfgqpc';
 const KSUF = ED === 'harmain' ? '' : '.' + ED, EDDIR = ED === 'harmain' ? '/pages/' : 'editions/' + ED + '/';
 let p, errs = [];

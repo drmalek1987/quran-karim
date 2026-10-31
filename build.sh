@@ -24,7 +24,7 @@ fi
 # Mushaf page images are not in the APK: one zip per edition (paths as under web/) for the GitHub release that the app
 # downloads from when the reader picks the edition (EdStore.java). Zips land in $OUT/editions-zips.
 mkdir -p "$OUT/editions-zips"
-for ED in kfgqpc shamarly harmain; do
+for ED in kfgqpc kfold shamarly harmain; do
   W="$OUT/assets/web"
   if [ "$ED" = harmain ]; then SUB="pages tjpages"; else SUB="editions/$ED editions/$ED-tj"; fi
   HAVE=""; for d in $SUB; do [ -d "$W/$d" ] && HAVE="$HAVE $d"; done
