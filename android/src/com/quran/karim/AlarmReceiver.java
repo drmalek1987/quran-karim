@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-/** The alarm going off, or the phone restarting / the app updating (alarms are lost then and set again). */
+/** The alarm going off, or the phone restarting / the app updating / exact alarms being allowed (the alarm is set again). */
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context c, Intent i) {

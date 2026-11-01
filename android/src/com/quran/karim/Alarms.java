@@ -57,22 +57,25 @@ final class Alarms {
         else am.set(AlarmManager.RTC_WAKEUP, next, pi);
     }
 
-    /** Shows what is due now (only the latest, if the phone slept through several), then sets the next alarm. */
+    /** Shows what is due now (only the latest time, if the phone slept through several), then sets the next alarm. */
     static void fire(Context c) {
-        long now = System.currentTimeMillis(), last = prefs(c).getLong("last", 0);
-        JSONArray ev = events(c);
-        JSONObject due = null;
-        for (int i = 0; i < ev.length(); i++) {
-            JSONObject e = ev.optJSONObject(i);
-            long at = e.optLong("at");
-            // Within the last two hours: an event missed for longer is old news.
-            if (at <= now + 30000 && at > last && at > now - 7200000L && (due == null || at > due.optLong("at"))) due = e;
+        try {
+            long now = System.currentTimeMillis(), last = prefs(c).getLong("last", 0), dueAt = 0;
+            JSONArray ev = events(c);
+            for (int i = 0; i < ev.length(); i++) {
+                long at = ev.optJSONObject(i).optLong("at");
+                // Within the last two hours: an event missed for longer is old news.
+                if (at <= now + 30000 && at > last && at > now - 7200000L && at > dueAt) dueAt = at;
+            }
+            prefs(c).edit().putLong("last", dueAt != 0 ? dueAt : now).apply();
+            // Every event at that time (an adhan and a reminder can fall on the same minute); each kind has its own notification.
+            if (dueAt != 0) for (int i = 0; i < ev.length(); i++) {
+                JSONObject e = ev.optJSONObject(i);
+                if (e.optLong("at") == dueAt) try { notify(c, e); } catch (RuntimeException ignored) { }
+            }
+        } finally {
+            schedule(c);   // whatever happened above, the chain of alarms goes on
         }
-        if (due != null) {
-            prefs(c).edit().putLong("last", due.optLong("at")).apply();
-            notify(c, due);
-        } else prefs(c).edit().putLong("last", now).apply();
-        schedule(c);
     }
 
     @SuppressWarnings("deprecation")

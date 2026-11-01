@@ -16,3 +16,4 @@ editions-zips/
 gpu-train.zip
 tools/asr/gpu/ha_test/
 tools/qa/ui-report.html
+.venv/

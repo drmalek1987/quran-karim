@@ -46,6 +46,21 @@ PLAY=1 ... bash build.sh && bash build-aab.sh                  # Play bundle; ne
   («حول التطبيق»), and the cache name in `web/sw.js`.
 - Web build: serve `web/` with any static server (`python3 -m http.server -d web`).
 
+## Build on Windows (no WSL)
+`build-win.py` is the Windows port of `build.sh` (SDK build-tools aapt2/d8/zipalign/apksigner + JDK 17, zipping in Python):
+```
+uv venv .venv --python 3.11 && uv pip install --python .venv\Scripts\python.exe brotli
+.venv\Scripts\python.exe -I build-win.py            # -> quran-karim-vX.Y.apk; PLAY=1 for the Play build
+```
+- Finds `ANDROID_HOME` (default `%LOCALAPPDATA%\Android\Sdk`), build-tools 36.0.0 (`BUILD_TOOLS=`), and android-34 or the
+  newest installed platform jar (android-37 works). Creates `debug.keystore` on first run.
+- The `W zip: WARNING: header mismatch` lines while aligning are harmless (the APK verifies); `build-aab.sh` is not ported yet.
+- Emulator: use the `Phone_API35` AVD (API 35 google_apis x86_64, 4 GB RAM, swiftshader GPU):
+  `emulator -avd Phone_API35 -no-snapshot`, then `adb install -r --no-incremental quran-karim-vX.Y.apk`. The API 37 AVDs on
+  this PC are unstable (surfaceflinger aborts in GoldfishMapper and restarts system_server; installs fail with "Broken pipe").
+  If `sdkmanager` drops the connection, fetch the image zip from dl.google.com with `curl -C -` and unpack it under
+  `system-images\android-35\google_apis\`.
+
 ## QA
 `python3 tools/qa/data.py web` (data checks) and `ED=kfgqpc|kfold|shamarly|harmain node tools/qa/ui.js` (Playwright UI checks,
 needs the edition unzipped in `web/`). Record results in `QA-checklist.md`. There is no emulator in CI; phone testing is manual.

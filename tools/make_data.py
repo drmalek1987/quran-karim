@@ -64,7 +64,7 @@ if os.path.exists(rp):
     pages = [[r[0][0] for r in sur] for sur in rects]
 
 out = os.path.join(ROOT, "web", "quran-data.js")
-with open(out, "w", encoding="utf-8") as f:
+with open(out, "w", encoding="utf-8", newline="\n") as f:
     f.write("window.QURAN=")
     data = {"s": surahs, "t": text, "q": search, "p": pages, "first": starts[0], "last": last_page, "count": 560}
     if rects:

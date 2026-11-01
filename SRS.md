@@ -1,6 +1,6 @@
 # Software Requirements Specification – القرآن الكريم (Quran Karim)
 
-Version described: **4.7** (versionCode 38, service worker `quran-v33`), November 2026. This documents the app as built.
+Version described: **4.8** (versionCode 39, service worker `quran-v34`), November 2026. This documents the app as built.
 
 ## 1. Purpose and scope
 A free, offline Quran reader for Android phones and tablets (Android 5.0+, WebView 85+), with an iOS port in progress.

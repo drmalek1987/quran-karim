@@ -3073,6 +3073,7 @@
       var ws = [].slice.call(view.querySelectorAll(".ht-w, .ht-v"));
       htv = { on: true, ws: ws, exp: ws.map(function (e) { return norm(e.textContent); }), ptr: 0, done: 0, bad: 0,
         miss: function (e) { if (!e.classList.contains("shown")) { e.classList.add("shown", "miss"); missed++; } },
+        unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
         btn: htMic };
       reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
     };
@@ -3110,12 +3111,16 @@
       for (var j = htv.ptr; j < Math.min(htv.exp.length, htv.ptr + 4); j++) if (rdSame(hw, htv.exp[j])) {
         for (var k = htv.ptr; k < j; k++) if (htv.ws[k].classList.contains("ht-w")) htv.miss(htv.ws[k]);   // skipped
         var e = htv.ws[j]; if (e.classList.contains("ht-w") && !e.classList.contains("shown")) e.classList.add("shown", "ok");
+        // said right straight after one wrong word (often a misheard word): the red word turns green again
+        else if (j === htv.ptr && htv.bad === 1) htv.unmiss(e);
         if (j !== htv.ptr) htv.clean = false;
         htv.ptr = j + 1; htv.bad = 0; return;
       }
       htv.clean = false;
-      // a wrong word where a hidden one was expected: after two misses in a row it counts as wrong and the test moves on
-      if (++htv.bad >= 2 && htv.ptr < htv.exp.length) { if (htv.ws[htv.ptr].classList.contains("ht-w")) htv.miss(htv.ws[htv.ptr]); htv.ptr++; htv.bad = 0; }
+      // a wrong word where a hidden one was expected turns it red at once; said right next, it turns green again,
+      // and after two misses in a row it stays wrong and the test moves on
+      if (htv.ptr < htv.exp.length && htv.ws[htv.ptr].classList.contains("ht-w")) htv.miss(htv.ws[htv.ptr]);
+      if (++htv.bad >= 2 && htv.ptr < htv.exp.length) { htv.ptr++; htv.bad = 0; }
     });
     if (kind === "final") {
       // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip
