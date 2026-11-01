@@ -24,13 +24,15 @@ fi
 # Mushaf page images are not in the APK: one zip per edition (paths as under web/) for the GitHub release that the app
 # downloads from when the reader picks the edition (EdStore.java). Zips land in $OUT/editions-zips.
 mkdir -p "$OUT/editions-zips"
-for ED in kfgqpc shamarly harmain; do
+for ED in kfgqpc kfold shamarly harmain; do
   W="$OUT/assets/web"
   if [ "$ED" = harmain ]; then SUB="pages tjpages"; else SUB="editions/$ED editions/$ED-tj"; fi
   HAVE=""; for d in $SUB; do [ -d "$W/$d" ] && HAVE="$HAVE $d"; done
   [ -n "$HAVE" ] || continue
   (cd "$W" && zip -q -0 -r "$OUT/editions-zips/$ED.zip" $HAVE && rm -rf $HAVE)
 done
+# The thematic mushaf's page margins (tools/thematic_notes.py) are downloaded the same way, on first use.
+[ -d "$OUT/assets/web/thmnotes" ] && (cd "$OUT/assets/web" && zip -q -0 -r "$OUT/editions-zips/thmnotes.zip" thmnotes && rm -rf thmnotes)
 ls -la "$OUT/editions-zips"
 
 python3 -I "$HERE/tools/brotli_books.py" "$OUT/assets/web/books"
@@ -47,6 +49,7 @@ javac -nowarn -Xlint:-options --release 8 -cp "$ANDROID_JAR:$LIBS" -d "$OUT/clas
 for j in "$HERE"/android/libs/*.jar; do (cd "$OUT/classes" && unzip -qo "$j" '*.class'); done
 "$BT/dx" --dex --output="$OUT/classes.dex" "$OUT/classes"
 (cd "$OUT" && zip -q -j unsigned.apk classes.dex)
+# ONNX Runtime native libraries (NvAsr.java) are not in the APK: they ship inside the asrnv model pack (asr/asrnv/lib).
 
 "$BT/zipalign" -f -p 4 "$OUT/unsigned.apk" "$OUT/aligned.apk"
 

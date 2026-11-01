@@ -1,0 +1,1 @@
+{"base_deepdml_whisper_base":{"tlog_250_heldout":{"clean":36.6,"10dB":38.3},"ha_99_clean":26.5},"ft_tlog_300steps_light_aug":{"tlog_250_heldout":{"clean":37.8,"10dB":41.1},"ha_99_clean":41.5},"ft_tlog_300steps_heavy_aug":{"tlog_250_heldout":{"clean":38.8,"10dB":43.1}},"metric":"character error rate %, no_repeat_ngram_size=3"}

@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> pickCb;
     private PermissionRequest micReq;
     private ReciteBridge recite;
+    private NvAsr nv;
 
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
@@ -117,6 +118,8 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(speech, "SpeechBridge");
         recite = new ReciteBridge(this, web);
         web.addJavascriptInterface(recite, "ReciteBridge");
+        nv = new NvAsr(this, web);
+        web.addJavascriptInterface(nv, "NvBridge");
         // Android 15+ draws apps edge to edge: keep the page clear of the status bar, the navigation bar and a camera cutout.
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(0xff0a4535);
@@ -160,12 +163,14 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        web.onResume();
         qibla.resume();
     }
 
     @Override
     protected void onPause() {
         qibla.pause();
+        web.onPause();   // stops page animations (auto scroll) while the app is away; audio and JS go on
         super.onPause();
     }
 
@@ -173,6 +178,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         speech.shutdown();
         recite.shutdown();
+        nv.shutdown();
         super.onDestroy();
     }
 
@@ -180,6 +186,7 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         if (code == QiblaBridge.PERMISSION_REQUEST) qibla.onPermissionResult(results);
         if (code == ReciteBridge.PERMISSION_REQUEST) recite.onPermissionResult(results);
+        if (code == NvAsr.PERMISSION_REQUEST) nv.onPermissionResult(results);
         if (code == 77 && micReq != null) {
             if (results.length > 0 && results[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) micReq.grant(new String[] { PermissionRequest.RESOURCE_AUDIO_CAPTURE });
             else micReq.deny();

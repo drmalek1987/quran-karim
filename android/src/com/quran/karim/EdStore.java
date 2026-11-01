@@ -27,6 +27,7 @@ class EdStore {
     private final WebView web;
     private final File dir;
     private volatile String busy;
+    private volatile boolean pausing;
 
     EdStore(Activity a, WebView w) { act = a; web = w; dir = new File(a.getFilesDir(), "ed"); }
 
@@ -34,7 +35,7 @@ class EdStore {
     WebResourceResponse serve(String url) {
         if (!url.startsWith(ASSET)) return null;
         String rel = url.substring(ASSET.length());
-        if (!(rel.startsWith("editions/") || rel.startsWith("pages/") || rel.startsWith("tjpages/")) || rel.contains("..")) return null;
+        if (!(rel.startsWith("editions/") || rel.startsWith("pages/") || rel.startsWith("tjpages/") || rel.startsWith("thmnotes/")) || rel.contains("..")) return null;
         if (rel.endsWith(".js")) return null;   // the editions' ayah boxes stay in the APK
         File f = new File(dir, rel);
         try {
@@ -77,7 +78,7 @@ class EdStore {
     @JavascriptInterface
     public void download(final String id, final String url) {
         if (!okId(id) || busy != null || !url.startsWith("https://")) { tell(id, "\"error\""); return; }
-        busy = id;
+        busy = id; pausing = false;
         new Thread(new Runnable() { public void run() {
             File zip = new File(dir, id + ".zip.part");
             dir.mkdirs();
@@ -88,6 +89,9 @@ class EdStore {
                     new File(dir, id + ".ok").createNewFile();
                     zip.delete();
                     busy = null; tell(id, "\"done\"");
+                    return;
+                } catch (Paused e) {
+                    busy = null; pausing = false; tell(id, "\"paused\"");   // what arrived stays in .part for the resume
                     return;
                 } catch (BadZip e) {
                     zip.delete();   // a broken file is fetched again from the start
@@ -103,6 +107,11 @@ class EdStore {
     }
 
     private static class BadZip extends Exception {}
+    private static class Paused extends Exception {}
+
+    // Settings › Downloads «إيقاف مؤقت»: the running download stops after its current block; download() resumes it.
+    @JavascriptInterface
+    public void pause(String id) { if (id != null && id.equals(busy)) pausing = true; }
 
     private void fetch(String id, String url, File zip) throws Exception {
         long have = zip.exists() ? zip.length() : 0;
@@ -119,6 +128,7 @@ class EdStore {
         byte[] buf = new byte[65536]; int n;
         try {
             while ((n = in.read(buf)) > 0) {
+                if (pausing) throw new Paused();
                 out.write(buf, 0, n); got += n;
                 int pct = total > 0 ? (int) (got * 95 / total) : -1;
                 if (pct != last && pct >= 0) { last = pct; tell(id, String.valueOf(pct)); }
@@ -151,8 +161,9 @@ class EdStore {
     public void remove(String id) {
         if (!okId(id) || id.equals(busy)) return;
         new File(dir, id + ".ok").delete(); new File(dir, id + ".zip.part").delete();
-        String[] sub = id.startsWith("asr") ? new String[] { "asr/" + id } : id.equals("harmain") ? new String[] { "pages", "tjpages" } : new String[] { "editions/" + id, "editions/" + id + "-tj" };
+        String[] sub = id.startsWith("asr") ? new String[] { "asr/" + id } : id.equals("thmnotes") ? new String[] { "thmnotes" } : id.equals("harmain") ? new String[] { "pages", "tjpages" } : new String[] { "editions/" + id, "editions/" + id + "-tj" };
         for (String s : sub) wipe(new File(dir, s));
+        if (id.startsWith("asrnv")) new File(dir, "asr/nv.onnx").delete();   // the joined model (NvAsr)
     }
 
     private static void wipe(File f) {

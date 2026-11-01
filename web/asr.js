@@ -34,6 +34,7 @@
     return rt;
   }
   function model(id) {
+    if (id === NV) return nvModel();
     if (!models[id]) {
       models[id] = runtime().then(function () {
         var o = { executionProviders: ["wasm"] };
@@ -65,6 +66,7 @@
   // every layer's keys and values; later steps feed one token to past.onnx with those, so the 1500 encoder frames are
   // attended to without being projected again.
   function transcribe(id, y) {
+    if (id === NV) return nvTranscribe(y);
     return model(id).then(function (ss) {
       var feats = new ort.Tensor("float32", logMel(y), [1, 80, FRAMES]);
       return ss[0].run({ input_features: feats }).then(function (r) {
@@ -90,6 +92,98 @@
       var bytes = [];
       ids.slice(4).forEach(function (t) { var w = t < 50257 && inv[t]; if (w) for (var c = 0; c < w.length; c++) if (bdec[w[c]] !== undefined) bytes.push(bdec[w[c]]); });
       return new TextDecoder("utf-8").decode(new Uint8Array(bytes)).trim();
+    });
+  }
+
+
+  // NVIDIA's Arabic FastConformer (CC-BY-4.0), its CTC branch quantised to int8: one pass over the audio, no decoder loop.
+  // The 132 MB model comes in two packs (asrnv, asrnvp) that are joined here. Features as NeMo makes them: pre-emphasis,
+  // 25 ms Hann window in a 512-point FFT every 10 ms, 80 slaney mel bands, log, then each band normalised over the clip.
+  var NV = "asrnv", nv = null;
+  function nvModel() {
+    if (nv) return nv;
+    var bin = function (u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.arrayBuffer(); }); };
+    nv = (rt || runtime()).then(function () {
+      return Promise.all([bin(HOST + "asrnv/a.bin"), bin(HOST + "asrnvp/b.bin"), getJson(HOST + "asrnv/vocab.json")]);
+    }).then(function (r) {
+      var all = new Uint8Array(r[0].byteLength + r[1].byteLength); all.set(new Uint8Array(r[0]), 0); all.set(new Uint8Array(r[1]), r[0].byteLength);
+      r[0] = r[1] = null;
+      nvTables();
+      return ort.InferenceSession.create(all, { executionProviders: ["wasm"] }).then(function (s) { return { s: s, vocab: r[2] }; });
+    });
+    nv.catch(function () { nv = null; });
+    return nv;
+  }
+  var NF = 512, WIN = 400, NB = 257, NM = 80, nvWin = null, nvMel = null, fcos = null, fsin = null, rev = null;
+  function nvTables() {
+    if (nvWin) return;
+    var i, o = (NF - WIN) / 2;
+    nvWin = new Float32Array(NF);   // symmetric Hann (torch periodic=False), centred in the FFT frame
+    for (i = 0; i < WIN; i++) nvWin[o + i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (WIN - 1));
+    // slaney mel bank, as librosa.filters.mel(sr=16000, n_fft=512, n_mels=80, norm="slaney")
+    var hz2mel = function (f) { return f < 1000 ? 3 * f / 200 : 15 + Math.log(f / 1000) / (Math.log(6.4) / 27); };
+    var mel2hz = function (m) { return m < 15 ? 200 * m / 3 : 1000 * Math.exp((Math.log(6.4) / 27) * (m - 15)); };
+    var top = hz2mel(SR / 2), pts = [];
+    for (i = 0; i < NM + 2; i++) pts.push(mel2hz(top * i / (NM + 1)));
+    nvMel = new Float32Array(NM * NB);
+    for (var m = 0; m < NM; m++) {
+      var lo = pts[m], c = pts[m + 1], hi = pts[m + 2], en = 2 / (hi - lo);
+      for (var k = 0; k < NB; k++) {
+        var f = k * SR / NF, w = Math.max(0, Math.min((f - lo) / (c - lo), (hi - f) / (hi - c)));
+        nvMel[m * NB + k] = w * en;
+      }
+    }
+    fcos = new Float32Array(NF / 2); fsin = new Float32Array(NF / 2);
+    for (i = 0; i < NF / 2; i++) { fcos[i] = Math.cos(-2 * Math.PI * i / NF); fsin[i] = Math.sin(-2 * Math.PI * i / NF); }
+    rev = new Uint16Array(NF);
+    for (i = 0; i < NF; i++) { var r = 0, x = i; for (var b = 0; b < 9; b++) { r = (r << 1) | (x & 1); x >>= 1; } rev[i] = r; }
+  }
+  function fft(re, im) {   // in place, radix 2, NF points
+    var i, j, t;
+    for (i = 0; i < NF; i++) { j = rev[i]; if (j > i) { t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (var size = 2; size <= NF; size <<= 1) {
+      var half = size >> 1, step = NF / size;
+      for (i = 0; i < NF; i += size) for (j = 0; j < half; j++) {
+        var c = fcos[j * step], s = fsin[j * step], a = i + j, b = a + half;
+        var xr = re[b] * c - im[b] * s, xi = re[b] * s + im[b] * c;
+        re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
+      }
+    }
+  }
+  function nvFeats(y) {
+    nvTables();
+    var n = y.length, P = NF / 2, L = n + 2 * P, pe = new Float32Array(L), i, k, m, f;
+    pe[P] = y[0]; for (i = 1; i < n; i++) pe[P + i] = y[i] - 0.97 * y[i - 1];
+    var T = Math.max(1, Math.floor(n / HOP) + 1), out = new Float32Array(NM * T), re = new Float32Array(NF), im = new Float32Array(NF), pw = new Float32Array(NB);
+    for (f = 0; f < T; f++) {
+      for (i = 0; i < NF; i++) { re[i] = pe[f * HOP + i] * nvWin[i]; im[i] = 0; }
+      fft(re, im);
+      for (k = 0; k < NB; k++) pw[k] = re[k] * re[k] + im[k] * im[k];
+      for (m = 0; m < NM; m++) { var s = 0, row = m * NB; for (k = 0; k < NB; k++) s += nvMel[row + k] * pw[k]; out[m * T + f] = Math.log(s + 5.960464477539063e-8); }
+    }
+    for (m = 0; m < NM; m++) {
+      var mu = 0, v = 0; for (f = 0; f < T; f++) mu += out[m * T + f]; mu /= T;
+      for (f = 0; f < T; f++) { var d = out[m * T + f] - mu; v += d * d; }
+      var sd = Math.sqrt(v / Math.max(1, T - 1)) + 1e-5;
+      for (f = 0; f < T; f++) out[m * T + f] = (out[m * T + f] - mu) / sd;
+    }
+    return { x: out, T: T };
+  }
+  function nvTranscribe(y) {
+    return nvModel().then(function (M) {
+      var F = nvFeats(y), feeds = {}, nm = M.s.inputNames;
+      feeds[nm[0]] = new ort.Tensor("float32", F.x, [1, NM, F.T]);
+      feeds[nm[1]] = new ort.Tensor("int64", BigInt64Array.from([BigInt(F.T)]), [1]);
+      return M.s.run(feeds).then(function (o) {
+        var lp = o[M.s.outputNames[0]], T = lp.dims[1], V = lp.dims[2], d = lp.data, prev = -1, txt = "";
+        for (var t = 0; t < T; t++) {
+          var best = 0, bv = -Infinity;
+          for (var j = 0; j < V; j++) if (d[t * V + j] > bv) { bv = d[t * V + j]; best = j; }
+          if (best !== prev && best < M.vocab.length) txt += M.vocab[best];
+          prev = best;
+        }
+        return txt.replace(/▁/g, " ").replace(/\s+/g, " ").trim();
+      });
     });
   }
 

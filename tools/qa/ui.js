@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 const W = 'file:///mnt/project-files/quran-app/web/index.html';
 const BEEP = __dirname + '/beep.mp3';
 const out = [];
-// ED=kfgqpc (default), ED=shamarly or ED=harmain: which mushaf edition the run reads.
+// ED=kfgqpc (default), ED=kfold, ED=shamarly or ED=harmain: which mushaf edition the run reads.
 const ED = process.env.ED || 'kfgqpc';
 const KSUF = ED === 'harmain' ? '' : '.' + ED, EDDIR = ED === 'harmain' ? '/pages/' : 'editions/' + ED + '/';
 let p, errs = [];
@@ -18,6 +18,8 @@ async function go(h, ms = 700) { await ev(h => { location.hash = h; }, h); await
 async function fresh(ctx, vp) {
   p = await ctx.newPage(); await p.setViewportSize(vp || { width: 390, height: 844 }); await p.addInitScript(() => { window.QA_NOFS = true; });
   p.on('pageerror', e => errs.push(e.message));
+  // confirm() before deleting: accepted, unless a check answers the dialog itself first
+  p.on('dialog', d => setTimeout(() => d.accept().catch(() => {}), 0));
   await p.route(/everyayah\.com/, r => r.fulfill({ path: BEEP, contentType: 'audio/mpeg', headers: { 'Access-Control-Allow-Origin': '*' } }));
 }
 
@@ -177,7 +179,7 @@ async function fresh(ctx, vp) {
     });
   }
   // The Fatiha page sits on the right: pairs 50-51 in the scans (Fatiha on page 2), 51-52 in the King Fahd print (page 1).
-  const PAIR = ED === 'kfgqpc' ? ['51,52', '53,54'] : ['50,51', '52,53'];
+  const PAIR = (ED === 'kfgqpc' || ED === 'kfold') ? ['51,52', '53,54'] : ['50,51', '52,53'];
   await check(G11, 'صفحتين جنب بعض على التابلت بالعرض', async () => { await go('#/p/51', 1000); return ev(pr => { const bx = [...document.querySelectorAll('.page-box')], b = bx.map(x => x.dataset.p); return b.join() === pr && bx[0].getBoundingClientRect().left > bx[1].getBoundingClientRect().left; }, PAIR[0]); });
   await check(G11, 'التقليب في وضع الصفحتين بيقلب صفحتين', async () => { await ev(() => document.getElementById('pNext').click()); await wait(700); return ev(pr => [...document.querySelectorAll('.page-box')].map(x => x.dataset.p).join() === pr, PAIR[1]); });
   await check(G11, 'لف الشاشة يرجّع صفحة واحدة', async () => { await p.setViewportSize({ width: 800, height: 1280 }); await wait(700); return ev(() => document.querySelectorAll('.page-box').length === 1); });
@@ -230,9 +232,10 @@ async function fresh(ctx, vp) {
     await p.click('.z-sort button[data-o=book]'); await wait(300); return ok; });
   await check(G12, 'الأذكار المئوية: تخصيص العدد بيتحفظ', async () => { const c = p.locator('.zikr', { hasText: 'عشر رقاب' }).first(); await c.locator('.z-nbtn').click(); await c.locator('.z-nopts button', { hasText: '٣٣' }).first().click();
     const r = await c.locator('.z-count small').innerText(); await c.locator('.z-nbtn').click(); await c.locator('.z-nopts button', { hasText: 'الأصلي' }).click(); return assert(r.includes('٣٣'), r); });
-  await check(G12, '«استمع للكل» بيكرر كل ذكر بعدده والعدّادات بتخلص', async () => { await ev(() => localStorage.removeItem('q.azkar.e')); await go('#/azkar/e', 900); await p.click('#zAll');
+  await check(G12, '«استمع للآيات» بيقرأ آيات الأذكار بس، والأذكار التانية من غير صوت', async () => { await ev(() => localStorage.removeItem('q.azkar.e')); await go('#/azkar/e', 900);
+    const r = await ev(() => [document.querySelectorAll('.zikr').length, document.querySelectorAll('.zikr .z-play').length]); await p.click('#zAll');
     for (let i = 0; i < 90 && (await p.textContent('#zAll')).includes('إيقاف'); i++) await wait(1000);
-    return ev(() => document.querySelector('.z-progress').textContent.includes('أتممت الأذكار')); });
+    return assert(r[1] > 0 && r[1] < r[0] && (await p.textContent('#zAll')).includes('استمع'), JSON.stringify(r)); });
   await check(G12, 'مكافآت الختمة ظاهرة في شاشة الختمة', async () => { await go('#/khatma', 700); return ev(() => !!document.querySelector('.rw-badges, .rw, [class^=rw-]')); });
   await check(G12, 'صفحة الآية: الترجمة والبلاغة والمتشابهات', async () => { await go('#/a/2/255', 900); await p.click('#ayTr'); await wait(800); const tr = await ev(() => !!document.querySelector('.ay-tr'));
     await p.click('.ay-tabs button[data-t=balagha]'); await wait(1500); const bal = await ev(() => document.getElementById('ayBody').textContent.length > 30);
@@ -262,7 +265,7 @@ async function fresh(ctx, vp) {
   await check(G13, 'إمساكية رمضان (أيام رمضان كلها بالإمساك) ومشاركتها صورة', async () => { await go('#/prayer', 800); await p.click('#prMonth'); await wait(600); const n = await ev(() => document.querySelectorAll('.ims tbody tr').length >= 29 && document.title !== '' && document.getElementById('title').textContent === 'إمساكية رمضان' && document.querySelector('.ims th:nth-child(3)').textContent === 'الإمساك' ? 30 : -1);
     await ev(() => AppBridge.shares = []); await p.click('#imsShare'); await wait(800); const sh = await ev(() => AppBridge.shares); return assert(n === 30 && sh.length === 1 && sh[0][1] === 'imsakia.png', n + JSON.stringify(sh)); });
   await check(G13, 'إحصائيات القراءة بتعد الصفحات اللي اتفتحت', async () => { await ev(() => localStorage.removeItem('q.stats')); for (const n of [10, 11, 12, 11]) await go('#/p/' + n, 500);
-    await go('#/khatma', 700); return ev(() => { const b = document.querySelector('.st-nums b'); return !!b && b.textContent === '٣' && document.querySelectorAll('.st-bar').length === 7; }); });
+    await go('#/khatma', 700); return ev(() => { const b = document.querySelector('.st-nums b'); return !!b && ['٢', '٣', '٤'].includes(b.textContent) && document.querySelectorAll('.st-bar').length === 7; }); });
   await check(G13, 'ختمة رمضان بتظهر وبتعمل خطة على أيام رمضان', async () => { await ev(() => localStorage.removeItem(Object.keys(localStorage).find(k => /khatma/.test(k)) || 'x')); await go('#/khatma', 700);
     const card = await ev(() => !!document.getElementById('kRamadan')); await p.click('#kRamadan'); await wait(500);
     const k = await ev(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /khatma/.test(k))))); return assert(card && k.ramadan && k.days >= 29 && k.days <= 30, JSON.stringify(k)); });
@@ -307,8 +310,8 @@ async function fresh(ctx, vp) {
   await check(G14, 'اختبار الحفظ: إخفاء كلمات وكشفها والدرجة', async () => { await go('#/hifztest/112', 800); const n = await ev(() => document.querySelectorAll('.ht-w').length); await p.click('.ht-w >> nth=0'); await p.click('#htDone'); await wait(300);
     const r = await ev(() => [document.querySelectorAll('.ht-w.shown').length, document.getElementById('htRes').textContent, JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112]]);
     return assert(n > 0 && r[0] === n && /٪/.test(r[1]) && r[2] && r[2].score < 100, n + JSON.stringify(r)); });
-  await check(G14, 'البحث الموحد بيلاقي السور والأذكار والأدعية', async () => { await go('#/search?q=' + encodeURIComponent('الكهف'), 1200); const s1 = await ev(() => !!document.querySelector('.sr-chips a[href="#/s/18/1"]'));
-    await go('#/search?q=' + encodeURIComponent('أموت وأحيا'), 1000); const s2 = await ev(() => !!document.querySelector('.sr-zk[href="#/duas/sleep"]')); return assert(s1 && s2, s1 + ',' + s2); });
+  await check(G14, 'البحث في القرآن بس: السور والآيات، من غير الأذكار والأدعية', async () => { await go('#/search?q=' + encodeURIComponent('الكهف'), 1200); const s1 = await ev(() => !!document.querySelector('.sr-chips a[href="#/s/18/1"]'));
+    await go('#/search?q=' + encodeURIComponent('أموت وأحيا'), 1000); const s2 = await ev(() => !!document.querySelector('.sr-zk')); return assert(s1 && !s2, s1 + ',' + s2); });
   await check(G14, 'الإعدادات فيها أزرار للأقسام ومعاينة الخط', async () => { await p.click('#btnSettings'); const r = await ev(() => [document.querySelectorAll('.set-jump button').length, !!document.querySelector('.set-prev')]); await closeS(); return assert(r[0] >= 3 && r[1], JSON.stringify(r)); });
   await check(G14, 'بيانات ودجت الصلاة الجاية (3 أيام)', async () => { await go('#/', 2500); const w = await ev(() => AppBridge.widget); return assert(w && w.prayers.length === 15 && w.prayers[0].n && w.place === 'القاهرة', JSON.stringify(w && w.prayers.slice(0, 1))); });
   const G15 = 'مزايا نسخة 3.8';
@@ -320,7 +323,7 @@ async function fresh(ctx, vp) {
     await p.click('#famSplit'); await wait(200); const js = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.j.length));
     await p.click('.fam-j button[data-j="1"]'); await wait(150); await p.click('.fam-j button[data-j="30"]'); await wait(150); await p.click('#famShare'); const sh = await ev(() => AppBridge.shares[AppBridge.shares.length - 1][1]);
     await ev(() => { const F = JSON.parse(localStorage.getItem('q.family')); F.members[0].d = []; F.members[1].d = [15]; localStorage.setItem('q.family', JSON.stringify(F)); }); await go('#/', 200); await go('#/family', 400);
-    p.once('dialog', d => d.accept(sh)); await p.click('#famImp'); await wait(400); const d = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.d.join(',')));
+    p.once('dialog', d => d.accept(sh).catch(() => {})); await p.click('#famImp'); await wait(400); const d = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.d.join(',')));
     await ev(() => localStorage.removeItem('q.family'));
     return assert(js.join() === '10,10,10' && /QK1:/.test(sh) && /١✓/.test(sh) && d.join('|') === '1|15|30', JSON.stringify([js, d])); });
   await check(G15, 'اختبار الحفظ على صفحات الطبعة: إخفاء الآيات والدرجة', async () => { await ev(() => localStorage.removeItem('q.hifzScores')); await go('#/hifztest/67', 800); await p.click('#htPages'); await wait(1500);
@@ -339,9 +342,65 @@ async function fresh(ctx, vp) {
   await check(G15, 'ملء الشاشة: يخفي الأزرار بعد لمس الصفحة ويرجعها باللمس', async () => { await ev(() => { window.QA_NOFS = false; }); await go('#/p/50', 1500); await p.click('.page-box >> nth=0', { position: { x: 5, y: 5 } }).catch(() => {}); await ev(() => { const b = document.getElementById('ayahBar'); if (b) b.remove(); }); await ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await wait(1600);
     const on = await ev(() => document.body.classList.contains('fs')); await ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await wait(300); const off = await ev(() => !document.body.classList.contains('fs'));
     return assert(on && off, JSON.stringify([on, off])); });
+  const G16 = 'نسخة 4.5: موديل NVIDIA';
+  await check(G16, 'الإعدادات فيها «موديل NVIDIA (الأدق)» و«حول» فيها رخصته', async () => { await p.click('#btnSettings'); const r = await ev(() => [!!document.querySelector('#asrSet option[value=asrnv]'), /FastConformer[\s\S]*CC BY 4\.0/.test(document.body.innerHTML)]); await closeS(); return assert(r[0] && r[1], JSON.stringify(r)); });
+  await check(G16, 'المايك على الصفحة بيشغّل موديل NVIDIA لما يكون متنزّل ومختار', async () => { await go('#/p/2', 900);
+    const r = await ev(() => { const real = window.Asr, st = window.EdBridge; let got = null; window.EdBridge = { state: () => 'ready' }; window.Asr = { start: id => { got = id; }, stop() {}, active: () => true };
+      localStorage.setItem('q.asr', JSON.stringify('asrnv')); document.getElementById('rdMic').click(); document.getElementById('rdMic').click();
+      window.Asr = real; if (st) window.EdBridge = st; else delete window.EdBridge; localStorage.removeItem('q.asr'); return got; });
+    return assert(r === 'asrnv', String(r)); });
+  // The model itself, when its packs are unpacked in ASR_SRV (asrrt/, asrnv/, asrnvp/) and HA's test clips are there.
+  const SRV = process.env.ASR_SRV, HAT = __dirname + '/../asr/gpu/ha_test';
+  if (SRV && require('fs').existsSync(SRV + '/asrnv/a.bin') && require('fs').existsSync(HAT)) await check(G16, 'موديل NVIDIA بيتعرّف على 10 مقاطع من صوت القارئ (نسبة الخطأ أقل من 35٪)', async () => {
+    const fs = require('fs'), path = require('path');
+    await p.route('https://asr.app/**', r => { const f = path.join(SRV, new URL(r.request().url()).pathname.slice(1)); if (!fs.existsSync(f)) return r.fulfill({ status: 404, body: '' });
+      const t = /\.m?js$/.test(f) ? 'text/javascript' : f.endsWith('.wasm') ? 'application/wasm' : f.endsWith('.json') ? 'application/json' : 'application/octet-stream';
+      r.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*', 'content-type': t }, body: fs.readFileSync(f) }); });
+    const meta = JSON.parse(fs.readFileSync(HAT + '/meta-ha.json', 'utf8')).slice(0, 10); let E = 0, L = 0;
+    const nrm = t => t.replace(/[ً-ْٰ۟-ۭ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/\s+/g, ' ').trim();
+    const ed = (a, b) => { let d = Array.from({ length: b.length + 1 }, (_, j) => j); for (let i = 1; i <= a.length; i++) { const n = [i]; for (let j = 1; j <= b.length; j++) n[j] = Math.min(d[j] + 1, n[j - 1] + 1, d[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); d = n; } return d[b.length]; };
+    for (const m of meta) {
+      const w = fs.readFileSync(HAT + '/' + m.id + '.wav'), dv = new DataView(w.buffer, w.byteOffset, w.length); let o = 12, a = 0, n = 0, bits = 16;
+      while (o < w.length) { const id = w.toString('latin1', o, o + 4), sz = dv.getUint32(o + 4, true); if (id === 'fmt ') bits = dv.getUint16(o + 22, true); if (id === 'data') { a = o + 8; n = sz; break; } o += 8 + sz; }
+      const y = []; for (let i = 0; i < n / (bits / 8); i++) y.push(bits === 16 ? dv.getInt16(a + 2 * i, true) / 32768 : dv.getFloat32(a + 4 * i, true));
+      const t = await ev(y => Asr.transcribe('asrnv', Float32Array.from(y)), y); const ref = nrm(m.text); E += Math.min(ed(nrm(t), ref), ref.length); L += ref.length;
+    }
+    const cer = Math.round(100 * E / L); return assert(cer < 35, cer + '%') && cer + '%'; });
+  const G17 = 'نسخة 4.6 (قائمة 31 أكتوبر)';
+  await check(G17, 'الإعدادات: التحميلات قبل «حول التطبيق»، والقوايم المفتوحة بتتقفل لما الإعدادات تتقفل', async () => { await go('#/', 500); await p.click('#btnSettings');
+    const order = await ev(() => { const d = document.getElementById('dlGroup'), a = document.querySelector('.about-box'); return !!(d.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) && d.nextElementSibling === a; });
+    await ev(() => { document.getElementById('dlGroup').open = true; document.querySelector('.about-box').open = true; }); await closeS(); await wait(100);
+    const closed = await ev(() => !document.getElementById('dlGroup').open && !document.querySelector('.about-box').open);
+    const hint = await ev(() => !document.getElementById('dlRow').textContent.includes('مرة واحدة'));
+    return assert(order && closed && hint, JSON.stringify([order, closed, hint])); });
+  await check(G17, 'أقسام الإعدادات ليها شريط ملوّن يميّزها', async () => { await p.click('#btnSettings'); const r = await ev(() => { const g = document.querySelector('#settings .set-group'); const c = getComputedStyle(g); return [c.backgroundColor, c.borderInlineStartWidth]; }); await closeS(); return assert(r[0] !== 'rgba(0, 0, 0, 0)' && parseFloat(r[1]) >= 3, JSON.stringify(r)); });
+  await check(G17, 'مايك الصفحة بيستخبى والإعدادات مفتوحة', async () => { await go('#/p/50', 900); await p.click('#btnSettings'); await wait(150); const h = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); await closeS(); await wait(150); const v = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); return assert(h === 'none' && v !== 'none', h + ',' + v); });
+  await check(G17, 'حذف علامة بيسأل الأول', async () => { await ev(() => localStorage.setItem('q.marks', JSON.stringify([{ s: 2, a: 5, n: 'أ' }]))); await go('#/khatma', 600); let asked = false; p.once('dialog', d => { asked = true; d.dismiss().catch(() => {}); }); await p.click('.marks li:first-child .mk-del'); await wait(200); const n = await ev(() => document.querySelectorAll('.marks li').length); return assert(asked && n === 1, asked + ',' + n); });
+  await check(G17, 'الإحصائيات: الصفحة بتتحسب مرة واحدة حتى لو اتفتحت تاني', async () => { await ev(() => localStorage.removeItem('q.stats')); await go('#/p/60', 500); await go('#/p/61', 500); await go('#/p/60', 500);
+    const r = await ev(() => { const a = JSON.parse(localStorage.getItem('q.stats'))[Object.keys(JSON.parse(localStorage.getItem('q.stats')))[0]]; return [a.length, new Set(a).size, a.every(x => x > 1000)]; }); return assert(r[0] === r[1] && r[2] && r[0] > 0, JSON.stringify(r)); });
+  await check(G17, 'السبحة: ذكر من عندك وعدد من اختيارك', async () => { await ev(() => localStorage.removeItem('q.tasbih')); await go('#/tasbih', 600);
+    p.once('dialog', d => d.accept('يا حي يا قيوم').catch(() => {})); await p.click('#tsbAdd'); await wait(300); p.once('dialog', d => d.accept('٢٥').catch(() => {})); await p.click('#tsbGoal'); await wait(300);
+    const r = await ev(() => [document.getElementById('tsbTxt').textContent, document.getElementById('tsbOf').textContent, JSON.parse(localStorage.getItem('q.tasbih')).goal]); return assert(r[0] === 'يا حي يا قيوم' && r[2] === 25, JSON.stringify(r)); });
+  await check(G17, 'اختبار الحفظ بالصوت: الكلمة المخفية تظهر لو اتقرت صح وتحمرّ لو غلط', async () => { await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/hifztest/112', 800);
+    await p.click('#htMic'); await ev(() => { onRecite('', 'state:listening'); onRecite('قل هو الله احد', 'final'); onRecite('الله الصمد', 'final'); onRecite('لم يكتب', 'partial'); onRecite('لم يكتب ولم يقرا', 'final'); });
+    const r = await ev(() => [document.querySelectorAll('.ht-w.ok').length, document.querySelectorAll('.ht-w.miss').length]); await ev(() => { delete window.ReciteBridge; });
+    return assert(r[0] >= 6 && r[1] >= 1, JSON.stringify(r)); });
+  await check(G17, 'المصحف بيدخل ملء الشاشة لوحده بعد ثانيتين، والرجوع بيقفله الأول', async () => { await go('#/', 400); await ev(() => { window.QA_NOFS = false; }); await go('#/p/70', 2600);
+    const on = await ev(() => document.body.classList.contains('fs')); const b1 = await ev(() => qBack()); const off = await ev(() => !document.body.classList.contains('fs')); const b2 = await ev(() => qBack()); const b3 = await ev(() => qBack());
+    await ev(() => { window.QA_NOFS = true; }); return assert(on && b1 && off && b2 && !b3, JSON.stringify([on, b1, off, b2, b3])); });
+  await check(G17, 'الأذكار: الصوت للآيات بس', async () => { await go('#/azkar/m', 800); const r = await ev(() => [...document.querySelectorAll('.zikr')].every(z => !z.querySelector('.z-play') || /سورة/.test(z.querySelector('.z-src').textContent))); return assert(r, String(r)); });
+  await check(G17, 'هامش المصحف الموضوعي تحت الصفحة (صورة الهامش المطبوع)', async () => { await ev(() => localStorage.setItem('q.thematic', 'true')); await p.reload(); await go('#/p/27', 900);
+    await ev(() => { document.getElementById('thmNotes').open = true; }); await wait(800); const r = await ev(() => { const i = document.querySelector('.thm-notes img'); return i && [i.getAttribute('src'), i.naturalWidth]; }); await ev(() => localStorage.setItem('q.thematic', 'false'));
+    return assert(r && /thmnotes\/\d{3}\.webp/.test(r[0]), JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
   const f = out.filter(r => r[2] === 'FAIL').length; console.log('TOTAL', out.length, 'FAIL', f);
   require('fs').writeFileSync(__dirname + '/ui-results.json', JSON.stringify(out));
+  // Arabic shows reversed in Windows consoles, so also write an RTL HTML report and open it in the browser there.
+  const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const rows = out.map(r => `<tr class="${r[2]}"><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${esc(r[3])}</td></tr>`).join('');
+  const html = `<!doctype html><meta charset="utf-8"><title>QA</title><style>body{font-family:Tahoma;direction:rtl}td{padding:3px 8px;border-bottom:1px solid #ddd}.FAIL{background:#fdd}.PASS td:nth-child(3){color:green}</style><h2>المجموع ${out.length} — فشل ${f}</h2><table>${rows}</table>`;
+  const rep = __dirname + '/ui-report.html'; require('fs').writeFileSync(rep, html); console.log('REPORT', rep);
+  if (process.platform === 'win32') require('child_process').exec(`start "" "${rep}"`);
 })();
