@@ -3132,7 +3132,7 @@
     }
     var ws = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean), fresh = ws.slice(htv.done);
     htv.done = kind === "final" ? 0 : ws.length;
-    if (htv.seg == null) { htv.seg = htv.ptr; htv.clean = true; htv.fix.hidden = true; }
+    if (htv.seg == null) { htv.seg = htv.ptr; htv.far = 0; htv.clean = true; htv.fix.hidden = true; }
     fresh.forEach(function (hw) {
       for (var j = htv.ptr; j < Math.min(htv.exp.length, htv.ptr + 4); j++) if (rdSame(hw, htv.exp[j])) {
         for (var k = htv.ptr; k < j; k++) if (htv.ws[k].classList.contains("ht-w")) htv.miss(htv.ws[k]);   // skipped
@@ -3146,19 +3146,21 @@
       // a wrong word where a hidden one was expected turns it red at once; said right next, it turns green again,
       // and after two misses in a row it stays wrong and the test moves on
       if (htv.ptr < htv.exp.length && htv.ws[htv.ptr].classList.contains("ht-w")) htv.miss(htv.ws[htv.ptr]);
+      htv.far = Math.max(htv.far, Math.min(htv.exp.length, htv.ptr + 1));   // the misheard word belongs to this piece
       if (++htv.bad >= 2 && htv.ptr < htv.exp.length) { htv.ptr++; htv.bad = 0; }
     });
     if (kind === "final") {
       // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip.
       // A piece with red words offers «أنا قريت صح»: it turns them green and, with consent, sends the piece as a
       // "corrected" clip (the model's hard cases; the relay still checks it is roughly those words).
-      var piece = { a: htv.seg, b: htv.ptr, seq: window.nvSeq, hyp: (text || "").split("\n")[0] };
+      var piece = { a: htv.seg, b: Math.max(htv.ptr, htv.far), seq: window.nvSeq, hyp: (text || "").split("\n")[0] };
       if (htv.clean && piece.b > piece.a) htvDonate(piece, "auto");
       else if (piece.b > piece.a && htv.ws.slice(piece.a, piece.b).some(function (e) { return e.classList.contains("miss"); })) {
         htv.fix.hidden = false;
         htv.fix.onclick = function () {
           htv.fix.hidden = true;
           htv.ws.slice(piece.a, piece.b).forEach(function (e) { htv.unmiss(e); });
+          if (htv.ptr < piece.b) { htv.ptr = piece.b; htv.bad = 0; }   // carry on after the words the reader vouched for
           htvDonate(piece, "corrected");
         };
       }

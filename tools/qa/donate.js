@@ -1,0 +1,73 @@
+// Voice donation v2 in the page, with the Android bridges mocked: v2 labels and window.nvSeq on a clean piece,
+// «أنا قريت صح» after a misheard word, the settings rows (stats, Wi-Fi/mobile, delete my recordings).
+// Usage: NODE_PATH=$(npm root -g) node tools/qa/donate.js
+let chromium; try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require('@playwright/test')); }
+const path = require('path');
+const W = 'file:///' + path.resolve(__dirname, '../../web/index.html').replace(/\\/g, '/');
+const out = []; let p, errs = [];
+async function check(name, fn) {
+  try { const r = await fn(); out.push([r === false ? 'FAIL' : 'PASS', name, r === true || r === undefined || r === false ? '' : String(r)]); }
+  catch (e) { out.push(['FAIL', name, e.message.split('\n')[0].slice(0, 200)]); }
+}
+const ev = (f, ...a) => p.evaluate(f, ...a), wait = ms => p.waitForTimeout(ms);
+(async () => {
+  const b = await chromium.launch(); p = await (await b.newContext()).newPage(); await p.setViewportSize({ width: 390, height: 844 });
+  p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+  await p.addInitScript(() => {
+    window.QA_NOFS = true; window.QA = { donated: [], sent: [], forgot: [] };
+    window.ReciteBridge = { start() {}, stop() {} };
+    window.NvBridge = { ready: () => true, start() {}, stop() {},
+      donate2(m, s) { QA.donated.push([JSON.parse(m), s]); return ''; }, sendDonations(m) { QA.sent.push(m); },
+      donateStats: () => '{"waiting":3,"rejected":{"quiet":1,"srv:mismatch":2}}',
+      forget(ids) { QA.forgot.push(ids); setTimeout(() => window.onDonateForget(true), 10); } };
+  });
+  await p.goto(W);
+  await ev(() => { localStorage.clear(); localStorage.setItem('q.asr', '"asrnv"'); localStorage.setItem('q.donate', '1'); localStorage.setItem('q.donateId', '"old4800id"');
+    localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 1, from: 1 })); });
+  await p.reload(); await wait(900);
+  await check('sendDonations called at start (Wi-Fi only by default)', async () => { await wait(5200); const s = await ev(() => QA.sent); return s.length >= 1 && s[0] === false || JSON.stringify(s); });
+
+  await ev(() => { location.hash = '#/hifztest/1'; }); await wait(800);
+  await check('hifz words carry data-a / data-w', () => ev(() => { const w = document.querySelectorAll('.ht-w'); return w.length > 20 && w[0].dataset.a === '1' && w[0].dataset.w === '0' && w[4].dataset.a === '2' && w[4].dataset.w === '0'; }));
+  await p.click('#htMic'); await wait(100);
+  await check('clean piece -> donate2 with v2 label and nvSeq', async () => {
+    await ev(() => { window.nvSeq = 5; onRecite('بسم الله الرحمن الرحيم', 'final'); }); await wait(50);
+    const d = await ev(() => QA.donated); if (d.length !== 1) return 'donated ' + JSON.stringify(d);
+    const [m, s] = d[0];
+    return s === 5 && m.v === 2 && m.s === 1 && m.a0 === 1 && m.w0 === 0 && m.a1 === 1 && m.w1 === 3 && m.kind === 'auto' && m.hyp === 'بسم الله الرحمن الرحيم' && m.text.split(' ').length === 4 && m.model || JSON.stringify(m);
+  });
+  await check('misheard last word -> red word and «أنا قريت صح» shown, nothing donated', async () => {
+    await ev(() => { window.nvSeq = 6; onRecite('الحمد لله رب الناس', 'final'); }); await wait(50);
+    return ev(() => !document.getElementById('htFix').hidden && document.querySelectorAll('.ht-w.miss').length === 1 && QA.donated.length === 1);
+  });
+  await check('«أنا قريت صح» -> word green, corrected clip with seq 6 covering the whole ayah', async () => {
+    await p.click('#htFix'); await wait(50);
+    const r = await ev(() => ({ miss: document.querySelectorAll('.ht-w.miss').length, hidden: document.getElementById('htFix').hidden, d: QA.donated[1] }));
+    const m = r.d && r.d[0];
+    return r.miss === 0 && r.hidden && r.d[1] === 6 && m.kind === 'corrected' && m.a0 === 2 && m.w0 === 0 && m.a1 === 2 && m.w1 === 3 || JSON.stringify(r);
+  });
+  await check('test carries on after the vouched words', async () => {
+    await ev(() => { window.nvSeq = 7; onRecite('الرحمن الرحيم', 'final'); }); await wait(50);
+    const d = await ev(() => QA.donated[2]); return d && d[1] === 7 && d[0].a0 === 3 && d[0].kind === 'auto' || JSON.stringify(d);
+  });
+  await check('phone recogniser (not NVIDIA) never donates', async () => {
+    await p.click('#htMic'); await ev(() => localStorage.setItem('q.asr', '"phone"')); await p.click('#htMic');
+    await ev(() => { window.nvSeq = 8; onRecite('مالك يوم الدين', 'final'); }); await wait(50);
+    return ev(() => QA.donated.length === 3);
+  });
+
+  await ev(() => { location.hash = '#/'; }); await wait(300);
+  await check('settings: stats line, Wi-Fi/mobile choice and delete button', async () => {
+    await ev(() => document.querySelector('#donateMob button[data-v="1"]').click());
+    return ev(() => document.getElementById('donateStats').textContent.indexOf('٣') > 0 && document.getElementById('donateStats').textContent.indexOf('٣', 12) > 0 &&
+      document.querySelector('#donateMob button[data-v="1"]').classList.contains('on') && QA.sent[QA.sent.length - 1] === true && !!document.getElementById('donateDel'));
+  });
+  await check('delete my recordings -> forget(old id), donation off, old id cleared', async () => {
+    await ev(() => document.getElementById('donateDel').click()); await wait(100);
+    return ev(() => QA.forgot[0] === 'old4800id' && localStorage.getItem('q.donate') === '0' && localStorage.getItem('q.donateId') === '""' && !document.querySelector('#donateSet button[data-v="1"]').classList.contains('on')) || ev(() => JSON.stringify([QA.forgot, localStorage.getItem('q.donate'), localStorage.getItem('q.donateId')]));
+  });
+  await check('no page errors', () => errs.length === 0 || errs.join(' | '));
+  await b.close();
+  for (const r of out) console.log(r.join('  '));
+  process.exit(out.some(r => r[0] === 'FAIL') ? 1 : 0);
+})();
