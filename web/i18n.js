@@ -256,6 +256,16 @@
     "اختبرني على صفحات طبعة الملك فهد": "Test me on the King Fahd pages", "اختبرني على صفحات طبعة الشمرلي": "Test me on the Shamarly pages", "اختبرني على صفحات طبعة الحرمين": "Test me on the Haramain pages", "اختبرني على صفحات المصحف": "Test me on the mushaf pages",
     "محتاج إذن الميكروفون عشان التسميع": "Microphone permission is needed to recite", "الموبايل مفيهوش خدمة التعرّف على الكلام": "This phone has no speech recognition service",
     "التسميع بالصوت شغال في التطبيق على الموبايل بس": "Voice recitation works only in the phone app", "اكشف آية واحدة على الأقل الأول": "Reveal at least one verse first" };
+  var D49 = { "ساعد في تحسين التعرّف على التلاوة": "Help improve recitation recognition", "موافق": "I agree",
+    "لما توافق، التطبيق يحفظ مقاطع قصيرة من صوتك وقت تسميع الحفظ بموديل NVIDIA (الآيات اللي قرأتها صح، أو اللي دوست فيها «أنا قريت صح»)، ويبعتها مع نص الآيات ونسخة التطبيق ورقم عشوائي للجهاز، من غير اسم أو حساب، عشان نحسّن الموديل لكل القرّاء. بتترفع على الواي فاي بس إلا لو سمحت بباقة البيانات. تقدر تلغي وتمسح كل تسجيلاتك في أي وقت.":
+      "With your consent, the app keeps short clips of your voice from the memorisation test with the NVIDIA model (verses you read right, or where you tapped «I read it right») and sends them with the verse text, the app version and a random device number, with no name or account, to improve the model for every reader. They upload on Wi-Fi only unless you allow mobile data. You can stop and delete all your recordings at any time.",
+    "مستني يترفع: # مقطع · اترفض: #": "Waiting to upload: # clips · refused: #", "رفع التسجيلات على باقة البيانات": "Upload recordings on mobile data",
+    "واي فاي بس": "Wi-Fi only", "مسموح": "Allowed", "امسح كل تسجيلاتي": "Delete all my recordings", "أنا قريت صح": "I read it right",
+    "توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟": "Allow the app to keep clips of your voice while you recite and send them, with no personal data, to improve recitation recognition?",
+    "تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.": "Delete every clip sent from this phone and those still waiting? This also stops sharing.",
+    "المسح متاح في التطبيق على الموبايل بس": "Deleting works only in the phone app", "بيمسح…": "Deleting…", "اتمسحت كل تسجيلاتك": "All your recordings were deleted",
+    "المسح ما نجحش، جرّب تاني": "Deleting failed, try again", "المسح ما نجحش، اتأكد من النت وجرّب تاني": "Deleting failed, check the connection and try again" };
+  for (var c49 in D49) if (D[c49] === undefined) D[c49] = D49[c49];
   for (var c39 in D39) if (D[c39] === undefined) D[c39] = D39[c39];
   for (var c38 in D38) if (D[c38] === undefined) D[c38] = D38[c38];
   for (var c in CITY) D[c] = CITY[c];
