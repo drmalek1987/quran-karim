@@ -11,7 +11,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | 1 | Relay: HMAC, persistent limits, server ASR check, batched commits, /delete, legacy /clip | done | 2026-11-02 | pytest 8/8 (tools/relay/test_relay.py) |
 | 2 | Android: seq-matched audio, quality + trim, FLAC, JobScheduler batch upload, forget, version | done | 2026-11-02 | FLAC round-trip 5/5 bit-exact; javac of all sources OK (only R missing outside the real build) |
 | 3 | Web: v2 labels (s/a/w, hyp, model, app), «أنا قريت صح», settings counters, mobile data, delete | done | 2026-11-02 | node --check app.js/i18n.js; UI run in CP6 |
-| 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | todo | | |
+| 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | done | 2026-11-02 | text review only |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | todo | | |
 | 6 | Verification: pytest, FLAC round-trip, APK build, ui.js mock, emulator smoke, nv_train --dry-run | todo | | |
 | 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | todo | | |
@@ -42,3 +42,6 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   + window.onDonateForget), donateSend -> NvBridge.sendDonations(mobile); hifz test spans carry data-a/data-w; htvDonate() sends
   v2 meta with window.nvSeq; #htFix «أنا قريت صح» after a piece with red words (unmiss + kind "corrected"). index.html hint
   rewritten + new rows; i18n.js D49 block (English for all donation strings).
+- CP4 2026-11-02: privacy-policy.html (AR+EN donation section, dated 2 Nov 2026; says dataset is PRIVATE: change if CP7
+  decides public), store/data-safety.md (Play form answers), listing.md + PLAY-REVIEW.md (Data safety must be updated in Console
+  and the new policy re-uploaded), SRS.md 4.6.
