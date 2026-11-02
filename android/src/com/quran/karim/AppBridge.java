@@ -207,4 +207,13 @@ class AppBridge {
             activity.startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + activity.getPackageName())));
         } catch (Exception e) { }
     }
+
+    /** "4.9 (40)": the installed versionName and versionCode, for donated clip labels. */
+    @JavascriptInterface
+    public String version() {
+        try {
+            android.content.pm.PackageInfo p = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+            return p.versionName + " (" + p.versionCode + ")";
+        } catch (Exception e) { return ""; }
+    }
 }

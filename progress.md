@@ -9,7 +9,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 |----|------|--------|------|----------|
 | 0 | Branch + this file | done | 2026-11-02 | - |
 | 1 | Relay: HMAC, persistent limits, server ASR check, batched commits, /delete, legacy /clip | done | 2026-11-02 | pytest 8/8 (tools/relay/test_relay.py) |
-| 2 | Android: seq-matched audio, quality + trim, FLAC, JobScheduler batch upload, forget, version | todo | | |
+| 2 | Android: seq-matched audio, quality + trim, FLAC, JobScheduler batch upload, forget, version | done | 2026-11-02 | FLAC round-trip 5/5 bit-exact; javac of all sources OK (only R missing outside the real build) |
 | 3 | Web: v2 labels (s/a/w, hyp, model, app), «أنا قريت صح», settings counters, mobile data, delete | todo | | |
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | todo | | |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | todo | | |
@@ -32,3 +32,9 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   - Space secrets needed at deploy (CP7): HF_TOKEN (write), APP_KEY (same value as the app's key, set in CP2).
   - /delete only covers the new layout; old clips/YYYYMMDD/* need migrate_legacy.py (CP5) first.
   - Phone HTTP read timeout must be >= 60 s: replies wait for the shared commit (WINDOW=20 s).
+- CP2 2026-11-02: FlacEncoder.java, Donations.java (trim/quality/save/stats/upload/forget/deviceId), DonateJob.java (JobScheduler),
+  manifest <service DonateJob>, NvAsr (finals by seq, window.nvSeq set before each final onRecite; new bridge: donate2(meta,seq) ->
+  ""|reason, sendDonations(mobile), donateStats() -> {"waiting","rejected"}, forget(oldIdsCsv) -> window.onDonateForget(ok);
+  old donate/upload/donated removed, so the page is broken until CP3), AppBridge.version() -> "4.8 (39)".
+  build-win.py / build.sh write <OUT>/gen/com/quran/karim/DonateKey.java from DONATE_KEY+DONATE_URL or keys/donate-key.txt.
+  The key is NOT made yet: at CP7 create keys/donate-key.txt (random) and set the same value as APP_KEY in the Space.

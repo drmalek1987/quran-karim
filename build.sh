@@ -43,6 +43,12 @@ python3 -I "$HERE/tools/brotli_books.py" "$OUT/assets/web/books"
   -0 br --min-sdk-version 21 --target-sdk-version 36 \
   -A "$OUT/assets" --java "$OUT/gen" "$OUT/res.zip"
 
+# Donation relay key + address (DONATE_KEY/DONATE_URL, or keys/donate-key.txt); never in git. No key: no uploads.
+KEY="${DONATE_KEY:-$( [ -f "$HERE/keys/donate-key.txt" ] && tr -d '\r\n' < "$HERE/keys/donate-key.txt" )}"
+URL="${DONATE_URL:-https://drabdelraman-quran-voice-relay.hf.space}"
+[ -z "$KEY" ] && echo "WARNING: no donation key, voice donation uploads are off in this build"
+mkdir -p "$OUT/gen/com/quran/karim"
+printf 'package com.quran.karim;\nfinal class DonateKey { static final String KEY = "%s", URL = "%s"; }\n' "$KEY" "$URL" > "$OUT/gen/com/quran/karim/DonateKey.java"
 LIBS=$(ls "$HERE"/android/libs/*.jar | tr '\n' ':')
 javac -nowarn -Xlint:-options --release 8 -cp "$ANDROID_JAR:$LIBS" -d "$OUT/classes" \
   $(find "$HERE/android/src" "$OUT/gen" -name '*.java')

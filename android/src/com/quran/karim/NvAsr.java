@@ -44,13 +44,17 @@ class NvAsr {
     private OrtSession session;
     private String[] vocab;
     private Thread rec;
-    private volatile float[] lastFinal;
+    // The last few whole pieces of speech by number: the page names the piece it matched (window.nvSeq is set just
+    // before each final onRecite), so a donated clip is the audio of exactly those words even if the reader went on.
+    private final java.util.LinkedHashMap<Integer, float[]> finals = new java.util.LinkedHashMap<Integer, float[]>();
+    private int seq = 0;
 
     NvAsr(Activity a, WebView w) { act = a; web = w; dir = new File(new File(a.getFilesDir(), "ed"), "asr"); }
 
-    private void tell(final String text, final String kind) {
+    private void tell(String text, String kind) { tell(text, kind, ""); }
+    private void tell(final String text, final String kind, final String before) {
         act.runOnUiThread(new Runnable() { public void run() {
-            web.evaluateJavascript("window.onRecite && onRecite(" + org.json.JSONObject.quote(text) + "," + org.json.JSONObject.quote(kind) + ")", null);
+            web.evaluateJavascript(before + "window.onRecite && onRecite(" + org.json.JSONObject.quote(text) + "," + org.json.JSONObject.quote(kind) + ")", null);
         } });
     }
 
@@ -78,65 +82,28 @@ class NvAsr {
 
     void onPermissionResult(int[] r) { if (r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) start(); else tell("", "state:noperm"); }
 
-    // Training clips, only when the reader turned «ساعد في تحسين التعرّف» on: the last piece of speech is kept as a 16 kHz
-    // WAV in files/donate with what the page matched it to (JSON from the page), at most 300 waiting to be sent.
+    // Training clips, only when the reader turned «ساعد في تحسين التعرّف» on (see Donations). donate2 keeps piece `seq`
+    // with the page's label (JSON) and returns "" or why it was not kept; sendDonations lets DonateJob send them.
     @JavascriptInterface
-    public boolean donate(String meta) {
-        float[] y = lastFinal; lastFinal = null;
-        if (y == null || y.length < SR / 2) return false;
-        File d = new File(act.getFilesDir(), "donate"); d.mkdirs();
-        String[] have = d.list(); if (have != null && have.length >= 600) return false;
-        String id = String.valueOf(System.currentTimeMillis());
-        try {
-            java.io.DataOutputStream o = new java.io.DataOutputStream(new java.io.BufferedOutputStream(new FileOutputStream(new File(d, id + ".wav"))));
-            int n = y.length * 2;
-            try {
-                o.writeBytes("RIFF"); o.writeInt(Integer.reverseBytes(36 + n)); o.writeBytes("WAVEfmt ");
-                o.writeInt(Integer.reverseBytes(16)); o.writeShort(Short.reverseBytes((short) 1)); o.writeShort(Short.reverseBytes((short) 1));
-                o.writeInt(Integer.reverseBytes(SR)); o.writeInt(Integer.reverseBytes(SR * 2)); o.writeShort(Short.reverseBytes((short) 2)); o.writeShort(Short.reverseBytes((short) 16));
-                o.writeBytes("data"); o.writeInt(Integer.reverseBytes(n));
-                for (float v : y) o.writeShort(Short.reverseBytes((short) Math.max(-32768, Math.min(32767, Math.round(v * 32767)))));
-            } finally { o.close(); }
-            OutputStream m = new FileOutputStream(new File(d, id + ".json"));
-            try { m.write(meta.getBytes("UTF-8")); } finally { m.close(); }
-            return true;
-        } catch (Exception e) { return false; }
+    public String donate2(String meta, int n) {
+        float[] y; synchronized (finals) { y = finals.remove(n); }
+        return Donations.save(act.getApplicationContext(), y, meta, n);
     }
 
-    // Sends the waiting clips to the relay Space (which writes them to the private dataset), deleting each one once it
-    // is accepted. Runs in the background; stops at the first network failure and tries again next time.
     @JavascriptInterface
-    public void upload(final String device) {
+    public void sendDonations(boolean mobile) { DonateJob.schedule(act.getApplicationContext(), mobile); }
+
+    @JavascriptInterface
+    public String donateStats() { return Donations.stats(act.getApplicationContext()); }
+
+    // Deletes this phone's clips here and on the relay; the answer comes back as window.onDonateForget(ok).
+    @JavascriptInterface
+    public void forget(final String oldIds) {
         new Thread(new Runnable() { public void run() {
-            File d = new File(act.getFilesDir(), "donate"); File[] l = d.listFiles(); if (l == null) return;
-            for (File w : l) {
-                if (!w.getName().endsWith(".wav")) continue;
-                File j = new File(d, w.getName().replace(".wav", ".json"));
-                try {
-                    String b = "----qk" + System.nanoTime();
-                    java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL("https://drabdelraman-quran-voice-relay.hf.space/clip").openConnection();
-                    c.setDoOutput(true); c.setConnectTimeout(15000); c.setReadTimeout(30000);
-                    c.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + b);
-                    OutputStream o = c.getOutputStream();
-                    String meta = j.exists() ? new String(readAll(j), "UTF-8") : "{}";
-                    o.write(("--" + b + "\r\nContent-Disposition: form-data; name=\"meta\"\r\n\r\n" + meta + "\r\n").getBytes("UTF-8"));
-                    o.write(("--" + b + "\r\nContent-Disposition: form-data; name=\"device\"\r\n\r\n" + device + "\r\n").getBytes("UTF-8"));
-                    o.write(("--" + b + "\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"c.wav\"\r\nContent-Type: audio/wav\r\n\r\n").getBytes("UTF-8"));
-                    o.write(readAll(w)); o.write(("\r\n--" + b + "--\r\n").getBytes("UTF-8")); o.close();
-                    int code = c.getResponseCode(); c.disconnect();
-                    if (code == 200 || code == 400) { w.delete(); j.delete(); } else return;
-                } catch (Exception e) { return; }
-            }
+            final boolean ok = Donations.forget(act.getApplicationContext(), oldIds == null ? "" : oldIds);
+            act.runOnUiThread(new Runnable() { public void run() { web.evaluateJavascript("window.onDonateForget && onDonateForget(" + ok + ")", null); } });
         } }).start();
     }
-
-    private static byte[] readAll(File f) throws java.io.IOException {
-        java.io.FileInputStream in = new java.io.FileInputStream(f);
-        try { byte[] b = new byte[(int) f.length()]; int n = 0; while (n < b.length) { int r = in.read(b, n, b.length - n); if (r < 0) break; n += r; } return b; } finally { in.close(); }
-    }
-
-    @JavascriptInterface
-    public int donated() { String[] l = new File(act.getFilesDir(), "donate").list(); return l == null ? 0 : l.length / 2; }
 
     void shutdown() { on = false; work.shutdownNow(); try { if (session != null) session.close(); } catch (Exception e) { } }
 
@@ -221,8 +188,17 @@ class NvAsr {
         try {
             if (!on) return;
             String t = decode(y);
-            if (kind.equals("final")) lastFinal = y;
-            if (on && t.length() > 0) tell(t, kind);
+            String before = "";
+            if (kind.equals("final")) {
+                int n;
+                synchronized (finals) {
+                    n = ++seq; finals.put(n, y);
+                    java.util.Iterator<Integer> it = finals.keySet().iterator();
+                    while (finals.size() > 4) { it.next(); it.remove(); }
+                }
+                before = "window.nvSeq=" + n + ";";
+            }
+            if (on && t.length() > 0) tell(t, kind, before);
         } catch (Throwable e) {
             if (on) tell("", "state:error:run " + e.getMessage());
         } finally { if (kind.equals("partial")) decoding = false; }
