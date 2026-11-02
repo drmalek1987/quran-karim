@@ -444,20 +444,43 @@
       if (/^#\/s\//.test(location.hash)) { var keep = window.scrollY; route(); sheet.hidden = false; window.scrollTo(0, keep); }
     });
   });
-  // Training clips are only kept after an explicit yes; switching it off deletes nothing already sent but stops new clips.
-  function donatePaint() { var v = load("donate", 0); document.querySelectorAll("#donateSet button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === v); }); }
+  // Training clips are only kept after an explicit yes; switching it off stops new clips, and «امسح كل تسجيلاتي» also deletes
+  // the ones already sent (NvBridge.forget, via the relay). The phone (Donations.java) keeps its own random id; q.donateId
+  // is the id 4.8 made here, kept only so those older clips can be deleted too.
+  function donatePaint() {
+    var v = load("donate", 0), mob = load("donateMobile", 0);
+    document.querySelectorAll("#donateSet button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === v); });
+    document.querySelectorAll("#donateMob button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === mob); });
+    var el = document.getElementById("donateStats"), st = {};
+    try { st = JSON.parse(NvBridge.donateStats()); } catch (e) {}
+    var rej = 0; for (var k in st.rejected || {}) rej += st.rejected[k];
+    if (el) el.textContent = st.waiting == null ? "" : "مستني يترفع: " + ar(st.waiting) + " مقطع · اترفض: " + ar(rej);
+  }
   document.querySelectorAll("#donateSet button").forEach(function (b) {
     b.addEventListener("click", function () {
-      if (b.dataset.v === "1" && !confirm("توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟")) return;
-      save("donate", +b.dataset.v); donatePaint();
+      if (b.dataset.v === "1" && !confirm((window.T || String)("توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟"))) return;
+      save("donate", +b.dataset.v); donatePaint(); donateSend();
     });
   });
+  document.querySelectorAll("#donateMob button").forEach(function (b) {
+    b.addEventListener("click", function () { save("donateMobile", +b.dataset.v); donatePaint(); donateSend(); });
+  });
+  var donateDel = document.getElementById("donateDel");
+  if (donateDel) donateDel.onclick = function () {
+    if (!window.NvBridge || !NvBridge.forget) return toast("المسح متاح في التطبيق على الموبايل بس");
+    if (!confirm((window.T || String)("تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع."))) return;
+    save("donate", 0); donatePaint(); toast("بيمسح…");
+    try { NvBridge.forget(load("donateId", "")); } catch (e) { toast("المسح ما نجحش، جرّب تاني"); }
+  };
+  window.onDonateForget = function (ok) {
+    if (ok) save("donateId", "");
+    toast(ok ? "اتمسحت كل تسجيلاتك" : "المسح ما نجحش، اتأكد من النت وجرّب تاني"); donatePaint();
+  };
   donatePaint();
-  // Waiting clips go out when the app opens (and again after each hifz voice test); a random id, not tied to the person.
+  // Waiting clips go out in the background (DonateJob): on Wi-Fi, or any network if the reader allowed mobile data.
   function donateSend() {
-    if (load("donate", 0) !== 1 || !window.NvBridge || !NvBridge.upload) return;
-    var id = load("donateId", ""); if (!id) { id = Math.random().toString(36).slice(2, 12); save("donateId", id); }
-    try { NvBridge.upload(id); } catch (e) {}
+    if (load("donate", 0) !== 1 || !window.NvBridge || !NvBridge.sendDonations) return;
+    try { NvBridge.sendDonations(load("donateMobile", 0) === 1); } catch (e) {}
   }
   setTimeout(donateSend, 5000);
   document.querySelectorAll("#hapticSet button").forEach(function (b) {
@@ -3036,11 +3059,13 @@
       var every = lv === 100 ? 1 : lv === 50 ? 2 : 4, off = Math.floor(Math.random() * every);
       html += Q.t[s - 1][a - 1].split(" ").map(function (w, j) {
         if (!/[ء-يٱ]/.test(w)) return w;
-        if ((j + off) % every) return '<span class="ht-v">' + w + "</span>";
-        hidden++; return '<button class="ht-w">' + w + "</button>";
+        var at = ' data-a="' + a + '" data-w="' + j + '"';   // ayah and word number, for donated clip labels
+        if ((j + off) % every) return '<span class="ht-v"' + at + ">" + w + "</span>";
+        hidden++; return '<button class="ht-w"' + at + ">" + w + "</button>";
       }).join(" ") + ' <span class="ayah-no">﴿' + ar(a) + "﴾</span> ";
     }
     html += '</div><div class="ht-rec">' + (window.ReciteBridge ? '<button class="continue" id="htMic">' + ic("mic") + " سمّع بالصوت</button>" : "") + '<button class="continue" id="htRec">' + ic("mic") + ' سجّل تلاوتك</button><button class="continue" id="htQari">' + ic("aplay") + " اسمع القارئ</button></div>" +
+      '<button class="continue" id="htFix" hidden>' + ic("check") + " أنا قريت صح</button>" +
       '<audio id="htAudio" controls hidden></audio>' +
       '<button class="continue ht-pg" id="htPages">' + ic("book") + " اختبرني على صفحات " + (mode === "pages" ? EDS[edition].name : "المصحف") + "</button>" +
       '<div class="ht-foot"><button class="continue" id="htDone">' + ic("check") + " خلصت</button>" +
@@ -3074,7 +3099,8 @@
       htv = { on: true, ws: ws, exp: ws.map(function (e) { return norm(e.textContent); }), ptr: 0, done: 0, bad: 0,
         miss: function (e) { if (!e.classList.contains("shown")) { e.classList.add("shown", "miss"); missed++; } },
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
-        btn: htMic };
+        btn: htMic, s: s, fix: document.getElementById("htFix") };
+      htv.fix.hidden = true;
       reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
     };
     document.getElementById("htS").onchange = function () { save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };
@@ -3106,7 +3132,7 @@
     }
     var ws = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean), fresh = ws.slice(htv.done);
     htv.done = kind === "final" ? 0 : ws.length;
-    if (htv.seg == null) { htv.seg = htv.ptr; htv.clean = true; }
+    if (htv.seg == null) { htv.seg = htv.ptr; htv.far = 0; htv.clean = true; htv.fix.hidden = true; }
     fresh.forEach(function (hw) {
       for (var j = htv.ptr; j < Math.min(htv.exp.length, htv.ptr + 4); j++) if (rdSame(hw, htv.exp[j])) {
         for (var k = htv.ptr; k < j; k++) if (htv.ws[k].classList.contains("ht-w")) htv.miss(htv.ws[k]);   // skipped
@@ -3120,17 +3146,38 @@
       // a wrong word where a hidden one was expected turns it red at once; said right next, it turns green again,
       // and after two misses in a row it stays wrong and the test moves on
       if (htv.ptr < htv.exp.length && htv.ws[htv.ptr].classList.contains("ht-w")) htv.miss(htv.ws[htv.ptr]);
+      htv.far = Math.max(htv.far, Math.min(htv.exp.length, htv.ptr + 1));   // the misheard word belongs to this piece
       if (++htv.bad >= 2 && htv.ptr < htv.exp.length) { htv.ptr++; htv.bad = 0; }
     });
     if (kind === "final") {
-      // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip
-      if (htv.clean && htv.ptr > htv.seg && Mic.cur === "nv" && load("donate", 0) === 1 && window.NvBridge && NvBridge.donate)
-        try { NvBridge.donate(JSON.stringify({ text: htv.ws.slice(htv.seg, htv.ptr).map(function (e) { return e.textContent; }).join(" "), src: "hifz", v: 1 })); } catch (e) {}
+      // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip.
+      // A piece with red words offers «أنا قريت صح»: it turns them green and, with consent, sends the piece as a
+      // "corrected" clip (the model's hard cases; the relay still checks it is roughly those words).
+      var piece = { a: htv.seg, b: Math.max(htv.ptr, htv.far), seq: window.nvSeq, hyp: (text || "").split("\n")[0] };
+      if (htv.clean && piece.b > piece.a) htvDonate(piece, "auto");
+      else if (piece.b > piece.a && htv.ws.slice(piece.a, piece.b).some(function (e) { return e.classList.contains("miss"); })) {
+        htv.fix.hidden = false;
+        htv.fix.onclick = function () {
+          htv.fix.hidden = true;
+          htv.ws.slice(piece.a, piece.b).forEach(function (e) { htv.unmiss(e); });
+          if (htv.ptr < piece.b) { htv.ptr = piece.b; htv.bad = 0; }   // carry on after the words the reader vouched for
+          htvDonate(piece, "corrected");
+        };
+      }
       htv.seg = null;
     }
     if (htv.ptr >= htv.exp.length) setTimeout(donateSend, 1000);
     if (htv.ptr >= htv.exp.length) { htv.on = false; Mic.stop(); htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; toast("خلصت الآيات، دوس «خلصت» للنتيجة"); }
   };
+
+  // window.nvSeq names the model's piece of speech this final belongs to (NvAsr), so the clip is exactly its audio.
+  function htvDonate(p, kind) {
+    if (Mic.cur !== "nv" || load("donate", 0) !== 1 || !window.NvBridge || !NvBridge.donate2 || p.seq == null) return;
+    var w = htv.ws.slice(p.a, p.b), f = w[0].dataset, l = w[w.length - 1].dataset;
+    var meta = { v: 2, text: w.map(function (e) { return e.textContent; }).join(" "), s: htv.s, a0: +f.a, w0: +f.w, a1: +l.a, w1: +l.w,
+      kind: kind, hyp: p.hyp, src: "hifz", model: "nv-fc-large-pcd-v1.0", app: window.AppBridge && AppBridge.version ? AppBridge.version() : "" };
+    try { NvBridge.donate2(JSON.stringify(meta), p.seq); } catch (e) {}
+  }
 
   // ---------- السبحة ----------
   // A free counter: tap anywhere on the big circle. Each phrase keeps its own count; an optional target buzzes when reached.

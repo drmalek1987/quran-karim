@@ -53,8 +53,12 @@ offline cache of everything heard, per-surah download.
   Arabic FastConformer (int8 ONNX, CC BY 4.0) downloaded from Settings (~120 MB incl. ONNX Runtime native libs), run natively
   (`NvAsr.java`) or in WASM (`asr.js`). Goal: recognise any reciter, not one voice.
 - Voice hifz test: recite a passage, get a score.
-- Optional voice donation: with explicit consent, correctly read clips are queued and uploaded to a Hugging Face Space relay
-  (`DrAbdelraman/quran-voice-relay`) into a private dataset, then deleted locally. Off by default.
+- Optional voice donation (off by default, explicit consent): in the voice hifz test with the NVIDIA model, pieces read right
+  (or marked «أنا قريت صح», kind "corrected") are trimmed, quality-checked and kept as FLAC with a v2 label (text, surah/ayah/word
+  range, model transcript, quality, app/model version). DonateJob (JobScheduler) uploads them in signed batches on Wi-Fi (or
+  mobile data if allowed) to the relay Space (`tools/relay/app.py`), which checks each clip with the same model and commits
+  accepted ones to the private dataset `DrAbdelraman/quran-voice-donations` under a hash of the device id. «امسح كل تسجيلاتي»
+  deletes local and uploaded clips. Training: `tools/asr/gpu/nv_train.py` (split by device).
 
 ### 4.7 Khatma and bookmarks
 Named bookmarks; khatma plan in N days with daily portion, progress and ahead/behind status on the home screen.

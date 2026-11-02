@@ -2,7 +2,7 @@
 and JDK 17, no Gradle, no WSL. Needs the `brotli` Python package (see CLAUDE.md > Build on Windows).
 Usage: [PLAY=1] py -3.11 build-win.py [path\to\android.jar]
 Env: ANDROID_HOME (default %LOCALAPPDATA%\Android\Sdk), JAVA_HOME, BUILD_TOOLS (default 36.0.0), OUT, KEYSTORE."""
-import glob, os, re, shutil, subprocess, sys, zipfile
+import glob, json, os, re, shutil, subprocess, sys, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SDK = os.environ.get("ANDROID_HOME") or os.path.join(os.environ["LOCALAPPDATA"], "Android", "Sdk")
@@ -74,6 +74,14 @@ def main():
         "-0", "br", "--min-sdk-version", "21", "--target-sdk-version", "36",
         "-A", os.path.join(OUT, "assets"), "--java", os.path.join(OUT, "gen"), os.path.join(OUT, "res.zip"))
 
+    # Donation relay key + address (DONATE_KEY/DONATE_URL, or keys/donate-key.txt); never in git. No key: no uploads.
+    kf = os.path.join(HERE, "keys", "donate-key.txt")
+    key = os.environ.get("DONATE_KEY") or (open(kf).read().strip() if os.path.exists(kf) else "")
+    url = os.environ.get("DONATE_URL", "https://drabdelraman-quran-voice-relay.hf.space")
+    if not key: print("WARNING: no donation key, voice donation uploads are off in this build")
+    gd = os.path.join(OUT, "gen", "com", "quran", "karim"); os.makedirs(gd, exist_ok=True)
+    with open(os.path.join(gd, "DonateKey.java"), "w") as f:
+        f.write('package com.quran.karim;\nfinal class DonateKey { static final String KEY = %s, URL = %s; }\n' % (json.dumps(key), json.dumps(url)))
     libs = sorted(glob.glob(os.path.join(HERE, "android", "libs", "*.jar")))
     srcs = [os.path.join(d, n) for top in (os.path.join(HERE, "android", "src"), os.path.join(OUT, "gen"))
             for d, _, ns in os.walk(top) for n in ns if n.endswith(".java")]
