@@ -14,7 +14,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | done | 2026-11-02 | text review only |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | done | 2026-11-02 | py_compile only; GPU dry run in CP6 |
 | 6 | Verification: pytest, FLAC round-trip, APK build, ui.js mock, emulator smoke, nv_train --dry-run | partly | 2026-11-02 | relay 8/8, FLAC 5/5, APK OK (cert 7d8b31d2), donate.js 10/10; NOT done: phone/emulator smoke, nv_train DRY |
-| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | relay v2 live (Space commit f44da94); blocked: Space HF_TOKEN invalid |
+| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | relay v2 live and verified; left: migrate, 4.9, Play |
 
 ## Wire protocol (shared by relay and app)
 - `POST /batch` multipart: `device`, `ts` (unix seconds), `sig`, then per clip i: `meta<i>` (JSON) and `audio<i>` (FLAC).
@@ -77,3 +77,8 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   NEXT: user makes a fine-grained token (write: datasets/DrAbdelraman/quran-voice-donations, read:
   datasets/DrAbdelraman/quran-train-progress) and puts it in the Space secret HF_TOKEN; then rerun the live check
   (signed batch with a 0.2 s + a 2 s sine clip from device qa-test-device-0001 -> expect reasons length + mismatch, then /delete).
+- CP7 2026-11-02 (cont.): user replaced the Space HF_TOKEN. Live check OK: signed batch -> 200 with reasons
+  [length, mismatch] (the server ASR model loaded and ran), state/limits.json committed, /delete -> 200, no test files left.
+  First signed batch took 52 s (20 s commit window + first model use); the phone waits up to 90 s. Not yet checked live: a
+  real recitation being ACCEPTED (needs a real clip). Left in CP7: migrate_legacy.py (4 old clips), bump 4.9 + build with the
+  key, re-upload privacy policy, Play Data safety.
