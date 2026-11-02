@@ -8,7 +8,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | CP | What | Status | Date | Verified |
 |----|------|--------|------|----------|
 | 0 | Branch + this file | done | 2026-11-02 | - |
-| 1 | Relay: HMAC, persistent limits, server ASR check, batched commits, /delete, legacy /clip | todo | | |
+| 1 | Relay: HMAC, persistent limits, server ASR check, batched commits, /delete, legacy /clip | done | 2026-11-02 | pytest 8/8 (tools/relay/test_relay.py) |
 | 2 | Android: seq-matched audio, quality + trim, FLAC, JobScheduler batch upload, forget, version | todo | | |
 | 3 | Web: v2 labels (s/a/w, hyp, model, app), «أنا قريت صح», settings counters, mobile data, delete | todo | | |
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | todo | | |
@@ -25,3 +25,10 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 
 ## Log
 - CP0 2026-11-02: branch created from main 5980c5c.
+- CP1 2026-11-02: tools/relay/app.py rewritten, test_relay.py added (8 pass, offline fakes). Notes:
+  - Legacy /clip (4.8) now stores under the same clips/<devhash16>/ layout (no separate legacy/ folder); meta v=1.
+  - Server ASR loads phone/model.json + phone/model.int8.onnx from MODEL_REPO (default DrAbdelraman/quran-train-progress,
+    uploaded by export_onnx.py). If it cannot load, clips are stored with srv_cer=null and training must skip them.
+  - Space secrets needed at deploy (CP7): HF_TOKEN (write), APP_KEY (same value as the app's key, set in CP2).
+  - /delete only covers the new layout; old clips/YYYYMMDD/* need migrate_legacy.py (CP5) first.
+  - Phone HTTP read timeout must be >= 60 s: replies wait for the shared commit (WINDOW=20 s).

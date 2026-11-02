@@ -2,3 +2,6 @@ fastapi
 uvicorn
 python-multipart
 huggingface_hub
+numpy
+soundfile
+onnxruntime
