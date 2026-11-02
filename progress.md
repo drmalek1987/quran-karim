@@ -93,3 +93,8 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   Still to try on a real phone: download the NVIDIA model, turn donation on, do a voice hifz test on Wi-Fi, then check the
   settings counters and that a clip arrives in the dataset (and that «امسح كل تسجيلاتي» removes it).
   Branch donations-v2 is not merged or pushed.
+- Phone test 2026-11-02 (4.9 on the user's phone, device hash 0e04fff5e5115c5a): Wi-Fi upload works. 17:25 one clip refused
+  (reason only in the phone's counter), 17:52 one clip stored: kind corrected, s2 a22 w17-22, 4.3 s FLAC, app "4.9 (40)",
+  q rms -31.4 / snr 15.2, phone hyp and server srv_hyp both equal the text, srv_cer 0. Not yet confirmed: «امسح كل تسجيلاتي»
+  (the clip is still in the dataset). Open question: why the piece was "corrected" when both models heard it right (user may
+  have tapped the button just to try it).
