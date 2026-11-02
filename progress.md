@@ -14,7 +14,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | done | 2026-11-02 | text review only |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | done | 2026-11-02 | py_compile only; GPU dry run in CP6 |
 | 6 | Verification: pytest, FLAC round-trip, APK build, ui.js mock, emulator smoke, nv_train --dry-run | partly | 2026-11-02 | relay 8/8, FLAC 5/5, APK OK (cert 7d8b31d2), donate.js 10/10; NOT done: phone/emulator smoke, nv_train DRY |
-| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | key made; waiting for HF login |
+| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | relay v2 live (Space commit f44da94); blocked: Space HF_TOKEN invalid |
 
 ## Wire protocol (shared by relay and app)
 - `POST /batch` multipart: `device`, `ts` (unix seconds), `sig`, then per clip i: `meta<i>` (JSON) and `audio<i>` (FLAC).
@@ -69,3 +69,11 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   Space upload waits for the user to run `uvx --from huggingface_hub hf auth login` (write token). After that: upload
   tools/relay/app.py + requirements.txt to Space DrAbdelraman/quran-voice-relay and set Space secret APP_KEY from the key file
   (api.add_space_secret, value never printed), then check GET / and that POST /batch answers 401 to an unsigned request.
+- CP7 2026-11-02 (cont.): logged in as DrAbdelraman (write token). Space files were identical to main, so replaced with v2
+  (Space commit f44da94dc1); APP_KEY secret set from keys/donate-key.txt. Space RUNNING. Live: GET / 200, bad signature 401,
+  but signed /batch and /delete -> 500: the Space secret HF_TOKEN is rejected by HF ("Invalid username or password"),
+  so the relay cannot read/write the dataset (the 4.8 relay had the same problem; dataset has only 4 clips, last 2026-10-31;
+  4.8 phones keep clips on 5xx, so none were lost). Dataset is private (matches the policy). Model repo has phone/*.
+  NEXT: user makes a fine-grained token (write: datasets/DrAbdelraman/quran-voice-donations, read:
+  datasets/DrAbdelraman/quran-train-progress) and puts it in the Space secret HF_TOKEN; then rerun the live check
+  (signed batch with a 0.2 s + a 2 s sine clip from device qa-test-device-0001 -> expect reasons length + mismatch, then /delete).
