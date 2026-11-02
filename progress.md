@@ -85,3 +85,5 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 - CP7 2026-11-02 (cont.): migrate_legacy.py --apply: 4 old clips (one device, 2026-10-31) now under clips/d145050b4b6f346d/,
   labels have no raw device id, audio intact (1.7-12 s, 16 kHz); no old-layout files left. Left: bump 4.9 + build with the key,
   re-upload privacy policy, Play Data safety.
+- 2026-11-02: user says the app is NOT on Play Console yet; Play steps (policy upload, Data safety) wait until the user says
+  so. Do not treat them as pending blockers.
