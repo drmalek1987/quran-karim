@@ -14,7 +14,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | done | 2026-11-02 | text review only |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | done | 2026-11-02 | py_compile only; GPU dry run in CP6 |
 | 6 | Verification: pytest, FLAC round-trip, APK build, ui.js mock, emulator smoke, nv_train --dry-run | partly | 2026-11-02 | relay 8/8, FLAC 5/5, APK OK (cert 7d8b31d2), donate.js 10/10; NOT done: phone/emulator smoke, nv_train DRY |
-| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | relay v2 live and verified; left: migrate, 4.9, Play |
+| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | relay live + verified, 4 old clips migrated; left: 4.9, Play |
 
 ## Wire protocol (shared by relay and app)
 - `POST /batch` multipart: `device`, `ts` (unix seconds), `sig`, then per clip i: `meta<i>` (JSON) and `audio<i>` (FLAC).
@@ -82,3 +82,6 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   First signed batch took 52 s (20 s commit window + first model use); the phone waits up to 90 s. Not yet checked live: a
   real recitation being ACCEPTED (needs a real clip). Left in CP7: migrate_legacy.py (4 old clips), bump 4.9 + build with the
   key, re-upload privacy policy, Play Data safety.
+- CP7 2026-11-02 (cont.): migrate_legacy.py --apply: 4 old clips (one device, 2026-10-31) now under clips/d145050b4b6f346d/,
+  labels have no raw device id, audio intact (1.7-12 s, 16 kHz); no old-layout files left. Left: bump 4.9 + build with the key,
+  re-upload privacy policy, Play Data safety.
