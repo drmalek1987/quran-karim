@@ -14,7 +14,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | done | 2026-11-02 | text review only |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | done | 2026-11-02 | py_compile only; GPU dry run in CP6 |
 | 6 | Verification: pytest, FLAC round-trip, APK build, ui.js mock, emulator smoke, nv_train --dry-run | partly | 2026-11-02 | relay 8/8, FLAC 5/5, APK OK (cert 7d8b31d2), donate.js 10/10; NOT done: phone/emulator smoke, nv_train DRY |
-| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | todo | | |
+| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | key made; waiting for HF login |
 
 ## Wire protocol (shared by relay and app)
 - `POST /batch` multipart: `device`, `ts` (unix seconds), `sig`, then per clip i: `meta<i>` (JSON) and `audio<i>` (FLAC).
@@ -65,3 +65,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   in the Space; push tools/relay/{app.py,requirements.txt} to the Space; decide dataset private (policy says private);
   run migrate_legacy.py (dry run first); bump to 4.9 (manifest, index.html:153/186, sw.js cache name); re-upload privacy policy;
   update Data safety in Play Console from store/data-safety.md.
+- CP7 2026-11-02: user said start. keys/donate-key.txt created (gitignored, random 43 chars). No HF token on this PC, so the
+  Space upload waits for the user to run `uvx --from huggingface_hub hf auth login` (write token). After that: upload
+  tools/relay/app.py + requirements.txt to Space DrAbdelraman/quran-voice-relay and set Space secret APP_KEY from the key file
+  (api.add_space_secret, value never printed), then check GET / and that POST /batch answers 401 to an unsigned request.
