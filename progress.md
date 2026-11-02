@@ -14,7 +14,7 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 | 4 | Privacy policy AR/EN, store/data-safety.md, PLAY-REVIEW, SRS | done | 2026-11-02 | text review only |
 | 5 | tools/asr/gpu/nv_train.py (donations + tlog, device split, gate), export_onnx --ckpt, migrate_legacy.py | done | 2026-11-02 | py_compile only; GPU dry run in CP6 |
 | 6 | Verification: pytest, FLAC round-trip, APK build, ui.js mock, emulator smoke, nv_train --dry-run | partly | 2026-11-02 | relay 8/8, FLAC 5/5, APK OK (cert 7d8b31d2), donate.js 10/10; NOT done: phone/emulator smoke, nv_train DRY |
-| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | relay live + verified, 4 old clips migrated; left: 4.9, Play |
+| 7 | Deploy relay, migrate, bump 4.9: only with the user's OK | doing | 2026-11-02 | done (Play steps wait for the user) | relay live + verified, legacy migrated, 4.9 APK built with key |
 
 ## Wire protocol (shared by relay and app)
 - `POST /batch` multipart: `device`, `ts` (unix seconds), `sig`, then per clip i: `meta<i>` (JSON) and `audio<i>` (FLAC).
@@ -87,3 +87,9 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   re-upload privacy policy, Play Data safety.
 - 2026-11-02: user says the app is NOT on Play Console yet; Play steps (policy upload, Data safety) wait until the user says
   so. Do not treat them as pending blockers.
+- CP7 2026-11-02 (cont.): bumped to 4.9 (versionCode 40; index.html about text AR/EN; sw.js quran-v35). Built
+  quran-karim-v4.9.apk with keys/donate-key.txt: no "no donation key" warning, key + relay URL present in classes.dex,
+  signer SHA-256 7d8b31d2..., badging versionName 4.9 / versionCode 40.
+  Still to try on a real phone: download the NVIDIA model, turn donation on, do a voice hifz test on Wi-Fi, then check the
+  settings counters and that a clip arrives in the dataset (and that «امسح كل تسجيلاتي» removes it).
+  Branch donations-v2 is not merged or pushed.
