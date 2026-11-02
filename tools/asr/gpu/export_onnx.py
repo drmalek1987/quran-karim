@@ -1,30 +1,33 @@
 # Turns the NVIDIA Arabic FastConformer into a phone model: CTC branch -> ONNX -> int8, plus the token list and the
 # feature settings. Then checks the int8 model end to end with plain numpy features (the same maths the app will do)
 # on HA's clips and 150 held-out tlog ayahs, and uploads everything for Claude.
-import os, json, time, numpy as np, soundfile as sf, torch
+import os, sys, json, time, numpy as np, soundfile as sf, torch
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from gpu_train import norm, ed, log, WTOK
 from huggingface_hub import hf_hub_download, HfApi
 import nemo.collections.asr as A
-os.makedirs('phone', exist_ok=True)
-m = A.models.ASRModel.restore_from(hf_hub_download('nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0', 'stt_ar_fastconformer_hybrid_large_pcd_v1.0.nemo'), map_location='cpu').eval()
+# --ckpt nv_out/best.nemo exports a fine-tuned model (nv_train.py) into phone_ft/ instead of NVIDIA's own into phone/
+CKPT = sys.argv[sys.argv.index('--ckpt') + 1] if '--ckpt' in sys.argv else None
+P = 'phone_ft' if CKPT else 'phone'
+os.makedirs(P, exist_ok=True)
+m = A.models.ASRModel.restore_from(CKPT or hf_hub_download('nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0', 'stt_ar_fastconformer_hybrid_large_pcd_v1.0.nemo'), map_location='cpu').eval()
 m.change_decoding_strategy(decoder_type='ctc')
 pp = m.cfg.preprocessor; cfg = {k: (v if isinstance(v, (int, float, str, bool)) or v is None else str(v)) for k, v in dict(pp).items()}
 vocab = [m.tokenizer.ids_to_tokens([i])[0] for i in range(m.tokenizer.vocab_size)]
-json.dump({'preprocessor': cfg, 'vocab': vocab, 'blank': len(vocab)}, open('phone/model.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+json.dump({'preprocessor': cfg, 'vocab': vocab, 'blank': len(vocab)}, open(P + '/model.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 log('export: preprocessor %s, %d tokens' % (cfg, len(vocab)))
-if not os.path.exists('phone/model.fp32.onnx'):
-    m.set_export_config({'decoder_type': 'ctc'}); m.export('phone/model.fp32.onnx')
+if not os.path.exists(P + '/model.fp32.onnx'):
+    m.set_export_config({'decoder_type': 'ctc'}); m.export(P + '/model.fp32.onnx')
 from onnxruntime.quantization import quantize_dynamic, QuantType
-if not os.path.exists('phone/model.int8.onnx'):
-    quantize_dynamic('phone/model.fp32.onnx', 'phone/model.int8.onnx', weight_type=QuantType.QUInt8)
-log('export: sizes MB fp32 %.0f, int8 %.0f' % (os.path.getsize('phone/model.fp32.onnx') / 1e6, os.path.getsize('phone/model.int8.onnx') / 1e6))
+if not os.path.exists(P + '/model.int8.onnx'):
+    quantize_dynamic(P + '/model.fp32.onnx', P + '/model.int8.onnx', weight_type=QuantType.QUInt8)
+log('export: sizes MB fp32 %.0f, int8 %.0f' % (os.path.getsize(P + '/model.fp32.onnx') / 1e6, os.path.getsize(P + '/model.int8.onnx') / 1e6))
 
 # numpy features, written the way the app will compute them
 import librosa
 SR, NF = 16000, int(cfg.get('n_fft') or 512); WIN = int(float(cfg.get('window_size', 0.025)) * SR); HOP = int(float(cfg.get('window_stride', 0.01)) * SR)
 FB = librosa.filters.mel(sr=SR, n_fft=NF, n_mels=int(cfg.get('features', 80)), fmin=0, fmax=SR / 2, norm='slaney', htk=False).astype(np.float32)
-np.save('phone/melbank.npy', FB)
+np.save(P + '/melbank.npy', FB)
 HANN = np.hanning(WIN + 1)[:-1] if False else torch.hann_window(WIN, periodic=False).numpy()
 def feats(y):
     y = np.append(y[0], y[1:] - 0.97 * y[:-1]).astype(np.float32)
@@ -42,7 +45,7 @@ log('export: feature check numpy vs NeMo: shapes %s %s, max diff %.4f' % (mine.s
 import onnxruntime as ort
 res = {}
 for kind in ('int8', 'fp32'):
-    s = ort.InferenceSession('phone/model.%s.onnx' % kind, providers=['CPUExecutionProvider']); names = [i.name for i in s.get_inputs()]
+    s = ort.InferenceSession(P + '/model.%s.onnx' % kind, providers=['CPUExecutionProvider']); names = [i.name for i in s.get_inputs()]
     for tag, items, folder in (('ha', json.load(open('ha_test/meta-ha.json', encoding='utf8')), 'ha_test'), ('tlog_test', json.load(open('data/test.json', encoding='utf8'))[:150], 'data/clips')):
         E = L = 0; t0 = time.time(); samp = []
         for x in items:
@@ -56,9 +59,9 @@ for kind in ('int8', 'fp32'):
             if len(samp) < 10: samp.append([x['text'], h])
         res['%s_%s' % (kind, tag)] = round(100 * E / L, 1); res['%s_%s_sec_per_clip' % (kind, tag)] = round((time.time() - t0) / len(items), 3); res['%s_%s_samples' % (kind, tag)] = samp
     log('export: %s errors %% your voice %s, tlog %s (CPU %.2f s per clip)' % (kind, res[kind + '_ha'], res[kind + '_tlog_test'], res[kind + '_ha_sec_per_clip']))
-json.dump(res, open('phone/check.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+json.dump(res, open(P + '/check.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 if WTOK:
     api = HfApi(token=WTOK); repo = api.whoami()['name'] + '/quran-train-progress'
-    for f in ('phone/model.json', 'phone/check.json', 'phone/model.int8.onnx'):
+    for f in (P + '/model.json', P + '/check.json', P + '/model.int8.onnx'):
         api.upload_file(path_or_fileobj=f, path_in_repo=f, repo_id=repo, repo_type='dataset')
     log('export: DONE, uploaded phone model')

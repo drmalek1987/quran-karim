@@ -17,3 +17,6 @@ gpu-train.zip
 tools/asr/gpu/ha_test/
 tools/qa/ui-report.html
 .venv/
+tools/asr/gpu/nv_out/
+tools/asr/gpu/phone_ft/
+tools/asr/gpu/data/
