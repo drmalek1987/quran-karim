@@ -104,3 +104,11 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   Left: DRY=1 nv_train.bat once clips exist; merging donations-v2 into main (user's call); Play steps when the user says.
 - 2026-11-02: donations-v2 merged into local main (merge commit, pushed to origin/main as 3f7459a on 2026-11-02).
 - 2026-11-04: user confirmed the 17:52 "corrected" clip was only a button test (not a model issue). Question closed.
+
+# Audit 2026-11-04 (quality check + status report, requested before any new work)
+- A1 automated QA (qk-qa, Haiku): data.py, ui.js (kfgqpc), donate.js, relay pytest, APK 4.9 signer/badging. — done: ui.js kfgqpc 153/153 + shamarly 153/153 (needed a scratch copy: hardcoded /mnt path, require('playwright')); donate.js 10/10; relay 7 pass 1 skip; APK 4.9 signer 7d8b31d2 OK, vc 40, target 36; data.py CRASHES when web/pages (Haramain images) is absent -> 0 checks ran.
+- A2 docs review (Opus): BACKLOG, SRS, plans/checklist-31-oct, QA-checklist open items, IDEAS. — done (BACKLOG checkboxes for 27/31 Oct are stale: QA-checklist 4.6 says the 31 Oct list is done)
+- A3 Play readiness: store/ (listing, policy, data-safety, PLAY-REVIEW, licences, permissions), PLAY build + AAB path. — done. Findings: PLAY=1 drops only Haramain (adhan sounds, Darwish, Ibn Ashur still in); keys/upload.jks not on this PC; build-aab.sh not ported to Windows; ONNX Runtime .so downloaded at runtime (asrnv.zip) = Play policy risk (no executable code from outside Play); CONTACT_EMAIL placeholder in privacy-policy.html and listing.md; PLAY-REVIEW 64-bit note outdated.
+- A4 report to the user in Arabic: progress %, open questions, items to improve, what is missing, Play steps. — done (sent in chat 2026-11-04)
+Resume: start at the first A-item not marked done. No code changes in this audit.
+Resume: audit finished. Next work waits for the user's pick from the report (goal check first, see memory quran-karim-goals).
