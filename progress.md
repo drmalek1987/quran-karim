@@ -103,3 +103,4 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   now holds only .gitattributes + state/limits.json. Phone-side delete flow verified end to end.
   Left: DRY=1 nv_train.bat once clips exist; merging donations-v2 into main (user's call); Play steps when the user says.
 - 2026-11-02: donations-v2 merged into local main (merge commit, pushed to origin/main as 3f7459a on 2026-11-02).
+- 2026-11-04: user confirmed the 17:52 "corrected" clip was only a button test (not a model issue). Question closed.
