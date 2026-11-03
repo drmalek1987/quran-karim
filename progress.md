@@ -102,4 +102,4 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
   q.donateId). Both 0e04fff5e5115c5a and d145050b4b6f346d (the 4 migrated 4.8 clips, from the same phone) are gone; the dataset
   now holds only .gitattributes + state/limits.json. Phone-side delete flow verified end to end.
   Left: DRY=1 nv_train.bat once clips exist; merging donations-v2 into main (user's call); Play steps when the user says.
-- 2026-11-02: donations-v2 merged into local main (merge commit, main now ahead of origin/main by 17, not pushed).
+- 2026-11-02: donations-v2 merged into local main (merge commit, pushed to origin/main as 3f7459a on 2026-11-02).
