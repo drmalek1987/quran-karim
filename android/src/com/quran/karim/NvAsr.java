@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 class NvAsr {
     static final int PERMISSION_REQUEST = 79;
     private static final int SR = 16000, NF = 512, WIN = 400, HOP = 160, NB = 257, NM = 80;
+    private static final int PRE = SR * 3 / 10; private static final double QUIET_END = 1.0;
     private final Activity act;
     private final WebView web;
     private final File dir;
@@ -143,8 +144,10 @@ class NvAsr {
         return bo.toString("UTF-8");
     }
 
-    // The microphone, in 100 ms blocks. A piece of speech ends after 0.6 s of quiet (or at 12 s); while it goes on, it is
-    // decoded about every second for the words so far, unless the last decode is still running.
+    // The microphone, in 100 ms blocks. A piece of speech starts with the 0.3 s before the voice was heard (so the first
+    // letter of a word after a pause is not cut) and ends after 1.0 s of quiet (or at 12 s), so a reciter's pauses and
+    // long madd do not split a word; while it goes on, it is decoded about every second for the words so far, unless the
+    // last decode is still running. (Both tuned with tools/asr/eval/bench.py: word verdicts 86.8% -> 94.3% with rAlign.)
     private void listen() {
         int min = AudioRecord.getMinBufferSize(SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
         AudioRecord ar;
@@ -155,6 +158,7 @@ class NvAsr {
         rec = new Thread(new Runnable() { public void run() {
             short[] blk = new short[SR / 10];
             float[] seg = new float[SR * 12]; int len = 0, lastPartial = 0;
+            float[] pre = new float[PRE]; int preN = 0;                       // the last 0.3 s before speech
             double floor = 0.004, quiet = 0, voiced = 0;
             mic.startRecording();
             tell("", "state:listening");
@@ -167,9 +171,12 @@ class NvAsr {
                     floor = e < floor ? e : floor * 0.995 + e * 0.005;   // the room's own level
                     boolean speech = e > Math.max(0.006, floor * 3);
                     double dt = n / (double) SR;
+                    if (speech && len == 0) { System.arraycopy(pre, PRE - preN, seg, 0, preN); len = preN; }
                     if (speech || len > 0) { int k = Math.min(n, seg.length - len); for (int i = 0; i < k; i++) seg[len + i] = blk[i] / 32768f; len += k; }
+                    { int k = Math.min(n, PRE); System.arraycopy(pre, k, pre, 0, PRE - k);     // always keep the newest PRE samples
+                      for (int i = 0; i < k; i++) pre[PRE - k + i] = blk[n - k + i] / 32768f; preN = Math.min(PRE, preN + k); }
                     if (speech) { voiced += dt; quiet = 0; } else if (len > 0) quiet += dt;
-                    boolean end = len > 0 && (quiet > 0.6 || len >= seg.length);
+                    boolean end = len > 0 && (quiet > QUIET_END || len >= seg.length);
                     if (end) {
                         if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final"); } }); }
                         len = 0; lastPartial = 0; quiet = 0; voiced = 0;

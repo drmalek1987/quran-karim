@@ -1537,7 +1537,7 @@
   // The hifz test on the pages of the chosen edition: whole ayat are hidden, and the score is the share remembered.
   function hifzTestPages(s, a) {
     hifz.on = true; hifz.shown = {}; hifz.test = { s: s, a: a, seen: {}, miss: {} };
-    recite.ok = recite.words = 0; recite.bad = {}; recite.wrong = []; recite.k = null; recite.base = null;
+    recite.ok = recite.words = 0; recite.bad = {}; recite.wrong = []; recite.k = null; recite.base = null; recite.heard = [];
     location.hash = mode === "pages" ? "#/p/" + pageOf(s, a) : "#/s/" + s + "/" + a;
   }
   function reciteHistory() {
@@ -1604,7 +1604,7 @@
   // In the hifz test, the reader recites from memory and the phone's speech recogniser (ReciteBridge) hears it. Each heard
   // word is matched to the next hidden ayah's words; an ayah shows once its last word is reached, wrong or skipped words are
   // kept for the summary, and the page turns by itself after its last ayah (hifzRevealed). q.reciteLog keeps every session.
-  var recite = { on: false, k: null, pos: 0, bad: {}, ok: 0, words: 0, base: null, wrong: [] };
+  var recite = { on: false, k: null, pos: 0, bad: {}, ok: 0, words: 0, base: null, wrong: [] }; window.__rec = recite;
   function rSkel(w) { return norm(w).replace(/[اءؤئوي]/g, ""); }
   function rSame(a, b) {
     if (!a || !b) return false; if (a === b) return true;
@@ -1612,34 +1612,68 @@
     for (i = 1; i <= m; i++) { var p = d[0]; d[0] = i; for (j = 1; j <= n; j++) { var t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } }
     return 1 - d[n] / Math.max(m, n) >= 0.6;
   }
+  // Heard words (rSkel) against expected words (rSkel), aligned in one go: an extra heard word (misheard, a model
+  // slip at a pause) costs INS and is skipped instead of pushing the expected place on; the word just matched said
+  // again costs REP; two heard words read as one expected word cost 0.5; a skipped or wrong expected word costs 1.
+  // Expected words past the last aligned one are not judged yet (null); heard words left after that point cost TAIL
+  // (more than a wrong word), so a wrong word near the end is flagged and not left waiting.
+  // Returns { v: [1 right | 0 wrong | null], j: heard words used, hj: heard words used up to each expected word }.
+  // Tuned with tools/asr/eval/bench.py (recite_dp); tools/asr/eval/parity.js checks both give the same verdicts.
+  function rAlign(H, E) {
+    var INS = 1.0, REP = 0.2, TAIL = 1.1, n = E.length, m = H.length, i, j, D = [], N = [], B = [];
+    for (i = 0; i <= n; i++) { D.push(new Array(m + 1).fill(1e9)); N.push(new Array(m + 1).fill(1e9)); B.push(new Array(m + 1)); }
+    D[0][0] = N[0][0] = 0; for (j = 1; j <= m; j++) D[0][j] = j * INS;
+    for (i = 1; i <= n; i++) for (j = 0; j <= m; j++) {
+      var best = D[i - 1][j] + 1, b = "d";
+      if (j >= 1) { var ok = rSame(H[j - 1], E[i - 1]), c = D[i - 1][j - 1] + (ok ? 0 : 1); if (c <= best) { best = c; b = ok ? "m" : "s"; } }
+      if (j >= 2 && D[i - 1][j - 2] + 0.5 < best && rSame(H[j - 2] + H[j - 1], E[i - 1])) { best = D[i - 1][j - 2] + 0.5; b = "j"; }   // two heard words as one
+      N[i][j] = best; B[i][j] = b; D[i][j] = j >= 1 ? Math.min(best, D[i][j - 1] + (rSame(H[j - 1], E[i - 1]) ? REP : INS)) : best;
+    }
+    var bi = 0, bj = 0, bc = 1e18;
+    for (i = 0; i <= n; i++) for (j = 0; j <= m; j++) { var cc = N[i][j] + (m - j) * TAIL; if (cc < bc || (cc === bc && i > bi)) { bc = cc; bi = i; bj = j; } }
+    var v = new Array(n).fill(null), hj = new Array(n).fill(null), used = bj; i = bi; j = bj;
+    while (i > 0) {
+      b = B[i][j]; hj[i - 1] = j;
+      if (b === "d") { v[i - 1] = 0; i--; } else if (b === "j") { v[i - 1] = 1; i--; j -= 2; } else { v[i - 1] = b === "m" ? 1 : 0; i--; j--; }
+      while (i > 0 && j > 0 && N[i][j] > D[i][j]) j--;          // walk back over skipped heard words
+    }
+    return { v: v, j: used, hj: hj };
+  }
   function rWords(k) { var sa = k.split(":"); return Q.t[sa[0] - 1][sa[1] - 1].split(" ").filter(function (w) { return norm(w).replace(/\s/g, ""); }); }
   // The next hidden ayah from where the test started (ayat of an earlier surah on the same page are left alone).
   function rNext() {
     var t = hifz.test, st = t ? t.s * 1000 + (t.a || 1) : 0, hid = hifz.items.filter(function (x) { return !hifz.shown[x]; });
     return hid.filter(function (x) { var sa = x.split(":"); return sa[0] * 1000 + +sa[1] >= st; })[0] || hid[0] || null;
   }
-  // Replays one utterance's words from the state at its start, so partial results can be redone as they grow.
+  // Replays one utterance's words from the state at its start, so partial results can be redone as they grow. The
+  // words heard since the current ayah began (recite.heard, from earlier pieces) and this utterance's words are aligned
+  // with the ayah (rAlign); once its last word is judged the ayah shows, and the words left over go to the next ayah.
   function reciteHear(text, fin) {
     if (!recite.on || !hifz.on) return;
-    if (!recite.base) recite.base = { k: recite.k, pos: recite.pos, bad: JSON.stringify(recite.bad), ok: recite.ok, words: recite.words, wrong: recite.wrong.length, shown: JSON.stringify(hifz.shown) };
+    if (!recite.base) recite.base = { k: recite.k, heard: (recite.heard || []).slice(), bad: JSON.stringify(recite.bad), ok: recite.ok, words: recite.words, wrong: recite.wrong.length, shown: JSON.stringify(hifz.shown) };
     var b = recite.base;
-    recite.k = b.k; recite.pos = b.pos; recite.bad = JSON.parse(b.bad); recite.ok = b.ok; recite.words = b.words; recite.wrong.length = b.wrong;
-    var shownBefore = JSON.parse(b.shown), heard = norm(text).split(" ").filter(Boolean).map(rSkel), revealed = [];
+    recite.k = b.k; recite.bad = JSON.parse(b.bad); recite.ok = b.ok; recite.words = b.words; recite.wrong.length = b.wrong;
+    var shownBefore = JSON.parse(b.shown), H = b.heard.concat(norm(text).split(" ").filter(Boolean).map(rSkel)), revealed = [];
     hifz.items.forEach(function (x) { hifz.shown[x] = !!shownBefore[x]; });
-    if (!recite.k || hifz.shown[recite.k]) { recite.k = rNext(); recite.pos = 0; }
-    for (var h = 0; h < heard.length && recite.k; h++) {
-      var exp = rWords(recite.k).map(rSkel), pos = recite.pos;
-      if (rSame(heard[h], exp[pos]) || (h + 1 < heard.length && rSame(heard[h] + heard[h + 1], exp[pos]) && ++h)) { recite.ok++; recite.pos++; }
-      else if (pos + 1 < exp.length && rSame(heard[h], exp[pos + 1])) { recite.bad[recite.k + ":" + pos] = 1; recite.pos += 2; recite.ok++; }
-      else if (pos > 0 && rSame(heard[h], exp[pos - 1])) continue;          // a repeated word
-      else { recite.bad[recite.k + ":" + pos] = 1; recite.pos++; }
-      if (recite.pos >= exp.length) {
-        var k = recite.k, miss = Object.keys(recite.bad).filter(function (x) { return x.indexOf(k + ":") === 0; });
-        recite.words += exp.length; hifz.shown[k] = true; hifz.test.seen[k] = 1; if (miss.length) hifz.test.miss[k] = 1; else delete hifz.test.miss[k];
-        miss.forEach(function (x) { var w = rWords(k)[+x.split(":")[2]]; recite.wrong.push([k, w]); });
-        revealed.push(k); recite.k = rNext(); recite.pos = 0;
-      }
+    if (!recite.k || hifz.shown[recite.k]) recite.k = rNext();
+    while (recite.k) {
+      // aligned with the hidden ayat that follow too (up to 30 words), so words already read from the next ayah are
+      // not forced onto this one
+      var k = recite.k, exp = rWords(k).map(rSkel), L = exp.length, look = [];
+      for (var t = hifz.items.indexOf(k) + 1; t > 0 && t < hifz.items.length && look.length < 30; t++)
+        if (!hifz.shown[hifz.items[t]]) look = look.concat(rWords(hifz.items[t]).map(rSkel));
+      var r = rAlign(H, exp.concat(look.slice(0, 30))), vv = r.v.slice(0, L);
+      Object.keys(recite.bad).forEach(function (x) { if (x.indexOf(k + ":") === 0) delete recite.bad[x]; });
+      recite.pos = 0;
+      vv.forEach(function (v, i) { if (v !== null) recite.pos = i + 1; if (v === 0) recite.bad[k + ":" + i] = 1; });
+      if (vv[L - 1] === null) break;
+      var miss = Object.keys(recite.bad).filter(function (x) { return x.indexOf(k + ":") === 0; });
+      recite.ok += exp.length - miss.length; recite.words += exp.length;
+      hifz.shown[k] = true; hifz.test.seen[k] = 1; if (miss.length) hifz.test.miss[k] = 1; else delete hifz.test.miss[k];
+      miss.forEach(function (x) { var w = rWords(k)[+x.split(":")[2]]; recite.wrong.push([k, w]); });
+      revealed.push(k); recite.k = rNext(); recite.pos = 0; H = H.slice(r.hj[L - 1]);
     }
+    recite.heard = H;
     hifz.paint(); hifzBar();
     if (fin) { recite.base = null; revealed.forEach(hifzRevealed); }
   }
@@ -1657,7 +1691,7 @@
   function reciteToggle() {
     if (recite.on) { recite.on = false; recite.base = null; Mic.stop(); hifzBar(); return; }
     if (!window.ReciteBridge) return toast("التسميع بالصوت شغال في التطبيق على الموبايل بس");
-    recite.on = true; recite.k = rNext(); recite.pos = 0; recite.base = null; Mic.start(); hifzBar();
+    recite.on = true; recite.k = rNext(); recite.pos = 0; recite.base = null; recite.heard = []; Mic.start(); hifzBar();
   }
   function reciteStop() { if (recite.on) { recite.on = false; Mic.stop(); } }
 
@@ -3089,15 +3123,24 @@
         rec.start(); b.innerHTML = ic("astop") + " إيقاف التسجيل"; b.classList.add("rec");
       }).catch(function () { toast("محتاج إذن الميكروفون عشان تسجّل"); });
     };
-    view.querySelectorAll(".ht-w").forEach(function (b) { b.onclick = function () { if (b.classList.contains("shown")) return; b.classList.add("shown", "miss"); missed++; }; });
+    view.querySelectorAll(".ht-w").forEach(function (b) { b.onclick = function () { if (b.classList.contains("shown")) return; b.classList.add("shown", "miss"); b.dataset.tap = 1; missed++; }; });
     // Recite from memory into the mic: each hidden word shows when it is said right, and turns red when it is skipped
-    // or said wrong. The words are followed in order, a few misheard ones allowed.
+    // or said wrong. The heard words are aligned with the test's words ayah by ayah (rAlign), so a misheard extra word
+    // does not throw the rest off.
     var htMic = document.getElementById("htMic");
     if (htMic) htMic.onclick = function () {
       if (htv.on) { htv.on = false; Mic.stop(); htMic.classList.remove("rec"); htMic.innerHTML = ic("mic") + " سمّع بالصوت"; return; }
       var ws = [].slice.call(view.querySelectorAll(".ht-w, .ht-v"));
-      htv = { on: true, ws: ws, exp: ws.map(function (e) { return norm(e.textContent); }), ptr: 0, done: 0, bad: 0,
-        miss: function (e) { if (!e.classList.contains("shown")) { e.classList.add("shown", "miss"); missed++; } },
+      htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), ptr: 0, heard: [], last: 0, hi: 0, force: {},
+        // a word's look for a verdict: 1 green, 0 red, null not judged yet (hidden again); words the reader tapped stay
+        set: function (i, v) {
+          var e = ws[i]; if (!e.classList.contains("ht-w") || e.dataset.tap) return;
+          if (htv.force[i]) v = 1;
+          var miss = e.classList.contains("miss");
+          if (v === null) { if (miss) missed--; e.classList.remove("shown", "ok", "miss"); }
+          else if (v === 1) { if (miss) missed--; e.classList.remove("miss"); e.classList.add("shown", "ok"); }
+          else if (!miss) { missed++; e.classList.remove("ok"); e.classList.add("shown", "miss"); }
+        },
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
         btn: htMic, s: s, fix: document.getElementById("htFix") };
       htv.fix.hidden = true;
@@ -3130,44 +3173,40 @@
       else { if (st === "noperm") toast("محتاج إذن الميكروفون"); else if (st.indexOf("error") === 0) toast("المايك وقف (" + st.slice(6) + ")، دوس عليه تاني"); htv.on = false; htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; }
       return;
     }
-    var ws = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean), fresh = ws.slice(htv.done);
-    htv.done = kind === "final" ? 0 : ws.length;
-    if (htv.seg == null) { htv.seg = htv.ptr; htv.far = 0; htv.clean = true; htv.fix.hidden = true; }
-    fresh.forEach(function (hw) {
-      for (var j = htv.ptr; j < Math.min(htv.exp.length, htv.ptr + 4); j++) if (rdSame(hw, htv.exp[j])) {
-        for (var k = htv.ptr; k < j; k++) if (htv.ws[k].classList.contains("ht-w")) htv.miss(htv.ws[k]);   // skipped
-        var e = htv.ws[j]; if (e.classList.contains("ht-w") && !e.classList.contains("shown")) e.classList.add("shown", "ok");
-        // said right straight after one wrong word (often a misheard word): the red word turns green again
-        else if (j === htv.ptr && htv.bad === 1) htv.unmiss(e);
-        if (j !== htv.ptr) htv.clean = false;
-        htv.ptr = j + 1; htv.bad = 0; return;
-      }
-      htv.clean = false;
-      // a wrong word where a hidden one was expected turns it red at once; said right next, it turns green again,
-      // and after two misses in a row it stays wrong and the test moves on
-      if (htv.ptr < htv.exp.length && htv.ws[htv.ptr].classList.contains("ht-w")) htv.miss(htv.ws[htv.ptr]);
-      htv.far = Math.max(htv.far, Math.min(htv.exp.length, htv.ptr + 1));   // the misheard word belongs to this piece
-      if (++htv.bad >= 2 && htv.ptr < htv.exp.length) { htv.ptr++; htv.bad = 0; }
-    });
-    if (kind === "final") {
+    // The words heard since the current ayah began (earlier pieces) plus this utterance, aligned ayah by ayah from the
+    // first ayah not yet done; partial results are redone from the same start as they grow, finals move it on.
+    var fin = kind === "final", hyp = (text || "").split("\n")[0], n = htv.sk.length;
+    var H = htv.heard.concat(norm(hyp).split(/\s+/).filter(Boolean).map(rSkel)), p = htv.ptr, end = p, vs = {};
+    if (htv.seg == null) { htv.seg = htv.last; htv.fix.hidden = true; }
+    while (p < n) {
+      var q = p; while (q < n && htv.ws[q].dataset.a === htv.ws[p].dataset.a) q++;
+      var r = rAlign(H, htv.sk.slice(p, Math.min(n, q + 30))), vv = r.v.slice(0, q - p);   // + up to 30 words after
+      vv.forEach(function (v, i) { vs[p + i] = v; if (v !== null) end = p + i + 1; });
+      if (vv[q - p - 1] === null) { for (var i = q; i < htv.hi; i++) vs[i] = null; break; }
+      H = H.slice(r.hj[q - p - 1]); p = q;
+    }
+    Object.keys(vs).forEach(function (i) { htv.set(+i, vs[i]); });
+    htv.hi = Math.max(htv.hi, end);
+    if (fin || p >= n) { htv.ptr = p; htv.heard = p >= n ? [] : H; }
+    if (fin) {
       // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip.
       // A piece with red words offers «أنا قريت صح»: it turns them green and, with consent, sends the piece as a
       // "corrected" clip (the model's hard cases; the relay still checks it is roughly those words).
-      var piece = { a: htv.seg, b: Math.max(htv.ptr, htv.far), seq: window.nvSeq, hyp: (text || "").split("\n")[0] };
-      if (htv.clean && piece.b > piece.a) htvDonate(piece, "auto");
+      var piece = { a: htv.seg, b: end, seq: window.nvSeq, hyp: hyp }, clean = true;
+      for (var k = piece.a; k < piece.b; k++) if (vs[k] === 0 && !htv.force[k]) clean = false;
+      if (clean && piece.b > piece.a) htvDonate(piece, "auto");
       else if (piece.b > piece.a && htv.ws.slice(piece.a, piece.b).some(function (e) { return e.classList.contains("miss"); })) {
         htv.fix.hidden = false;
         htv.fix.onclick = function () {
           htv.fix.hidden = true;
-          htv.ws.slice(piece.a, piece.b).forEach(function (e) { htv.unmiss(e); });
-          if (htv.ptr < piece.b) { htv.ptr = piece.b; htv.bad = 0; }   // carry on after the words the reader vouched for
+          for (var k = piece.a; k < piece.b; k++) { htv.force[k] = 1; htv.unmiss(htv.ws[k]); }   // the reader vouched for these
           htvDonate(piece, "corrected");
         };
       }
-      htv.seg = null;
+      htv.last = Math.max(htv.last, end); htv.seg = null;
     }
-    if (htv.ptr >= htv.exp.length) setTimeout(donateSend, 1000);
-    if (htv.ptr >= htv.exp.length) { htv.on = false; Mic.stop(); htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; toast("خلصت الآيات، دوس «خلصت» للنتيجة"); }
+    if (htv.ptr >= n) setTimeout(donateSend, 1000);
+    if (htv.ptr >= n) { htv.on = false; Mic.stop(); htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; toast("خلصت الآيات، دوس «خلصت» للنتيجة"); }
   };
 
   // window.nvSeq names the model's piece of speech this final belongs to (NvAsr), so the clip is exactly its audio.

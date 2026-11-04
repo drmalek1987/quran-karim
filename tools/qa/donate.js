@@ -50,10 +50,16 @@ const ev = (f, ...a) => p.evaluate(f, ...a), wait = ms => p.waitForTimeout(ms);
     await ev(() => { window.nvSeq = 7; onRecite('الرحمن الرحيم', 'final'); }); await wait(50);
     const d = await ev(() => QA.donated[2]); return d && d[1] === 7 && d[0].a0 === 3 && d[0].kind === 'auto' || JSON.stringify(d);
   });
+  await check('extra misheard word (partial, then final) does not turn right words red (rAlign)', async () => {
+    await ev(() => { window.nvSeq = 9; onRecite('مالك نهاية', 'partial'); onRecite('مالك نهاية يوم الدين', 'final'); }); await wait(50);
+    const r = await ev(() => { const w = [...document.querySelectorAll('.ht-w')].filter(e => e.dataset.a === '4');
+      return { ok: w.filter(e => e.classList.contains('ok')).length, n: w.length, miss: document.querySelectorAll('.ht-w.miss').length, d: QA.donated[3] }; });
+    return r.ok === r.n && r.n === 3 && r.miss === 0 && r.d && r.d[1] === 9 && r.d[0].a0 === 4 && r.d[0].kind === 'auto' || JSON.stringify(r);
+  });
   await check('phone recogniser (not NVIDIA) never donates', async () => {
     await p.click('#htMic'); await ev(() => localStorage.setItem('q.asr', '"phone"')); await p.click('#htMic');
     await ev(() => { window.nvSeq = 8; onRecite('مالك يوم الدين', 'final'); }); await wait(50);
-    return ev(() => QA.donated.length === 3);
+    return ev(() => QA.donated.length === 4);
   });
 
   await ev(() => { location.hash = '#/'; }); await wait(300);
