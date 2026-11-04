@@ -162,3 +162,6 @@ Resume: user tests 5.5 on the phone; then commit+push 5.4+5.5; next P1b-port (CT
   shifts the incoming page by cropDx so no margin shows; hifz test adds the surah to the map only when every ayah was
   tested; fixed a CSS brace I broke (rd-cap max-height lost). FULL QA: ui.js 166/166, donate 15/15, data 28/28.
   Installed on bee81250. Not committed.
+- RESTORE POINT 2026-11-04: tag v5.6-restore (commit c192094, pushed) + APK copy D:\Quran App\restore\v5.6\.
+  Roll back: git checkout v5.6-restore (or git revert the P1b commits) and adb install -r that APK.
+Resume: P1b-port in a NEW session after the 5-hour usage reset (this one is at 342k context).
