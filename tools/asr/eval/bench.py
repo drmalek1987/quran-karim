@@ -98,7 +98,7 @@ def feats(y):
     mu = x.mean(1, keepdims=True); sd = np.sqrt(((x - mu) ** 2).sum(1, keepdims=True) / max(1, T - 1)) + 1e-5
     return ((x - mu) / sd).astype(np.float32)
 
-def vad_pieces(y, preroll=0, quiet_end=0.6):
+def vad_pieces(y, preroll=0, quiet_end=0.6, vmin=0.006, pgain=None):
     """NvAsr.listen(): 100 ms blocks; a piece ends after 0.6 s quiet or 12 s; kept if > 0.3 s voiced. 2 s of silence are
     appended (the reader stops, then taps the mic off)."""
     q = np.round(np.clip(y, -1, 1 - 1 / 32768) * 32768).astype(np.int16) / 32768.0
@@ -108,7 +108,7 @@ def vad_pieces(y, preroll=0, quiet_end=0.6):
     for b0 in range(0, len(q) - blk + 1, blk):
         b = q[b0:b0 + blk]; e = float(np.sqrt((b * b).mean()))
         floor = e if e < floor else floor * 0.995 + e * 0.005
-        speech = e > max(0.006, floor * 3); dt = 0.1
+        speech = e > max(vmin, floor * 3); dt = 0.1
         ln = sum(len(s) for s in seg)
         if speech and ln == 0 and preroll:                                  # the blocks just before the voice started
             pre = q[max(0, b0 - preroll * blk):b0]
@@ -117,7 +117,12 @@ def vad_pieces(y, preroll=0, quiet_end=0.6):
         if speech: voiced += dt; quiet = 0
         elif ln > 0: quiet += dt
         if ln > 0 and (quiet > quiet_end or ln >= cap):
-            if voiced > 0.3: out.append(np.concatenate(seg).astype(np.float32))
+            if voiced > 0.3:
+                pc = np.concatenate(seg).astype(np.float32)
+                if pgain is not None:                                       # NvAsr: each piece to pgain dBFS (boost only)
+                    r = float(np.sqrt((pc * pc).mean())) or 1e-9; g = 10 ** (pgain / 20) / r
+                    if g > 1: pc = np.clip(pc * min(g, 30.0), -1, 1).astype(np.float32)
+                out.append(pc)
             seg, quiet, voiced = [], 0.0, 0.0
     return out
 
@@ -201,6 +206,10 @@ def main():
     ap.add_argument('--preroll', type=int, default=0, help='100 ms blocks kept from before the voice starts (phone: 0)')
     ap.add_argument('--quiet', type=float, default=0.6, help='seconds of quiet that end a piece (phone: 0.6)')
     ap.add_argument('--dump', default='', help='dir: save each clip piece log-probs (float16 npz) for offline decoders (ctc.py)')
+    ap.add_argument('--vmin', type=float, default=0.006, help='VAD minimum block RMS (phone 5.3: 0.006)')
+    ap.add_argument('--pgain', type=float, default=None, help='raise each piece to this RMS dBFS before the model (phone 5.3: none)')
+    ap.add_argument('--noise', default='', help="'white' or 'babble' (another clip of the sets mixed in) at --snr dB")
+    ap.add_argument('--snr', type=float, default=10.0)
     ap.add_argument('--gain', default='-31', help="target speech RMS in dBFS before the VAD (the donated phone clip was -31.4), or 'none'")
     a = ap.parse_args()
     Qr = Quran(a.quran, a.simple); M = Model(a.model, a.vocab); rnd = random.Random(1)
@@ -223,7 +232,15 @@ def main():
         raw_lost = not vad_pieces(y)
         if a.gain != 'none':
             r = float(np.sqrt((y * y).mean())) or 1e-9; y = np.clip(y * (10 ** (float(a.gain) / 20) / r), -1, 1).astype(np.float32)
-        lps = [M.logprobs(p) for p in vad_pieces(y, a.preroll, a.quiet)]
+        if a.noise:
+            if a.noise == 'white': nz = np.random.RandomState(7).randn(len(y)).astype(np.float32)
+            else:
+                o = clips[(clips.index(c) + 17) % len(clips)]; nz, _ = sf.read(o['wav'], dtype='float32')
+                if nz.ndim > 1: nz = nz.mean(1)
+                nz = np.resize(nz, len(y))
+            ry = float(np.sqrt((y * y).mean())) or 1e-9; rn = float(np.sqrt((nz * nz).mean())) or 1e-9
+            y = np.clip(y + nz * (ry / rn) * 10 ** (-a.snr / 20), -1, 1).astype(np.float32)
+        lps = [M.logprobs(p) for p in vad_pieces(y, a.preroll, a.quiet, a.vmin, a.pgain)]
         if a.dump:
             os.makedirs(a.dump, exist_ok=True)
             np.savez_compressed(os.path.join(a.dump, c['id'] + '.npz'), *[l.astype(np.float16) for l in lps])

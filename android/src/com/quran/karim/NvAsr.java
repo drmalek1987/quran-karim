@@ -169,7 +169,7 @@ class NvAsr {
                     double e = 0; for (int i = 0; i < n; i++) { double x = blk[i] / 32768.0; e += x * x; }
                     e = Math.sqrt(e / n);
                     floor = e < floor ? e : floor * 0.995 + e * 0.005;   // the room's own level
-                    boolean speech = e > Math.max(0.006, floor * 3);
+                    boolean speech = e > Math.max(VMIN, floor * 3);
                     double dt = n / (double) SR;
                     if (speech && len == 0) { System.arraycopy(pre, PRE - preN, seg, 0, preN); len = preN; }
                     if (speech || len > 0) { int k = Math.min(n, seg.length - len); for (int i = 0; i < k; i++) seg[len + i] = blk[i] / 32768f; len += k; }
@@ -194,7 +194,7 @@ class NvAsr {
     private void emit(float[] y, String kind) {
         try {
             if (!on) return;
-            String t = decode(y);
+            String t = decode(louder(y));
             String before = "";
             if (kind.equals("final")) {
                 int n;
@@ -209,6 +209,19 @@ class NvAsr {
         } catch (Throwable e) {
             if (on) tell("", "state:error:run " + e.getMessage());
         } finally { if (kind.equals("partial")) decoding = false; }
+    }
+
+    // Quiet speech (a low voice, the phone held far) is raised to about -30 dBFS before the model, at most 30x; loud
+    // speech is left as it is. With VMIN 0.0015 (was 0.006; the room-level rule floor*3 still holds in noise), bench.py
+    // at -50 dBFS: word verdicts 5.8% -> 73.9%; clean 89.9 -> 90.1, white noise 74.3 -> 74.6.
+    static final double VMIN = 0.0015;
+    private static float[] louder(float[] y) {
+        double e = 0; for (float v : y) e += v * v;
+        double r = Math.sqrt(e / Math.max(1, y.length)), g = r > 0 ? Math.pow(10, -30 / 20.0) / r : 1;
+        if (g <= 1) return y;
+        g = Math.min(g, 30); float[] o = new float[y.length];
+        for (int i = 0; i < y.length; i++) o[i] = (float) Math.max(-1, Math.min(1, y[i] * g));
+        return o;
     }
 
     private String decode(float[] y) throws Exception {

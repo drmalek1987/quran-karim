@@ -198,11 +198,13 @@ public class MainActivity extends Activity {
     @SuppressWarnings("deprecation")
     public void onBackPressed() { goBack(); }
 
-    // An open sheet, dialog or ayah bar closes first, so back from Settings returns to the open page.
+    // An open sheet, dialog or ayah bar closes first, so back from Settings returns to the open page. Then qBack (app.js)
+    // goes at most two screens back, then home, and two backs on the home screen leave the app.
     private void goBack() {
         web.evaluateJavascript("window.qBack ? qBack() : false", new ValueCallback<String>() {
             public void onReceiveValue(String closed) {
                 if ("true".equals(closed)) return;
+                if ("\"exit\"".equals(closed)) { finish(); return; }   // qBack: second back on the home screen
                 if (web.canGoBack()) web.goBack();
                 else finish();
             }

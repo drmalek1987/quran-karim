@@ -593,7 +593,8 @@ body.reading:not(.pgview) .auto-btn, body.vread .auto-btn { display: inline-flex
 .auto-sp { min-width: 74px; text-align: center; font-size: 14px; font-weight: 600; }
 /* Vertical pages */
 .vpages { max-width: 720px; margin: 0 auto; padding: 8px 8px 90px; }
-.page-box.vp { position: relative; height: 0; margin: 0 0 10px; box-shadow: 0 1px 6px rgba(0,0,0,.12); border-radius: 4px; overflow: hidden; }
+.vp-c { position: relative; height: 0; margin: 0 0 10px; box-shadow: 0 1px 6px rgba(0,0,0,.12); border-radius: 4px; overflow: hidden; }
+.page-box.vp { position: absolute; }
 .page-box.vp > img:not(.tjo) { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .vbar { position: fixed; z-index: 20; bottom: calc(16px + env(safe-area-inset-bottom)); left: 14px; display: flex; flex-direction: column; gap: 8px; }
 body.has-bar .vbar, body.autoing .vbar { display: none; }
@@ -922,7 +923,42 @@ body.has-tabs .player { bottom: 70px; }
 .rc-hist div { display: flex; justify-content: space-between; padding: 4px 0; } .rc-hist small { opacity: .7; }
 
 /* full screen on the mushaf (a tap on the page) */
-body.fs .bar, body.fs #tabbar, body.fs .page-tools, body.fs .page-nav, body.fs .vbar, body.fs .player { display: none !important; }
+/* The bars slide away (top ones up, bottom ones down) instead of vanishing. The top bar's space shrinks in step (margin-top = -its
+   height, --barh set in fsSet) and the in-flow bottom rows fold their height, so the page moves smoothly and does not jump. */
+.bar { transition: transform .25s ease, opacity .25s ease, margin-top .25s ease, visibility 0s linear 0s; }
+#tabbar, .player, .vbar { transition: transform .25s ease, opacity .25s ease, visibility 0s linear 0s; }
+.page-tools, .page-nav { max-height: 240px; transition: transform .25s ease, opacity .25s ease, max-height .25s ease, margin .25s ease, padding .25s ease, visibility 0s linear 0s; }
+body.fs .bar { transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none; margin-top: calc(var(--barh, 60px) * -1);
+  transition: transform .25s ease, opacity .25s ease, margin-top .25s ease, visibility 0s linear .25s; }
+body.vread.fs .bar { transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s; }
+body.fs #tabbar, body.fs .player, body.fs .vbar { transform: translateY(100%); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s; }
+body.fs .page-tools, body.fs .page-nav { transform: translateY(100%); opacity: 0; visibility: hidden; pointer-events: none; overflow: hidden; max-height: 0; margin-top: 0; padding-block: 0;
+  transition: transform .25s ease, opacity .25s ease, max-height .25s ease, margin .25s ease, padding .25s ease, visibility 0s linear .25s; }
+@media (prefers-reduced-motion: reduce) {
+  .bar, #tabbar, .player, .vbar, .page-tools, .page-nav, body.fs .bar, body.fs #tabbar, body.fs .player, body.fs .vbar, body.fs .page-tools, body.fs .page-nav, body.vread.fs .bar { transition: none; }
+}
+/* Full screen on a mushaf page: no margin or padding around the page, it fills the screen (the cropped page, see .page-wrap.crop, is contained in 100vw x 100vh). */
+body.fs.pgview main#view { padding: 0; max-width: none; }
+body.fs.pgview .page-wrap { margin-top: 0; }
+body.fs.pgview .page-info, body.fs.pgview .page-tip { display: none; }
+body.fs .vpages { padding: 0; }
+body.fs .page-wrap.crop { min-height: 100vh; align-items: center; }
+body.fs .page-wrap.crop .page-box { --W: min(100%, calc(100vh * var(--asp))); }
+body.fs .page-wrap.crop .spread-row { min-height: 100vh; align-items: center; }
+body.fs .page-wrap.crop .spread-row .page-box { --W: min(50%, calc(100vh * var(--asp))); }
+
+/* Cropped pages (EDS[ed].crop = [top, right, bottom, left] in % of the image, showPage sets --ct/--cr/--cb/--cl as fractions and --R = height / width).
+   The .page-box keeps the whole image's size and coordinate system (ayah boxes, hit tests and overlays stay aligned); the white margins are cut off by
+   clip-path and negative margins, and the box width is chosen so that the VISIBLE part has the width W. */
+.page-wrap.crop { --cw: calc(1 - var(--cl) - var(--cr)); --ch: calc(1 - var(--ct) - var(--cb)); --asp: calc(var(--cw) / (var(--ch) * var(--R)));
+  display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
+.page-wrap.crop.spread { display: block; }
+.page-wrap.crop .page-box { --W: min(100%, max(640px, calc((100vh - 150px) * var(--asp)))); --F: calc(var(--W) / var(--cw));
+  flex: none; width: var(--F); aspect-ratio: 1 / var(--R);
+  margin: calc(var(--F) * var(--ct) * var(--R) * -1) calc(var(--F) * var(--cr) * -1) calc(var(--F) * var(--cb) * var(--R) * -1) calc(var(--F) * var(--cl) * -1);
+  clip-path: inset(calc(var(--ct) * 100%) calc(var(--cr) * 100%) calc(var(--cb) * 100%) calc(var(--cl) * 100%)); }
+.page-wrap.crop .spread-row .page-box { --W: min(50%, calc((100vh - 130px) * var(--asp))); }
 
 /* «التفصيل الموضوعي» topic colours over the page (app.js thmLayer) */
 .page-box .thm { position: absolute; mix-blend-mode: multiply; pointer-events: none; opacity: .9; }
@@ -973,7 +1009,6 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
 .rd-mic .ic { width: 24px; height: 24px; }
 .rd-mic.on { background: #d63031; animation: micPulse 1.2s infinite; }
 body.has-player .rd-mic { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84px); }
-body.fs .rd-mic:not(.on) { display: none; }
 .rd-cap { position: fixed; z-index: 21; right: 76px; left: 70px; bottom: calc(14px + env(safe-area-inset-bottom)); background: var(--card); color: var(--text); border-radius: 14px;
   padding: 6px 12px; box-shadow: 0 3px 12px #0003; font-family: "Amiri Quran", serif; font-size: 18px; line-height: 1.9; direction: rtl; max-height: 30vh; overflow: auto; }
 .rd-cap small { display: block; font-family: "Cairo", sans-serif; font-size: 12px; color: var(--muted); line-height: 1.4; }
@@ -996,3 +1031,24 @@ body.sheet-open .rd-mic { display: none; }
 .tap-ok { box-shadow: 0 0 0 3px #2ecc71 !important; transition: box-shadow .1s; }
 .rd-mic.on, .ht-rec .rec, .hifz-bar .rec { background: #d64541 !important; color: #fff !important; }
 body.has-hifz .rd-mic, body.has-hifz .rd-cap { bottom: calc(96px + env(safe-area-inset-bottom)); }   /* above the memorisation bar */
+
+/* hifz test layout: mini map card, big mic, one row of icon buttons, wrong-ayat chips */
+.ht { padding-bottom: 90px; } .ht [hidden] { display: none !important; }
+.ht-mini { display: flex; margin: 10px 0 0; padding: 10px 14px; border-radius: 16px; background: var(--card); box-shadow: var(--shadow); color: inherit; text-decoration: none; }
+.ht-mini .hl-ring { width: 56px; height: 56px; flex: none; } .ht-mini .hl-ring b { width: 44px; height: 44px; font-size: 13px; }
+.ht-mini small { display: block; opacity: .7; }
+.ht-mic { text-align: center; background: var(--grad, var(--accent)); color: #fff; font-size: 18px; padding: 16px; margin-top: 12px; }
+.ht-ibs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.ht-ibs .continue { margin: 0; padding: 10px 2px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; }
+.ht-ibs .continue.on, .ht-ibs .continue.rec { background: var(--accent); color: #fff; }
+.ht-ibs .continue.rec { background: #d64541; }
+.ht-bad { margin-top: 14px; } .ht-bad div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ht-bad button { border: 0; border-radius: 14px; padding: 6px 12px; background: rgba(214,69,65,.15); color: #d64541; font-weight: 600; cursor: pointer; }
+.ht-mic.rec { background: #d64541 !important; color: #fff; }
+
+/* 5.6 vertical reading: the top bar floats over the pages (its space is kept as padding), so full screen only slides it
+   away, like on single pages, and the pages never jump. */
+body.vread .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 30; }
+body.vread .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
+body.vread .bar, body.vread.fs .bar { margin-top: 0 !important; }
+body.vread.fs .vpages { padding-top: calc(var(--barh, 64px) + 8px); }

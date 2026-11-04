@@ -112,3 +112,53 @@ Models: Opus for relay, Java, audio and training; qk-dev (Sonnet) for UI, i18n a
 - A4 report to the user in Arabic: progress %, open questions, items to improve, what is missing, Play steps. — done (sent in chat 2026-11-04)
 Resume: start at the first A-item not marked done. No code changes in this audit.
 Resume: audit finished. Next work waits for the user's pick from the report (goal check first, see memory quran-karim-goals).
+
+## 5.4 — phone checklist (17 items) + quranLocate for index/search mics (plan: ~/.claude/plans/wild-pondering-stallman.md)
+CPs: CP1 mics->quranLocate, CP2 quiet/noise (bench first), CP3 asrStats, CP4 UI batch (qk-dev), CP5 wird+hifz map auto,
+CP6 drop whisper models + HF mirror (ask before upload), CP7 build 5.4 + adb install + QA + HTML report.
+- CP1 done (goal check: yes, ayah id is the weakest number). voiceLocate(text) = quranLocate on one-shot text, ayah of
+  the first word heard right (quranLocate now also returns f). Index mic adds up utterances until clear (fallback
+  voiceAyahs after 3 finals or on end); search mic lists the located ayah first. tools/asr/eval/locate_eval.js on
+  rows-pre3 (393 rows with ayat): voiceAyahs 78.6% -> app combined 84.7% (tlog 84.3->93.3, reciters 86.9->93.8,
+  HA 57.6->58.6: short fragments, wait for more words); quranLocate when it answers: 259/262 right.
+Resume: CP2.
+- CP4 done (qk-dev): index result under the header (scrollUnderBar), auto-scroll -> fullscreen after 3 s, fullscreen
+  slides (transitions, reduced-motion off), no padding + mic stays, tabs المصحف/الصلاة/الأذكار/المزيد, «مع المغرب»
+  fixed (applySettings ran before PR_METHODS existed and overwrote themeNow; sunCheck at start + visibility/focus),
+  page crop (EDS.crop %, clip-path, boxes untouched; kfgqpc 3/5/3/5, kfold 5/3.5/5/3.5, shamarly 3/2/6/8.5 from p4).
+  Screens in the session scratchpad shots/. Not checked on a phone yet.
+- CP5 done: wird page you stay on counts after 20 s (last wird page no longer needs a turn past it); every recited
+  ayah -> q.hifzAyat {d, ok} (reciteHear + hifzTestDone), hifz map colours pages from it (partial/review/good).
+- CP6 done (HF mirror: user said not now): whisper models dropped (ASRM only asrnv, packs asrnv+asrnvp, asrModel null),
+  old asrbase/asrft/asrrt files removed at start, q.asr moved to asrnv/phone.
+Resume: CP2 bench results (out/cp2*), then CP3 stats, CP7.
+- CP2 done: bench.py --vmin/--pgain/--noise/--snr. NvAsr VMIN 0.006->0.0015 + louder() (piece to -30 dBFS, <=30x) before
+  decode. ALL rows (pre3 settings, DP verify): clean 89.9->90.1, quiet -50 dBFS 5.8->73.9 (vmin .003: 66.8), white SNR10
+  74.3->74.6, babble SNR5 62.1->62.1 (another reader: needs CTC/training). Logs/summaries in qtrain/eval/out/cp2/.
+- CP3 done: q.asrStats per day (u, w, ok/bad, rh/rm, loc/lost), Settings #asrStats line (last 7 days).
+- CP7: 5.4 (vc 45, sw quran-v40) built, signer 7d8b31d2, installed on bee81250, opens, dark after maghrib, tabs OK.
+  QA: ui.js 153/153 (2 tests updated: page tap point inside the crop; NVIDIA mic test mocks NvBridge), donate.js 15/15,
+  data.py web 28/28, smoke 0 JS errors, locate_eval 84.7. parity.js diff 24 is the same on 5.0/HEAD (not a regression).
+  Report: D:\Quran App\report-5.4.html. Not committed/pushed yet.
+Resume: user tests 5.4 on the phone (report's list); then commit+push; next P1b-port (CTC) for noise/other reader.
+
+## 5.5 — phone feedback on 5.4 (2026-11-04)
+User: map not filled after recitation, crop to the frame (drop hizb marks), hifz page re-order + mini map, surah on the
+map at the end of a test, last ayah of short surahs, vertical mode: fs moves the page / mic finds ayah but no jump,
+back button (<=2 back then home, double back to exit), caption follows reading, "full QA every time" (memory saved).
+- done: vertical fs keeps the anchor page (fsSet), far mic jump instant + realign + hash; htv auto-finish at the end
+  (ptr >= n-1) -> htDone: hifzMark per ayah + hifzLog surah; mushaf hifz reveals line by line; caption capFollow;
+  kfgqpc/kfold crop to frame [8,3,8.6,15]/[5.4,5,6.4,13.3] mirrored on odd pages (cropFrom 3); navBack + MainActivity
+  "exit"; QA-checklist 5.0-5.5 + full-QA rule.
+- in progress: hifz test page re-order (qk-dev), ui.js G18 tests (qk-dev).
+Resume: when both agents finish -> full QA (every feature) -> build 5.5 -> install -> phone pass -> report.
+- 5.5 built (vc 46, sw quran-v41), signer 7d8b31d2, installed on bee81250, opens without crash. Hifz test page
+  re-ordered (hifzPageColors shared with the map, hifzMini card, review chips). FULL QA: ui.js 166/166 (G18 = 14 new
+  checks; 3 old tests updated for the frame crop and the new back), donate.js pass, data.py 28/28, locate 84.7.
+Resume: user tests 5.5 on the phone; then commit+push 5.4+5.5; next P1b-port (CTC) for noise / another reader.
+- 5.6 (vc 47, sw v42): back = 1 step then home, two backs <1.5 s anywhere exit; auto fs 5 s after opening the mushaf,
+  any touch/scroll restarts it; vertical: bar floats (fixed + padding) so fs slides smoothly, pages cropped to the frame
+  (vp-c clip box, .page-box keeps image coords); crop leaves ~2 px white outside the frame; page turn (slide/curl)
+  shifts the incoming page by cropDx so no margin shows; hifz test adds the surah to the map only when every ayah was
+  tested; fixed a CSS brace I broke (rd-cap max-height lost). FULL QA: ui.js 166/166, donate 15/15, data 28/28.
+  Installed on bee81250. Not committed.
