@@ -1032,6 +1032,8 @@
     var box = view.querySelector('.page-box[data-p="' + n + '"]'), boxes = view.querySelectorAll(".page-box");
     function boxOf(p) { return view.querySelector('.page-box[data-p="' + p + '"]'); }
     rdPage = { pages: pages, mark: function (s, a) { mark(s, a); ayahBar(null); }, box: boxOf, turn: function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); } };
+    // reading by voice went on to this page (turned with the page effect): light the ayah being read
+    if (rd.on && rd.s && pages.indexOf(pageOf(rd.s, rd.a)) >= 0) setTimeout(function () { if (rdPage && rdPage.pages === pages) { rdPage.mark(rd.s, rd.a); rdPaint(); } }, 0);
     function mark(s, a, q) {
       view.querySelectorAll(".ayah-box:not(.play)").forEach(function (x) { x.remove(); });
       hl = s ? { s: s, a: a, q: q || "" } : null;
@@ -1696,6 +1698,50 @@
     return { v: v, a: a, b: bi };
   }
   function rWords(k) { var sa = k.split(":"); return Q.t[sa[0] - 1][sa[1] - 1].split(" ").filter(function (w) { return norm(w).replace(/\s/g, ""); }); }
+  // The whole Quran as one list of words (rSkel), built once: QF.k skeletons, QF.s/a/w the word's surah, ayah and
+  // place in the ayah, QF.by skeleton -> its positions.
+  var QF = null;
+  function quranFlat() {
+    if (QF) return QF;
+    QF = { k: [], s: [], a: [], w: [], by: {} };
+    for (var s = 1; s <= 114; s++) for (var a = 1; a <= Q.s[s - 1][3]; a++) rWords(s + ":" + a).forEach(function (w, i) {
+      var k = rSkel(w), p = QF.k.length; QF.k.push(k); QF.s.push(s); QF.a.push(a); QF.w.push(i);
+      if (k) (QF.by[k] = QF.by[k] || []).push(p);
+    });
+    return QF;
+  }
+  // Where in the whole Quran the heard words (rSkel) are being read, from any surah and any ayah. Every heard word
+  // votes for the places it occurs at (exact skeleton), the places with most votes in a row are checked with rLocal
+  // (misheard, extra and missing words allowed), and the one with clearly most right words wins. The same words in
+  // two places (a repeated phrase) go to the one nearest page `near`. Returns { p: flat index after the last word
+  // read, right: words right } or null while it is not clear yet.
+  function quranLocate(H, near) {
+    var F = quranFlat(), votes = {}, m = H.length;
+    if (m < 3) return null;
+    H.forEach(function (h, k) {
+      var ps = h && h.length >= 2 && F.by[h]; if (!ps || ps.length > 2500) return;
+      for (var i = 0; i < ps.length; i++) { var d = ps[i] - k; votes[d] = (votes[d] || 0) + 1; }
+    });
+    // a start counts the votes a few words either side (words missed or added shift it)
+    var sc = {}; Object.keys(votes).forEach(function (d) { d = +d; for (var e = -2; e <= 2; e++) sc[d + e] = (sc[d + e] || 0) + votes[d]; });
+    var cand = Object.keys(sc).map(Number).filter(function (d) { return sc[d] >= 2; }).sort(function (x, y) { return sc[y] - sc[x]; }), picked = [];
+    for (var c = 0; c < cand.length && picked.length < 12; c++) if (!picked.some(function (q) { return Math.abs(q - cand[c]) < 6; })) picked.push(cand[c]);
+    var res = picked.map(function (d) {
+      var from = Math.max(0, d - 3), E = F.k.slice(from, Math.min(F.k.length, d + m + 6)), r = rLocal(H, E, d - from);
+      if (!r) return null;
+      var right = 0, wrong = 0; Object.keys(r.v).forEach(function (i) { if (r.v[i]) right++; else wrong++; });
+      return { p: from + r.b, a0: from + r.a, right: right, sc: right - 0.5 * wrong, txt: F.k.slice(from + r.a, from + r.b).join(" ") };
+    }).filter(Boolean).sort(function (x, y) { return y.sc - x.sc; });
+    if (!res.length || res[0].right < 3 || res[0].right < 0.5 * m) return null;
+    var best = res[0], rival = res.filter(function (x) { return x.txt !== best.txt; })[0];
+    if (rival && best.sc - rival.sc < 2) return null;                        // not clear yet: wait for more words
+    if (near) {                                                               // the same words elsewhere: the nearest
+      var same = res.filter(function (x) { return x.txt === best.txt && x.sc === best.sc; });
+      same.sort(function (x, y) { return Math.abs(pageOf(F.s[x.a0], F.a[x.a0]) - near) - Math.abs(pageOf(F.s[y.a0], F.a[y.a0]) - near); });
+      best = same[0];
+    }
+    return best;
+  }
   // The next hidden ayah from where the test started (ayat of an earlier surah on the same page are left alone).
   function rNext() {
     var t = hifz.test, st = t ? t.s * 1000 + (t.a || 1) : 0, hid = hifz.items.filter(function (x) { return !hifz.shown[x]; });
@@ -1819,6 +1865,8 @@
   function rdGo(s, a) {
     var p = pageOf(s, a); rd.s = s; rd.a = a;
     if (rdPage && (rdPage.pages ? rdPage.pages.indexOf(p) >= 0 : rdPage.box(p))) { rdPage.mark(s, a); rdPaint(); return; }
+    // the next page: turned with the effect chosen in Settings (curl / slide), like a tap on the next-page button
+    if (rdPage && rdPage.pages && rdPage.turn && p === rdPage.pages[rdPage.pages.length - 1] + 1) { rdPage.turn(); return; }
     location.hash = "#/p/" + p + "?a=" + s + ":" + a;
   }
   function rdNext() {
@@ -1834,14 +1882,14 @@
     if (!rd.s) {
       rd.heard = rd.heard.concat(fresh).slice(-14);
       rdPaint();                                     // the words heard so far, while the ayah is looked for
-      if (rd.heard.length < 4) return;
-      // the ayah is looked for in the whole Quran from the words heard (the open page gets no head start: the reader
-      // may recite from anywhere); a found ayah must stand clear of the next best, the open page only breaks a tie
-      var m = /^#\/p\/(\d+)/.exec(location.hash), op = m ? +m[1] : 0;
-      var near = voiceAyahs(rd.heard.join(" ")).map(function (x) { var pg = pageOf(x[1], x[2]); return [x[0], x[1], x[2], x[3], x[4], op && (pg === op || pg === op + 1) ? 1 : 0]; })
-        .sort(function (x, y) { return y[0] - x[0] || y[4] - x[4] || y[3] - x[3] || y[5] - x[5]; });
-      if (!near.length || near[0][0] < 0.7 || (near[1] && near[0][0] - near[1][0] < 0.1)) return;
-      rd.w = 0; rd.s = near[0][1]; rd.a = near[0][2]; fresh = rd.heard; rd.heard = []; rd.miss = 0;
+      // the place is looked for in the whole Quran from the words heard (quranLocate: any surah, any ayah, misheard
+      // words allowed); the open page only settles the same words found in two places
+      var m = /^#\/p\/(\d+)/.exec(location.hash), op = m ? +m[1] : 0, got = quranLocate(rd.heard.map(rSkel), op);
+      if (!got) return;
+      var F = quranFlat(), q = got.p - 1, all, cnt = -1;
+      rd.s = F.s[q]; rd.a = F.a[q]; rd.w = 0; all = rdWords(rd.s, rd.a);
+      for (var i = 0; i < all.length; i++) if (norm(all[i]).replace(/\s/g, "") && ++cnt === F.w[q]) { rd.w = i + 1; break; }   // after the last word read
+      fresh = []; rd.heard = []; rd.miss = 0;
       toast("سورة " + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a));
       rdGo(rd.s, rd.a); rdHints();
     }
