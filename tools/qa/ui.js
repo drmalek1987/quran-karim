@@ -1,6 +1,17 @@
 // UI checks of every app feature in Chromium. Usage: NODE_PATH=$(npm root -g) node ui.js
-const { chromium } = require('playwright');
-const W = 'file:///mnt/project-files/quran-app/web/index.html';
+// playwright: NODE_PATH first, then the global npm root (also inside @playwright/test, where Windows installs it)
+function loadPW() {
+  try { return require('playwright'); } catch (e) {}
+  const path = require('path'), cp = require('child_process');
+  let root = ''; try { root = cp.execSync('npm root -g', { encoding: 'utf8', shell: true }).trim(); } catch (e) {}
+  for (const c of [root, process.env.APPDATA && path.join(process.env.APPDATA, 'npm', 'node_modules')].filter(Boolean))
+    for (const sub of ['playwright', 'playwright-core', '@playwright/test/node_modules/playwright', '@playwright/test/node_modules/playwright-core'])
+      try { return require(path.join(c, sub)); } catch (e) {}
+  throw new Error('playwright not found: install it globally or set NODE_PATH');
+}
+const { chromium } = loadPW();
+// Page under test: QK_WEB env var, else <repo>/web (this file lives in <repo>/tools/qa)
+const W = require('url').pathToFileURL(require('path').resolve(process.env.QK_WEB || __dirname + '/../../web') + '/index.html').href;
 const BEEP = __dirname + '/beep.mp3';
 const out = [];
 // ED=kfgqpc (default), ED=kfold, ED=shamarly or ED=harmain: which mushaf edition the run reads.
