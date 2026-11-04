@@ -60,11 +60,16 @@ final class Donations {
         double sum = 0; int clipped = 0;
         for (int i = from; i < to; i++) { double v = y[i]; sum += v * v; if (Math.abs(v) >= 0.999) clipped++; }
         double rms = 20 * Math.log10(Math.sqrt(sum / n) + 1e-9), clip = clipped / (double) n, snr = 20 * Math.log10(p90 / Math.max(p10, 1e-5));
-        if (rms < -40) return reject(c, "quiet");
+        if (rms < -50) return reject(c, "quiet");     // phone mics record speech around -42 dBFS; the SNR test below catches real noise
         if (clip > 0.005) return reject(c, "clipped");
         if (snr < 10) return reject(c, "noisy");
+        // a quiet clip is raised to about -30 dBFS (never past a 0.98 peak), so the relay's level check (-45) keeps it;
+        // the level carries nothing for training and the SNR is unchanged
+        double peak = 1e-9; for (int i = from; i < to; i++) peak = Math.max(peak, Math.abs(y[i]));
+        double g = rms < -35 ? Math.min(Math.pow(10, (-30 - rms) / 20), 0.98 / peak) : 1;
+        if (g > 1) rms += 20 * Math.log10(g); else g = 1;
         short[] pcm = new short[n];
-        for (int i = 0; i < n; i++) pcm[i] = (short) Math.max(-32768, Math.min(32767, Math.round(y[from + i] * 32767)));
+        for (int i = 0; i < n; i++) pcm[i] = (short) Math.max(-32768, Math.min(32767, Math.round(y[from + i] * g * 32767)));
         try {
             JSONObject m = new JSONObject(meta);
             JSONObject q = new JSONObject(); q.put("rms", r1(rms)); q.put("clip", Math.round(clip * 1e4) / 1e4); q.put("snr", r1(snr)); q.put("dur", Math.round(dur * 100) / 100.0);

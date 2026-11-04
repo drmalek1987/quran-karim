@@ -453,8 +453,10 @@
     document.querySelectorAll("#donateMob button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === mob); });
     var el = document.getElementById("donateStats"), st = {};
     try { st = JSON.parse(NvBridge.donateStats()); } catch (e) {}
-    var rej = 0; for (var k in st.rejected || {}) rej += st.rejected[k];
-    if (el) el.textContent = st.waiting == null ? "" : "مستني يترفع: " + ar(st.waiting) + " مقطع · اترفض: " + ar(rej);
+    var rej = 0, why = [], WHY = { quiet: "صوت واطي", noisy: "دوشة", clipped: "صوت عالي زيادة", length: "قصير أو طويل", full: "المساحة مليانة", error: "خطأ", gone: "ضاع" };
+    for (var k in st.rejected || {}) { rej += st.rejected[k]; why.push((WHY[k] || (k.indexOf("srv:") === 0 ? "السيرفر: " + k.slice(4) : k)) + " " + ar(st.rejected[k])); }
+    // rejected = not kept when recorded (or refused by the server), not a network problem: the waiting ones go out later
+    if (el) el.textContent = st.waiting == null ? "" : "مستني يترفع: " + ar(st.waiting) + " مقطع · ما اتحفظش: " + ar(rej) + (why.length ? " (" + why.join("، ") + ")" : "");
   }
   document.querySelectorAll("#donateSet button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -1576,9 +1578,10 @@
     else cheer(ar(score) + "٪: افتكرت " + ar(seen - miss) + " من " + ar(seen) + " آية");
   }
   // On a mushaf page, once the last ayah is revealed (and so every ayah is), the next page comes after a moment to read it.
+  // While reciting into the mic, the page turns once its last ayah is recited, even if the reader started further down.
   function hifzRevealed(k) {
     var items = hifz.items, next = hifz.next;
-    if (!next || !hifz.shown[k] || k !== items[items.length - 1] || items.some(function (x) { return !hifz.shown[x]; })) return;
+    if (!next || !hifz.shown[k] || k !== items[items.length - 1] || (!recite.on && items.some(function (x) { return !hifz.shown[x]; }))) return;
     setTimeout(function () { if (hifz.on && hifz.next === next && hifz.shown[k]) next(); }, 1200);
   }
   function hifzBar() {
@@ -1775,7 +1778,7 @@
   function rdMicHtml() { return '<button id="rdMic" class="rd-mic' + (rd.on ? " on" : "") + '" aria-label="القراءة بالصوت">' + ic("mic") + "</button>" + (rd.on ? rdCapHtml() : ""); }
   function rdWords(s, a) { return Q.t[s - 1][a - 1].split(" "); }
   function rdCapHtml() {
-    if (!rd.s) return '<div class="rd-cap"><small>سامعك… ابدأ القراءة من أي آية</small></div>';
+    if (!rd.s) return '<div class="rd-cap"><small>سامعك… ابدأ القراءة من أي آية' + (rd.heard.length ? " · بدوّر على الآية" : "") + "</small>" + (rd.heard.length ? "<div>" + rd.heard.join(" ") + "</div>" : "") + "</div>";
     return '<div class="rd-cap"><small>سورة ' + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a) + "</small><div>" + rdWords(rd.s, rd.a).map(function (w, i) {
       return i === rd.w ? "<mark>" + w + "</mark>" : w; }).join(" ") + "</div></div>";
   }
@@ -1830,15 +1833,17 @@
     rd.done = fin ? 0 : ws.length;
     if (!rd.s) {
       rd.heard = rd.heard.concat(fresh).slice(-14);
+      rdPaint();                                     // the words heard so far, while the ayah is looked for
       if (rd.heard.length < 4) return;
-      // ayahs on the open page are the likeliest; a found ayah must stand clear of the next best
+      // the ayah is looked for in the whole Quran from the words heard (the open page gets no head start: the reader
+      // may recite from anywhere); a found ayah must stand clear of the next best, the open page only breaks a tie
       var m = /^#\/p\/(\d+)/.exec(location.hash), op = m ? +m[1] : 0;
-      var near = voiceAyahs(rd.heard.join(" ")).map(function (x) { var pg = pageOf(x[1], x[2]); return [x[0] + (op && (pg === op || pg === op + 1) ? 0.15 : 0)].concat(x.slice(1)); })
-        .sort(function (x, y) { return y[0] - x[0] || y[4] - x[4] || y[3] - x[3]; });
+      var near = voiceAyahs(rd.heard.join(" ")).map(function (x) { var pg = pageOf(x[1], x[2]); return [x[0], x[1], x[2], x[3], x[4], op && (pg === op || pg === op + 1) ? 1 : 0]; })
+        .sort(function (x, y) { return y[0] - x[0] || y[4] - x[4] || y[3] - x[3] || y[5] - x[5]; });
       if (!near.length || near[0][0] < 0.7 || (near[1] && near[0][0] - near[1][0] < 0.1)) return;
       rd.w = 0; rd.s = near[0][1]; rd.a = near[0][2]; fresh = rd.heard; rd.heard = []; rd.miss = 0;
       toast("سورة " + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a));
-      rdGo(rd.s, rd.a);
+      rdGo(rd.s, rd.a); rdHints();
     }
     fresh.forEach(function (hw) {
       var aw = rdWords(rd.s, rd.a).map(norm), hit = false;
@@ -1868,11 +1873,12 @@
     });
     return best;
   }
-  // The open page's ayahs, given to the recogniser so it expects these words.
+  // Once the ayah being read is found, its page's ayahs are given to the recogniser so it expects these words; before
+  // that it gets none, so it hears freely and the ayah can be anywhere in the Quran.
   function rdHints() {
     if (!window.ReciteBridge || !ReciteBridge.setHints) return;
-    var m = /^#\/p\/(\d+)/.exec(location.hash), p = m ? +m[1] : 0, out = [];
-    if (!p) return;
+    var m = /^#\/p\/(\d+)/.exec(location.hash), p = rd.s ? pageOf(rd.s, rd.a) : 0, out = [];
+    if (!p) { try { ReciteBridge.setHints(""); } catch (e) {} return; }
     for (var si = 0; si < 114; si++) for (var ai = 0; ai < Q.s[si][3]; ai++) { var r = Q.r[si] && Q.r[si][ai]; if (r && r.some(function (b) { return b[0] === p || b[0] === p + 1; })) out.push(norm(Q.q[si][ai])); }
     try { ReciteBridge.setHints(out.join("\n")); } catch (e) {}
   }
