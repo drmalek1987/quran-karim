@@ -200,6 +200,7 @@ def main():
     ap.add_argument('--limit', type=int, default=0); ap.add_argument('--tag', default='greedy')
     ap.add_argument('--preroll', type=int, default=0, help='100 ms blocks kept from before the voice starts (phone: 0)')
     ap.add_argument('--quiet', type=float, default=0.6, help='seconds of quiet that end a piece (phone: 0.6)')
+    ap.add_argument('--dump', default='', help='dir: save each clip piece log-probs (float16 npz) for offline decoders (ctc.py)')
     ap.add_argument('--gain', default='-31', help="target speech RMS in dBFS before the VAD (the donated phone clip was -31.4), or 'none'")
     a = ap.parse_args()
     Qr = Quran(a.quran, a.simple); M = Model(a.model, a.vocab); rnd = random.Random(1)
@@ -222,7 +223,11 @@ def main():
         raw_lost = not vad_pieces(y)
         if a.gain != 'none':
             r = float(np.sqrt((y * y).mean())) or 1e-9; y = np.clip(y * (10 ** (float(a.gain) / 20) / r), -1, 1).astype(np.float32)
-        pieces = [M.greedy(M.logprobs(p)) for p in vad_pieces(y, a.preroll, a.quiet)]
+        lps = [M.logprobs(p) for p in vad_pieces(y, a.preroll, a.quiet)]
+        if a.dump:
+            os.makedirs(a.dump, exist_ok=True)
+            np.savez_compressed(os.path.join(a.dump, c['id'] + '.npz'), *[l.astype(np.float16) for l in lps])
+        pieces = [M.greedy(l) for l in lps]
         pieces = [p for p in pieces if p]
         hyp = ' '.join(pieces)
         pos = recite(pieces, exp)
