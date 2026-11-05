@@ -65,7 +65,8 @@ class NvAsr {
     }
 
     @JavascriptInterface
-    public boolean ready() { return new File(dir, "asrnv/lib/libonnxruntime.so").exists() && new File(dir, "asrnv/a.bin").exists() && new File(dir, "asrnvp/b.bin").exists() && new File(dir, "asrnv/vocab.json").exists(); }
+    public boolean ready() { return new File(dir, "asrnv/lib/libonnxruntime.so").exists() && new File(dir, "asrnv/vocab.json").exists()
+        && (new File(dir, "nv.onnx").exists() || (new File(dir, "asrnv/a.bin").exists() && new File(dir, "asrnvp/b.bin").exists())); }
 
     @JavascriptInterface
     public void start() {
@@ -143,7 +144,11 @@ class NvAsr {
     private void load() throws Exception {
         if (session != null) return;
         File model = new File(dir, "nv.onnx"), a = new File(dir, "asrnv/a.bin"), b = new File(dir, "asrnvp/b.bin");
-        if (!model.exists() || model.length() != a.length() + b.length()) {
+        // 5.8: the parts are deleted after a good join (the model was stored twice, ~132 MB). A new download brings the
+        // parts back and they are joined again; an interrupted join keeps the parts, so it re-joins next time.
+        boolean parts = a.exists() && b.exists();
+        if (!parts && !model.exists()) throw new Exception("model missing");
+        if (parts && (!model.exists() || model.length() != a.length() + b.length())) {
             File tmp = new File(dir, "nv.onnx.part");
             OutputStream out = new FileOutputStream(tmp);
             byte[] buf = new byte[1 << 16]; int n;
@@ -152,6 +157,7 @@ class NvAsr {
             } finally { out.close(); }
             if (!tmp.renameTo(model)) throw new Exception("join");
         }
+        if (parts && model.length() == a.length() + b.length()) { a.delete(); b.delete(); }
         org.json.JSONArray v = new org.json.JSONArray(read(new File(dir, "asrnv/vocab.json")));
         vocab = new String[v.length()];
         for (int i = 0; i < vocab.length; i++) vocab[i] = v.getString(i);

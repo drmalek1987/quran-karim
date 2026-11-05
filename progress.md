@@ -193,3 +193,29 @@ Resume: CP3b ui.js test with a mocked NvBridge.ctc, then CP4 version 5.7.
 - CP6: commit + push + GitHub release v5.7.
 Resume: user tests 5.7 on the phone (hifz test by voice with a deliberate wrong word; Settings stats "ctc" count).
  Next candidate: CTC for ayah id (p1b_idc) in quranLocate for short fragments (HA ayah id 85.7%).
+
+## Queued (user asked 2026-11-05): 5.8 — drop the duplicate model parts after joining (~132 MB saved on the phone)
+Found: NvAsr.load() joins asrnv/a.bin + asrnvp/b.bin into asr/nv.onnx and keeps both parts -> the model is stored twice
+(~264 MB instead of ~132). Phone total with one edition + model: ~360-370 MB now -> ~230-240 MB after. APK size unchanged (46.9 MB).
+Change (NvAsr.java only):
+- load(): if both parts exist (first run or a new model download) join to nv.onnx.part -> rename -> delete a.bin/b.bin;
+  else use nv.onnx as is. An interrupted join leaves the parts, so it re-joins next time.
+- ready(): libonnxruntime.so + vocab.json exist AND (nv.onnx exists OR both parts exist).
+- EdStore install state uses <id>.ok markers (unaffected); remove() already deletes nv.onnx.
+QA: full suite + check nothing in Settings reads the part files (grep found none); phone: update over 5.7, mic works,
+files/ed/asr has no a.bin/b.bin, storage drops ~132 MB; remove/re-download model still works.
+Resume: run as its own step in the workflow (goal check: side work for storage, not recognition — do it after the
+5.7 phone test unless the user says otherwise).
+
+## 5.7 phone test — 2026-11-05: user says OK, no notable errors (installed on bee81250, signer 7d8b31d2).
+Goal check for next: 5.8 storage fix = side work (cheap, user-queued); P0b held-out + noisy test set = goal work
+(needed to prove >95% honestly; 96.9% was tuned on the same 373 clips).
+Resume: 5.8 storage fix (NvAsr.java) then P0b — or P0b first, on the user's word.
+
+## 5.8 — storage fix — done 2026-11-05
+Goal check: side work (storage, user-queued), cheap; recognition unchanged.
+NvAsr.load(): joins a.bin+b.bin only when both exist, deletes them after a size-checked join; ready() accepts nv.onnx alone.
+vc 49, sw quran-v44. Signer 7d8b31d2. QA: ui.js 168/168, donate 15/15, data 28/28, javac OK; locate/parity skipped
+(rows files not on disk; matcher untouched). Phone bee81250: installed over 5.7, mic used by the user, app storage
+(Settings > app info) 422 MB vs 501 MB from diskstats before (stale stat; release build not debuggable, so files not listed).
+Resume: push + release v5.8 (needs the user's OK), then P0b held-out + noisy test set.
