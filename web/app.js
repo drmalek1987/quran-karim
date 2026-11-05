@@ -482,7 +482,7 @@
     if (!t.u) return "";
     var pc = function (a, b) { return a + b ? ar(Math.round(a * 100 / (a + b))) + "٪" : "—"; };
     return "آخر ٧ أيام: " + ar(t.u) + " مقطع، " + ar(t.w || 0) + " كلمة · التسميع صح " + pc(t.ok || 0, t.bad || 0) +
-      " · المتابعة في الصفحة " + pc(t.rh || 0, t.rm || 0) + " · الفهرس والبحث لقوا الآية " + pc(t.loc || 0, t.lost || 0);
+      " · المتابعة في الصفحة " + pc(t.rh || 0, t.rm || 0) + " · الفهرس والبحث لقوا الآية " + pc(t.loc || 0, t.lost || 0) + (t.ctc ? " · كلمات صحّحها فحص الموديل " + ar(t.ctc) : "");
   }
   function donatePaint() {
     var ase = document.getElementById("asrStats"); if (ase) ase.textContent = asrStatsText();
@@ -1801,6 +1801,63 @@
     if (!Object.keys(v).some(function (x) { return v[x] === 1; })) return null;
     return { v: v, a: a, b: bi };
   }
+  // P1b: a final piece from the NVIDIA model is also checked on the model's own output (CTC forced alignment, NvBridge.ctc
+  // on the piece's log-probs): the words of the stretch rLocal placed it on are read in the simple spelling the model
+  // learnt, and a word rLocal judged wrong (a garbled or cut word in the greedy text) turns right when the model's output
+  // does read it there. Bench tools/asr/eval/p1b_port_eval.py: word verdicts 94.7% -> 96.9%. Any problem -> rLocal's verdicts.
+  var CTCU = {}, ctcOk = null;
+  // An ayah's Uthmani words (rWords) -> per word [simple-spelling letters, group]: words of one group share one simple
+  // word (or a word splits in two). Port of p1b_verify.py units().
+  function ctcUnits(k) {
+    if (CTCU[k]) return CTCU[k];
+    var sa = k.split(":"), U = rWords(k).map(rSkel), S = Q.q[sa[0] - 1][sa[1] - 1].split(" ").filter(function (w) { return norm(w); }), Sk = S.map(rSkel);
+    var n = U.length, m = S.length, D = [], B = [], x, y, mv = [[1, 1], [1, 2], [1, 3], [2, 1], [3, 1]];
+    var lev = function (a, b) { var d = [], i, j; for (j = 0; j <= b.length; j++) d[j] = j; for (i = 1; i <= a.length; i++) { var p = d[0]; d[0] = i; for (j = 1; j <= b.length; j++) { var t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } } return d[b.length]; };
+    for (x = 0; x <= n; x++) { D.push(new Array(m + 1).fill(1e9)); B.push(new Array(m + 1).fill(null)); } D[0][0] = 0;
+    for (x = 0; x <= n; x++) for (y = 0; y <= m; y++) {
+      if (D[x][y] >= 1e9) continue;
+      mv.forEach(function (q) {
+        if (x + q[0] > n || y + q[1] > m) return;
+        var a = U.slice(x, x + q[0]).join(""), b = Sk.slice(y, y + q[1]).join(""), c = D[x][y] + lev(a, b) / Math.max(1, a.length, b.length) + 0.3 * (q[0] + q[1] - 2);
+        if (c < D[x + q[0]][y + q[1]]) { D[x + q[0]][y + q[1]] = c; B[x + q[0]][y + q[1]] = q; }
+      });
+    }
+    var out = new Array(n).fill(null); x = n; y = m;
+    if (!B[n][m]) return (CTCU[k] = rWords(k).map(function (w, i) { return [norm(w).replace(/ /g, ""), i]; }));
+    while (x > 0) {
+      var q = B[x][y], t = norm(S.slice(y - q[1], y).join(" ")).replace(/ /g, "");
+      for (var i = x - q[0]; i < x; i++) out[i] = [t, x - q[0]];
+      x -= q[0]; y -= q[1];
+    }
+    return (CTCU[k] = out);
+  }
+  function ctcReady() {
+    if (ctcOk !== null) return ctcOk;
+    try {
+      var v = JSON.parse(NvBridge.vocab());
+      if (!v.length) return false;                                  // the model is not loaded yet: ask again later
+      ctcOk = !!NvBridge.ctcSetup(JSON.stringify(v.map(function (t) { return norm(t.replace(/▁/g, " ")).replace(/ /g, ""); })));
+    } catch (e) { ctcOk = false; }
+    return ctcOk;
+  }
+  // r = rLocal's result on a final piece; key(i) = "s:a:w" (w = place in rWords) of expected word i. Turns r.v's wrong
+  // words right where CTC reads them. Returns the number of words turned.
+  function ctcJudge(r, key) {
+    if (!r || Mic.cur !== "nv" || !window.NvBridge || !NvBridge.ctc || window.nvSeq == null || !ctcReady()) return 0;
+    if (!Object.keys(r.v).some(function (i) { return r.v[i] === 0; })) return 0;
+    var us = [], own = {}, prev = null, i, turned = 0;
+    for (i = r.a; i < r.b; i++) {
+      var p = key(i).split(":"), k = p[0] + ":" + p[1], u = ctcUnits(k)[+p[2]], id = k + "/" + (u ? u[1] : "x" + i);
+      if (!u) return 0;
+      if (id === prev) { own[i] = us.length - 1; continue; }
+      us.push(u[0]); own[i] = us.length - 1; prev = id;
+    }
+    var res; try { res = JSON.parse(NvBridge.ctc(window.nvSeq, JSON.stringify(us)) || "null"); } catch (e) { res = null; }
+    if (!res || res.length !== us.length) return 0;
+    for (i = r.a; i < r.b; i++) if (r.v[i] === 0 && res[own[i]] === 1) { r.v[i] = 1; turned++; }
+    if (turned) asrStat("ctc", turned);
+    return turned;
+  }
   function rWords(k) { var sa = k.split(":"); return Q.t[sa[0] - 1][sa[1] - 1].split(" ").filter(function (w) { return norm(w).replace(/\s/g, ""); }); }
   // The whole Quran as one list of words (rSkel), built once: QF.k skeletons, QF.s/a/w the word's surah, ayah and
   // place in the ayah, QF.by skeleton -> its positions.
@@ -1863,6 +1920,7 @@
     hifz.items.forEach(function (k) { rWords(k).forEach(function (w, i) { keys.push(k + ":" + i); E.push(rSkel(w)); }); });
     var p0 = keys.indexOf(recite.ptr); if (p0 < 0) { var nk = rNext(); p0 = nk ? keys.indexOf(nk + ":0") : 0; }
     var r = rLocal(norm(text).split(" ").filter(Boolean).map(rSkel), E, p0), disp = {}, revealed = [];
+    if (fin) ctcJudge(r, function (i) { return keys[i]; });
     Object.keys(recite.V).forEach(function (x) { disp[x] = recite.V[x]; });
     if (r) Object.keys(r.v).forEach(function (i) { if (fin || r.v[i] === 1) disp[keys[i]] = r.v[i]; });
     hifz.items.forEach(function (k) { if (!hifz.shown[k] && (k + ":" + (rWords(k).length - 1)) in disp) { hifz.shown[k] = true; revealed.push(k); } });
@@ -1917,6 +1975,7 @@
       if (st === "noperm") toast("محتاج إذن الميكروفون عشان التسميع");
       else if (st === "none") toast("الموبايل مفيهوش خدمة التعرّف على الكلام");
       else if (st.indexOf("error") === 0) toast("التسميع وقف (" + st.slice(6) + ")، دوس على المايك تاني");
+      if (st === "listening" && Mic.cur === "nv") ctcReady();
       if (st !== "listening") { recite.on = false; recite.base = null; } hifzBar(); reciteCap(); return;
     }
     reciteHear(text, kind === "final");
@@ -3444,7 +3503,8 @@
     if (htMic) htMic.onclick = function () {
       if (htv.on) { htv.on = false; Mic.stop(); htMic.classList.remove("rec"); htMic.innerHTML = ic("mic") + " سمّع بالصوت"; return; }
       var ws = [].slice.call(view.querySelectorAll(".ht-w, .ht-v"));
-      htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), ptr: 0, V: {}, shownV: {}, force: {},
+      var nth = {}, hk = ws.map(function (e) { var a = e.dataset.a; nth[a] = (nth[a] || 0); return s + ":" + a + ":" + nth[a]++; });   // "s:a:w", w = place in rWords
+      htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), keys: hk, ptr: 0, V: {}, shownV: {}, force: {},
         // a word's look for a verdict: 1 green, 0 red, null not judged yet (hidden again); words the reader tapped stay
         set: function (i, v) {
           var e = ws[i]; if (!e.classList.contains("ht-w") || e.dataset.tap) return;
@@ -3500,7 +3560,7 @@
     if (kind.indexOf("state:") === 0) {
       var st = kind.slice(6);
       if (st === "busy") toast("بيجهّز الموديل…");
-      else if (st === "listening") toast("سمّع من حفظك");
+      else if (st === "listening") { toast("سمّع من حفظك"); if (Mic.cur === "nv") ctcReady(); }
       else { if (st === "noperm") toast("محتاج إذن الميكروفون"); else if (st.indexOf("error") === 0) toast("المايك وقف (" + st.slice(6) + ")، دوس عليه تاني"); htv.on = false; htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; }
       return;
     }
@@ -3509,6 +3569,7 @@
     // nothing turns red ahead of the reader; at its end its verdicts are kept (a word read again takes the new verdict).
     var fin = kind === "final", hyp = (text || "").split("\n")[0], n = htv.sk.length;
     var r = rLocal(norm(hyp).split(/\s+/).filter(Boolean).map(rSkel), htv.sk, htv.ptr), disp = {};
+    if (fin) ctcJudge(r, function (i) { return htv.keys[i]; });
     Object.keys(htv.V).forEach(function (i) { disp[i] = htv.V[i]; });
     if (r) Object.keys(r.v).forEach(function (i) { if (fin || r.v[i] === 1) disp[i] = r.v[i]; });
     for (var i = 0; i < n; i++) { var nv = i in disp ? disp[i] : null, ov = i in htv.shownV ? htv.shownV[i] : null; if (nv !== ov) htv.set(i, nv); }

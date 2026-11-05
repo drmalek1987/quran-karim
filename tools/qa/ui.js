@@ -471,6 +471,26 @@ async function fresh(ctx, vp) {
     await go('#/', 300); await p.click('#btnSettings').catch(() => {}); await wait(300);
     const r = await ev(() => { const s = document.getElementById('asrSet'); return s && [...s.options].map(o => o.value); }); await closeS();
     return assert(r && !r.includes('asrbase') && !r.includes('asrft'), JSON.stringify(r)); });
+  // ---------- نسخة 5.7: تحقق CTC من مخرجات موديل NVIDIA (P1b) ----------
+  const G19 = 'نسخة 5.7';
+  const nvMock = ok => ev(ok => {
+    localStorage.setItem('q.asr', '"asrnv"'); window.__ctc = { forms: null, calls: [] };
+    window.NvBridge = { ready: () => true, start() {}, stop() {}, vocab: () => JSON.stringify(['▁قل', 'هُو', '▁', 'ـ']),
+      ctcSetup(f) { window.__ctc.forms = JSON.parse(f); return true; },
+      ctc(seq, w) { const u = JSON.parse(w); window.__ctc.calls.push([seq, u]); return JSON.stringify(u.map(() => ok)); } };
+  }, ok);
+  for (const ok of [1, 0]) await check(G19, ok ? 'كلمة مشوّهة في النص بتبقى صح لو CTC لقاها' : 'كلمة غلط فعلاً بتفضل حمرا لو CTC ما لقاهاش', async () => {
+    const s = await lsSave(); const nb = await ev(() => !!window.NvBridge);
+    try {
+      await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); localStorage.setItem('q.mode', '"pages"'); }); await mock(); await nvMock(ok); await go('#/hifztest/112', 900);
+      await ev(() => document.getElementById('htMic').click());
+      await ev(() => { onRecite('', 'state:listening'); window.nvSeq = 1; onRecite('قل هو الله احد', 'final'); window.nvSeq = 2; onRecite('الله اصم', 'final'); }); await wait(400);
+      const r = await ev(() => { const w = [...document.querySelectorAll('.ht-w')].find(e => e.dataset.a === '2' && e.dataset.w === '1'); return [w && w.className, window.__ctc.forms, window.__ctc.calls]; });
+      if (ok) assert(r[1] && r[1][0] === 'قل' && r[1][1] === 'هو' && r[1][2] === '', 'forms ' + JSON.stringify(r[1]));
+      assert(r[2].some(c => c[0] === 2 && c[1].includes('الصمد')), 'calls ' + JSON.stringify(r[2]));
+      return assert(ok ? /\bok\b/.test(r[0]) : /\bmiss\b/.test(r[0]), r[0]);
+    } finally { await ev(nb => { if (!nb) delete window.NvBridge; localStorage.removeItem('q.asr'); try { Mic.stop(); } catch (e) {} }, nb); await lsRest(s); await go('#/', 300); }
+  });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

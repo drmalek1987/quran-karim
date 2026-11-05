@@ -165,3 +165,31 @@ Resume: user tests 5.5 on the phone; then commit+push 5.4+5.5; next P1b-port (CT
 - RESTORE POINT 2026-11-04: tag v5.6-restore (commit c192094, pushed) + APK copy D:\Quran App\restore\v5.6\.
   Roll back: git checkout v5.6-restore (or git revert the P1b commits) and adb install -r that APK.
 Resume: P1b-port in a NEW session after the 5-hour usage reset (this one is at 342k context).
+
+# P1b-port — CTC verdicts in the app (5.7), started 2026-11-05 (plan: ~/.claude/plans/inherited-humming-robin.md)
+Goal check: yes — bench CTC 94.5 -> 97.2 word verification, the biggest measured lever. Hybrid: rLocal places a final
+NvAsr piece, CTC forced alignment (Java, on the piece's log-probs) re-judges the words of its span.
+CPs: CP1 bench hybrid (p1b_port_eval.py) · CP2 Java CTC + bridge + parity · CP3 JS units/ctcJudge + parity ·
+CP4 version 5.7 + QA-checklist · CP5 build/signer/full QA/phone · CP6 commit, push, release v5.7.
+Resume: CP1.
+- CP1 done: tools/asr/eval/p1b_port_eval.py (+ rlocal_spans.js = the app's rLocal piece by piece), 373 clean clips,
+  per-piece log-probs (out/lp). verify / right accepted / wrong caught:
+  rLocal only 94.7 / 94.2 / 99.7 · CTC overrides span 96.3 / 96.2 / 98.1 · CTC only turns wrong->right **96.9** / 96.8 /
+  98.1 (HA 91.4->96.0, tlog 95.8->98.0, reciters 94.5->96.0) · +-1 edge word: no gain. d=3: 96.7, d=5: 97.1 (d=4 kept,
+  picked before). Chosen: on a final piece, words rLocal judged wrong in its span become right if CTC matches them.
+Resume: CP2 (Java Ctc.java + NvAsr bridge + parity harness).
+- CP2 done: android/src/.../Ctc.java (port of ctc.py group + forced_words), NvAsr keeps the grouped log-probs of the last
+  4 final pieces; bridge vocab(), ctcSetup(forms), ctc(seq, words) -> [1|0]. tools/asr/eval/ctc_java_parity.py +
+  CtcTest.java: Java == Python 80/80 cases, 755/755 words, ~1.3 ms per piece on the PC.
+- CP3 done: web/app.js ctcUnits (port of p1b_verify units, Uthmani words -> Q.q simple spelling), ctcReady, ctcJudge
+  (final pieces only, rLocal's wrong words in the span turn right when CTC matches; asrStat "ctc"), used by reciteHear
+  and the hifz-test voice mode (htv.keys). ctc_units_parity.py/.js: token forms 1024/1024 same; ayat 6123 same, 85 differ
+  = Python's simple text has the basmala glued to surah first ayat (+17:110), app's units are the right ones.
+Resume: CP3b ui.js test with a mocked NvBridge.ctc, then CP4 version 5.7.
+- CP4 done: 5.7 (vc 48, sw quran-v43), QA-checklist 5.7, Settings stats show words fixed by the CTC check.
+- CP5 done: APK signer 7d8b31d2 OK; FULL QA: ui.js 168/168 (G19 = 2 new CTC checks), donate.js 15/15, data.py 28/28,
+  locate_eval 84.7 (same), parity.js 722/24 (same as 5.0-5.6). Emulator Phone_API35: installs, opens, no crash.
+  Phone (bee81250) not connected: NOT verified on a real phone (needs the model + mic).
+- CP6: commit + push + GitHub release v5.7.
+Resume: user tests 5.7 on the phone (hifz test by voice with a deliberate wrong word; Settings stats "ctc" count).
+ Next candidate: CTC for ayah id (p1b_idc) in quranLocate for short fragments (HA ayah id 85.7%).

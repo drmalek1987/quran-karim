@@ -49,6 +49,11 @@ class NvAsr {
     // before each final onRecite), so a donated clip is the audio of exactly those words even if the reader went on.
     private final java.util.LinkedHashMap<Integer, float[]> finals = new java.util.LinkedHashMap<Integer, float[]>();
     private int seq = 0;
+    // P1b: the log-probs of the last final pieces (grouped by letter form), so the page can check its expected words on
+    // them (ctc). ctcSetup gets each token's letters from the page's own norm().
+    private final java.util.LinkedHashMap<Integer, Ctc.Grp> grps = new java.util.LinkedHashMap<Integer, Ctc.Grp>();
+    private volatile Ctc ctc;
+    private float[][] lastLp;
 
     NvAsr(Activity a, WebView w) { act = a; web = w; dir = new File(new File(a.getFilesDir(), "ed"), "asr"); }
 
@@ -89,6 +94,32 @@ class NvAsr {
     public String donate2(String meta, int n) {
         float[] y; synchronized (finals) { y = finals.remove(n); }
         return Donations.save(act.getApplicationContext(), y, meta, n);
+    }
+
+    @JavascriptInterface
+    public String vocab() { return vocab == null ? "[]" : new org.json.JSONArray(java.util.Arrays.asList(vocab)).toString(); }
+
+    @JavascriptInterface
+    public boolean ctcSetup(String formsJson) {
+        try {
+            org.json.JSONArray a = new org.json.JSONArray(formsJson); String[] f = new String[a.length()];
+            for (int i = 0; i < f.length; i++) f[i] = a.getString(i);
+            ctc = new Ctc(f); return true;
+        } catch (Exception e) { return false; }
+    }
+
+    /** Expected words (their letters, JSON array) on final piece seq -> JSON [1 matched | 0 skipped], or "" if unknown. */
+    @JavascriptInterface
+    public String ctc(int seq, String wordsJson) {
+        try {
+            Ctc c = ctc; Ctc.Grp g; synchronized (grps) { g = grps.get(seq); }
+            if (c == null || g == null) return "";
+            org.json.JSONArray a = new org.json.JSONArray(wordsJson); String[] w = new String[a.length()];
+            for (int i = 0; i < w.length; i++) w[i] = a.getString(i);
+            boolean[] m = c.forced(g, w); StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < m.length; i++) sb.append(i > 0 ? "," : "").append(m[i] ? 1 : 0);
+            return sb.append("]").toString();
+        } catch (Exception e) { return ""; }
     }
 
     @JavascriptInterface
@@ -203,6 +234,11 @@ class NvAsr {
                     java.util.Iterator<Integer> it = finals.keySet().iterator();
                     while (finals.size() > 4) { it.next(); it.remove(); }
                 }
+                Ctc c = ctc;
+                if (c != null && lastLp != null) {
+                    Ctc.Grp g = c.group(lastLp);
+                    synchronized (grps) { grps.put(n, g); java.util.Iterator<Integer> it = grps.keySet().iterator(); while (grps.size() > 4) { it.next(); it.remove(); } }
+                }
                 before = "window.nvSeq=" + n + ";";
             }
             if (on && t.length() > 0) tell(t, kind, before);
@@ -235,6 +271,7 @@ class NvAsr {
         OrtSession.Result r = session.run(in);
         try {
             float[][][] lp = (float[][][]) r.get(0).getValue();
+            lastLp = lp[0];
             StringBuilder sb = new StringBuilder(); int prev = -1;
             for (float[] row : lp[0]) {
                 int best = 0; for (int j = 1; j < row.length; j++) if (row[j] > row[best]) best = j;
