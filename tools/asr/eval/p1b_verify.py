@@ -19,7 +19,11 @@ lex = ctc.Lex(vocab); idx = {(x['s'], x['a']): i for i, x in enumerate(ay)}
 def units(i):
     """Map an ayah's Uthmani words to its simple-text spelling: per Uthmani word the simple letters (a group of Uthmani
     words read as one simple word shares it; group id says which words share)."""
-    U = ay[i]['k']; S = simp[(ay[i]['s'], ay[i]['a'])].split(); Sk = [bench.skel(w) for w in S]
+    U = ay[i]['k']; S = simp[(ay[i]['s'], ay[i]['a'])].split()
+    # the simple text glues the basmala to the first ayah of most surahs (see ctc_units_parity): drop it when the
+    # Uthmani ayah does not start with it, or a short first ayah (e.g. 20:1) cannot be aligned at all
+    if ay[i]['a'] == 1 and len(S) > 4 and bench.norm(S[0]) == 'بسم' and bench.skel(U[0]) != bench.skel(S[0]): S = S[4:]
+    Sk = [bench.skel(w) for w in S]
     n, m = len(U), len(S); INF = 1e9
     D = [[INF] * (m + 1) for _ in range(n + 1)]; B = [[None] * (m + 1) for _ in range(n + 1)]; D[0][0] = 0
     cost = lambda a, b: bench.lev(a, b) / max(1, len(a), len(b))
@@ -31,6 +35,8 @@ def units(i):
                     c = D[x][y] + cost(''.join(U[x:x + du]), ''.join(Sk[y:y + ds])) + 0.3 * (du + ds - 2)
                     if c < D[x + du][y + ds]: D[x + du][y + ds] = c; B[x + du][y + ds] = (du, ds)
     out = [None] * n; x, y = n, m
+    if B[n][m] is None:   # still no alignment: each Uthmani word stands for itself
+        return [(lex.text(U[k]), k) for k in range(n)]
     while x > 0:
         du, ds = B[x][y]; t = lex.text(' '.join(S[y - ds:y]))
         for k in range(x - du, x): out[k] = (t, x - du)

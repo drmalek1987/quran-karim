@@ -70,7 +70,7 @@ def run(variant):
             Vd.update(v)
         res.setdefault(r['set'], []).append((name, j, [Vd.get(k) == 1 for k in range(n)]))
     out = {}
-    for s in ['ha', 'tlog', 'reciters', 'ALL']:
+    for s in sorted(res) + ['ALL']:
         R = [x for k, L in res.items() if s in (k, 'ALL') for x in L]
         pw = [ok for name, j, vs in R if name == 'pos' for ok in vs]; nw = [not vs[j] for name, j, vs in R if name == 'neg']
         out[s] = {'verify': round(100 * (sum(pw) + sum(nw)) / (len(pw) + len(nw)), 1),
