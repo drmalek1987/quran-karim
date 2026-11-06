@@ -370,6 +370,8 @@
     var s = document.querySelector('[data-dlp="' + e + '"]');
     if (v === "wait") { if (s) s.nextElementSibling.textContent = "النت فاصل، التنزيل هيكمّل لوحده…"; return; }
     edPct[e] = v;
+    var am = e.replace(/p$/, "");
+    if (ASRM[am]) { var aps = asrPacks(am); v = Math.round((aps.indexOf(e) * 100 + +v) / aps.length); }
     if (s) { s.querySelector("i").style.width = v + "%"; s.nextElementSibling.textContent = v + "%"; }
   };
   // A download cut off when the app was closed goes on by itself from where it stopped.
@@ -417,6 +419,7 @@
       var ps = asrPacks(m), ok = asrReady(m), q = ps.filter(function (k) { return edQ.indexOf(k) >= 0; });
       var cur = q.filter(function (k) { return EdBridge.state(k) === "busy"; })[0], p = cur ? edPct[cur] || 0 : 0;
       var step = cur ? ps.indexOf(cur) + 1 : 0;
+      if (cur) p = Math.round(((step - 1) * 100 + p) / ps.length);   // one bar for the whole model, so it never jumps back to 0
       return '<div class="dl-item"><div><b>' + ASRM[m].name + "</b>" + (q.length ? '<span class="dl-p" data-dlp="' + (cur || q[0]) + '"><i style="width:' + p + '%"></i></span><small>' + (cur ? "جزء " + step + " من " + ps.length + " · " + p + "%" : "في الانتظار…") + "</small>" :
         "<small>" + (ok ? "✓ على الموبايل · " : "مش متنزّل · ") + ASRM[m].mb + " ميجا" + (asrOld(m) ? " · فيه نسخة جديدة أدق" : "") + "</small>") + "</div>" +
         (q.length ? "" : (asrOld(m) ? '<button class="btn" data-asrup="' + m + '">تحديث</button>' : "") + '<button class="btn" data-asrdl="' + m + '">' + (ok ? "حذف" : "تنزيل") + "</button>") + "</div>";

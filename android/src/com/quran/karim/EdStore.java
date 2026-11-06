@@ -113,7 +113,89 @@ class EdStore {
     @JavascriptInterface
     public void pause(String id) { if (id != null && id.equals(busy)) pausing = true; }
 
-    private void fetch(String id, String url, File zip) throws Exception {
+    // Parallel fetch: the file is cut into NP ranges, each on its own connection (one GitHub connection is often slow,
+    // ~250 KB/s; four together are ~5x faster). <id>.zip.map keeps how much of each range arrived, so a cut, a pause or
+    // closing the app resumes every range where it stopped. Servers without Range use the single-stream fetch1().
+    static final int NP = 4;
+    private void fetch(final String id, final String url, final File zip) throws Exception {
+        final File map = new File(dir, id + ".zip.map");
+        if (zip.exists() && zip.length() > 0 && !map.exists()) { fetch1(id, url, zip); return; }   // an old single-stream part
+        long total = -1; long[] done = new long[NP];
+        if (map.exists()) {
+            String[] f = new String(readAll(map), "UTF-8").trim().split(" ");
+            if (f.length == NP + 1) { total = Long.parseLong(f[0]); for (int i = 0; i < NP; i++) done[i] = Long.parseLong(f[i + 1]); }
+        }
+        if (total <= 0 || !zip.exists() || zip.length() != total) {
+            HttpURLConnection c = open(url); c.setRequestProperty("Range", "bytes=0-0");
+            int code = c.getResponseCode(); String cr = c.getHeaderField("Content-Range"); c.disconnect();
+            if (code != 206 || cr == null || cr.indexOf('/') < 0 || cr.endsWith("*")) { map.delete(); zip.delete(); fetch1(id, url, zip); return; }
+            total = Long.parseLong(cr.substring(cr.indexOf('/') + 1).trim());
+            done = new long[NP];
+            java.io.RandomAccessFile r = new java.io.RandomAccessFile(zip, "rw"); r.setLength(total); r.close();
+        }
+        final long T = total; final long[] D = done; final long step = (T + NP - 1) / NP;
+        final Exception[] fail = new Exception[1];
+        Thread[] th = new Thread[NP];
+        for (int i = 0; i < NP; i++) {
+            final int k = i;
+            th[i] = new Thread(new Runnable() { public void run() {
+                long a = k * step, b = Math.min(T, a + step);       // [a, b)
+                if (a + D[k] >= b) return;
+                java.io.RandomAccessFile r = null; HttpURLConnection c = null; InputStream in = null;
+                try {
+                    c = open(url); c.setRequestProperty("Range", "bytes=" + (a + D[k]) + "-" + (b - 1));
+                    if (c.getResponseCode() != 206) throw new Exception("HTTP " + c.getResponseCode());
+                    in = c.getInputStream(); r = new java.io.RandomAccessFile(zip, "rw"); r.seek(a + D[k]);
+                    byte[] buf = new byte[65536]; int n;
+                    while (a + D[k] < b && (n = in.read(buf, 0, (int) Math.min(buf.length, b - a - D[k]))) > 0) {
+                        if (pausing) throw new Paused();
+                        synchronized (fail) { if (fail[0] != null) return; }
+                        r.write(buf, 0, n);
+                        synchronized (D) { D[k] += n; }
+                    }
+                    if (a + D[k] < b) throw new Exception("short");
+                } catch (Exception e) { synchronized (fail) { if (fail[0] == null) fail[0] = e; } }
+                finally {
+                    try { if (r != null) r.close(); } catch (Exception e) {}
+                    try { if (in != null) in.close(); } catch (Exception e) {}
+                    if (c != null) c.disconnect();
+                }
+            } });
+            th[i].start();
+        }
+        int last = -1; long saved = -1;
+        while (true) {
+            boolean alive = false;
+            for (Thread t : th) if (t.isAlive()) alive = true;
+            long got = 0; StringBuilder sb = new StringBuilder(String.valueOf(T));
+            synchronized (D) { for (long x : D) { got += x; sb.append(' ').append(x); } }
+            if (got != saved) { writeAll(map, sb.toString()); saved = got; }   // written after the bytes, so it never overstates
+            int pct = (int) (got * 95 / T);
+            if (pct != last) { last = pct; tell(id, String.valueOf(pct)); }
+            if (!alive) break;
+            Thread.sleep(400);
+        }
+        if (fail[0] != null) throw fail[0];
+        map.delete();
+    }
+
+    private static HttpURLConnection open(String url) throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+        c.setInstanceFollowRedirects(true); c.setConnectTimeout(20000); c.setReadTimeout(30000);
+        return c;
+    }
+    private static byte[] readAll(File f) throws Exception {
+        FileInputStream in = new FileInputStream(f); byte[] b = new byte[(int) f.length()]; int o = 0, n;
+        try { while (o < b.length && (n = in.read(b, o, b.length - o)) > 0) o += n; } finally { in.close(); }
+        return b;
+    }
+    private static void writeAll(File f, String s) throws Exception {
+        File t = new File(f.getPath() + ".tmp"); FileOutputStream o = new FileOutputStream(t);
+        try { o.write(s.getBytes("UTF-8")); } finally { o.close(); }
+        t.renameTo(f);
+    }
+
+    private void fetch1(String id, String url, File zip) throws Exception {
         long have = zip.exists() ? zip.length() : 0;
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setInstanceFollowRedirects(true);
@@ -160,7 +242,7 @@ class EdStore {
     @JavascriptInterface
     public void remove(String id) {
         if (!okId(id) || id.equals(busy)) return;
-        new File(dir, id + ".ok").delete(); new File(dir, id + ".zip.part").delete();
+        new File(dir, id + ".ok").delete(); new File(dir, id + ".zip.part").delete(); new File(dir, id + ".zip.map").delete();
         String[] sub = id.startsWith("asr") ? new String[] { "asr/" + id } : id.equals("thmnotes") ? new String[] { "thmnotes" } : id.equals("harmain") ? new String[] { "pages", "tjpages" } : new String[] { "editions/" + id, "editions/" + id + "-tj" };
         for (String s : sub) wipe(new File(dir, s));
         if (id.startsWith("asrnv")) new File(dir, "asr/nv.onnx").delete();   // the joined model (NvAsr)
