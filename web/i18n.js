@@ -257,8 +257,14 @@
     "محتاج إذن الميكروفون عشان التسميع": "Microphone permission is needed to recite", "الموبايل مفيهوش خدمة التعرّف على الكلام": "This phone has no speech recognition service",
     "التسميع بالصوت شغال في التطبيق على الموبايل بس": "Voice recitation works only in the phone app", "اكشف آية واحدة على الأقل الأول": "Reveal at least one verse first" };
   var D49 = { "ساعد في تحسين التعرّف على التلاوة": "Help improve recitation recognition", "موافق": "I agree",
-    "لما توافق، التطبيق يحفظ مقاطع قصيرة من صوتك وقت تسميع الحفظ بموديل NVIDIA (الآيات اللي قرأتها صح، أو اللي دوست فيها «أنا قريت صح»)، ويبعتها مع نص الآيات ونسخة التطبيق ورقم عشوائي للجهاز، من غير اسم أو حساب، عشان نحسّن الموديل لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات. تقدر تلغي وتمسح كل تسجيلاتك في أي وقت.":
-      "With your consent, the app keeps short clips of your voice from the memorisation test with the NVIDIA model (verses you read right, or where you tapped «I read it right») and sends them with the verse text, the app version and a random device number, with no name or account, to improve the model for every reader. They upload on Wi-Fi only unless you allow mobile data. You can stop and delete all your recordings at any time.",
+    "الخصوصية وتسجيلات الصوت": "Privacy and voice recordings", "مش دلوقتي": "Not now", "حمّل النموذج": "Download the model",
+    "موافق على شروط استخدام النموذج وسياسة الخصوصية": "I agree to the model's terms of use and the privacy policy",
+    "ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)": "Help improve recitation recognition with your voice recordings (optional)",
+    "بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.":
+      "It runs on the phone without internet, and your voice does not leave the device during recognition. It is a helper for review and memorisation and can make mistakes, especially in noise. Details in Settings › About › Privacy.",
+    "تمام، دوس على المايك وابدأ": "Done. Tap the mic to start",
+    "لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت.":
+      "With your consent, the app keeps short clips of your recitation and sends them with no name or account, to improve recognition for all reciters. They upload on Wi-Fi only unless you allow mobile data, and you can withdraw and delete your recordings at any time.",
     "مستني يترفع: # مقطع · اترفض: #": "Waiting to upload: # clips · refused: #", "رفع التسجيلات على باقة البيانات": "Upload recordings on mobile data",
     "تحميل نموذج التعرّف على التلاوة": "Download the recitation recognition model", "✓ نموذج التعرّف على التلاوة جاهز": "✓ Recitation recognition model ready",
     "جاري تحميل نموذج التعرّف على التلاوة…": "Downloading the recitation recognition model…", "نموذج التعرّف على التلاوة": "Recitation recognition model",

@@ -224,3 +224,8 @@ Resume: push + release v5.8 (needs the user's OK), then P0b held-out + noisy tes
 Goal check: offers the recognition model on the first run (no model = no recognition) and starts the consent flow (G3.8) = near-complete app + recognition reach. Effort medium (G3).
 Welcome has 4 steps; step 3: terms switch gates «حمّل النموذج», separate unticked donate opt-in, saves q.modelConsent + q.donate, then needAsr("asrnv"). ui.js 181/0. Phone check queued in QA-checklist (5.11).
 Resume: G3.8 consent (model blocked until q.modelConsent; donate controls move from Settings into the privacy box + chip), then G3.9 mic tips/test.
+
+## 5.11 G3.8 — model consent + privacy box — done 2026-11-07
+Goal check: required, clear consent before the model runs and a separate opt-in for voice donation = trust for the near-complete app and a clean, consented data stream for the >95% recognition work (G8/G10). Effort medium.
+consentDlg (terms required, donate separate + unticked) gates micGate on the phone, incl. readers upgrading with the model; donate tools moved to «الخصوصية وتسجيلات الصوت» (+ chip). User edits via a forked session: no «not agreed yet» line, shorter donate hint without the model name. ui.js 183/0; donate.js 14/15 (pre-existing «phone recogniser» check, to fix in 5.11 QA).
+Resume: G3.9 mic tips + mic test (micTips, q.micTest, Settings row «اختبار المايك»).

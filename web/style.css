@@ -856,6 +856,9 @@ body.has-tabs .player { bottom: 70px; }
 .wel-card .continue { text-align: center; } .wel-card select { margin: 0; }
 .wel-got { color: var(--accent) !important; font-weight: 700; min-height: 1em; }
 .wel .continue:disabled { opacity: .45; }
+.dlg-ok:disabled { opacity: .45; }
+#settings .set-group { scroll-margin-top: 64px; }
+.row[hidden] { display: none; }
 .wel-card .rem-row { text-align: start; border: 1px solid var(--line); }
 .wel-btns { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
 .wel-skip { border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }

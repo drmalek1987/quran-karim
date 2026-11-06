@@ -281,7 +281,8 @@
   (function () {
     var body = document.querySelector("#settings .sheet-body"), h2 = body.querySelector("h2"), groups = body.querySelectorAll(".set-group");
     var j = document.createElement("div"); j.className = "set-jump";
-    groups.forEach(function (g, i) { g.id = g.id || "sg" + i; var b = document.createElement("button"); b.textContent = g.textContent; b.onclick = function () { g.scrollIntoView({ behavior: "smooth", block: "start" }); }; j.appendChild(b); });
+    // A group inside a closed <details> (التحميلات, الخصوصية) opens it; data-chip gives a short chip name.
+    groups.forEach(function (g, i) { g.id = g.id || "sg" + i; var b = document.createElement("button"); b.textContent = g.dataset.chip || g.textContent; b.onclick = function () { if (g.parentNode.tagName === "DETAILS") g.parentNode.open = true; g.scrollIntoView({ behavior: "smooth", block: "start" }); }; j.appendChild(b); });
     h2.after(j);
     var fs = document.getElementById("fontSize").closest(".row"), pv = document.createElement("div"); pv.className = "set-prev";
     pv.innerHTML = Q.t[0][1] + ' <span class="ayah-no">﴿' + ar(2) + "﴾</span>"; fs.after(pv);
@@ -365,8 +366,38 @@
     b.textContent = asrReady("asrnv") ? "✓ نموذج التعرّف على التلاوة جاهز" : q ? "جاري تحميل نموذج التعرّف على التلاوة…" : "تحميل نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا)";
     b.disabled = asrReady("asrnv") || q;
   }
+  // 5.11 G3.8: the model works only after its terms are accepted once (q.modelConsent). The voice donation is a separate
+  // optional box, unticked by default, never bundled with the terms.
+  function modelOk() { return !!load("modelConsent", null); }
+  function consentDlg(then) {
+    var d = el('<div class="dlg-back"><div class="dlg cs-dlg"><b>نموذج التعرّف على التلاوة</b><p class="hint">بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. ' +
+      "هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</p>" +
+      '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
+      '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cDonate"' + (load("donate", 0) === 1 ? " checked" : "") + "><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>" +
+      '<div class="dlg-btns"><button class="dlg-no">مش دلوقتي</button><button class="dlg-ok" disabled>موافق</button></div></div></div>').firstChild;
+    document.body.appendChild(d);
+    var t = d.querySelector("#cTerms"), ok = d.querySelector(".dlg-ok");
+    t.onchange = function () { ok.disabled = !t.checked; };
+    d.querySelector(".dlg-no").onclick = function () { d.remove(); };
+    ok.onclick = function () {
+      save("modelConsent", { v: 1, t: Date.now() }); save("donate", d.querySelector("#cDonate").checked ? 1 : 0);
+      d.remove(); donatePaint(); privPaint(); if (then) then();
+    };
+  }
+  function privPaint() {
+    var e = document.getElementById("consentState"), c = load("modelConsent", null); if (!e) return;
+    // Only the agreed state is shown; with no consent the row stays hidden (the reader is asked on first use).
+    e.parentNode.hidden = !c; e.textContent = !c ? "" : window.LANG === "en" ? "✓ You agreed to the recitation model's terms on " + new Date(c.t).toLocaleDateString("en-GB") : "✓ وافقت على شروط نموذج التعرّف على التلاوة يوم " + new Date(c.t).toLocaleDateString("ar-EG");
+  }
   // On the phone without the model, a voice feature offers the download instead of starting.
   function micGate() {
+    if (window.EdBridge && !modelOk()) {
+      consentDlg(function () {
+        if (window.NvBridge && NvBridge.ready()) return toast("تمام، دوس على المايك وابدأ");
+        needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); }); asrBtn();
+      });
+      return false;
+    }
     if (!window.EdBridge || (window.NvBridge && NvBridge.ready())) return true;
     if (asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; })) { toast("نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات"); return false; }
     if (confirm("الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟")) needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); });
@@ -570,7 +601,7 @@
     if (ok) save("donateId", "");
     toast(ok ? "اتمسحت كل تسجيلاتك" : "المسح ما نجحش، اتأكد من النت وجرّب تاني"); donatePaint();
   };
-  donatePaint();
+  donatePaint(); privPaint();
   // Waiting clips go out in the background (DonateJob): on Wi-Fi, or any network if the reader allowed mobile data.
   function donateSend() {
     if (load("donate", 0) !== 1 || !window.NvBridge || !NvBridge.sendDonations) return;

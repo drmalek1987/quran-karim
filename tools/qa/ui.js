@@ -381,9 +381,9 @@ async function fresh(ctx, vp) {
     const cer = Math.round(100 * E / L); return assert(cer < 35, cer + '%') && cer + '%'; });
   const G17 = 'نسخة 4.6 (قائمة 31 أكتوبر)';
   await check(G17, 'الإعدادات: التحميلات قبل «حول التطبيق»، والقوايم المفتوحة بتتقفل لما الإعدادات تتقفل', async () => { await go('#/', 500); await p.click('#btnSettings');
-    const order = await ev(() => { const d = document.getElementById('dlGroup'), a = document.querySelector('.about-box'); return !!(d.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) && d.nextElementSibling === a; });
-    await ev(() => { document.getElementById('dlGroup').open = true; document.querySelector('.about-box').open = true; }); await closeS(); await wait(100);
-    const closed = await ev(() => !document.getElementById('dlGroup').open && !document.querySelector('.about-box').open);
+    const order = await ev(() => { const d = document.getElementById('dlGroup'), a = document.querySelector('.about-box'); return !!(d.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) && d.nextElementSibling.id === 'privGroup' && d.nextElementSibling.nextElementSibling === a; });
+    await ev(() => { document.getElementById('dlGroup').open = true; document.getElementById('privGroup').open = true; document.querySelector('.about-box').open = true; }); await closeS(); await wait(100);
+    const closed = await ev(() => !document.getElementById('dlGroup').open && !document.getElementById('privGroup').open && !document.querySelector('.about-box').open);
     const hint = await ev(() => !document.getElementById('dlRow').textContent.includes('مرة واحدة'));
     return assert(order && closed && hint, JSON.stringify([order, closed, hint])); });
   await check(G17, 'أقسام الإعدادات ليها شريط ملوّن يميّزها', async () => { await p.click('#btnSettings'); const r = await ev(() => { const g = document.querySelector('#settings .set-group'); const c = getComputedStyle(g); return [c.backgroundColor, c.borderInlineStartWidth]; }); await closeS(); return assert(r[0] !== 'rgba(0, 0, 0, 0)' && parseFloat(r[1]) >= 3, JSON.stringify(r)); });
@@ -497,11 +497,11 @@ async function fresh(ctx, vp) {
     const r = await ev(() => { const eb = window.EdBridge, nb = window.NvBridge, rb = window.ReciteBridge, cf = window.confirm; let asked = '', started = false;
       window.EdBridge = { state: () => 'none', remove() {}, get() {} }; window.NvBridge = { ready: () => false, start() { started = true; }, stop() {} };
       window.ReciteBridge = { start() { started = true; }, stop() {}, setHints() {} }; window.confirm = m => { asked = m; return false; };
-      document.getElementById('rdMic').click();
+      localStorage.setItem('q.modelConsent', '{"v":1,"t":1}'); document.getElementById('rdMic').click(); localStorage.removeItem('q.modelConsent');
       window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; window.confirm = cf; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge;
       return [!!document.getElementById('asrSet'), /نموذج التعرّف على التلاوة/.test(asked), started]; });
     return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
-  await check(G511, 'زر «امسح تسجيلاتي» صغير جوه سياسة الخصوصية مش في الإعدادات العامة', () => ev(() => { const b = document.getElementById('donateDel'); return !!b && !!b.closest('.about-box') && b.classList.contains('link-sm') && !document.querySelector('#donateMob ~ #donateDel') && document.querySelectorAll('[data-donatedel]').length === 2; }));
+  await check(G511, 'زر «امسح تسجيلاتي» صغير جوه سياسة الخصوصية مش في الإعدادات العامة', () => ev(() => { const b = document.getElementById('donateDel'); return !!b && !!b.closest('.about-box') && b.classList.contains('link-sm') && !document.querySelector('#donateMob ~ #donateDel') && document.querySelectorAll('[data-donatedel]').length === 3 && !!document.querySelector('#privGroup [data-donatedel]'); }));
   await check(G511, 'سياسة الخصوصية فيها شروط استخدام النموذج واستخدام الصوت للتحسين (عربي وإنجليزي)', () => ev(() => { const t = [...document.querySelectorAll('.about-box')].map(e => e.textContent).join(' '); return /شروط استخدام نموذج التعرّف على التلاوة/.test(t) && /لتدريب النموذج وتحسينه/.test(t) && /terms of use/.test(t) && /train and improve the model/.test(t) && !/غالبًا من جوجل/.test(t); }));
   for (const fm of ['slide', 'curl']) await check(G511, 'التقليب (' + fm + '): الصفحة الجاية في مكانها جنب الحالية، من غير هامش أبيض (RTL كان بيتجاهل margin-left)', async () => {
     if (ED !== 'kfgqpc') return true;
@@ -543,9 +543,9 @@ async function fresh(ctx, vp) {
     await closeS(); await ev(() => localStorage.removeItem('q.thematic'));
     return assert(r.every(x => x[0] && x[1] && x[2] === 'none'), JSON.stringify(r)); });
   await check(G511, '«ألوان المصحف الموضوعي» من غير «(على صفحات المصحف)»', async () => { const t = await ev(() => document.getElementById('thmSet').closest('.row').firstChild.textContent.trim()); return assert(t === 'ألوان المصحف الموضوعي', t); });
-  await check(G511, 'شريط أقسام الإعدادات: القراءة، الألوان والمظهر، الصوت والتلاوة، التطبيق، التحميلات', async () => {
+  await check(G511, 'شريط أقسام الإعدادات: القراءة، الألوان والمظهر، الصوت والتلاوة، التطبيق، التحميلات، الخصوصية', async () => {
     const r = await ev(() => [...document.querySelectorAll('#settings .set-jump button')].map(b => b.textContent.trim()));
-    return assert(JSON.stringify(r) === JSON.stringify(['القراءة', 'الألوان والمظهر', 'الصوت والتلاوة', 'التطبيق', 'التحميلات']), JSON.stringify(r)); });
+    return assert(JSON.stringify(r) === JSON.stringify(['القراءة', 'الألوان والمظهر', 'الصوت والتلاوة', 'التطبيق', 'التحميلات', 'الخصوصية']), JSON.stringify(r)); });
   await check(G511, 'شاشة الترحيب: «تخطي» في كل خطوة بيعدّي الخطوة دي بس، والأخيرة بتقفل، و«تخطي الكل» بيقفل على طول', async () => {
     await go('#/welcome', 600); const r = [];
     for (let i = 0; i < 8; i++) { const st = await ev(() => { const w = document.querySelector('.wel'); if (!w) return null; return [[...w.querySelectorAll('.wel-dots i')].findIndex(x => x.classList.contains('on')), !!w.querySelector('.wel-skip') && w.querySelector('.wel-skip').textContent.trim()]; });
@@ -562,6 +562,26 @@ async function fresh(ctx, vp) {
       a.push(!!JSON.parse(localStorage.getItem('q.modelConsent') || 'null'), localStorage.getItem('q.donate')); return a; });
     await ev(() => { document.querySelectorAll('.wel').forEach(x => x.remove()); localStorage.removeItem('q.modelConsent'); localStorage.removeItem('q.donate'); });
     return assert(r[0] === 4 && r[1] === 'نموذج التعرّف على التلاوة' && r[2] === true && r[3] === false && r[4] === false && r[5] === true && r[6] === '0', JSON.stringify(r)); });
+  await check(G511, 'أدوات التبرّع بالصوت جوه «الخصوصية وتسجيلات الصوت» مش في «الصوت والتلاوة»، والـ chip بيفتح البوكس', async () => {
+    await p.click('#btnSettings'); await wait(300);
+    const r = await ev(() => { const pg = document.getElementById('privGroup'); const inPriv = ['donateSet', 'donateMob', 'donateStats'].every(id => pg.contains(document.getElementById(id)));
+      const open0 = pg.open; [...document.querySelectorAll('#settings .set-jump button')].find(b => b.textContent.trim() === 'الخصوصية').click();
+      return [inPriv, open0, pg.open, !!pg.querySelector('[data-donatedel]'), document.getElementById('consentState').parentNode.hidden]; });
+    await ev(() => { document.getElementById('privGroup').open = false; }); await closeS();
+    return assert(r[0] && r[1] === false && r[2] === true && r[3] && r[4], JSON.stringify(r)); });
+  await check(G511, 'موافقة النموذج: المايك على الموبايل مقفول لحد الموافقة، «موافق» مقفول لحد الشروط، والتبرّع منفصل ومش متعلّم', async () => {
+    const run = donate => ev(dn => { localStorage.removeItem('q.modelConsent'); localStorage.removeItem('q.donate');
+      const nb = window.NvBridge; window.EdBridge = { state: () => 'none', download() {}, remove() {}, pause() {} }; window.NvBridge = { ready: () => true, start() {}, stop() {} };
+      const fin = v => { delete window.EdBridge; if (nb) window.NvBridge = nb; else delete window.NvBridge; return v; };
+      document.getElementById('rdMic').click(); const d = document.querySelector('.cs-dlg'); if (!d) return fin(['no dialog']);
+      const ok = d.querySelector('.dlg-ok'), a = [ok.disabled, d.querySelector('#cDonate').checked];
+      const t = d.querySelector('#cTerms'); t.checked = true; t.dispatchEvent(new Event('change')); a.push(ok.disabled);
+      if (dn) d.querySelector('#cDonate').checked = true; ok.click();
+      a.push(!!JSON.parse(localStorage.getItem('q.modelConsent') || 'null'), localStorage.getItem('q.donate'), !document.querySelector('.cs-dlg'));
+      return fin(a); }, donate);
+    await go('#/p/2', 900); const r0 = await run(false), r1 = await run(true);
+    await ev(() => { localStorage.removeItem('q.modelConsent'); localStorage.removeItem('q.donate'); document.querySelectorAll('.dlg-back').forEach(x => x.remove()); });
+    return assert(r0[0] === true && r0[1] === false && r0[2] === false && r0[3] && r0[4] === '0' && r0[5] && r1[4] === '1', JSON.stringify([r0, r1])); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
