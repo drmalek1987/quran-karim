@@ -542,6 +542,7 @@ async function fresh(ctx, vp) {
       r.push(await ev(b => { const sb = document.querySelector('#settings .sheet-body'); return [!document.getElementById('settings').hidden, Math.abs(sb.scrollTop - b) < 2, getComputedStyle(sb).animationName]; }, before)); }
     await closeS(); await ev(() => localStorage.removeItem('q.thematic'));
     return assert(r.every(x => x[0] && x[1] && x[2] === 'none'), JSON.stringify(r)); });
+  await check(G511, '«ألوان المصحف الموضوعي» من غير «(على صفحات المصحف)»', async () => { const t = await ev(() => document.getElementById('thmSet').closest('.row').firstChild.textContent.trim()); return assert(t === 'ألوان المصحف الموضوعي', t); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

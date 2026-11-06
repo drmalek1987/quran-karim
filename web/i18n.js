@@ -26,7 +26,7 @@
     "تحذف صفحات # من الموبايل؟": "Delete this edition's pages from the phone?", "تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.": "Delete the pages of every edition from the phone? You can download them again here.",
     "صفحات المصحف هتتنزل مرة واحدة (حوالي # ميجا) وبعدها تشتغل من غير إنترنت.": "The mushaf pages download once (about # MB), then work offline.", "إلغاء": "Cancel", "حاول تاني": "Try again", "التنزيل فشل. اتأكد من الإنترنت وحاول تاني.": "The download failed. Check the internet and try again.",
     "#٪": "#%", "طبعة الملك فهد": "King Fahd edition", "طبعة الشمرلي": "Shamarly edition", "طبعة الحرمين": "Haramain edition",
-    "ألوان المصحف الموضوعي (على صفحات المصحف)": "Thematic mushaf colours (on the pages)", "معاني الألوان": "What the colours mean",
+    "ألوان المصحف الموضوعي": "Thematic mushaf colours", "معاني الألوان": "What the colours mean",
     "تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. كل موضوع بدرجتين من لونه عشان يبان أوله وآخره.": "The «al-Tafsil al-Mawdu'i» division, with the permission of Dar al-Fajr al-Islami; idea and preparation by Marwan Nour al-Din Sawar. Each topic has two shades of its colour so its start and end show.",
     "آيات الله في الكون والأنفس، وفضله على عباده": "God's signs in the universe and in people, and His grace to His servants", "النبي ﷺ والمؤمنون وجزاؤهم والجنة": "The Prophet ﷺ, the believers, their reward and Paradise", "آيات الأحكام": "Verses of rulings",
     "قصص الرسل والأنبياء والأمم السابقة": "Stories of the messengers, prophets and earlier nations", "القرآن الكريم، وصفات الإنسان، والرد على المشركين، وسنة الله في خلقه": "The Quran, human nature, answers to the idolaters, and God's way with His creation",
