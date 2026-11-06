@@ -257,7 +257,8 @@
     "محتاج إذن الميكروفون عشان التسميع": "Microphone permission is needed to recite", "الموبايل مفيهوش خدمة التعرّف على الكلام": "This phone has no speech recognition service",
     "التسميع بالصوت شغال في التطبيق على الموبايل بس": "Voice recitation works only in the phone app", "اكشف آية واحدة على الأقل الأول": "Reveal at least one verse first" };
   var D49 = { "ساعد في تحسين التعرّف على التلاوة": "Help improve recitation recognition", "موافق": "I agree",
-    "الخصوصية وتسجيلات الصوت": "Privacy and voice recordings", "امسح كل تسجيلاتي اللي اتبعتت": "Delete all my sent recordings", "مش دلوقتي": "Not now", "حمّل النموذج": "Download the model",
+    "الخصوصية وتسجيلات الصوت": "Privacy and voice recordings", "✓ جاهز على الموبايل": "✓ On the phone", "جاري التحميل…": "Downloading…", "مش متنزّل · # ميجا": "Not downloaded · # MB",
+    "تنزيل النموذج شغال في التطبيق على الموبايل بس.": "The model downloads in the phone app only.", "امسح كل تسجيلاتي اللي اتبعتت": "Delete all my sent recordings", "مش دلوقتي": "Not now", "حمّل النموذج": "Download the model",
     "موافق على شروط استخدام النموذج وسياسة الخصوصية": "I agree to the model's terms of use and the privacy policy",
     "ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)": "Help improve recitation recognition with your voice recordings (optional)",
     "بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.":

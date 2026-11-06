@@ -354,7 +354,7 @@ async function fresh(ctx, vp) {
     const on = await ev(() => document.body.classList.contains('fs')); await ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await wait(300); const off = await ev(() => !document.body.classList.contains('fs'));
     return assert(on && off, JSON.stringify([on, off])); });
   const G16 = 'نسخة 4.5: موديل NVIDIA';
-  await check(G16, 'الإعدادات فيها زر «تحميل نموذج التعرّف على التلاوة» و«حول» فيها رخصته', async () => { await p.click('#btnSettings'); const r = await ev(() => [/تحميل نموذج التعرّف على التلاوة/.test((document.getElementById('asrDl') || {}).textContent || ''), /FastConformer[\s\S]*CC BY 4\.0/.test(document.body.innerHTML)]); await closeS(); return assert(r[0] && r[1], JSON.stringify(r)); });
+  await check(G16, 'الإعدادات فيها زر «تحميل نموذج التعرّف على التلاوة» و«حول» فيها رخصته', async () => { await p.click('#btnSettings'); const r = await ev(() => [!!document.querySelector('#asrBox > summary') && /التعرّف على التلاوة/.test(document.querySelector('#asrBox > summary').textContent) && !!document.querySelector('#asrBox #asrDl'), /FastConformer[\s\S]*CC BY 4\.0/.test(document.body.innerHTML)]); await closeS(); return assert(r[0] && r[1], JSON.stringify(r)); });
   await check(G16, 'المايك على الصفحة بيشغّل موديل NVIDIA لما يكون متنزّل ومختار', async () => { await go('#/p/2', 900);
     // 5.4: NVIDIA runs only in NvAsr.java (NvBridge); the web runtime path (asr.js) went with the whisper models
     const r = await ev(() => { const nb = window.NvBridge, rb = window.ReciteBridge; let got = null;
@@ -568,7 +568,7 @@ async function fresh(ctx, vp) {
     await p.click('#btnSettings'); await wait(300);
     const r = await ev(() => { const pg = document.getElementById('privGroup'); const inPriv = ['donateSet', 'donateMob', 'donateStats'].every(id => pg.contains(document.getElementById(id)));
       const open0 = pg.open; [...document.querySelectorAll('#settings .set-jump button')].find(b => b.textContent.trim() === 'الخصوصية').click();
-      return [inPriv, open0, pg.open, !!pg.querySelector('[data-donatedel]'), document.getElementById('consentState').parentNode.hidden]; });
+      return [inPriv, open0, pg.open, !!pg.querySelector('[data-donatedel]'), !document.getElementById('consentState')]; });
     await ev(() => { document.getElementById('privGroup').open = false; }); await closeS();
     return assert(r[0] && r[1] === false && r[2] === true && r[3] && r[4], JSON.stringify(r)); });
   await check(G511, 'موافقة النموذج: المايك على الموبايل مقفول لحد الموافقة، «موافق» مقفول لحد الشروط، والتبرّع منفصل ومش متعلّم', async () => {
@@ -584,6 +584,18 @@ async function fresh(ctx, vp) {
     await go('#/p/2', 900); const r0 = await run(false), r1 = await run(true);
     await ev(() => { localStorage.removeItem('q.modelConsent'); localStorage.removeItem('q.donate'); document.querySelectorAll('.dlg-back').forEach(x => x.remove()); });
     return assert(r0[0] === true && r0[1] === false && r0[2] === false && r0[3] && r0[4] === '0' && r0[5] && r1[4] === '1', JSON.stringify([r0, r1])); });
+  await check(G511, '«التعرّف على التلاوة» box مقفول بيتفتح باللمس، فيه حالة النموذج وكارت التنزيل/الحذف، ومفيش جملة «وافقت على الشروط»', async () => {
+    await p.click('#btnSettings'); await wait(300);
+    const r = await ev(() => { const b = document.getElementById('asrBox'), o0 = b.open; b.querySelector('summary').click();
+      return [o0, b.open, document.getElementById('asrSum').textContent.trim(), b.querySelector('#asrDl').textContent.trim().length > 0, document.querySelectorAll('[id="asrDl"]').length, !document.getElementById('consentState')]; });
+    await closeS();
+    return assert(r[0] === false && r[1] === true && /ميجا|جاهز|التحميل/.test(r[2]) && r[3] && r[4] === 1 && r[5], JSON.stringify(r)); });
+  await check(G511, '«ألوان المصحف الموضوعي»: تشغيل/إيقاف جنب العنوان زي «ألوان التجويد»، و«معاني الألوان» تحتهم', async () => {
+    await p.click('#btnSettings'); await wait(300);
+    const r = await ev(() => { const row = document.getElementById('thmSet').closest('.row'); row.scrollIntoView(); const s = document.getElementById('thmSet').getBoundingClientRect(), k = row.querySelector('.thm-key').getBoundingClientRect(), t = document.getElementById('tjSet').getBoundingClientRect();
+      return [Math.round(s.left - t.left), Math.round(k.top - s.bottom), row.firstChild.textContent.trim()]; });
+    await closeS();
+    return assert(Math.abs(r[0]) < 2 && r[1] >= 0 && r[2] === 'ألوان المصحف الموضوعي', JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

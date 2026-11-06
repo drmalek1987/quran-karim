@@ -359,12 +359,12 @@
   }
   // A finished download or update also makes that model the recogniser (a phone left on «الموبايل» would never use it).
   function asrPick(m) { save("asr", m); asrBtn(); }
-  // 5.11: NVIDIA's model is the only recogniser; Settings shows one download button instead of a picker.
+  // 5.11: NVIDIA's model is the only recogniser. Settings › «التعرّف على التلاوة» is a closed box: its title line shows the
+  // state, and a tap opens the model card (download / delete, paintAsrDl).
   function asrBtn() {
-    var b = document.getElementById("asrDl"); if (!b) return;
+    var b = document.getElementById("asrSum"); if (!b) return;
     var q = asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; });
-    b.textContent = asrReady("asrnv") ? "✓ نموذج التعرّف على التلاوة جاهز" : q ? "جاري تحميل نموذج التعرّف على التلاوة…" : "تحميل نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا)";
-    b.disabled = asrReady("asrnv") || q;
+    b.textContent = asrReady("asrnv") ? "✓ جاهز على الموبايل" : q ? "جاري التحميل…" : "مش متنزّل · " + ar(ASRM.asrnv.mb) + " ميجا";
   }
   // 5.11 G3.8: the model works only after its terms are accepted once (q.modelConsent). The voice donation is a separate
   // optional box, unticked by default, never bundled with the terms.
@@ -381,13 +381,8 @@
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
     ok.onclick = function () {
       save("modelConsent", { v: 1, t: Date.now() }); save("donate", d.querySelector("#cDonate").checked ? 1 : 0);
-      d.remove(); donatePaint(); privPaint(); if (then) then();
+      d.remove(); donatePaint(); if (then) then();
     };
-  }
-  function privPaint() {
-    var e = document.getElementById("consentState"), c = load("modelConsent", null); if (!e) return;
-    // Only the agreed state is shown; with no consent the row stays hidden (the reader is asked on first use).
-    e.parentNode.hidden = !c; e.textContent = !c ? "" : window.LANG === "en" ? "✓ You agreed to the recitation model's terms on " + new Date(c.t).toLocaleDateString("en-GB") : "✓ وافقت على شروط نموذج التعرّف على التلاوة يوم " + new Date(c.t).toLocaleDateString("ar-EG");
   }
   // On the phone without the model, a voice feature offers the download instead of starting.
   function micGate() {
@@ -443,7 +438,8 @@
   // Settings: each edition with its download state, to fetch or free it.
   function paintEdDl() {
     asrBtn(); var box = document.getElementById("edDl"); if (!box) return;
-    if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; }); return; }
+    if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; });
+      var ab = document.getElementById("asrDl"); if (ab) ab.innerHTML = '<p class="hint">تنزيل النموذج شغال في التطبيق على الموبايل بس.</p>'; return; }
     var ids = ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).concat(window.THEMATIC ? ["thmnotes"] : []), any = false;
     var nm = function (k) { return EDS[k] ? EDS[k].name : "هامش المصحف الموضوعي"; };
     paintAsrDl();
@@ -477,8 +473,7 @@
   var ED_MB = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46, thmnotes: 9 };
   // Settings › Downloads: each recitation model, to fetch or free it.
   function paintAsrDl() {
-    var box = document.getElementById("asrDl");
-    if (!box) { box = document.createElement("div"); box.id = "asrDl"; box.className = "dl-list"; document.getElementById("edDl").after(box); }
+    var box = document.getElementById("asrDl"); if (!box) return;
     box.innerHTML = Object.keys(ASRM).map(function (m) {
       var ps = asrPacks(m), ok = asrReady(m), q = ps.filter(function (k) { return edQ.indexOf(k) >= 0; });
       var cur = q.filter(function (k) { return EdBridge.state(k) === "busy"; })[0], p = cur ? edPct[cur] || 0 : 0;
@@ -496,7 +491,7 @@
         if (!confirm("تحذف " + ASRM[m].name + " من الموبايل؟")) return;
         EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
         paintEdDl();
-      } else needAsr(m, function () { asrPick(m); paintEdDl(); });
+      } else { var go = function () { needAsr(m, function () { asrPick(m); paintEdDl(); }); }; if (modelOk()) go(); else consentDlg(go); }
     }; });
   }
   // Without the pages of the chosen edition (skipped download, or deleted) the reader opens the text until one is fetched.
@@ -601,7 +596,7 @@
     if (ok) save("donateId", "");
     toast(ok ? "اتمسحت كل تسجيلاتك" : "المسح ما نجحش، اتأكد من النت وجرّب تاني"); donatePaint();
   };
-  donatePaint(); privPaint();
+  donatePaint();
   // Waiting clips go out in the background (DonateJob): on Wi-Fi, or any network if the reader allowed mobile data.
   function donateSend() {
     if (load("donate", 0) !== 1 || !window.NvBridge || !NvBridge.sendDonations) return;
@@ -2250,8 +2245,6 @@
     try { ReciteBridge.setHints(out.join("\n")); } catch (e) {}
   }
   // The recogniser: the phone's own (ReciteBridge), or a Quran model run on the phone (asr.js), chosen in Settings.
-  var asrDl = document.getElementById("asrDl");
-  asrDl.onclick = function () { if (!window.EdBridge) return toast("التحميل شغال في التطبيق على الموبايل بس"); micGate(); asrBtn(); };
   asrBtn();
   function asrModel() { return null; }   // the whisper models (asr.js) are gone since 5.4; NvAsr or the phone's recogniser
   // The microphone behind every voice feature: NVIDIA's model on the phone (NvAsr.java) when it is chosen and downloaded,
