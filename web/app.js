@@ -4182,6 +4182,38 @@
   }
 
   // ---------- ملء الشاشة على المصحف ----------
+  // Going in or out of full screen, the page glides from its old place and size to the new one (FLIP) instead of
+  // jumping; the WebView resize that follows (immersive system bars) gets one more glide (5.11 G2).
+  var fsFlipUntil = 0, fsFlipRects = null;
+  function fsBoxes() { return [].slice.call(document.querySelectorAll("#view .page-wrap .page-box")); }
+  function fsFlipStart() { var bs = fsBoxes(); return bs.length ? bs.map(function (b) { return [b, b.getBoundingClientRect()]; }) : null; }
+  function fsFlip(fl) {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var lay = [];
+    fl.forEach(function (x) {
+      var b = x[0], r0 = x[1]; if (!b.isConnected) return;
+      b.style.transition = "none"; b.style.transform = "";
+      var r1 = b.getBoundingClientRect(); lay.push([b, r1]); if (!r1.width || reduce) return;
+      var sc = r0.width / r1.width, dx = r0.left - r1.left, dy = r0.top - r1.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sc - 1) < 0.005) return;
+      b.style.transformOrigin = "0 0";
+      b.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px) scale(" + sc.toFixed(4) + ")";
+      void b.offsetWidth;
+      b.style.transition = "transform .42s cubic-bezier(.4,0,.2,1)"; b.style.transform = "";
+      clearTimeout(b._fsT); b._fsT = setTimeout(function () { b.style.transition = b.style.transformOrigin = ""; }, 460);
+    });
+    fsFlipUntil = Date.now() + 900; fsFlipRects = lay;
+  }
+  // the resize from immersive(): glide from where the page was laid out before it
+  window.addEventListener("resize", function () {
+    if (Date.now() > fsFlipUntil || !fsFlipRects) return;
+    // where each page is drawn right now: its layout before the resize moved by the running glide
+    var fl = fsFlipRects.map(function (x) {
+      var b = x[0], r = x[1], m = new DOMMatrix(getComputedStyle(b).transform === "none" ? undefined : getComputedStyle(b).transform);
+      return [b, { left: r.left + m.e, top: r.top + m.f, width: r.width * m.a }];
+    });
+    fsFlipRects = null; fsFlipUntil = 0; fsFlip(fl);
+  });
   // A tap on a mushaf page hides the bars and buttons a moment later, leaving only the page; the next tap brings them back.
   var fsT = 0;
   function fsSet(on) {
@@ -4194,10 +4226,17 @@
     // after the change and once more after the layout settles), so full screen never moves to another page
     var anc = null, t0 = 0;
     if (vr) { var vb = document.querySelectorAll(".page-box.vp"); for (var i = 0; i < vb.length; i++) { var r = vb[i].getBoundingClientRect(); if (r.bottom > 80) { anc = vb[i]; t0 = r.top; break; } } }
+    var fl = vr ? null : fsFlipStart();
     document.body.classList.toggle("fs", on);
+    if (fl) fsFlip(fl);
     if (anc) { var fix = function () { var d = anc.getBoundingClientRect().top - t0; if (Math.abs(d) > 1) window.scrollBy(0, d); }; fix(); requestAnimationFrame(fix); setTimeout(fix, 320); }
-    try { if (window.AppBridge && AppBridge.immersive) AppBridge.immersive(on); } catch (e) {}
+    // Hiding the system bars resizes the WebView: going in, that waits until the page has glided into place, so the two
+    // motions don't run over each other (the resize then only nudges the page, and that nudge glides too).
+    clearTimeout(fsImmT);
+    var imm = function () { try { if (window.AppBridge && AppBridge.immersive) AppBridge.immersive(on); } catch (e) {} };
+    if (on) fsImmT = setTimeout(function () { if (document.body.classList.contains("fs")) imm(); }, 440); else imm();
   }
+  var fsImmT = 0;
   document.addEventListener("click", function (e) {
     // While auto-scroll runs in full screen a tap anywhere (but on its own bar) brings the bars back; the scrolling goes on.
     if (auto.on && autoFs && document.body.classList.contains("fs") && !e.target.closest("#autoBar")) { e.stopPropagation(); e.preventDefault(); autoFs = false; fsSet(false); return; }
@@ -4220,13 +4259,14 @@
     var isPage = /^#\/p\//.test(location.hash);
     if (!isPage) fsSet(false);
     else if (!wasPage) { fsAuto = true; fsLater(5000); }   // opening the mushaf goes full screen after 5 s without a touch
+    var pageToPage = isPage && wasPage;   // a page turn: no view-entry fade (it dimmed and nudged the page as it settled, 5.11 G2)
     wasPage = isPage;
     autoSet(false); zikrSpeech.stop();
     document.body.classList.remove("vread");
     document.body.classList.toggle("reading", /^#\/(p|s)\//.test(location.hash));
     document.body.classList.toggle("pgview", /^#\/p\//.test(location.hash));
     tabbar();
-    view.classList.remove("v-in"); void view.offsetWidth; view.classList.add("v-in");
+    view.classList.remove("v-in"); if (!pageToPage) { void view.offsetWidth; view.classList.add("v-in"); }
     if (!/^#\/(p|s)\//.test(location.hash) && hifz.on) { hifz.on = false; hifz.test = null; reciteStop(); hifzBar(); }
     if (stopQibla) stopQibla();
     sheet.hidden = true;

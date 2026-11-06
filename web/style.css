@@ -925,23 +925,27 @@ body.has-tabs .player { bottom: 70px; }
 /* full screen on the mushaf (a tap on the page) */
 /* The bars slide away (top ones up, bottom ones down) instead of vanishing. The top bar's space shrinks in step (margin-top = -its
    height, --barh set in fsSet) and the in-flow bottom rows fold their height, so the page moves smoothly and does not jump. */
-.bar { transition: transform .25s ease, opacity .25s ease, margin-top .25s ease, visibility 0s linear 0s; }
-#tabbar, .player, .vbar { transition: transform .25s ease, opacity .25s ease, visibility 0s linear 0s; }
-.page-tools, .page-nav { max-height: 240px; transition: transform .25s ease, opacity .25s ease, max-height .25s ease, margin .25s ease, padding .25s ease, visibility 0s linear 0s; }
+.bar { transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), margin-top .42s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s; }
+#tabbar, .player, .vbar { transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s; }
+.page-tools, .page-nav { max-height: 240px; transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), max-height .42s cubic-bezier(.4,0,.2,1), margin .42s cubic-bezier(.4,0,.2,1), padding-block .42s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s; }
 body.fs .bar { transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none; margin-top: calc(var(--barh, 60px) * -1);
-  transition: transform .25s ease, opacity .25s ease, margin-top .25s ease, visibility 0s linear .25s; }
-body.vread.fs .bar { transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s; }
+  transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), margin-top .42s cubic-bezier(.4,0,.2,1), visibility 0s linear .42s; }
+body.vread.fs .bar { transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), visibility 0s linear .42s; }
 body.fs #tabbar, body.fs .player, body.fs .vbar { transform: translateY(100%); opacity: 0; visibility: hidden; pointer-events: none;
-  transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s; }
+  transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), visibility 0s linear .42s; }
 body.fs .page-tools, body.fs .page-nav { transform: translateY(100%); opacity: 0; visibility: hidden; pointer-events: none; overflow: hidden; max-height: 0; margin-top: 0; padding-block: 0;
-  transition: transform .25s ease, opacity .25s ease, max-height .25s ease, margin .25s ease, padding .25s ease, visibility 0s linear .25s; }
+  transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), max-height .42s cubic-bezier(.4,0,.2,1), margin .42s cubic-bezier(.4,0,.2,1), padding-block .42s cubic-bezier(.4,0,.2,1), visibility 0s linear .42s; }
 @media (prefers-reduced-motion: reduce) {
   .bar, #tabbar, .player, .vbar, .page-tools, .page-nav, body.fs .bar, body.fs #tabbar, body.fs .player, body.fs .vbar, body.fs .page-tools, body.fs .page-nav, body.vread.fs .bar { transition: none; }
 }
 /* Full screen on a mushaf page: no margin or padding around the page, it fills the screen (the cropped page, see .page-wrap.crop, is contained in 100vw x 100vh). */
 body.fs.pgview main#view { padding: 0; max-width: none; }
+/* the rows under the page keep the width they had (main's 16px sides), so they fade out as they were instead of re-wrapping in one frame */
+body.fs.pgview .page-tools, body.fs.pgview .page-info, body.fs.pgview .page-tip { padding-inline: 16px; max-width: 760px; margin-inline: auto; }
 body.fs.pgview .page-wrap { margin-top: 0; }
-body.fs.pgview .page-info, body.fs.pgview .page-tip { display: none; }
+/* 5.11 G2: the page caption folds away with the bars instead of vanishing in one frame (display:none jumped the layout) */
+body.pgview .page-info, body.pgview .page-tip { max-height: 120px; overflow: hidden; transition: opacity .42s cubic-bezier(.4,0,.2,1), max-height .42s cubic-bezier(.4,0,.2,1), margin .42s cubic-bezier(.4,0,.2,1); }
+body.fs.pgview .page-info, body.fs.pgview .page-tip { opacity: 0; max-height: 0; margin-block: 0; pointer-events: none; }
 body.fs .vpages { padding: 0; }
 body.fs .page-wrap.crop { min-height: 100vh; align-items: center; }
 body.fs .page-wrap.crop .page-box { --W: min(100%, calc(100vh * var(--asp))); }

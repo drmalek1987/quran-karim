@@ -522,6 +522,18 @@ async function fresh(ctx, vp) {
     const fl = r.pop();
     return assert(r.every(x => !x[2]) && r.some(x => Math.abs(parseFloat(x[1])) > 20) && fl[0] >= 3 && fl[1] === 0, JSON.stringify(r) + ' flap ' + JSON.stringify(fl));
   });
+  await check(G511, 'تقليب الصفحة مالوش fade/رعشة (مفيش v-in من صفحة لصفحة) والشاشات التانية لسه ليها', async () => {
+    await go('#/p/29', 700); await go('#/p/30', 120); const a = await ev(() => document.getElementById('view').classList.contains('v-in'));
+    await go('#/', 120); const b = await ev(() => document.getElementById('view').classList.contains('v-in'));
+    return assert(!a && b, a + ',' + b); });
+  await check(G511, 'الدخول لملء الشاشة: الصفحة بتنزلق لمكانها الجديد (FLIP) بدل ما تنط', async () => {
+    await ev(() => localStorage.setItem('q.mode', '"pages"')); await p.reload(); await go('#/p/29', 900);
+    const r = await ev(async () => { const sl = ms => new Promise(f => setTimeout(f, ms)); window.QA_NOFS = false; const b = document.querySelector('#view .page-wrap .page-box');
+      b.click(); let mid = ''; for (let i = 0; i < 40 && !document.body.classList.contains('fs'); i++) await sl(50);
+      await sl(30); mid = getComputedStyle(b).transform; await sl(450); const end = getComputedStyle(b).transform, fs = document.body.classList.contains('fs');
+      window.QA_NOFS = true; return [fs, mid, end]; });
+    await ev(() => document.body.classList.remove('fs'));
+    return assert(r[0] && /matrix/.test(r[1]) && r[2] === 'none', JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
