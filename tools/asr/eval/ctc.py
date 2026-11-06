@@ -88,10 +88,10 @@ class QuranText:
         if not len(o): return None
         return self.keys[int(np.bincount(o).argmax())]
 
-def forced_words(G, stay, mx, lex, words, g=3.0, d=4.0):
+def forced_words(G, stay, mx, lex, words, g=3.0, d=4.0, spans=False):
     """Align the expected words (letter strings) over all frames. Between words (and before/after) frames may be garbage
     at (mx - g); a word may be skipped at cost d (it was not said / said wrong). Returns per word: None if skipped, else
-    (sum over its frames of path log-prob - mx, frames)."""
+    (sum over its frames of path log-prob - mx, frames). spans=True adds (first frame, last frame) to each tuple."""
     s = ''.join(words); L = len(s); tg = Target(lex, s); Fl = tg.Fl; T = len(G)
     bnd = np.cumsum([0] + [len(w) for w in words]); isb = np.zeros(L + 1, bool); isb[bnd] = True
     owner = np.zeros(L + 1, np.int64)
@@ -117,7 +117,7 @@ def forced_words(G, stay, mx, lex, words, g=3.0, d=4.0):
         gb = np.where(isb, A + (mx[t] - g), NEG)                  # garbage frame at a word boundary
         w = gb > nA; nA = np.where(w, gb, nA); bp = np.where(w, np.arange(L + 1), bp); kind[w] = 3
         nA, ep = eps(nA); BP[t], EM[t], KIND[t] = bp, em, kind; EPS.append(ep); A = nA
-    conf = [0.0] * len(words); nfr = [0] * len(words); skipped = [False] * len(words)
+    conf = [0.0] * len(words); nfr = [0] * len(words); skipped = [False] * len(words); f0 = [T] * len(words); f1 = [-1] * len(words)
     p = L
     def unskip(ep, p):
         while ep[p] >= 0:
@@ -132,9 +132,10 @@ def forced_words(G, stay, mx, lex, words, g=3.0, d=4.0):
         if k in (1, 2) and p > 0:
             # a frame staying at a word's end after its last letter belongs to that word; at p == boundary of the next
             # word's start it is the previous word's tail
-            i = owner[p]; conf[i] += float(EM[t, p] - mx[t]); nfr[i] += 1
+            i = owner[p]; conf[i] += float(EM[t, p] - mx[t]); nfr[i] += 1; f0[i] = min(f0[i], t); f1[i] = max(f1[i], t)
         p = int(BP[t, p])
     unskip(EPS[0], p)
+    if spans: return [None if skipped[i] or not nfr[i] else (conf[i], nfr[i], f0[i], f1[i]) for i in range(len(words))]
     return [None if skipped[i] else (conf[i], nfr[i]) for i in range(len(words))]
 
 def cand_text(Q, keys):
