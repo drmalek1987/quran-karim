@@ -1073,3 +1073,7 @@ body.vread.fs .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
 /* 5.11: «ألوان المصحف الموضوعي» keeps its on/off beside the label (like «ألوان التجويد»); the legend wraps under them */
 .row.row-wrap { flex-wrap: wrap; }
 .row.row-wrap > .thm-key { flex-basis: 100%; }
+
+/* 5.11 G3.9 mic tips */
+.mt-tips{margin:8px 0;padding-inline-start:18px;line-height:1.8}
+#mtRes:empty{display:none}

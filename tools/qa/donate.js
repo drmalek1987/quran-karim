@@ -22,7 +22,7 @@ const ev = (f, ...a) => p.evaluate(f, ...a), wait = ms => p.waitForTimeout(ms);
       forget(ids) { QA.forgot.push(ids); setTimeout(() => window.onDonateForget(true), 10); } };
   });
   await p.goto(W);
-  await ev(() => { localStorage.clear(); localStorage.setItem('q.asr', '"asrnv"'); localStorage.setItem('q.donate', '1'); localStorage.setItem('q.donateId', '"old4800id"');
+  await ev(() => { localStorage.clear(); localStorage.setItem('q.asr', '"asrnv"'); localStorage.setItem('q.donate', '1'); localStorage.setItem('q.micTips', '1'); localStorage.setItem('q.modelConsent', '{"v":1,"t":1}'); localStorage.setItem('q.donateId', '"old4800id"');
     localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 1, from: 1 })); });
   await p.reload(); await wait(900);
   await check('sendDonations called at start (Wi-Fi only by default)', async () => { await wait(5200); const s = await ev(() => QA.sent); return s.length >= 1 && s[0] === false || JSON.stringify(s); });
@@ -56,11 +56,8 @@ const ev = (f, ...a) => p.evaluate(f, ...a), wait = ms => p.waitForTimeout(ms);
       return { ok: w.filter(e => e.classList.contains('ok')).length, n: w.length, miss: document.querySelectorAll('.ht-w.miss').length, d: QA.donated[3] }; });
     return r.ok === r.n && r.n === 3 && r.miss === 0 && r.d && r.d[1] === 9 && r.d[0].a0 === 4 && r.d[0].kind === 'auto' || JSON.stringify(r);
   });
-  await check('phone recogniser (not NVIDIA) never donates', async () => {
-    await p.click('#htMic'); await ev(() => localStorage.setItem('q.asr', '"phone"')); await p.click('#htMic');
-    await ev(() => { window.nvSeq = 8; onRecite('مالك يوم الدين', 'final'); }); await wait(50);
-    return ev(() => QA.donated.length === 4);
-  });
+  // 5.11 removed the phone's own recogniser (NVIDIA's model is the only one), so the old
+  // 'phone recogniser never donates' check has nothing left to test and was dropped.
 
   await ev(() => { location.hash = '#/'; }); await wait(300);
   await check('settings: stats line, Wi-Fi/mobile choice and delete button', async () => {

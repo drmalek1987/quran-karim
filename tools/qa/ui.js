@@ -27,7 +27,7 @@ const wait = ms => p.waitForTimeout(ms);
 const assert = (c, m) => { if (!c) throw new Error(m || 'assert'); return true; };
 async function go(h, ms = 700) { await ev(h => { location.hash = h; }, h); await wait(ms); }
 async function fresh(ctx, vp) {
-  p = await ctx.newPage(); await p.setViewportSize(vp || { width: 390, height: 844 }); await p.addInitScript(() => { window.QA_NOFS = true; });
+  p = await ctx.newPage(); await p.setViewportSize(vp || { width: 390, height: 844 }); await p.addInitScript(() => { window.QA_NOFS = true; try { if (!localStorage.getItem('q.micTips') && !window.QA_TIPS) localStorage.setItem('q.micTips', '1'); } catch (e) {} });
   p.on('pageerror', e => errs.push(e.message));
   // confirm() before deleting: accepted, unless a check answers the dialog itself first
   p.on('dialog', d => setTimeout(() => d.accept().catch(() => {}), 0));
@@ -35,10 +35,10 @@ async function fresh(ctx, vp) {
 }
 
 (async () => {
-  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
-  const ctx = await b.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
+  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });
+  const ctx = await b.newContext({ permissions: ['clipboard-read', 'clipboard-write', 'microphone'] });
   await fresh(ctx);
-  await p.goto(W); await ev(ed => { localStorage.clear(); localStorage.setItem('q.edition', JSON.stringify(ed)); }, ED); await p.reload(); await wait(800);
+  await p.goto(W); await ev(ed => { localStorage.clear(); localStorage.setItem('q.edition', JSON.stringify(ed)); localStorage.setItem('q.micTips', '1'); }, ED); await p.reload(); await wait(800);
 
   // ---------- الرئيسية والفهرس ----------
   const G1 = 'الرئيسية والفهرس';
@@ -596,6 +596,14 @@ async function fresh(ctx, vp) {
       return [Math.round(s.left - t.left), Math.round(k.top - s.bottom), row.firstChild.textContent.trim()]; });
     await closeS();
     return assert(Math.abs(r[0]) < 2 && r[1] >= 0 && r[2] === 'ألوان المصحف الموضوعي', JSON.stringify(r)); });
+  await check(G511, 'أول مرة المايك: نصايح + «اختبر المايك» بيدي رقم وتقييم (fake mic)، و«ابدأ» بيشغّل، وصف «اختبار المايك» في الإعدادات', async () => { await go('#/p/2', 900);
+    await ev(() => { localStorage.removeItem('q.micTips'); window.__rb = window.ReciteBridge; window.__st = 0; window.ReciteBridge = { start() { window.__st++; }, stop() {}, setHints() {} }; document.getElementById('rdMic').click(); });
+    await wait(300); const shown = await ev(() => !!document.querySelector('.mt-dlg') && window.__st === 0);
+    await p.click('#mtGo'); await wait(6800);
+    const res = await ev(() => { const o = document.getElementById('mtRes'); return [o.textContent, o.dataset.snr, !!JSON.parse(localStorage.getItem('q.micTest'))]; });
+    await p.screenshot({ path: process.env.SHOT_DIR ? process.env.SHOT_DIR + '/g39-mictips.png' : __dirname + '/g39-mictips.png' }); await p.click('.mt-dlg .dlg-ok'); await wait(400);
+    const after = await ev(() => { const r = [window.__st, localStorage.getItem('q.micTips'), !document.querySelector('.mt-dlg'), !!document.getElementById('micTestBtn').closest('#settings, .settings, body')]; try { document.getElementById('rdMic').click(); } catch (e) {} window.ReciteBridge = window.__rb; if (!window.__rb) delete window.ReciteBridge; return r; });
+    return assert(shown && /ممتاز|كويس|ضعيف/.test(res[0]) && res[1] !== undefined && res[2] && after[1] === '1' && after[2] && after[3], JSON.stringify([shown, res, after])); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

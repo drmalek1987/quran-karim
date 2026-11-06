@@ -385,7 +385,46 @@
     };
   }
   // On the phone without the model, a voice feature offers the download instead of starting.
-  function micGate() {
+  // 5.11 G3.9: the first time the mic would start, tips + an on-phone mic test (q.micTips); «ابدأ» runs `again`.
+  function micTips(again) {
+    var d = el('<div class="dlg-back"><div class="dlg mt-dlg"><b>نصايح قبل ما تبدأ</b><ul class="hint mt-tips">' +
+      "<li>اقعد في مكان هادي على قد ما تقدر</li><li>خلّي الموبايل على بُعد ٢٠–٣٠ سم من بُقّك</li>" +
+      "<li>اقرا بصوت واضح وثابت</li><li>اتأكد إن المايك مش متغطي بإيدك أو بالجراب</li></ul>" +
+      '<p class="hint" id="mtRes"></p><div class="dlg-btns"><button class="dlg-no" id="mtGo">اختبر المايك</button><button class="dlg-ok">ابدأ</button></div></div></div>').firstChild;
+    document.body.appendChild(d);
+    d.querySelector("#mtGo").onclick = function () { micTest(d.querySelector("#mtRes"), this); };
+    d.querySelector(".dlg-ok").onclick = function () { save("micTips", 1); d.remove(); if (again) again(); };
+  }
+  // 2 s quiet -> noise floor, 4 s reciting -> speech level (RMS dBFS, WebAudio, nothing leaves the phone); SNR rates it.
+  function micTest(out, btn) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { out.textContent = "المايك مش متاح هنا"; return; }
+    if (btn) btn.disabled = true;
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) {
+      var AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), an = ac.createAnalyser(), buf = new Float32Array(2048);
+      an.fftSize = 2048; ac.createMediaStreamSource(st).connect(an);
+      var lv = [], t0 = Date.now(), noise = null;
+      out.textContent = "اسكت ثانيتين…";
+      var iv = setInterval(function () {
+        an.getFloatTimeDomainData(buf); var e = 0; for (var i = 0; i < buf.length; i++) e += buf[i] * buf[i];
+        lv.push(10 * Math.log10(e / buf.length + 1e-10));
+        var dt = Date.now() - t0;
+        if (noise === null && dt >= 2000) { lv.sort(function (a, b) { return a - b; }); noise = lv[Math.floor(lv.length / 2)]; lv = []; out.textContent = "اقرا آية بصوتك العادي ٤ ثواني…"; }
+        if (dt >= 6000) {
+          clearInterval(iv); st.getTracks().forEach(function (k) { k.stop(); }); try { ac.close(); } catch (e2) {}
+          lv.sort(function (a, b) { return a - b; }); var sp = lv.length ? lv[Math.floor(lv.length * 0.8)] : noise, snr = Math.round(sp - noise);
+          save("micTest", { snr: snr, noise: Math.round(noise), speech: Math.round(sp), t: Date.now() });
+          var r = snr >= 25 ? "ممتاز" : snr >= 15 ? "كويس" : "ضعيف";
+          out.textContent = "النتيجة: " + r + " (" + ar(snr) + " dB)" + (r === "ضعيف" ? (noise > -45 ? " · المكان فيه دوشة، جرّب مكان أهدى" : " · قرّب الموبايل أو ارفع صوتك شوية") : "");
+          out.dataset.snr = snr; if (btn) btn.disabled = false; micTestRow();
+        }
+      }, 50);
+    }).catch(function () { out.textContent = "ما قدرتش أفتح المايك، اتأكد من الإذن"; if (btn) btn.disabled = false; });
+  }
+  function micTestRow() {
+    var b = document.getElementById("micTestSum"); if (!b) return; var m = load("micTest", null);
+    b.textContent = m ? (m.snr >= 25 ? "ممتاز" : m.snr >= 15 ? "كويس" : "ضعيف") + " · " + ar(m.snr) + " dB" : "";
+  }
+  function micGate(again) {
     if (window.EdBridge && !modelOk()) {
       consentDlg(function () {
         if (window.NvBridge && NvBridge.ready()) return toast("تمام، دوس على المايك وابدأ");
@@ -393,7 +432,7 @@
       });
       return false;
     }
-    if (!window.EdBridge || (window.NvBridge && NvBridge.ready())) return true;
+    if (!window.EdBridge || (window.NvBridge && NvBridge.ready())) { if (!load("micTips", 0)) { micTips(again); return false; } return true; }
     if (asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; })) { toast("نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات"); return false; }
     if (confirm("الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟")) needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); });
     return false;
@@ -2123,7 +2162,7 @@
   function reciteToggle() {
     if (recite.on) { recite.on = false; recite.base = null; Mic.stop(); hifzBar(); reciteCap(); return; }
     if (!window.ReciteBridge) return toast("التسميع بالصوت شغال في التطبيق على الموبايل بس");
-    if (!micGate()) return;
+    if (!micGate(reciteToggle)) return;
     recite.on = true; recite.k = null; recite.pos = 0; recite.base = null; Mic.start(); hifzBar(); reciteCap();
   }
   function reciteStop() { if (recite.on) { recite.on = false; Mic.stop(); reciteCap(); } }
@@ -2245,7 +2284,8 @@
     try { ReciteBridge.setHints(out.join("\n")); } catch (e) {}
   }
   // The recogniser: the phone's own (ReciteBridge), or a Quran model run on the phone (asr.js), chosen in Settings.
-  asrBtn();
+  asrBtn(); micTestRow();
+  document.getElementById("micTestBtn").onclick = function () { micTest(document.getElementById("micTestSum"), this); };
   function asrModel() { return null; }   // the whisper models (asr.js) are gone since 5.4; NvAsr or the phone's recogniser
   // The microphone behind every voice feature: NVIDIA's model on the phone (NvAsr.java) when it is chosen and downloaded,
   // else the phone's own recogniser (ReciteBridge). Both answer through window.onRecite.
@@ -2260,7 +2300,7 @@
     if (rd.on) return rdStop();
     if (hifz.on) return reciteToggle();          // ayat hidden: recite from memory, they show as they are said
     var m = Mic.nv() ? null : asrModel();
-    if (!micGate()) return;
+    if (!micGate(rdToggle)) return;
     if (!m && !window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
     reciteStop(); player.stop();
     rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0 };
@@ -2371,7 +2411,7 @@
   function voiceListen(cb) {
     if (!window.ReciteBridge) return toast("الأوامر الصوتية شغالة في التطبيق على الموبايل بس");
     if (voice.on) { voice.on = false; Mic.stop(); return; }
-    if (!micGate()) return;
+    if (!micGate(function () { voiceListen(cb); })) return;
     reciteStop(); voice.on = true; voice.cb = cb; Mic.start();
   }
   // The index mic: recite an ayah and its page opens in the chosen edition, the ayah highlighted.
@@ -3673,7 +3713,7 @@
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
         btn: htMic, s: s, fix: document.getElementById("htFix"), done: function () { document.getElementById("htDone").click(); } };
       htv.fix.hidden = true;
-      if (!micGate()) return;
+      if (!micGate(function () { htMic.click(); })) return;
       reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
     };
     document.getElementById("htS").onchange = function () { save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };
