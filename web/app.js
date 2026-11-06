@@ -3456,7 +3456,7 @@
     var rc = remCfg(), cfg = prayerCfg();
     function done() { save("onboarded", true); if (mode === "pages" && !edReady(edition)) { mode = "text"; save("mode", "text"); applySettings(); } d.remove(); syncAlarms(); route(); }
     function paint() {
-      var dots = '<div class="wel-dots">' + [0, 1, 2].map(function (i) { return "<i" + (i === step ? ' class="on"' : "") + "></i>"; }).join("") + "</div>", body;
+      var LAST = 3, dots = '<div class="wel-dots">' + [0, 1, 2, 3].map(function (i) { return "<i" + (i === step ? ' class="on"' : "") + "></i>"; }).join("") + "</div>", body;
       if (step === 0) body = '<div class="wel-ic">' + ic("book") + "</div><h2>أهلًا بيك في القرآن الكريم</h2><p>اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</p>" +
         '<div class="wel-opts">' + ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) { return '<button data-e="' + k + '"' + (k === edition && mode === "pages" ? ' class="on"' : "") + ">" + EDS[k].name + "</button>"; }).join("") +
         '<button data-e="text"' + (mode === "text" ? ' class="on"' : "") + ">نص مشكول (بدون صور)</button></div>";
@@ -3466,14 +3466,23 @@
           '<button class="continue" id="wGps">' + ic("pin") + ' استخدم موقعي</button><select class="input" id="wCity"><option value="">أو اختار مدينة…</option>' +
           CITIES.map(function (c, i) { return '<option value="' + i + '"' + (loc && loc[2] === c[0] ? " selected" : "") + ">" + c[0] + "</option>"; }).join("") + "</select>" +
           '<p class="wel-got">' + (loc ? "✓ " + (loc[2] || "اتحدد موقعك") : "") + "</p>";
+      } else if (step === 2) {
+        // 5.11 G3.7: the recitation model, offered once on the first run. Terms are required for the button; the voice
+        // donation is a separate opt-in, unticked by default (G3.8).
+        var aq = asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; });
+        body = '<div class="wel-ic">' + ic("mic") + "</div><h2>نموذج التعرّف على التلاوة</h2><p>بيسمع تلاوتك ويتابعها في المصحف ويصحّح التسميع. بيشتغل على الموبايل من غير إنترنت، وحجمه " + ar(ASRM.asrnv.mb) + " ميجا (الأفضل تنزّله على wifi).</p>" +
+          (asrReady("asrnv") ? '<p class="wel-got">✓ النموذج جاهز</p>' : aq ? '<p class="wel-got">جاري التنزيل… تابعه من الإعدادات › التحميلات</p>' :
+          '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
+          '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wDonate"' + (load("donate", 0) === 1 ? " checked" : "") + "><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>" +
+          '<button class="continue" id="wDl" disabled>' + ic("dl") + " حمّل النموذج</button>");
       } else body = '<div class="wel-ic">' + ic("bell") + "</div><h2>تحب نفكّرك بإيه؟</h2><p>تقدر تغيّر المواعيد بعدين من شاشة الصلاة.</p>" +
         [["adhan", "الأذان في مواعيده"], ["m", "أذكار الصباح"], ["e", "أذكار المساء"], ["kahf", "الكهف يوم الجمعة"], ["stat", "ملخص قراءة اليوم"]].map(function (r) {
           var on = r[0] === "adhan" ? cfg.adhan.fajr : rc[r[0]].on;
           return '<label class="rem-row"><span class="rem-sw"><input type="checkbox" data-w="' + r[0] + '"' + (on ? " checked" : "") + "><span></span>" + r[1] + "</span></label>";
         }).join("");
       // 5.11 G3: «تخطي» skips this step (the last one finishes); «تخطي الكل» leaves the welcome at once.
-      d.innerHTML = '<div class="wel-card">' + dots + body + '<div class="wel-btns"><button class="wel-skip">تخطي</button><button class="wel-next">' + (step < 2 ? "التالي" : "يلا نبدأ") + "</button></div>" +
-        (step < 2 ? '<button class="wel-all">تخطي الكل</button>' : "") + "</div>";
+      d.innerHTML = '<div class="wel-card">' + dots + body + '<div class="wel-btns"><button class="wel-skip">تخطي</button><button class="wel-next">' + (step < LAST ? "التالي" : "يلا نبدأ") + "</button></div>" +
+        (step < LAST ? '<button class="wel-all">تخطي الكل</button>' : "") + "</div>";
       d.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () {
         needEd(b.dataset.e, function () {
           if (b.dataset.e === "text") { mode = "text"; save("mode", "text"); } else { mode = "pages"; save("mode", "pages"); if (b.dataset.e !== edition) switchEdition(b.dataset.e); }
@@ -3488,14 +3497,21 @@
           if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (p) { window.qiblaLocation(p.coords.latitude, p.coords.longitude); }, function () { window.qiblaLocationError(); });
         };
       }
+      var wT = document.getElementById("wTerms"), wDl = document.getElementById("wDl");
+      if (wT) wT.onchange = function () { wDl.disabled = !wT.checked; };
+      if (wDl) wDl.onclick = function () {
+        save("modelConsent", { v: 1, t: Date.now() }); save("donate", document.getElementById("wDonate").checked ? 1 : 0); donatePaint();
+        if (!window.EdBridge) { toast("التنزيل متاح في التطبيق على الموبايل بس"); return; }
+        needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); }); asrBtn(); paint();
+      };
       d.querySelectorAll("[data-w]").forEach(function (c) { c.onchange = function () {
         if (c.dataset.w === "adhan") ["fajr", "dhuhr", "asr", "maghrib", "isha"].forEach(function (k) { cfg.adhan[k] = c.checked; }); else rc[c.dataset.w].on = c.checked;
         save("prayer", cfg); save("reminders", rc);
         if (c.checked) try { if (window.AppBridge && AppBridge.askNotifications) AppBridge.askNotifications(); } catch (e) {}
       }; });
-      d.querySelector(".wel-skip").onclick = function () { if (step < 2) { step++; paint(); } else done(); };
+      d.querySelector(".wel-skip").onclick = function () { if (step < LAST) { step++; paint(); } else done(); };
       var all = d.querySelector(".wel-all"); if (all) all.onclick = done;
-      d.querySelector(".wel-next").onclick = function () { if (step < 2) { step++; paint(); } else done(); };
+      d.querySelector(".wel-next").onclick = function () { if (step < LAST) { step++; paint(); } else done(); };
     }
     paint();
   }

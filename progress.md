@@ -219,3 +219,8 @@ vc 49, sw quran-v44. Signer 7d8b31d2. QA: ui.js 168/168, donate 15/15, data 28/2
 (rows files not on disk; matcher untouched). Phone bee81250: installed over 5.7, mic used by the user, app storage
 (Settings > app info) 422 MB vs 501 MB from diskstats before (stale stat; release build not debuggable, so files not listed).
 Resume: push + release v5.8 (needs the user's OK), then P0b held-out + noisy test set.
+
+## 5.11 G3.7 — welcome step: recitation model download — done 2026-11-06
+Goal check: offers the recognition model on the first run (no model = no recognition) and starts the consent flow (G3.8) = near-complete app + recognition reach. Effort medium (G3).
+Welcome has 4 steps; step 3: terms switch gates «حمّل النموذج», separate unticked donate opt-in, saves q.modelConsent + q.donate, then needAsr("asrnv"). ui.js 181/0. Phone check queued in QA-checklist (5.11).
+Resume: G3.8 consent (model blocked until q.modelConsent; donate controls move from Settings into the privacy box + chip), then G3.9 mic tips/test.

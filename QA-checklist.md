@@ -465,3 +465,4 @@
 - G2b: after a page turn the new page settles with no dim/flash and no small jump. Entering full screen (auto after 5 s, or tap) and leaving it: the page and bars glide (~0.4 s), nothing jumps or re-wraps.
 - G1.5: Settings open on a mushaf page: change «طريقة التقليب» (to عمودي and back), «صفحتان متجاورتان» (tablet), «ألوان المصحف الموضوعي» — the sheet stays still at the same scroll, no slide-up jump.
 - G9: multi-device QA = `node tools/qa/matrix.js` (5 viewports x 8 screens, report tools/qa/matrix/index.html) + `maestro --device <emu> test tools/qa/maestro/smoke.yaml` on Phone_API35 / Small_API35 / Fold_API35 / Tablet_API35. Run both every release.
+- G3.7: fresh install (or Settings › «شاشة الترحيب») → step 3 «نموذج التعرّف على التلاوة»: «حمّل النموذج» is dim until the terms switch is on; the donate switch is off by default; tap → download starts and shows in Settings › التحميلات; after it finishes the recogniser works without asking again.

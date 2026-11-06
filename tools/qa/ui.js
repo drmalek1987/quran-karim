@@ -305,7 +305,7 @@ async function fresh(ctx, vp) {
     await p.click('#tabbar button[data-h="#/more"]'); await wait(500); const m = await ev(() => location.hash === '#/more' && document.querySelectorAll('.tiles.more .tile').length === 12); await go('#/p/5', 800); const hid = await ev(() => document.getElementById('tabbar').hidden);
     return assert(a[0] === 4 && !a[1] && m && hid, JSON.stringify([a, m, hid])); });
   await check(G14, 'شاشة الترحيب: الطبعة والمدينة والتذكيرات', async () => { await go('#/welcome', 800); await p.click('.wel-opts button[data-e=shamarly]'); await p.click('.wel-next'); await p.selectOption('#wCity', { index: 2 });
-    await p.click('.wel-next'); await p.click('[data-w=m] + span'); await p.click('.wel-next'); await wait(600);
+    await p.click('.wel-next'); await p.click('.wel-next'); await p.click('[data-w=m] + span'); await p.click('.wel-next'); await wait(600);
     const r = await ev(() => [localStorage.getItem('q.edition'), !!JSON.parse(localStorage.getItem('q.qiblaLoc')), JSON.parse(localStorage.getItem('q.reminders')).m.on, localStorage.getItem('q.onboarded'), !document.querySelector('.wel')]);
     await ev(ed => { localStorage.setItem('q.edition', JSON.stringify(ed)); const r = JSON.parse(localStorage.getItem('q.reminders')); r.m.on = false; localStorage.setItem('q.reminders', JSON.stringify(r)); }, ED); await p.reload(); await wait(900);
     return assert(r[0] === '"shamarly"' && r[1] && r[2] === true && r[3] === 'true' && r[4], JSON.stringify(r)); });
@@ -553,6 +553,15 @@ async function fresh(ctx, vp) {
     await go('#/welcome', 600); const all = await ev(() => { const b = document.querySelector('.wel .wel-all'); if (!b) return 'no'; b.click(); return !document.querySelector('.wel'); });
     await ev(() => document.querySelectorAll('.wel').forEach(x => x.remove()));
     return assert(r.length >= 3 && r.every((x, i) => x[0] === i && x[1] === 'تخطي') && all === true, JSON.stringify([r, all])); });
+  await check(G511, 'شاشة الترحيب: خطوة نموذج التلاوة، الزرار مقفول لحد الموافقة، والتبرّع اختياري ومش متعلّم', async () => {
+    await ev(() => { localStorage.removeItem('q.modelConsent'); localStorage.removeItem('q.donate'); });
+    await go('#/welcome', 600); await ev(() => { document.querySelector('.wel .wel-next').click(); document.querySelector('.wel .wel-next').click(); }); await wait(150);
+    const r = await ev(() => { const w = document.querySelector('.wel'), dl = w.querySelector('#wDl'), t = w.querySelector('#wTerms'), dn = w.querySelector('#wDonate');
+      const a = [w.querySelectorAll('.wel-dots i').length, w.querySelector('h2').textContent, !!dl && dl.disabled, !!dn && dn.checked];
+      t.checked = true; t.dispatchEvent(new Event('change')); a.push(dl.disabled); dl.click();
+      a.push(!!JSON.parse(localStorage.getItem('q.modelConsent') || 'null'), localStorage.getItem('q.donate')); return a; });
+    await ev(() => { document.querySelectorAll('.wel').forEach(x => x.remove()); localStorage.removeItem('q.modelConsent'); localStorage.removeItem('q.donate'); });
+    return assert(r[0] === 4 && r[1] === 'نموذج التعرّف على التلاوة' && r[2] === true && r[3] === false && r[4] === false && r[5] === true && r[6] === '0', JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
