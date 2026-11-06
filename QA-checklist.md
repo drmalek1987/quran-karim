@@ -449,3 +449,12 @@
 - [ ] Slide flip on cropped editions: no white margin strip between pages during the swipe.
 - [ ] Hifz test / recitation works in scroll (vertical) mode; finishing a page scrolls to the next one.
 - ui.js kfgqpc after these edits: 168/168 PASS.
+
+### 5.10 phone results (user, 2026-11-06)
+1. >5-error alert: PASS
+2. Turn at page end: PARTIAL — better, but must flip immediately after the last word (now waits for the ASR final result + 700 ms).
+3. Split ayah carried over: PASS
+4. First ayah of next page: PARTIAL — recognised, but slow.
+5. Slide flip margins: FAIL — margins still show during the swipe.
+6. Hifz/recitation in scroll mode: PASS
+7. Regression checks: PASS
