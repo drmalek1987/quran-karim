@@ -231,3 +231,4 @@ consentDlg (terms required, donate separate + unticked) gates micGate on the pho
 Resume: G3.9 mic tips + mic test (micTips, q.micTest, Settings row «اختبار المايك»).
 - 2026-11-07 user fix: «امسح كل تسجيلاتي» kept in one place only (privacy box, under the donate choice, small .link-sm); about text (ar+en) now points to Settings › الخصوصية وتسجيلات الصوت. ui.js 183/0.
 - 2026-11-07 user fixes (emulator review): no «وافقت على الشروط» line at all (consent kept silently in q.modelConsent); «التعرّف على التلاوة» = closed box (state on the title line, tap -> model card with download/delete; download goes through consentDlg) — also fixes the duplicate id asrDl (button + card); «ألوان المصحف الموضوعي» on/off beside the label like «ألوان التجويد». ui.js 185/0.
+Resume (2026-11-07): new session from plans/5.11-session-prompt-3.md — G3.9 next, then the carried-over 5c/5d/G1.8 + donate.js fix, then 5.11 build/QA.
