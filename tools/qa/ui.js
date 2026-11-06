@@ -502,6 +502,7 @@ async function fresh(ctx, vp) {
       return [!!document.getElementById('asrSet'), /نموذج التعرّف على التلاوة/.test(asked), started]; });
     return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
   await check(G511, 'زر «امسح تسجيلاتي» صغير جوه سياسة الخصوصية مش في الإعدادات العامة', () => ev(() => { const b = document.getElementById('donateDel'); return !!b && !!b.closest('.about-box') && b.classList.contains('link-sm') && !document.querySelector('#donateMob ~ #donateDel') && document.querySelectorAll('[data-donatedel]').length === 2; }));
+  await check(G511, 'سياسة الخصوصية فيها شروط استخدام النموذج واستخدام الصوت للتحسين (عربي وإنجليزي)', () => ev(() => { const t = [...document.querySelectorAll('.about-box')].map(e => e.textContent).join(' '); return /شروط استخدام نموذج التعرّف على التلاوة/.test(t) && /لتدريب النموذج وتحسينه/.test(t) && /terms of use/.test(t) && /train and improve the model/.test(t) && !/غالبًا من جوجل/.test(t); }));
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
