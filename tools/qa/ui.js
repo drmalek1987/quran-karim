@@ -491,6 +491,8 @@ async function fresh(ctx, vp) {
       return assert(ok ? /\bok\b/.test(r[0]) : /\bmiss\b/.test(r[0]), r[0]);
     } finally { await ev(nb => { if (!nb) delete window.NvBridge; localStorage.removeItem('q.asr'); try { Mic.stop(); } catch (e) {} }, nb); await lsRest(s); await go('#/', 300); }
   });
+  const G511 = 'نسخة 5.11';
+  await check(G511, 'الإعدادات: «wifi فقط» بدل «واي فاي بس»', () => ev(() => { const t = document.getElementById('donateMob').textContent + document.getElementById('donateHint').textContent; return t.includes('wifi فقط') && !t.includes('واي فاي'); }));
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
