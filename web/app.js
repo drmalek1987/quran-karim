@@ -388,7 +388,7 @@
   // 5.11 G3.9: the first time the mic would start, tips + an on-phone mic test (q.micTips); «ابدأ» runs `again`.
   function micTips(again) {
     var d = el('<div class="dlg-back"><div class="dlg mt-dlg"><b>نصايح قبل ما تبدأ</b><ul class="hint mt-tips">' +
-      "<li>اقعد في مكان هادي على قد ما تقدر</li><li>خلّي الموبايل على بُعد ٢٠–٣٠ سم من بُقّك</li>" +
+      "<li>اقعد في مكان هادي على قد ما تقدر</li><li>خلّي الموبايل على بعد ٢٠–٣٠ سم من بقك</li>" +
       "<li>اقرا بصوت واضح وثابت</li><li>اتأكد إن المايك مش متغطي بإيدك أو بالجراب</li></ul>" +
       '<p class="hint" id="mtRes"></p><div class="dlg-btns"><button class="dlg-no" id="mtGo">اختبر المايك</button><button class="dlg-ok">ابدأ</button></div></div></div>').firstChild;
     document.body.appendChild(d);

@@ -16,6 +16,27 @@
 
   var WD = { "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri", "السبت": "Sat" };
   var D = {
+    // 5.11 G1.8: strings the English scan (tools/qa/i18n_scan.js) found untranslated, and the G3.9 mic tips / mic test
+    "اقرأ آية وأنا أفتحها": "Recite an ayah and I'll open it", "القراءة بالصوت": "Read by voice", "طبعة الملك فهد القديمة": "Older King Fahd edition",
+    "التعرّف على التلاوة": "Recitation recognition", "اختبار المايك": "Mic test", "اختبر": "Test", "لا": "No",
+    "لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت.": "If you agree, the app keeps short clips of your recitation and sends them with no name or account, to improve recitation recognition for every reciter. They upload on Wi-Fi only unless you allow mobile data, and you can stop and delete your recordings at any time.",
+    "الهيئة المصرية العامة للمساحة": "Egyptian General Authority of Survey", "أم القرى (مكة المكرمة)": "Umm al-Qura (Makkah)", "رابطة العالم الإسلامي": "Muslim World League",
+    "جامعة العلوم الإسلامية بكراتشي": "University of Islamic Sciences, Karachi", "أمريكا الشمالية (ISNA)": "North America (ISNA)", "الإمارات (دبي)": "UAE (Dubai)", "قطر": "Qatar",
+    "استمع للآيات": "Listen to the ayahs", "+ ذكر من عندك": "+ Your own dhikr", "عدد…": "Count…", "اسم الختمة": "Khatma name",
+    "المصحف في هذا التطبيق برواية حفص عن عاصم.": "The mushaf in this app follows the Hafs 'an 'Asim narration.",
+    "أصل الكتاب «التيسير» لأبي عمرو الداني في القراءات السبع، وزاد عليه ابن الجزري القراءات الثلاث (أبا جعفر ويعقوب وخلفًا) وما يبدأ بقوله «قلت».": "The book is based on «At-Taysir» by Abu 'Amr ad-Dani on the seven readings; Ibn al-Jazari added the other three (Abu Ja'far, Ya'qub and Khalaf) and the notes that begin with «I say».",
+    "افتح أي آية (اضغط عليها ثم «تفسير وإعراب ومعاني») واختر تبويب «القراءات»، فيظهر كلام ابن الجزري عن كلماتها.": "Open any ayah (tap it, then «Tafsir, i'rab and meanings») and choose the «Readings» tab to see Ibn al-Jazari's notes on its words.",
+    "نصايح قبل ما تبدأ": "Tips before you start", "اقعد في مكان هادي على قد ما تقدر": "Sit somewhere as quiet as you can",
+    "خلّي الموبايل على بعد #–# سم من بقك": "Hold the phone #–# cm from your mouth", "اقرا بصوت واضح وثابت": "Recite in a clear, steady voice",
+    "اتأكد إن المايك مش متغطي بإيدك أو بالجراب": "Make sure your hand or the case isn't covering the mic", "اختبر المايك": "Test the mic", "ابدأ": "Start",
+    "المايك مش متاح هنا": "The mic isn't available here", "اسكت ثانيتين…": "Stay quiet for two seconds…", "اقرا آية بصوتك العادي # ثواني…": "Recite an ayah in your normal voice for # seconds…",
+    "ما قدرتش أفتح المايك، اتأكد من الإذن": "Couldn't open the mic — check the permission",
+    "النتيجة: ممتاز (# dB)": "Result: excellent (# dB)", "النتيجة: كويس (# dB)": "Result: good (# dB)",
+    "النتيجة: ضعيف (# dB) · المكان فيه دوشة، جرّب مكان أهدى": "Result: weak (# dB) · it's noisy here, try a quieter place",
+    "النتيجة: ضعيف (# dB) · قرّب الموبايل أو ارفع صوتك شوية": "Result: weak (# dB) · hold the phone closer or speak a little louder",
+    "ممتاز · # dB": "Excellent · # dB", "كويس · # dB": "Good · # dB", "ضعيف · # dB": "Weak · # dB",
+    "نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات": "The recitation model is still downloading — follow it in Settings › Downloads",
+    "خلص تنزيل نموذج التعرّف على التلاوة": "The recitation model has finished downloading",
     "أوامر صوتية": "Voice commands", "أقرب آيات لقراءتك": "Closest ayahs to your recitation", "بيشغّل التلاوة": "Playing the recitation", "وقف": "Stopped",
     "سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.": "Listening… say a command such as «افتح سورة الكهف» or «صفحة خمسين», or recite an ayah.",
     "🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها.": "🎤 Tap the mic and say a command in Arabic: «افتح سورة الكهف», «صفحة خمسين», «الجزء الثلاثين», «سورة البقرة آية مية», «آية الكرسي», «شغّل», «وقف», «الصفحة التالية», «مواقيت الصلاة», «أذكار الصباح». Or recite an ayah to find where it is.",
@@ -297,8 +318,9 @@
   function tr(text) {
     var t = text.replace(/\s+/g, " ").trim();
     if (!t || !/[؀-ۿ]/.test(t)) return null;
-    if ((t.match(HARAKAT) || []).length >= 3) return null;
+    // An exact interface line wins first: UI text with a few shaddas (التعرّف، القرّاء) is not Quran text.
     if (D[t] !== undefined) return D[t];
+    if ((t.match(HARAKAT) || []).length >= 3) return null;
     if (/^[٠-٩]+$/.test(t)) return latin(t);
     // Clock times and short dates written by the app (prayer times, the imsakiya).
     var tm = t.match(/^([٠-٩]{1,2}:[٠-٩]{2})(?: ([صم]))?$/); if (tm) return latin(tm[1]) + (tm[2] ? (tm[2] === "ص" ? " AM" : " PM") : "");
