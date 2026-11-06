@@ -229,3 +229,4 @@ Resume: G3.8 consent (model blocked until q.modelConsent; donate controls move f
 Goal check: required, clear consent before the model runs and a separate opt-in for voice donation = trust for the near-complete app and a clean, consented data stream for the >95% recognition work (G8/G10). Effort medium.
 consentDlg (terms required, donate separate + unticked) gates micGate on the phone, incl. readers upgrading with the model; donate tools moved to «الخصوصية وتسجيلات الصوت» (+ chip). User edits via a forked session: no «not agreed yet» line, shorter donate hint without the model name. ui.js 183/0; donate.js 14/15 (pre-existing «phone recogniser» check, to fix in 5.11 QA).
 Resume: G3.9 mic tips + mic test (micTips, q.micTest, Settings row «اختبار المايك»).
+- 2026-11-07 user fix: «امسح كل تسجيلاتي» kept in one place only (privacy box, under the donate choice, small .link-sm); about text (ar+en) now points to Settings › الخصوصية وتسجيلات الصوت. ui.js 183/0.

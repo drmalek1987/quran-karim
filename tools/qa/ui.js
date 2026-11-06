@@ -501,7 +501,9 @@ async function fresh(ctx, vp) {
       window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; window.confirm = cf; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge;
       return [!!document.getElementById('asrSet'), /نموذج التعرّف على التلاوة/.test(asked), started]; });
     return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
-  await check(G511, 'زر «امسح تسجيلاتي» صغير جوه سياسة الخصوصية مش في الإعدادات العامة', () => ev(() => { const b = document.getElementById('donateDel'); return !!b && !!b.closest('.about-box') && b.classList.contains('link-sm') && !document.querySelector('#donateMob ~ #donateDel') && document.querySelectorAll('[data-donatedel]').length === 3 && !!document.querySelector('#privGroup [data-donatedel]'); }));
+  await check(G511, 'زر «امسح تسجيلاتي» في مكان واحد بس: جوه «الخصوصية وتسجيلات الصوت» تحت التبرّع، وخطه صغير', async () => { const r = await ev(() => { const b = [...document.querySelectorAll('[data-donatedel]')], d = document.getElementById('donateDel'); const fs = parseFloat(getComputedStyle(d).fontSize), base = parseFloat(getComputedStyle(d.parentNode).fontSize);
+    return [b.length === 1 && b[0] === d, !!d.closest('#privGroup'), d.parentNode.contains(document.getElementById('donateSet')), d.classList.contains('link-sm'), fs < base, b.length, fs, base]; });
+    return assert(r.slice(0, 5).every(Boolean), JSON.stringify(r)); });
   await check(G511, 'سياسة الخصوصية فيها شروط استخدام النموذج واستخدام الصوت للتحسين (عربي وإنجليزي)', () => ev(() => { const t = [...document.querySelectorAll('.about-box')].map(e => e.textContent).join(' '); return /شروط استخدام نموذج التعرّف على التلاوة/.test(t) && /لتدريب النموذج وتحسينه/.test(t) && /terms of use/.test(t) && /train and improve the model/.test(t) && !/غالبًا من جوجل/.test(t); }));
   for (const fm of ['slide', 'curl']) await check(G511, 'التقليب (' + fm + '): الصفحة الجاية في مكانها جنب الحالية، من غير هامش أبيض (RTL كان بيتجاهل margin-left)', async () => {
     if (ED !== 'kfgqpc') return true;
