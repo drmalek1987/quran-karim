@@ -324,7 +324,7 @@
   // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
   // Only NVIDIA's model is left (NvAsr.java, its own runtime in the pack). The whisper models (asrbase, asrft) and the
   // web runtime they needed (asrrt) were dropped in 5.4: their files are removed from phones that still have them.
-  var ASRM = { asrnv: { name: "موديل NVIDIA", mb: 103, ver: 2 } };
+  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 103, ver: 2 } };
   function asrPacks(m) { return [m, m + "p"]; }
   // Model versions are separate files (asrnv2.zip …); v1 (asrnv.zip, the 5.7 model) stays on the server for rollback.
   // The pack carries asr/<m>/ver.txt; a phone without it has v1 and is offered «تحديث» in Settings › Downloads.
@@ -347,7 +347,21 @@
     if (/^(asrbase|asrft)$/.test(load("asr", "phone"))) save("asr", asrReady("asrnv") ? "asrnv" : "phone");
   }
   // A finished download or update also makes that model the recogniser (a phone left on «الموبايل» would never use it).
-  function asrPick(m) { save("asr", m); var el = document.getElementById("asrSet"); if (el) el.value = m; }
+  function asrPick(m) { save("asr", m); asrBtn(); }
+  // 5.11: NVIDIA's model is the only recogniser; Settings shows one download button instead of a picker.
+  function asrBtn() {
+    var b = document.getElementById("asrDl"); if (!b) return;
+    var q = asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; });
+    b.textContent = asrReady("asrnv") ? "✓ نموذج التعرّف على التلاوة جاهز" : q ? "جاري تحميل نموذج التعرّف على التلاوة…" : "تحميل نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا)";
+    b.disabled = asrReady("asrnv") || q;
+  }
+  // On the phone without the model, a voice feature offers the download instead of starting.
+  function micGate() {
+    if (!window.EdBridge || (window.NvBridge && NvBridge.ready())) return true;
+    if (asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; })) { toast("نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات"); return false; }
+    if (confirm("الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟")) needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); });
+    return false;
+  }
   function asrReady(m) { return !!window.EdBridge && asrPacks(m).every(function (k) { return EdBridge.state(k) === "ready"; }); }
   function needAsr(m, then) {
     var ps = asrPacks(m), i = 0;
@@ -387,7 +401,7 @@
   setTimeout(function () { if (window.EdBridge) ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "part" && edPaused().indexOf(k) < 0) needEd(k, function () {}, true); }); }, 1500);
   // Settings: each edition with its download state, to fetch or free it.
   function paintEdDl() {
-    var box = document.getElementById("edDl"); if (!box) return;
+    asrBtn(); var box = document.getElementById("edDl"); if (!box) return;
     if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; }); return; }
     var ids = ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).concat(window.THEMATIC ? ["thmnotes"] : []), any = false;
     var nm = function (k) { return EDS[k] ? EDS[k].name : "هامش المصحف الموضوعي"; };
@@ -440,7 +454,6 @@
       if (asrReady(m)) {
         if (!confirm("تحذف " + ASRM[m].name + " من الموبايل؟")) return;
         EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
-        if (asrSel.value === m) { asrSel.value = "phone"; save("asr", "phone"); }
         paintEdDl();
       } else needAsr(m, function () { asrPick(m); paintEdDl(); });
     }; });
@@ -2066,6 +2079,7 @@
   function reciteToggle() {
     if (recite.on) { recite.on = false; recite.base = null; Mic.stop(); hifzBar(); reciteCap(); return; }
     if (!window.ReciteBridge) return toast("التسميع بالصوت شغال في التطبيق على الموبايل بس");
+    if (!micGate()) return;
     recite.on = true; recite.k = null; recite.pos = 0; recite.base = null; Mic.start(); hifzBar(); reciteCap();
   }
   function reciteStop() { if (recite.on) { recite.on = false; Mic.stop(); reciteCap(); } }
@@ -2187,18 +2201,15 @@
     try { ReciteBridge.setHints(out.join("\n")); } catch (e) {}
   }
   // The recogniser: the phone's own (ReciteBridge), or a Quran model run on the phone (asr.js), chosen in Settings.
-  var asrSel = document.getElementById("asrSet");
-  asrSel.value = load("asr", "phone"); if (!asrSel.value) asrSel.value = "phone";
-  asrSel.onchange = function () {
-    var m = asrSel.value; save("asr", m);
-    if (m !== "phone" && window.EdBridge && !asrReady(m)) needAsr(m, function () { toast("خلص تنزيل " + ASRM[m].name); paintEdDl(); });
-  };
+  var asrDl = document.getElementById("asrDl");
+  asrDl.onclick = function () { if (!window.EdBridge) return toast("التحميل شغال في التطبيق على الموبايل بس"); micGate(); asrBtn(); };
+  asrBtn();
   function asrModel() { return null; }   // the whisper models (asr.js) are gone since 5.4; NvAsr or the phone's recogniser
   // The microphone behind every voice feature: NVIDIA's model on the phone (NvAsr.java) when it is chosen and downloaded,
   // else the phone's own recogniser (ReciteBridge). Both answer through window.onRecite.
   var Mic = {
     cur: null,
-    nv: function () { return load("asr", "phone") === "asrnv" && !!window.NvBridge && NvBridge.ready(); },
+    nv: function () { return !!window.NvBridge && NvBridge.ready(); },
     start: function () { Mic.cur = Mic.nv() ? "nv" : "phone"; if (Mic.cur === "nv") NvBridge.start(); else ReciteBridge.start(); },
     stop: function () { var c = Mic.cur; Mic.cur = null; try { if (c === "nv") NvBridge.stop(); else if (window.ReciteBridge) ReciteBridge.stop(); } catch (e) {} }
   };
@@ -2207,7 +2218,7 @@
     if (rd.on) return rdStop();
     if (hifz.on) return reciteToggle();          // ayat hidden: recite from memory, they show as they are said
     var m = Mic.nv() ? null : asrModel();
-    if (!m && !Mic.nv() && load("asr", "phone") !== "phone" && window.EdBridge) return toast("الموديل لسه بيتنزّل، تابعه من الإعدادات › التحميلات");
+    if (!micGate()) return;
     if (!m && !window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
     reciteStop(); player.stop();
     rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0 };
@@ -2318,6 +2329,7 @@
   function voiceListen(cb) {
     if (!window.ReciteBridge) return toast("الأوامر الصوتية شغالة في التطبيق على الموبايل بس");
     if (voice.on) { voice.on = false; Mic.stop(); return; }
+    if (!micGate()) return;
     reciteStop(); voice.on = true; voice.cb = cb; Mic.start();
   }
   // The index mic: recite an ayah and its page opens in the chosen edition, the ayah highlighted.
@@ -3600,6 +3612,7 @@
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
         btn: htMic, s: s, fix: document.getElementById("htFix"), done: function () { document.getElementById("htDone").click(); } };
       htv.fix.hidden = true;
+      if (!micGate()) return;
       reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
     };
     document.getElementById("htS").onchange = function () { save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };

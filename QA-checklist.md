@@ -458,3 +458,6 @@
 5. Slide flip margins: FAIL — margins still show during the swipe.
 6. Hifz/recitation in scroll mode: PASS
 7. Regression checks: PASS
+
+## 5.11 (in progress) — phone tests (deliver together with APK 5.11)
+- G1.2: Settings has no recogniser picker, only «تحميل نموذج التعرّف على التلاوة (103 ميجا)». On a phone without the model, the mic (page / hifz test / voice search) asks to download it and does not start; after the download the button shows «✓ … جاهز» and the mic works with NVIDIA.

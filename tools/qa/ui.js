@@ -354,7 +354,7 @@ async function fresh(ctx, vp) {
     const on = await ev(() => document.body.classList.contains('fs')); await ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await wait(300); const off = await ev(() => !document.body.classList.contains('fs'));
     return assert(on && off, JSON.stringify([on, off])); });
   const G16 = 'نسخة 4.5: موديل NVIDIA';
-  await check(G16, 'الإعدادات فيها «موديل NVIDIA (الأدق)» و«حول» فيها رخصته', async () => { await p.click('#btnSettings'); const r = await ev(() => [!!document.querySelector('#asrSet option[value=asrnv]'), /FastConformer[\s\S]*CC BY 4\.0/.test(document.body.innerHTML)]); await closeS(); return assert(r[0] && r[1], JSON.stringify(r)); });
+  await check(G16, 'الإعدادات فيها زر «تحميل نموذج التعرّف على التلاوة» و«حول» فيها رخصته', async () => { await p.click('#btnSettings'); const r = await ev(() => [/تحميل نموذج التعرّف على التلاوة/.test((document.getElementById('asrDl') || {}).textContent || ''), /FastConformer[\s\S]*CC BY 4\.0/.test(document.body.innerHTML)]); await closeS(); return assert(r[0] && r[1], JSON.stringify(r)); });
   await check(G16, 'المايك على الصفحة بيشغّل موديل NVIDIA لما يكون متنزّل ومختار', async () => { await go('#/p/2', 900);
     // 5.4: NVIDIA runs only in NvAsr.java (NvBridge); the web runtime path (asr.js) went with the whisper models
     const r = await ev(() => { const nb = window.NvBridge, rb = window.ReciteBridge; let got = null;
@@ -469,8 +469,8 @@ async function fresh(ctx, vp) {
     return assert(a && b, a + ',' + b); });
   await g18('موديلات whisper اتشالت', async () => {
     await go('#/', 300); await p.click('#btnSettings').catch(() => {}); await wait(300);
-    const r = await ev(() => { const s = document.getElementById('asrSet'); return s && [...s.options].map(o => o.value); }); await closeS();
-    return assert(r && !r.includes('asrbase') && !r.includes('asrft'), JSON.stringify(r)); });
+    const r = await ev(() => [!!document.getElementById('asrSet'), !/asrbase|asrft/.test(document.getElementById('settings') ? document.getElementById('settings').innerHTML : document.body.innerHTML)]); await closeS();
+    return assert(!r[0] && r[1], JSON.stringify(r)); });
   // ---------- نسخة 5.7: تحقق CTC من مخرجات موديل NVIDIA (P1b) ----------
   const G19 = 'نسخة 5.7';
   const nvMock = ok => ev(ok => {
@@ -493,6 +493,14 @@ async function fresh(ctx, vp) {
   });
   const G511 = 'نسخة 5.11';
   await check(G511, 'الإعدادات: «wifi فقط» بدل «واي فاي بس»', () => ev(() => { const t = document.getElementById('donateMob').textContent + document.getElementById('donateHint').textContent; return t.includes('wifi فقط') && !t.includes('واي فاي'); }));
+  await check(G511, 'مفيش اختيار موديل: NVIDIA بس، والمايك من غير النموذج بيعرض التحميل', async () => { await go('#/p/2', 900);
+    const r = await ev(() => { const eb = window.EdBridge, nb = window.NvBridge, rb = window.ReciteBridge, cf = window.confirm; let asked = '', started = false;
+      window.EdBridge = { state: () => 'none', remove() {}, get() {} }; window.NvBridge = { ready: () => false, start() { started = true; }, stop() {} };
+      window.ReciteBridge = { start() { started = true; }, stop() {}, setHints() {} }; window.confirm = m => { asked = m; return false; };
+      document.getElementById('rdMic').click();
+      window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; window.confirm = cf; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge;
+      return [!!document.getElementById('asrSet'), /نموذج التعرّف على التلاوة/.test(asked), started]; });
+    return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
