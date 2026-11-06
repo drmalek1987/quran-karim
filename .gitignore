@@ -20,3 +20,4 @@ tools/qa/ui-report.html
 tools/asr/gpu/nv_out/
 tools/asr/gpu/phone_ft/
 tools/asr/gpu/data/
+tools/qa/matrix/

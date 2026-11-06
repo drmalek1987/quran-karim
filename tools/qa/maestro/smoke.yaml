@@ -1,0 +1,41 @@
+# G9 (5.11) smoke flow, run on each AVD (Phone_API35, Small_API35, Fold_API35, Tablet_API35):
+#   maestro --device emulator-5554 test tools/qa/maestro/smoke.yaml
+# Opens the app, gets past the welcome screen, opens the mushaf, turns pages both ways, opens and closes Settings.
+# Screenshots land next to the run (maestro's output folder) for a look per screen size.
+appId: com.quran.karim
+---
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "المصحف"
+    timeout: 20000
+    optional: true
+- runFlow:
+    when:
+      visible: "تخطي"
+    commands:
+      - tapOn: "تخطي"
+- tapOn:
+    text: "المصحف"
+    optional: true
+- tapOn:
+    text: "الفاتحة"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: smoke-page
+- swipe:
+    direction: RIGHT
+    duration: 700
+- waitForAnimationToEnd
+- takeScreenshot: smoke-next
+- swipe:
+    direction: LEFT
+    duration: 700
+- waitForAnimationToEnd
+- back
+- tapOn:
+    point: "7%,9%"   # the settings icon (top left); WebView buttons have no Android ids
+- waitForAnimationToEnd
+- takeScreenshot: smoke-settings
+- back
+- assertVisible: "القرآن الكريم"
