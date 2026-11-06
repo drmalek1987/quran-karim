@@ -3471,7 +3471,9 @@
           var on = r[0] === "adhan" ? cfg.adhan.fajr : rc[r[0]].on;
           return '<label class="rem-row"><span class="rem-sw"><input type="checkbox" data-w="' + r[0] + '"' + (on ? " checked" : "") + "><span></span>" + r[1] + "</span></label>";
         }).join("");
-      d.innerHTML = '<div class="wel-card">' + dots + body + '<div class="wel-btns"><button class="wel-skip">' + (step < 2 ? "تخطي" : "") + '</button><button class="wel-next">' + (step < 2 ? "التالي" : "يلا نبدأ") + "</button></div></div>";
+      // 5.11 G3: «تخطي» skips this step (the last one finishes); «تخطي الكل» leaves the welcome at once.
+      d.innerHTML = '<div class="wel-card">' + dots + body + '<div class="wel-btns"><button class="wel-skip">تخطي</button><button class="wel-next">' + (step < 2 ? "التالي" : "يلا نبدأ") + "</button></div>" +
+        (step < 2 ? '<button class="wel-all">تخطي الكل</button>' : "") + "</div>";
       d.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () {
         needEd(b.dataset.e, function () {
           if (b.dataset.e === "text") { mode = "text"; save("mode", "text"); } else { mode = "pages"; save("mode", "pages"); if (b.dataset.e !== edition) switchEdition(b.dataset.e); }
@@ -3491,7 +3493,8 @@
         save("prayer", cfg); save("reminders", rc);
         if (c.checked) try { if (window.AppBridge && AppBridge.askNotifications) AppBridge.askNotifications(); } catch (e) {}
       }; });
-      d.querySelector(".wel-skip").onclick = done;
+      d.querySelector(".wel-skip").onclick = function () { if (step < 2) { step++; paint(); } else done(); };
+      var all = d.querySelector(".wel-all"); if (all) all.onclick = done;
       d.querySelector(".wel-next").onclick = function () { if (step < 2) { step++; paint(); } else done(); };
     }
     paint();

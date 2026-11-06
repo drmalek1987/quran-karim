@@ -546,6 +546,13 @@ async function fresh(ctx, vp) {
   await check(G511, 'شريط أقسام الإعدادات: القراءة، الألوان والمظهر، الصوت والتلاوة، التطبيق، التحميلات', async () => {
     const r = await ev(() => [...document.querySelectorAll('#settings .set-jump button')].map(b => b.textContent.trim()));
     return assert(JSON.stringify(r) === JSON.stringify(['القراءة', 'الألوان والمظهر', 'الصوت والتلاوة', 'التطبيق', 'التحميلات']), JSON.stringify(r)); });
+  await check(G511, 'شاشة الترحيب: «تخطي» في كل خطوة بيعدّي الخطوة دي بس، والأخيرة بتقفل، و«تخطي الكل» بيقفل على طول', async () => {
+    await go('#/welcome', 600); const r = [];
+    for (let i = 0; i < 8; i++) { const st = await ev(() => { const w = document.querySelector('.wel'); if (!w) return null; return [[...w.querySelectorAll('.wel-dots i')].findIndex(x => x.classList.contains('on')), !!w.querySelector('.wel-skip') && w.querySelector('.wel-skip').textContent.trim()]; });
+      if (!st) break; r.push(st); await ev(() => document.querySelector('.wel .wel-skip').click()); await wait(150); }
+    await go('#/welcome', 600); const all = await ev(() => { const b = document.querySelector('.wel .wel-all'); if (!b) return 'no'; b.click(); return !document.querySelector('.wel'); });
+    await ev(() => document.querySelectorAll('.wel').forEach(x => x.remove()));
+    return assert(r.length >= 3 && r.every((x, i) => x[0] === i && x[1] === 'تخطي') && all === true, JSON.stringify([r, all])); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

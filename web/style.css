@@ -1061,3 +1061,4 @@ body.vread.fs .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
 .link-sm { background: none; border: 0; padding: 4px 0; margin-top: 6px; color: var(--muted); font: inherit; font-size: .82em; text-decoration: underline; cursor: pointer; }
 /* 5.11 G1.5: re-shown after a setting re-rendered the page behind it: no slide-up replay */
 .sheet-body.still { animation: none; }
+.wel-all { display: block; margin: 10px auto 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
