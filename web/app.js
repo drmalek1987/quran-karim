@@ -1340,6 +1340,9 @@
     function g(k) { return (parseFloat(box.style.getPropertyValue(k) || w.style.getPropertyValue(k)) || 0) * 100 + "%"; }
     return ";clip-path:inset(" + g("--ct") + " " + g("--cr") + " " + g("--cb") + " " + g("--cl") + ")";
   }
+  // Shift a turning page sideways by dx px. Not margin-left: .curl-page is absolute with inset:0 and a fixed width, so in the
+  // RTL document left/margin-left are dropped and the box sits on the right — the shift was ignored and the cut margin showed (5.11 G2).
+  function curlShift(e, dx) { e.style.left = dx + "px"; e.style.right = -dx + "px"; }
   function pageTurnFx(box, n, k, commit) { return flipMode === "slide" ? pageSlide(box, n, k, commit) : pageCurl(box, n, k, commit); }
   // Sideways slide: the page moves with the finger and the next one comes in beside it (from the left going forward,
   // as the mushaf reads right to left). Same controls as pageCurl.
@@ -1352,7 +1355,7 @@
     layer.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;width:" + W + "px;height:" + H + "px" + cropClip(box);
     var cur = box.cloneNode(true), nxt = el('<div class="page-box"><img alt="" src="' + EDS[edition].dir + pad(k) + '.avif">' + tjLayer(k) + "</div>").firstChild;
     cur.classList.add("curl-page"); nxt.classList.add("curl-page");
-    var cdx = cropDx(box, k, W); nxt.style.marginLeft = cdx + "px";
+    var cdx = cropDx(box, k, W); curlShift(nxt, cdx);
     // each page is clipped to its own frame, so the cut-off white margins never slide into view between the pages;
     // D is how far the pages travel so that the two frames meet GAP apart and the new one ends where it belongs
     var ic = cropIns(box, n), ik = cropIns(box, k), pct = function (v) { return (v * 100).toFixed(2) + "%"; };
@@ -1402,7 +1405,7 @@
     var fwd = k > n;
     function sheetOf(m) {
       var b = m === n ? box.cloneNode(true) : el('<div class="page-box"><img alt="" src="' + EDS[edition].dir + pad(m) + '.avif">' + tjLayer(m) + '</div>').firstChild;
-      b.classList.add("curl-page"); if (m !== n) b.style.marginLeft = cropDx(box, m, W) + "px"; return b;
+      b.classList.add("curl-page"); if (m !== n) curlShift(b, cropDx(box, m, W)); return b;
     }
     function shade(cls, parent) { var d = document.createElement("div"); d.className = "curl-shade " + cls; parent.appendChild(d); return d; }
     var layer = document.createElement("div"); layer.className = "curl";
@@ -1414,7 +1417,11 @@
     wrapF.appendChild(flap); layer.appendChild(under); layer.appendChild(sheet); layer.appendChild(wrapF);
     document.body.appendChild(layer);
 
-    var cy = H, t = fwd ? 0 : 1, dy = 0, RECT = [[0, 0], [W, 0], [W, H], [0, H]];
+    // The fold works on the turning sheet's visible frame (its crop, in its own coordinates), not the whole image:
+    // folding the whole image carried the cut white margin into view at the fold (5.11 G2). No crop: the whole image.
+    var ins = cropIns(box, fwd ? n : k), L = ins[3] * W, R = W * (1 - ins[1]), T = ins[0] * H, B = H * (1 - ins[2]);
+    var shS = fwd ? 0 : cropDx(box, k, W), shU = fwd ? cropDx(box, k, W) : 0;   // sideways shift of the sheet / the page under
+    var cy = B, t = fwd ? 0 : 1, dy = 0, RECT = [[L, T], [R, T], [R, B], [L, B]];
     function cut(nx, ny, c, side) {
       var out = [];
       for (var i = 0; i < 4; i++) {
@@ -1427,21 +1434,21 @@
     function place(d, x, y, deg) { d.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) rotate(" + deg.toFixed(2) + "deg) translateY(-50%)"; }
     function draw() {
       // The corner rises a little as it travels, like paper lifted by its edge.
-      var px = 2 * W * t, py = cy + dy - (cy ? 1 : -1) * Math.sin(Math.PI * t) * H * 0.07;
+      var px = L + 2 * (R - L) * t, py = cy + dy - (cy === T ? -1 : 1) * Math.sin(Math.PI * t) * (B - T) * 0.07;
       // The sheet stays bound at the spine: P can't be farther from the spine corners than the paper reaches.
-      [[W, cy, W], [W, H - cy, Math.sqrt(W * W + H * H)]].forEach(function (a) {
+      [[R, cy, R - L], [R, T + B - cy, Math.sqrt((R - L) * (R - L) + (B - T) * (B - T))]].forEach(function (a) {
         var ex = px - a[0], ey = py - a[1], d = Math.sqrt(ex * ex + ey * ey);
         if (d > a[2]) { px = a[0] + ex * a[2] / d; py = a[1] + ey * a[2] / d; }
       });
-      var vx = px, vy = py - cy, len = Math.sqrt(vx * vx + vy * vy);
+      var vx = px - L, vy = py - cy, len = Math.sqrt(vx * vx + vy * vy);
       if (len < 0.5) { sheet.style.clipPath = sheet.style.webkitClipPath = ""; wrapF.style.display = "none"; us.style.opacity = 0; return; }
       wrapF.style.display = "";
-      var nx = vx / len, ny = vy / len, mx = px / 2, my = (cy + py) / 2, c = mx * nx + my * ny, deg = Math.atan2(ny, nx) * 180 / Math.PI;
+      var nx = vx / len, ny = vy / len, mx = (L + px) / 2, my = (cy + py) / 2, c = mx * nx + my * ny, deg = Math.atan2(ny, nx) * 180 / Math.PI;
       sheet.style.clipPath = sheet.style.webkitClipPath = cut(nx, ny, c, 1);
       flap.style.clipPath = flap.style.webkitClipPath = cut(nx, ny, c, -1);
       flap.style.transform = "matrix(" + [1 - 2 * nx * nx, -2 * nx * ny, -2 * nx * ny, 1 - 2 * ny * ny, 2 * c * nx, 2 * c * ny].map(function (v) { return v.toFixed(4); }).join(",") + ")";
       var s = Math.min(1, len / 90);
-      place(us, mx, my, deg + 180); us.style.opacity = s;
+      place(us, mx + shS - shU, my, deg + 180); us.style.opacity = s;
       place(fs, mx, my, deg); fs.style.opacity = s;
       place(bs, mx, my, deg + 180);
     }
@@ -1466,7 +1473,7 @@
     draw();
     return {
       // Which corner is pulled: the bottom one unless the finger is in the top half.
-      grab: function (y) { cy = y < H / 2 ? 0 : H; draw(); },
+      grab: function (y) { cy = y < H / 2 ? T : B; draw(); },
       drag: function (dx, ddy) {
         var u = Math.max(0, Math.min(1, (fwd ? dx : -dx) / (W * 0.85)));
         t = fwd ? u : 1 - u; dy = ddy * 0.5; draw();

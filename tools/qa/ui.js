@@ -503,6 +503,25 @@ async function fresh(ctx, vp) {
     return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
   await check(G511, 'زر «امسح تسجيلاتي» صغير جوه سياسة الخصوصية مش في الإعدادات العامة', () => ev(() => { const b = document.getElementById('donateDel'); return !!b && !!b.closest('.about-box') && b.classList.contains('link-sm') && !document.querySelector('#donateMob ~ #donateDel') && document.querySelectorAll('[data-donatedel]').length === 2; }));
   await check(G511, 'سياسة الخصوصية فيها شروط استخدام النموذج واستخدام الصوت للتحسين (عربي وإنجليزي)', () => ev(() => { const t = [...document.querySelectorAll('.about-box')].map(e => e.textContent).join(' '); return /شروط استخدام نموذج التعرّف على التلاوة/.test(t) && /لتدريب النموذج وتحسينه/.test(t) && /terms of use/.test(t) && /train and improve the model/.test(t) && !/غالبًا من جوجل/.test(t); }));
+  for (const fm of ['slide', 'curl']) await check(G511, 'التقليب (' + fm + '): الصفحة الجاية في مكانها جنب الحالية، من غير هامش أبيض (RTL كان بيتجاهل margin-left)', async () => {
+    if (ED !== 'kfgqpc') return true;
+    await ev(fm => { localStorage.setItem('q.flipMode', JSON.stringify(fm)); localStorage.setItem('q.mode', '"pages"'); }, fm); await p.reload(); await go('#/p/29', 900);
+    await ev(() => document.body.classList.add('fs')); await wait(400);
+    await p.mouse.move(150, 450); await p.mouse.down(); for (let i = 1; i <= 8; i++) { await p.mouse.move(150 + i * 20, 452); await wait(16); }
+    await wait(120);
+    const r = await ev(() => { const L = document.querySelector('.curl'); if (!L) return null; const ps = [...L.querySelectorAll(':scope > .curl-page, :scope > .curl-flap > .curl-page')];
+      const W = L.getBoundingClientRect().width, H = L.getBoundingClientRect().height, Lx = L.getBoundingClientRect().left;
+      const fl = L.querySelector('.curl-back'), pts = fl ? (fl.style.clipPath.match(/-?[\d.]+px -?[\d.]+px/g) || []).map(q => q.split(' ').map(parseFloat)) : [];
+      // page 29 (odd, mirrored kfgqpc): frame = left 2.6%, right 14.6%, top 7.7%, bottom 8.4% of the image
+      const out = pts.filter(([x, y]) => x < W * 0.026 - 1 || x > W * (1 - 0.146) + 1 || y < H * 0.077 - 1 || y > H * (1 - 0.084) + 1);
+      return ps.map(e => [e.getBoundingClientRect().left - Lx, getComputedStyle(e).left, e.style.marginLeft, W]).concat([[pts.length, out.length]]); });
+    await p.mouse.up(); await wait(700); await ev(() => { document.body.classList.remove('fs'); localStorage.removeItem('q.flipMode'); });
+    assert(r && r.length >= 2, JSON.stringify(r));
+    if (fm === 'slide') { r.pop(); const [c, n] = r, W = c[3], tx = 160; const vr = n[0] + W * (1 - 0.026), vl = c[0] + W * 0.026;
+      return assert(!n[2] && Math.abs(vl - vr - 16) < 3, JSON.stringify(r) + ' gap ' + (vl - vr)); }
+    const fl = r.pop();
+    return assert(r.every(x => !x[2]) && r.some(x => Math.abs(parseFloat(x[1])) > 20) && fl[0] >= 3 && fl[1] === 0, JSON.stringify(r) + ' flap ' + JSON.stringify(fl));
+  });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
