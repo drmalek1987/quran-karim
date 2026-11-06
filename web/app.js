@@ -331,7 +331,7 @@
   // Update in place: the packs are fetched over the old ones (the old model keeps working until both have arrived).
   function asrUpdate(m) {
     asrPacks(m).forEach(function (k) { if (edQ.indexOf(k) < 0) edQ.push(k); });
-    edThen[m + "p"] = function () { asrVerCheck(m, paintEdDl); if (window.NvBridge && NvBridge.reload) NvBridge.reload(); toast("خلص تحديث " + ASRM[m].name); };
+    edThen[m + "p"] = function () { asrPick(m); asrVerCheck(m, paintEdDl); if (window.NvBridge && NvBridge.reload) NvBridge.reload(); toast("خلص تحديث " + ASRM[m].name); };
     toast("بدأ تحديث " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
     edNext(); paintEdDl();
   }
@@ -339,6 +339,8 @@
     ["asrbase", "asrbasep", "asrft", "asrftp", "asrrt"].forEach(function (k) { var st = EdBridge.state(k); if (st === "ready" || st === "part") EdBridge.remove(k); });
     if (/^(asrbase|asrft)$/.test(load("asr", "phone"))) save("asr", asrReady("asrnv") ? "asrnv" : "phone");
   }
+  // A finished download or update also makes that model the recogniser (a phone left on «الموبايل» would never use it).
+  function asrPick(m) { save("asr", m); var el = document.getElementById("asrSet"); if (el) el.value = m; }
   function asrReady(m) { return !!window.EdBridge && asrPacks(m).every(function (k) { return EdBridge.state(k) === "ready"; }); }
   function needAsr(m, then) {
     var ps = asrPacks(m), i = 0;
@@ -433,7 +435,7 @@
         EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
         if (asrSel.value === m) { asrSel.value = "phone"; save("asr", "phone"); }
         paintEdDl();
-      } else needAsr(m, paintEdDl);
+      } else needAsr(m, function () { asrPick(m); paintEdDl(); });
     }; });
   }
   // Without the pages of the chosen edition (skipped download, or deleted) the reader opens the text until one is fetched.
