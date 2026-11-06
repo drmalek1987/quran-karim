@@ -501,6 +501,7 @@ async function fresh(ctx, vp) {
       window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; window.confirm = cf; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge;
       return [!!document.getElementById('asrSet'), /نموذج التعرّف على التلاوة/.test(asked), started]; });
     return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
+  await check(G511, 'زر «امسح تسجيلاتي» صغير جوه سياسة الخصوصية مش في الإعدادات العامة', () => ev(() => { const b = document.getElementById('donateDel'); return !!b && !!b.closest('.about-box') && b.classList.contains('link-sm') && !document.querySelector('#donateMob ~ #donateDel') && document.querySelectorAll('[data-donatedel]').length === 2; }));
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

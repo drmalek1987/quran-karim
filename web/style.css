@@ -1052,3 +1052,6 @@ body.vread .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 30; }
 body.vread .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
 body.vread .bar, body.vread.fs .bar { margin-top: 0 !important; }
 body.vread.fs .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
+
+/* 5.11: small text-link button (delete my recordings, inside the privacy policy) */
+.link-sm { background: none; border: 0; padding: 4px 0; margin-top: 6px; color: var(--muted); font: inherit; font-size: .82em; text-decoration: underline; cursor: pointer; }

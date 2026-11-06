@@ -548,13 +548,14 @@
   document.querySelectorAll("#donateMob button").forEach(function (b) {
     b.addEventListener("click", function () { save("donateMobile", +b.dataset.v); donatePaint(); donateSend(); });
   });
-  var donateDel = document.getElementById("donateDel");
-  if (donateDel) donateDel.onclick = function () {
+  // 5.11: the delete button is a small link inside the privacy policy (ar + en «About»), not in the general settings.
+  document.querySelectorAll("[data-donatedel]").forEach(function (b) { b.onclick = donateDelete; });
+  function donateDelete() {
     if (!window.NvBridge || !NvBridge.forget) return toast("المسح متاح في التطبيق على الموبايل بس");
     if (!confirm((window.T || String)("تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع."))) return;
     save("donate", 0); donatePaint(); toast("بيمسح…");
     try { NvBridge.forget(load("donateId", "")); } catch (e) { toast("المسح ما نجحش، جرّب تاني"); }
-  };
+  }
   window.onDonateForget = function (ok) {
     if (ok) save("donateId", "");
     toast(ok ? "اتمسحت كل تسجيلاتك" : "المسح ما نجحش، اتأكد من النت وجرّب تاني"); donatePaint();
