@@ -21,9 +21,12 @@ for r in rows:
     p0 = V.span_of(r)
     if p0 is None: continue
     nE = len(r['pos']); j = r['neg_j']
-    while True:
+    # random wrong word of similar length; capped (some rows have no match -> the old open loop hung for hours)
+    for tries in range(50000):
         q = rnd.randrange(len(fk)); w = fk[q]
-        if abs(len(w) - len(fk[p0 + j])) <= 1 and len(w) >= 2 and not bench.rsame(w, fk[p0 + j]) and V.unit_at(q)[0]: break
+        if abs(len(w) - len(fk[p0 + j])) <= (1 if tries < 20000 else 3) and len(w) >= 2 and not bench.rsame(w, fk[p0 + j]) and V.unit_at(q)[0]: break
+    else:
+        print('no negative', r['id'], fk[p0 + j], flush=True); continue
     z = np.load(os.path.join(lpd, r['id'] + '.npz')); lps = [z[k] for k in z.files]
     if len(lps) != len(r['piece_texts']): print('pieces?', r['id'], len(lps), len(r['piece_texts'])); continue
     for name, swap in (('pos', False), ('neg', True)):

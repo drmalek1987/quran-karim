@@ -317,8 +317,24 @@
   // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
   // Only NVIDIA's model is left (NvAsr.java, its own runtime in the pack). The whisper models (asrbase, asrft) and the
   // web runtime they needed (asrrt) were dropped in 5.4: their files are removed from phones that still have them.
-  var ASRM = { asrnv: { name: "موديل NVIDIA", mb: 103 } };
+  var ASRM = { asrnv: { name: "موديل NVIDIA", mb: 103, ver: 2 } };
   function asrPacks(m) { return [m, m + "p"]; }
+  // Model versions are separate files (asrnv2.zip …); v1 (asrnv.zip, the 5.7 model) stays on the server for rollback.
+  // The pack carries asr/<m>/ver.txt; a phone without it has v1 and is offered «تحديث» in Settings › Downloads.
+  function edUrl(id) { var m = id.replace(/p$/, ""); return ED_BASE + id + (ASRM[m] && ASRM[m].ver > 1 ? ASRM[m].ver : "") + ".zip"; }
+  var asrHave = {};
+  function asrVerCheck(m, then) {
+    fetch("https://asr.app/" + m + "/ver.txt").then(function (r) { return r.ok ? r.text() : "1"; })
+      .then(function (t) { asrHave[m] = parseInt(t, 10) || 1; }, function () { asrHave[m] = 1; }).then(then || function () {});
+  }
+  function asrOld(m) { return asrReady(m) && asrHave[m] !== undefined && asrHave[m] < ASRM[m].ver; }
+  // Update in place: the packs are fetched over the old ones (the old model keeps working until both have arrived).
+  function asrUpdate(m) {
+    asrPacks(m).forEach(function (k) { if (edQ.indexOf(k) < 0) edQ.push(k); });
+    edThen[m + "p"] = function () { asrVerCheck(m, paintEdDl); if (window.NvBridge && NvBridge.reload) NvBridge.reload(); toast("خلص تحديث " + ASRM[m].name); };
+    toast("بدأ تحديث " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
+    edNext(); paintEdDl();
+  }
   if (window.EdBridge) {
     ["asrbase", "asrbasep", "asrft", "asrftp", "asrrt"].forEach(function (k) { var st = EdBridge.state(k); if (st === "ready" || st === "part") EdBridge.remove(k); });
     if (/^(asrbase|asrft)$/.test(load("asr", "phone"))) save("asr", asrReady("asrnv") ? "asrnv" : "phone");
@@ -338,7 +354,7 @@
   }
   function edNext() {
     if (!edQ.length || edQ.some(function (k) { return EdBridge.state(k) === "busy"; })) return;
-    edPct[edQ[0]] = 0; EdBridge.download(edQ[0], ED_BASE + edQ[0] + ".zip");
+    edPct[edQ[0]] = 0; EdBridge.download(edQ[0], edUrl(edQ[0]));
   }
   // Paused downloads (Settings › Downloads) stay paused across restarts until «استئناف».
   function edPaused() { return load("edPaused", []); }
@@ -402,14 +418,16 @@
       var cur = q.filter(function (k) { return EdBridge.state(k) === "busy"; })[0], p = cur ? edPct[cur] || 0 : 0;
       var step = cur ? ps.indexOf(cur) + 1 : 0;
       return '<div class="dl-item"><div><b>' + ASRM[m].name + "</b>" + (q.length ? '<span class="dl-p" data-dlp="' + (cur || q[0]) + '"><i style="width:' + p + '%"></i></span><small>' + (cur ? "جزء " + step + " من " + ps.length + " · " + p + "%" : "في الانتظار…") + "</small>" :
-        "<small>" + (ok ? "✓ على الموبايل · " : "مش متنزّل · ") + ASRM[m].mb + " ميجا</small>") + "</div>" +
-        (q.length ? "" : '<button class="btn" data-asrdl="' + m + '">' + (ok ? "حذف" : "تنزيل") + "</button>") + "</div>";
+        "<small>" + (ok ? "✓ على الموبايل · " : "مش متنزّل · ") + ASRM[m].mb + " ميجا" + (asrOld(m) ? " · فيه نسخة جديدة أدق" : "") + "</small>") + "</div>" +
+        (q.length ? "" : (asrOld(m) ? '<button class="btn" data-asrup="' + m + '">تحديث</button>' : "") + '<button class="btn" data-asrdl="' + m + '">' + (ok ? "حذف" : "تنزيل") + "</button>") + "</div>";
     }).join("");
+    box.querySelectorAll("[data-asrup]").forEach(function (b) { b.onclick = function () { asrUpdate(b.dataset.asrup); }; });
+    Object.keys(ASRM).forEach(function (m) { if (asrReady(m) && asrHave[m] === undefined) asrVerCheck(m, paintEdDl); });
     box.querySelectorAll("[data-asrdl]").forEach(function (b) { b.onclick = function () {
       var m = b.dataset.asrdl;
       if (asrReady(m)) {
         if (!confirm("تحذف " + ASRM[m].name + " من الموبايل؟")) return;
-        EdBridge.remove(m); EdBridge.remove(m + "p");
+        EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
         if (asrSel.value === m) { asrSel.value = "phone"; save("asr", "phone"); }
         paintEdDl();
       } else needAsr(m, paintEdDl);

@@ -87,6 +87,16 @@ class NvAsr {
     @JavascriptInterface
     public void stop() { on = false; tell("", "state:stopped"); }
 
+    // After a model update (Settings › Downloads) the next start() loads the new files instead of the open session.
+    @JavascriptInterface
+    public void reload() {
+        work.execute(new Runnable() { public void run() {
+            if (on) return;
+            try { if (session != null) session.close(); } catch (Exception e) { }
+            session = null;
+        } });
+    }
+
     void onPermissionResult(int[] r) { if (r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) start(); else tell("", "state:noperm"); }
 
     // Training clips, only when the reader turned «ساعد في تحسين التعرّف» on (see Donations). donate2 keeps piece `seq`
@@ -148,7 +158,8 @@ class NvAsr {
         // parts back and they are joined again; an interrupted join keeps the parts, so it re-joins next time.
         boolean parts = a.exists() && b.exists();
         if (!parts && !model.exists()) throw new Exception("model missing");
-        if (parts && (!model.exists() || model.length() != a.length() + b.length())) {
+        // Parts on disk always mean a new download (or a cut join): join again even when the size matches (model v2 = same size).
+        if (parts) {
             File tmp = new File(dir, "nv.onnx.part");
             OutputStream out = new FileOutputStream(tmp);
             byte[] buf = new byte[1 << 16]; int n;
