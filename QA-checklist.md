@@ -377,6 +377,24 @@
 - ✅ آخر صفحة في الورد بتتحسب بعد 20 ثانية
 - ⬜ على الموبايل: الصوت الواطي، ومايك الفهرس من نص سورة
 
+## 5.9.1 (تنزيل أسرع + استئناف)
+- ✅ التنزيل بـ 4 اتصالات مع بعض: طبعة الملك فهد (52 ميجا) خلصت في أقل من 40 ثانية على الـ emulator (قبل كده كان اتصال واحد حوالي 250 KB/s)
+- ✅ استئناف: الـ emulator وقع والشمرلي واقف عند 69%. بعد ما اشتغل تاني كمّل من 69% مش من الصفر، واتفك الضغط ✓
+- ✅ موديل التعرّف: شريط واحد للجزئين (0→100) بدل ما كان يرجع لـ 0 في الجزء التاني
+- ✅ التوقيع 7d8b31d2، الملف quran-karim-v5.9.1.apk
+- [ ] الموبايل: تحديث الموديل لـ v2 بالتنزيل الجديد + قطع النت في النص وترجيعه
+
+## فحص كل الوظائف (اتضاف 5.9.1، الحاجات اللي ماكانش ليها سطر فحص قبل كده)
+- [ ] الإعدادات › «امسح كل تسجيلاتي» بيمسح التبرعات اللي لسه ماترفعتش
+- [ ] الإعدادات › «رفع التسجيلات على باقة البيانات»: «واي فاي بس» مايرفعش على الباقة
+- ✅ (headless) الإعدادات › «الترجمة الإنجليزية تحت الآيات» تشغيل/إيقاف في عرض النص
+- ✅ (headless) شكل التطبيق: «زي الموبايل» و«فاتح» (جنب الداكن والغروب)
+- ✅ (headless) مواقيت الصلاة: طريقة الحساب + عصر حنفي/جمهور بيغيّر وقت العصر
+- [ ] زرار «افتح الإعدادات» لما إذن الإشعارات مقفول
+- ✅ (headless) التمرير التلقائي: سرعته بتتغيّر
+- ✅ (emulator: الاستئناف بعد ما الـ emulator وقع) التنزيلات: إيقاف مؤقت/استئناف، «حذف كل الطبعات»، حذف موديل وتنزيله تاني
+- [ ] الموبايل: الأذان والتذكيرات بعد restart، صوت الأذكار (TTS)، «سجّل تلاوتك» في اختبار الحفظ، النسخة الاحتياطية على Drive
+
 ## 5.9 (موديل التعرّف v2 — P3 fine-tune L2، بتحديث من الإعدادات)
 - ✅ ctc_up (نفس حكم التطبيق): ALL 90.6 → 93.0، اكتشاف الغلط 98.0 (p1b_port_eval.py، gate_base57 / gate_L2)
 - ✅ data.py: 28/28 PASS
@@ -418,3 +436,16 @@
 - ✅ زرار الرجوع: خطوتين بالكتير وبعدين الرئيسية، والخروج من البرنامج بضغطتين
 - ✅ ترتيب صفحة اختبار الحفظ الجديد + الخريطة المصغرة + آيات للمراجعة
 - ⬜ على الموبايل: كل البنود دي
+
+## 5.9.1 (2026-11-06)
+- APK quran-karim-v5.9.1.apk built from 404f8cf, signer SHA-256 7d8b31d2… OK. Phone install pending (not connected).
+- ui.js kfgqpc: 168/168 PASS. shamarly 3 FAIL / harmain 4 FAIL at HEAD — all also fail on 5.8 (a03ec86: shamarly 6, harmain 5) -> pre-existing, not regressions.
+- Phone: NVIDIA recogniser v2 works well once selected; asrPick() now selects it after download (user-confirmed cause).
+
+## 5.10 (in progress) — new checks to add to the phone pass
+- [ ] >5 wrong words in one ayah while reciting -> buzz + beep once per ayah (q.errAlert, default on).
+- [ ] Reciting on a mushaf page: page turns when the last word printed on it is heard (split ayah carries on next page, stays open).
+- [ ] First ayah of the next page is recognised right after the turn.
+- [ ] Slide flip on cropped editions: no white margin strip between pages during the swipe.
+- [ ] Hifz test / recitation works in scroll (vertical) mode; finishing a page scrolls to the next one.
+- ui.js kfgqpc after these edits: 168/168 PASS.

@@ -117,3 +117,16 @@
 - [x] الهامش السفلي للمصحف الموضوعي
 - [x] بعد فتح المصحف ينتقل لـ full screen تلقائي بعد ثانيتين
 - [ ] autoscroll يقف لما أخرج من البرنامج ويرجع لما أرجع
+
+## User requests 2026-11-06 (after 5.9.1)
+P-A (recitation-on-mushaf, high):
+1. Next page turns when reading reaches page END, not when the ayah ends.
+2. First ayah of next page often missed -> pre-load next page's ayahs into the matcher window before flip.
+3. Memorisation test on mushaf pages opens with current edition + chosen flip mode.
+4. Recitation also in scroll mode.
+5. Alert (sound/vibration) when errors in the same ayah exceed 5 words (setting).
+P-B:
+6. Horizontal flip shows cropped margins -> fix page fit/crop during swipe.
+7. Upload long recitation sessions to the database (needs consent + backend choice).
+P-C (research):
+8. Mushaf image -> exact text rendering. Plan: Madani editions via free KFGQPC/QPC per-page glyph fonts (V1/V2, exact glyphs, ayah numbers, page layout) + SVG frames/surah headers; no OCR (can't reach 100%). Shamarly/Harmain have no glyph fonts -> stay images.
