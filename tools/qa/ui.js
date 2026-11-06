@@ -211,7 +211,7 @@ async function fresh(ctx, vp) {
     await p.click('#flip button[data-v=v]'); const v = await ev(() => localStorage.getItem('q.turn'));
     await p.click('#flip button[data-v=curl]'); const h = await ev(() => [localStorage.getItem('q.turn'), localStorage.getItem('q.flipMode')]); await closeS();
     return assert(n === 'curl,slide,off,v' && v === '"v"' && h[0] === '"h"' && h[1] === '"curl"', JSON.stringify([n, v, h])); });
-  await check(G12, 'مجموعة «لون الصفحة» بدل «الشكل» في الإعدادات', () => ev(() => [...document.querySelectorAll('.set-group')].some(x => x.textContent === 'لون الصفحة') && ![...document.querySelectorAll('.set-group')].some(x => x.textContent === 'الشكل')));
+  await check(G12, 'مجموعة «الألوان والمظهر» (كانت «لون الصفحة») بدل «الشكل» في الإعدادات', () => ev(() => [...document.querySelectorAll('.set-group')].some(x => x.textContent === 'الألوان والمظهر') && ![...document.querySelectorAll('.set-group')].some(x => x.textContent === 'الشكل')));
   await check(G12, 'القراءة العمودية بتفتح على آخر صفحة بعد إعادة فتح التطبيق', async () => { await ev(() => { localStorage.setItem('q.turn', '"v"'); location.hash = '#/p/50'; }); await p.reload(); await wait(1800);
     return ev(() => location.hash === '#/p/50' && Math.abs(document.querySelector('.page-box[data-p="50"]').getBoundingClientRect().top) < 120); });
   await check(G12, 'زرار الهلال والاستماع مستخبيين تحت الإعدادات', async () => { await p.click('#btnSettings'); await wait(300);
@@ -543,6 +543,9 @@ async function fresh(ctx, vp) {
     await closeS(); await ev(() => localStorage.removeItem('q.thematic'));
     return assert(r.every(x => x[0] && x[1] && x[2] === 'none'), JSON.stringify(r)); });
   await check(G511, '«ألوان المصحف الموضوعي» من غير «(على صفحات المصحف)»', async () => { const t = await ev(() => document.getElementById('thmSet').closest('.row').firstChild.textContent.trim()); return assert(t === 'ألوان المصحف الموضوعي', t); });
+  await check(G511, 'شريط أقسام الإعدادات: القراءة، الألوان والمظهر، الصوت والتلاوة، التطبيق، التحميلات', async () => {
+    const r = await ev(() => [...document.querySelectorAll('#settings .set-jump button')].map(b => b.textContent.trim()));
+    return assert(JSON.stringify(r) === JSON.stringify(['القراءة', 'الألوان والمظهر', 'الصوت والتلاوة', 'التطبيق', 'التحميلات']), JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

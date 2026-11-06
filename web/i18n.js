@@ -262,6 +262,7 @@
     "مستني يترفع: # مقطع · اترفض: #": "Waiting to upload: # clips · refused: #", "رفع التسجيلات على باقة البيانات": "Upload recordings on mobile data",
     "تحميل نموذج التعرّف على التلاوة": "Download the recitation recognition model", "✓ نموذج التعرّف على التلاوة جاهز": "✓ Recitation recognition model ready",
     "جاري تحميل نموذج التعرّف على التلاوة…": "Downloading the recitation recognition model…", "نموذج التعرّف على التلاوة": "Recitation recognition model",
+    "الألوان والمظهر": "Colours & look", "الصوت والتلاوة": "Audio & recitation", "التطبيق": "App",
     "wifi فقط": "Wi-Fi only", "مسموح": "Allowed", "امسح كل تسجيلاتي": "Delete all my recordings", "أنا قريت صح": "I read it right",
     "توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟": "Allow the app to keep clips of your voice while you recite and send them, with no personal data, to improve recitation recognition?",
     "تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.": "Delete every clip sent from this phone and those still waiting? This also stops sharing.",
