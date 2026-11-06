@@ -312,9 +312,19 @@
       var v = b.dataset.v, was = turnMode;
       if (v === "v") turnMode = "v"; else { turnMode = "h"; flipMode = v; save("flipMode", flipMode); }
       save("turn", turnMode); applySettings();
-      if (was !== turnMode && /^#\/p\//.test(location.hash)) { route(); sheet.hidden = false; }
+      if (was !== turnMode && /^#\/p\//.test(location.hash)) routeKeepSheet();
     });
   });
+  // A setting that re-renders the page behind the open Settings sheet: the sheet stays where it was (same scroll, no
+  // slide-up replay). route() hides it, and showing it again restarted its animation and reset its scroll (5.11 G1.5).
+  function routeKeepSheet(keepPage) {
+    var sb = sheet.querySelector(".sheet-body"), st = sb ? sb.scrollTop : 0, y = window.scrollY;
+    route();
+    if (sb) sb.classList.add("still");
+    sheet.hidden = false;
+    if (sb) { sb.scrollTop = st; requestAnimationFrame(function () { sb.scrollTop = st; }); }
+    if (keepPage) window.scrollTo(0, y);
+  }
   // Mushaf page images are downloaded per edition (EdStore.java), not shipped in the app; the web build has them all.
   var ED_BASE = "https://raw.githubusercontent.com/drmalek1987/quran-karim/editions/";
   function edReady(id) { return !window.EdBridge || EdBridge.state(id) === "ready"; }
@@ -489,13 +499,13 @@
   document.querySelectorAll("#tjSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       tjOn = tjPg = b.dataset.v === "on"; save("tajweed", tjOn); applySettings();
-      if (/^#\/(s|a)\//.test(location.hash)) { var keep = window.scrollY; route(); sheet.hidden = false; window.scrollTo(0, keep); }
+      if (/^#\/(s|a)\//.test(location.hash)) routeKeepSheet(true);
     });
   });
   document.querySelectorAll("#thmSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       thmOn = b.dataset.v === "on"; save("thematic", thmOn); applySettings();
-      if (/^#\/p\//.test(location.hash)) { route(); sheet.hidden = false; }
+      if (/^#\/p\//.test(location.hash)) routeKeepSheet();
     });
   });
   setTimeout(function () {
@@ -505,7 +515,7 @@
   document.querySelectorAll("#trSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       trOn = b.dataset.v === "on"; save("translation", trOn); applySettings();
-      if (/^#\/s\//.test(location.hash)) { var keep = window.scrollY; route(); sheet.hidden = false; window.scrollTo(0, keep); }
+      if (/^#\/s\//.test(location.hash)) routeKeepSheet(true);
     });
   });
   // Training clips are only kept after an explicit yes; switching it off stops new clips, and «امسح كل تسجيلاتي» also deletes
@@ -573,7 +583,7 @@
   document.querySelectorAll("#spreadSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       spreadPref = b.dataset.v === "on"; save("spread", spreadPref); applySettings();
-      if (/^#\/p\//.test(location.hash)) { route(); sheet.hidden = false; }
+      if (/^#\/p\//.test(location.hash)) routeKeepSheet();
     });
   });
   // Every button and link answers a tap with the chosen buzz, except page turns (asked) and the azkar counter (its own vibration).
@@ -587,7 +597,7 @@
     document.body.classList.toggle("sheet-open", !sheet.hidden);
     if (sheet.hidden) sheet.querySelectorAll("details[open]").forEach(function (d) { d.open = false; });
   }).observe(sheet, { attributes: true, attributeFilter: ["hidden"] });
-  document.getElementById("btnSettings").onclick = function () { sheet.hidden = false; paintEdDl(); };
+  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); };
   document.getElementById("closeSettings").onclick = function () { sheet.hidden = true; };
   sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.hidden = true; });
   document.getElementById("btnSearch").onclick = function () { location.hash = "#/search"; };

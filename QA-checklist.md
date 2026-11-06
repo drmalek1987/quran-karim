@@ -463,3 +463,4 @@
 - G1.2: Settings has no recogniser picker, only «تحميل نموذج التعرّف على التلاوة (103 ميجا)». On a phone without the model, the mic (page / hifz test / voice search) asks to download it and does not start; after the download the button shows «✓ … جاهز» and the mic works with NVIDIA.
 - G2: swipe pages (kfgqpc, page ≥ 3, normal + fullscreen) with «ثني الورقة» and «انزلاق أفقي», forward and back, slowly: no white margin strip between pages or at the fold. (Verified by screenrecord on M2007J3SY; recheck on the 5.11 APK.)
 - G2b: after a page turn the new page settles with no dim/flash and no small jump. Entering full screen (auto after 5 s, or tap) and leaving it: the page and bars glide (~0.4 s), nothing jumps or re-wraps.
+- G1.5: Settings open on a mushaf page: change «طريقة التقليب» (to عمودي and back), «صفحتان متجاورتان» (tablet), «ألوان المصحف الموضوعي» — the sheet stays still at the same scroll, no slide-up jump.

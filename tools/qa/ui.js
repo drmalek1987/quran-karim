@@ -534,6 +534,14 @@ async function fresh(ctx, vp) {
       window.QA_NOFS = true; return [fs, mid, end]; });
     await ev(() => document.body.classList.remove('fs'));
     return assert(r[0] && /matrix/.test(r[1]) && r[2] === 'none', JSON.stringify(r)); });
+  await check(G511, 'الإعدادات مش بتنط: تغيير التقليب/الصفحتين/الموضوعي بيسيب مكان القائمة زي ما هو ومن غير animation', async () => {
+    await go('#/p/29', 800); await p.click('#btnSettings'); await wait(400);
+    const r = []; for (const [sel, v] of [['#flip', 'v'], ['#flip', 'curl'], ['#spreadSet', 'off'], ['#spreadSet', 'on'], ['#thmSet', 'on'], ['#thmSet', 'off']]) {
+      const before = await ev(sel => { const sb = document.querySelector('#settings .sheet-body'); document.querySelector(sel).scrollIntoView({ block: 'center' }); return sb.scrollTop; }, sel);
+      await ev(([sel, v]) => document.querySelector(sel + ' button[data-v="' + v + '"]').click(), [sel, v]); await wait(250);
+      r.push(await ev(b => { const sb = document.querySelector('#settings .sheet-body'); return [!document.getElementById('settings').hidden, Math.abs(sb.scrollTop - b) < 2, getComputedStyle(sb).animationName]; }, before)); }
+    await closeS(); await ev(() => localStorage.removeItem('q.thematic'));
+    return assert(r.every(x => x[0] && x[1] && x[2] === 'none'), JSON.stringify(r)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
