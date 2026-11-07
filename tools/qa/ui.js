@@ -726,6 +726,12 @@ async function fresh(ctx, vp) {
     await ev(() => document.getElementById('rdMic').click()); await fin(t.slice(0, 7).join(' ')); await wait(900); const h2 = await ev(() => location.hash);
     await ev(() => localStorage.setItem('q.mode', '"pages"')); await p.reload(); await wait(800);
     return assert(pos && pos[0] <= pos[1] && pos[2] !== 'none' && /^#\/p\/\d+/.test(h1) && on && cap && /الكهف/.test(cap) && /^#\/s\/18\/1/.test(h2), JSON.stringify([pos, h1, on, cap, h2])); });
+  await check(G513, 'P2.12: ملء الشاشة في طبعة الحرمين: الصفحة في النص مش لازقة فوق', async () => { const ctx = await b.newContext({ viewport: { width: 411, height: 914 } }), q = await ctx.newPage();
+    await q.goto(W); await q.evaluate(() => { localStorage.clear(); localStorage.setItem('q.edition', '"harmain"'); localStorage.setItem('q.micTips', '1'); localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); });
+    await q.reload(); await q.waitForTimeout(900); await q.evaluate(() => { window.QA_NOFS = true; location.hash = '#/p/50'; }); await q.waitForTimeout(1300);
+    await q.evaluate(() => document.body.classList.add('fs')); await q.waitForTimeout(700);
+    const r = await q.evaluate(() => { const x = document.getElementById('pg').getBoundingClientRect(); return [Math.round(x.top), Math.round(innerHeight - x.bottom)]; }); await ctx.close();
+    return assert(r[0] > 20 && Math.abs(r[0] - r[1]) < 20, JSON.stringify(r)); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }
