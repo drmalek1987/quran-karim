@@ -248,7 +248,7 @@ async function fresh(ctx, vp) {
     const r = await ev(() => [document.querySelectorAll('.zikr').length, document.querySelectorAll('.zikr .z-play').length]); await p.click('#zAll');
     for (let i = 0; i < 90 && (await p.textContent('#zAll')).includes('إيقاف'); i++) await wait(1000);
     return assert(r[1] > 0 && r[1] < r[0] && (await p.textContent('#zAll')).includes('استمع'), JSON.stringify(r)); });
-  await check(G12, 'مكافآت الختمة ظاهرة في شاشة الختمة', async () => { await go('#/khatma', 700); return ev(() => !!document.querySelector('.rw-badges, .rw, [class^=rw-]')); });
+  await check(G12, 'مكافآت الختمة في صفحة الإحصائيات (5.13 P2.10)، مش في الختمة', async () => { await go('#/khatma', 700); const k = await ev(() => !!document.querySelector('.rw-badges, .rw, [class^=rw-]')); await go('#/stats', 700); const s = await ev(() => !!document.querySelector('.rw-badges, .rw, [class^=rw-]')); return assert(!k && s, JSON.stringify([k, s])); });
   await check(G12, 'صفحة الآية: الترجمة والبلاغة والمتشابهات', async () => { await go('#/a/2/255', 900); await p.click('#ayTr'); await wait(800); const tr = await ev(() => !!document.querySelector('.ay-tr'));
     await p.click('.ay-tabs button[data-t=balagha]'); await wait(1500); const bal = await ev(() => document.getElementById('ayBody').textContent.length > 30);
     await go('#/a/2/2?t=mutash', 1200); const mu = await ev(() => document.getElementById('ayBody').textContent.length > 10); await go('#/a/2/255', 600); await p.click('#ayTr'); await wait(500);
@@ -623,8 +623,8 @@ async function fresh(ctx, vp) {
     const ph = await ev(() => [document.querySelectorAll('.stats .kh-sec').length, document.querySelector('.st-don .st-nums').textContent.replace(/\s+/g, '')]);
     await p.click('#stPriv'); await wait(700); const pv = await ev(() => { const g = document.getElementById('privGroup'); return !!g && g.open && !document.getElementById('settings').hidden; });
     await ev(k => { delete window.NvBridge; k.forEach(([a, v]) => v === null ? localStorage.removeItem(a) : localStorage.setItem(a, v)); }, keep); await p.keyboard.press('Escape'); await ev(() => { const c = document.getElementById('closeSettings'); if (c) c.click(); }); await go('#/', 300);
-    return assert(web[0] === '#/stats' && web[1] === 3 && web[2] === '٩٠٪,٧٥٪,—' && web[3].includes('٢آية') && web[3].includes('١آية') && web[3].includes('٩٥٪') && web[4] === '#/more' &&
-      ph[0] === 4 && ph[1].includes('٤') && ph[1].includes('شغالة') && pv, JSON.stringify([web, ph, pv])); });
+    return assert(web[0] === '#/stats' && web[1] === 4 && web[2] === '٩٠٪,٧٥٪,—' && web[3].includes('٢آية') && web[3].includes('١آية') && web[3].includes('٩٥٪') && web[4] === '#/more' &&
+      ph[0] === 5 && ph[1].includes('٤') && ph[1].includes('شغالة') && pv, JSON.stringify([web, ph, pv])); });
   await check(G511, 'G6: الاختبار والخريطة والمتابعة بينهم صف واحد، والصفحة المحددة منورة', async () => { const r = [];
     for (const h of ['#/hifztest', '#/hifzmap', '#/hifzlog']) { await go(h, 600); r.push(await ev(() => [...document.querySelectorAll('.hz-nav a')].map(a => a.getAttribute('href') + (a.classList.contains('on') ? '*' : '')).join(' '))); }
     await p.click('.hz-nav a[href="#/hifztest"]'); await wait(500); const back = await ev(() => location.hash);
