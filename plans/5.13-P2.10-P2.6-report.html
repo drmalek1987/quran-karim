@@ -1,92 +1,168 @@
 <!doctype html>
-<html lang="ar" dir="rtl"><meta charset="utf-8"><title>الإحصائيات وشاشات الحفظ: محتاجين رأيك</title>
+<html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الإحصائيات وشاشات الحفظ: اختار ورتّب</title>
 <style>
-body{font-family:Tahoma,"Segoe UI",sans-serif;max-width:820px;margin:24px auto;padding:0 16px;line-height:2;color:#1d2b26;background:#fbfaf6;font-size:16px}
-h1{font-size:23px;color:#0d5c46}h2{font-size:19px;color:#0d5c46;margin-top:34px;border-bottom:2px solid #0d5c4633;padding-bottom:4px}
-.card{background:#fff;border:1px solid #ddd8cb;border-radius:12px;padding:10px 16px;margin:10px 0}
-.card b.t{display:block;font-size:16.5px}
-.del{border-right:6px solid #c0392b}.keep{border-right:6px solid #1e8a5a}.move{border-right:6px solid #d39b1e}
-.tag{display:inline-block;font-size:13px;font-weight:bold;padding:0 10px;border-radius:20px;margin-bottom:4px}
-.del .tag{background:#fbe3e0;color:#a5281c}.keep .tag{background:#dff3e8;color:#14683f}.move .tag{background:#fbefd2;color:#8a6210}
-.q{background:#fff6dc;border:1px solid #e6cf8a;border-radius:12px;padding:12px 18px;margin-top:30px}
-.q li{margin:8px 0}
-.screen{background:#fff;border:1px solid #ddd8cb;border-radius:12px;padding:10px 16px;margin:12px 0}
-.screen h3{margin:0 0 4px;font-size:17px;color:#0d5c46}
-.screen p{margin:4px 0}.old{color:#7a746a}.new b{color:#0d5c46}
+:root{--g:#0d5c46;--line:#ddd8cb;--bg:#fbfaf6}
+*{box-sizing:border-box}
+body{font-family:Tahoma,"Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:18px 16px 140px;line-height:1.9;color:#1d2b26;background:var(--bg);font-size:16px}
+h1{font-size:23px;color:var(--g);margin:6px 0}
+.intro{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.place{background:#fff;border:1px solid var(--line);border-radius:14px;margin:18px 0;overflow:hidden}
+.place>summary{list-style:none;cursor:pointer;padding:12px 16px;background:#eef4f0;font-size:18px;font-weight:bold;color:var(--g);display:flex;justify-content:space-between;align-items:center}
+.place>summary::-webkit-details-marker{display:none}
+.place>summary .cnt{font-size:13px;font-weight:normal;color:#5d6b64}
+.place .job{margin:10px 16px 0;padding:8px 12px;background:#f6f3ea;border-radius:10px;font-size:15px}
+.item{border-top:1px dashed var(--line);margin:10px 16px 0;padding:10px 0 12px}
+.item:first-of-type{border-top:0}
+.item .t{font-weight:bold;font-size:16.5px}
+.item .d{color:#3e4a44;font-size:15px;outline:none;border-radius:6px;padding:0 4px}
+body.editing .item .d,body.editing .item .t,body.editing .job{background:#fffbe8;box-shadow:0 0 0 1px #e6cf8a}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.opts button{font:inherit;font-size:14px;border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:3px 14px;cursor:pointer}
+.opts button.on{color:#fff;border-color:transparent}
+.opts button.on[data-k=del]{background:#c0392b}.opts button.on[data-k=keep]{background:#1e8a5a}.opts button.on[data-k=move]{background:#c98a0b}.opts button.on[data-k=other]{background:#4b5c8a}
+.opts button.sug::after{content:" (اقتراحي)";font-size:12px;opacity:.75}
+.item.changed{background:linear-gradient(90deg,transparent,#fff6dc)}
+textarea,input[type=text]{width:100%;font:inherit;font-size:14.5px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:6px;background:#fdfcf9}
+textarea{min-height:38px;resize:vertical}
+.bar{position:fixed;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #0001;padding:10px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+.bar button{font:inherit;font-size:15px;border:0;border-radius:10px;padding:8px 16px;cursor:pointer;background:#e9eee9}
+.bar button.main{background:var(--g);color:#fff}
+.bar small{color:#5d6b64}
+#out{display:none;position:fixed;inset:8% 8% auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 10px 40px #0003;max-height:80vh;overflow:auto;z-index:5}
+#out textarea{min-height:300px}
+.add{font:inherit;font-size:14px;border:1px dashed var(--g);color:var(--g);background:none;border-radius:10px;padding:4px 14px;margin:10px 16px 14px;cursor:pointer}
+.mine .t{color:#4b5c8a}
+.rm{float:left;border:0;background:none;color:#a5281c;cursor:pointer;font-size:13px}
 </style>
 
-<h1>الإحصائيات وشاشات الحفظ: محتاجين رأيك</h1>
-<p>طلبت حاجتين:</p>
-<ol>
-<li>الإحصائيات ما تظهرش غير في «المزيد ← الإحصائيات».</li>
-<li>شاشات الحفظ الثلاثة تترتب، بحيث ما يبقاش فيها حاجة متكررة.</li>
-</ol>
-<p>الصفحة دي فيها اقتراحي للاتنين. <b>مش هغيّر حاجة غير لما ترد على الـ ٣ أسئلة اللي في آخر الصفحة.</b></p>
+<h1>الإحصائيات وشاشات الحفظ</h1>
+<div class="intro">
+كل مكان في التطبيق ليه قسم، وتحته كل اللي يخصّه: الإحصائيات اللي فيه، وترتيب الشاشة، والأسئلة.
+<br>• لكل بند <b>اختار</b> اللي يعجبك. اقتراحي جنبه كلمة «(اقتراحي)»، وهو المختار من الأول.
+<br>• لو عايز تكتب حاجة، فيه <b>خانة ملاحظة</b> تحت كل بند.
+<br>• زرار <b>«تعديل النص»</b> تحت بيخليك تغيّر الكلام نفسه. وزرار <b>«＋ بند جديد»</b> يضيف طلب من عندك.
+<br>• اختياراتك بتتحفظ لوحدها. لما تخلّص قولّي <b>«خلصت»</b> وأنا هقرا الصفحة، أو اضغط «انسخ ردّي» وابعته.
+</div>
 
-<h2>أولًا: الإحصائيات اللي موجودة برّه صفحة الإحصائيات</h2>
-<p>دي كل الأماكن اللي لقيت فيها أرقام أو نسب برّه «المزيد ← الإحصائيات»، واللي أقترحه لكل واحد:</p>
+<div id="places"></div>
 
-<div class="card del"><span class="tag">تتشال</span><b class="t">١. شاشة «اختبار الحفظ» (فوق)</b>
-دايرة مكتوب فيها نسبة حفظك وعدد الآيات اللي محتاجة مراجعة.</div>
+<div class="bar">
+  <button class="main" id="copy">انسخ ردّي</button>
+  <button id="edit">تعديل النص</button>
+  <button id="reset">رجّع اقتراحاتي</button>
+  <small id="sum"></small>
+</div>
+<div id="out"><b>ردّك (اتنسخ، ابعته في الشات):</b><textarea id="outT" readonly></textarea><div style="text-align:left"><button id="outX" style="font:inherit;border:0;background:#e9eee9;border-radius:8px;padding:6px 14px;cursor:pointer">قفل</button></div></div>
 
-<div class="card del"><span class="tag">تتشال</span><b class="t">٢. شاشة «اختبار الحفظ» (تحت)</b>
-«إحصائية التسميع بالصوت»: عدد مرات التسميع، والكلمات، والدقة، وآخر ٥ اختبارات.
-<br>نفس المعلومات دي موجودة في صفحة الإحصائيات.</div>
+<script>
+const DEL = ['del', 'تتشال'], KEEP = ['keep', 'تفضل'], MOVE = ['move', 'تتنقل للإحصائيات'];
+// each place: what the screen is for, then its items. opts: [key, label]; sug = suggested key
+const PLACES = [
+ { id: 'test', name: 'شاشة «اختبار الحفظ»', job: 'شغلانتها: <b>أختبر نفسي</b>. يفضل فيها: اختيار السورة والآية، ومستوى إخفاء الكلمات، والنص، والمايك، والآيات اللي غلطت فيها قبل كده.', items: [
+   { id: 't1', t: 'دايرة «نسبة الحفظ وعدد الآيات للمراجعة» (فوق)', d: 'نفس المعلومة موجودة في الإحصائيات وفي الخريطة.', opts: [DEL, KEEP], sug: 'del' },
+   { id: 't2', t: '«إحصائية التسميع بالصوت» وآخر ٥ اختبارات (تحت)', d: 'عدد المرات والكلمات والدقة. موجودة في الإحصائيات تحت «آخر الاختبارات».', opts: [DEL, KEEP], sug: 'del' } ] },
+ { id: 'map', name: 'شاشة «خريطة الحفظ»', job: 'شغلانتها: <b>أشوف حفظي فين، وأبدأ منه</b>. يفضل فيها: مربعات الصفحات، والضغط على مربع (اختبار على المصحف / بالكلمات / افتح الصفحة).', items: [
+   { id: 'm1', t: 'دايرة «كام صفحة محفوظة من ٦٠٤» (فوق)', d: 'إحصائية، مكانها الإحصائيات.', opts: [DEL, KEEP], sug: 'del' },
+   { id: 'm2', t: 'شرح الألوان (أخضر = محفوظة، أصفر = محتاجة مراجعة…)', d: 'بيشرح الخريطة. اقتراحي يفضل، بس من غير عدد الصفحات جنب كل لون.', opts: [['keep', 'يفضل من غير أرقام'], ['keepn', 'يفضل بالأرقام'], DEL], sug: 'keep' },
+   { id: 'm3', t: 'زرار «سجّل السور اللي حفظتها» (تحت)', d: 'بيوديك لشاشة «متابعة الحفظ» اللي موجودة أصلًا في الأزرار اللي فوق.', opts: [DEL, KEEP], sug: 'del' } ] },
+ { id: 'log', name: 'شاشة «متابعة الحفظ»', job: 'شغلانتها: <b>أسجّل اللي حفظته، وأعرف أراجع إيه</b>. فيها جزئين: «عليك مراجعة»، و«السور اللي حفظتها» (قايمة الـ ١١٤ سورة تعلّم على اللي حفظته).', items: [
+   { id: 'l0', t: 'اسم الشاشة', d: 'اقتراحي «المراجعة» لأنه بيوصف شغلتها.', opts: [['new', '«المراجعة»'], ['old', 'يفضل «متابعة الحفظ»'], ['other', 'اسم تاني']], sug: 'new', input: 'other' },
+   { id: 'l1', t: '«عليك مراجعة»: تعرض كام سورة؟', d: 'دلوقتي بتعرض سورة واحدة. اقتراحي كل السور اللي جه ميعاد مراجعتها، الأقدم الأول، وجنب كل سورة «اختبرني» و«راجعتها ✓».', opts: [['all', 'كل السور'], ['one', 'سورة واحدة زي دلوقتي']], sug: 'all' },
+   { id: 'l2', t: 'دايرة «حفظت كام سورة وكام آية» (فوق)', d: 'إحصائية، مكانها الإحصائيات.', opts: [DEL, KEEP], sug: 'del' },
+   { id: 'l3', t: 'زرار «خريطة الحفظ»', d: 'موجود أصلًا في الأزرار اللي فوق.', opts: [DEL, KEEP], sug: 'del' },
+   { id: 'l4', t: 'زرار «اقرأ» في كارت المراجعة', d: 'زرار «اختبرني» بيفتح النص أصلًا.', opts: [DEL, KEEP], sug: 'del' } ] },
+ { id: 'kh', name: 'صفحة «الختمة»', job: 'شغلانتها: <b>خطة الختمة وورد اليوم</b>.', items: [
+   { id: 'k1', t: 'كارت «الإحصائيات» (صفحات النهارده وآخر أسبوع)', d: 'اقتراحي يفضل زرار «الإحصائيات ←» من غير أرقام.', opts: [['link', 'زرار بس من غير أرقام'], DEL, KEEP], sug: 'link' },
+   { id: 'k2', t: '«المكافآت» (الأيام المتتالية والأوسمة)', d: '', opts: [MOVE, KEEP, DEL], sug: 'move' },
+   { id: 'k3', t: 'كارت خطة الختمة («اليوم كام من كام»، والنسبة)', d: 'ده متابعة الخطة نفسها، مش إحصائية.', opts: [KEEP, DEL], sug: 'keep' } ] },
+ { id: 'home', name: 'الرئيسية', job: '', items: [
+   { id: 'h1', t: '«هدف اليوم» (الدايرة)', d: 'ده الهدف نفسه، مش إحصائية.', opts: [KEEP, DEL, MOVE], sug: 'keep' } ] },
+ { id: 'set', name: 'الإعدادات', job: '', items: [
+   { id: 's1', t: 'سطر أرقام «آخر ٧ أيام» عند «التعرّف على التلاوة»', d: 'نفس الأرقام في الإحصائيات.', opts: [DEL, KEEP], sug: 'del' } ] },
+ { id: 'res', name: 'بعد ما تخلّص تسميع', job: '', items: [
+   { id: 'r1', t: 'نافذة النتيجة (كام آية، وكام كلمة صح، وكام غلط)', d: 'دي نتيجة الاختبار اللي لسه خلّصته.', opts: [KEEP, DEL], sug: 'keep' } ] },
+ { id: 'stats', name: 'صفحة «الإحصائيات» نفسها', job: 'كل اللي بيتشال من فوق موجود هنا أصلًا. اللي هيتضاف: «المكافآت» لو اخترت تنقلها.', items: [] }
+];
+const KEY = 'qk-p2-report-v2';
+// saved in the browser when it allows it (a page opened as data: has no storage: the choices then live until it closes)
+const store = (() => { try { const k = '__t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; } catch (e) { const m = {}; return { getItem: k => m[k] ?? null, setItem: (k, v) => { m[k] = v; } }; } })();
+let S = JSON.parse(store.getItem(KEY) || '{}'); S.c = S.c || {}; S.n = S.n || {}; S.txt = S.txt || {}; S.extra = S.extra || {};
+const save = () => { store.setItem(KEY, JSON.stringify(S)); sum(); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-<div class="card del"><span class="tag">تتشال الدايرة</span><b class="t">٣. شاشة «خريطة الحفظ» (فوق)</b>
-دايرة «كام صفحة محفوظة من ٦٠٤»، وجنب كل لون عدد صفحاته.
-<br>الدايرة تتشال. شرح الألوان يفضل (أخضر = محفوظة، وأصفر = محتاجة مراجعة…)، لأنه بيشرح الخريطة، بس من غير الأرقام اللي جنب كل لون.</div>
-
-<div class="card del"><span class="tag">تتشال</span><b class="t">٤. شاشة «متابعة الحفظ» (فوق)</b>
-دايرة «حفظت كام سورة، وكام آية من ٦٢٣٦».</div>
-
-<div class="card move"><span class="tag">يبقى زرار بس</span><b class="t">٥. صفحة «الختمة»: كارت «الإحصائيات»</b>
-مكتوب فيه عدد الصفحات اللي قريتها النهارده وفي آخر أسبوع.
-<br>يفضل زرار «الإحصائيات ←» يوديك لصفحة الإحصائيات، من غير أرقام.</div>
-
-<div class="card move"><span class="tag">تتنقل للإحصائيات</span><b class="t">٦. صفحة «الختمة»: «المكافآت»</b>
-عدد الأيام المتتالية اللي قريت فيها، والأوسمة.
-<br>تتنقل لصفحة الإحصائيات.</div>
-
-<div class="card del"><span class="tag">يتشال</span><b class="t">٧. الإعدادات ← التعرّف على التلاوة</b>
-سطر صغير فيه أرقام آخر ٧ أيام: كام مقطع اتسمع، ونسبة التسميع الصح.
-<br>نفس الأرقام دي موجودة في صفحة الإحصائيات.</div>
-
-<div class="card keep"><span class="tag">يفضل</span><b class="t">٨. صفحة «الختمة»: كارت خطة الختمة</b>
-«اليوم كام من كام»، والنسبة، و«قريت كام صفحة».
-<br>ده مش إحصائية، ده متابعة الخطة نفسها، ومن غيره الختمة مش هتبقى مفهومة.</div>
-
-<div class="card keep"><span class="tag">يفضل</span><b class="t">٩. الرئيسية: «هدف اليوم»</b>
-الدايرة اللي بتوريك وصلت لفين في هدف النهارده.
-<br>ده الهدف نفسه مش إحصائية. ولو عايزه يتشال قولّي.</div>
-
-<div class="card keep"><span class="tag">يفضل</span><b class="t">١٠. النتيجة بعد ما تخلّص تسميع</b>
-النافذة اللي بتظهر في الآخر: كام آية، وكام كلمة صح، وكام كلمة غلط.
-<br>دي نتيجة الاختبار اللي لسه خلّصته، فلازم تفضل.</div>
-
-<h2>ثانيًا: ترتيب شاشات الحفظ الثلاثة</h2>
-<p>فيه ٣ شاشات للحفظ: <b>اختبار الحفظ</b> و<b>خريطة الحفظ</b> و<b>متابعة الحفظ</b>. دلوقتي فيها حاجات متكررة: كل شاشة فيها دايرة نسبة، وفيه زراير بتوديك لشاشات موجودة أصلًا في الأزرار اللي فوق.</p>
-<p>اقتراحي: كل شاشة يبقى ليها شغلانة واحدة واضحة.</p>
-
-<div class="screen"><h3>١. اختبار الحفظ: «أختبر نفسي»</h3>
-<p class="new"><b>فيها:</b> اختيار السورة والآية، ومستوى إخفاء الكلمات، والنص، والمايك، والآيات اللي غلطت فيها قبل كده عشان ترجع لها بضغطة.</p>
-<p class="old">يتشال: دايرة النسبة وسجل التسميع (مكانهم الإحصائيات).</p></div>
-
-<div class="screen"><h3>٢. خريطة الحفظ: «أشوف حفظي فين، وأبدأ منه»</h3>
-<p class="new"><b>فيها:</b> شرح الألوان، ومربعات الصفحات. لما تضغط على مربع تختار: اختبار على المصحف، أو اختبار بالكلمات، أو تفتح الصفحة.</p>
-<p class="old">يتشال: دايرة النسبة، وزرار «سجّل السور اللي حفظتها»، لأنه بيوديك لشاشة «متابعة الحفظ» اللي موجودة أصلًا في الأزرار اللي فوق.</p></div>
-
-<div class="screen"><h3>٣. متابعة الحفظ (اقتراح اسم جديد: «المراجعة»): «أسجّل اللي حفظته، وأعرف أراجع إيه»</h3>
-<p class="new"><b>فيها جزئين:</b><br>
-(أ) <b>«عليك مراجعة»:</b> كل السور اللي جه ميعاد مراجعتها، الأقدم الأول. جنب كل سورة زرارين: «اختبرني» و«راجعتها ✓».<br>
-(ب) <b>«السور اللي حفظتها»:</b> قايمة الـ ١١٤ سورة زي ما هي، تعلّم على اللي حفظته.</p>
-<p class="old">يتشال: دايرة النسبة، وزرار «خريطة الحفظ» (موجود فوق)، وزرار «اقرأ» (زرار «اختبرني» بيفتح النص أصلًا).</p></div>
-
-<div class="q"><b style="font-size:18px">محتاج ردك على ٣ أسئلة:</b>
-<ol>
-<li><b>الإحصائيات:</b> موافق على اقتراحي للبنود من ١ لـ ١٠؟ لو فيه بند عايزه يتعمل بشكل تاني، قول رقمه.</li>
-<li><b>الاسم:</b> نغيّر «متابعة الحفظ» لـ «المراجعة»، ولا يفضل الاسم القديم؟</li>
-<li><b>«عليك مراجعة»:</b> تعرض كل السور اللي جه ميعاد مراجعتها، ولا سورة واحدة بس زي دلوقتي؟</li>
-</ol>
-<p>ممكن ترد ببساطة: «موافق على الكل»، أو مثلًا: «موافق، بس رقم ٩ يتشال، والاسم يفضل زي ما هو».</p></div>
+function itemHtml(it, mine) {
+  const c = S.c[it.id] || it.sug;
+  return `<div class="item${mine ? ' mine' : ''}${c !== it.sug && !mine ? ' changed' : ''}" data-id="${it.id}">` +
+    (mine ? `<button class="rm" data-rm="${it.id}">حذف البند</button>` : '') +
+    `<div class="t" data-txt="${it.id}.t">${esc(S.txt[it.id + '.t'] ?? it.t)}</div>` +
+    (it.d || mine ? `<div class="d" data-txt="${it.id}.d">${esc(S.txt[it.id + '.d'] ?? it.d)}</div>` : '') +
+    (it.opts ? `<div class="opts">${it.opts.map(o => `<button data-k="${o[0]}" class="${o[0] === c ? 'on' : ''}${o[0] === it.sug ? ' sug' : ''}">${o[1]}</button>`).join('')}</div>` : '') +
+    (it.input && c === it.input ? `<input type="text" data-in="${it.id}" placeholder="اكتب الاسم" value="${esc(S.n[it.id + '.in'] || '')}">` : '') +
+    `<textarea data-note="${it.id}" placeholder="ملاحظة (اختياري)">${esc(S.n[it.id] || '')}</textarea></div>`;
+}
+function paint() {
+  const open = [...document.querySelectorAll('.place[open]')].map(x => x.dataset.p);
+  document.getElementById('places').innerHTML = PLACES.map(P => {
+    const extra = (S.extra[P.id] || []).map(e => itemHtml(e, true)).join('');
+    const n = P.items.length + (S.extra[P.id] || []).length;
+    return `<details class="place" data-p="${P.id}" ${open.length ? (open.includes(P.id) ? 'open' : '') : 'open'}><summary><span data-txt="${P.id}.name">${esc(S.txt[P.id + '.name'] ?? P.name)}</span><span class="cnt">${n} بند</span></summary>` +
+      (P.job ? `<div class="job" data-txt="${P.id}.job">${S.txt[P.id + '.job'] ?? P.job}</div>` : '') +
+      P.items.map(it => itemHtml(it)).join('') + extra +
+      `<button class="add" data-add="${P.id}">＋ بند جديد هنا</button></details>`;
+  }).join('');
+  setEdit(document.body.classList.contains('editing'));
+  sum();
+}
+function allItems() { const L = []; PLACES.forEach(P => { P.items.forEach(it => L.push([P, it, false])); (S.extra[P.id] || []).forEach(it => L.push([P, it, true])); }); return L; }
+function label(it, k) { const o = (it.opts || []).find(o => o[0] === k); return o ? o[1] : ''; }
+function sum() { const ch = allItems().filter(([P, it, m]) => !m && S.c[it.id] && S.c[it.id] !== it.sug).length, nt = Object.values(S.n).filter(Boolean).length;
+  document.getElementById('sum').textContent = ch ? `غيّرت ${ch} من اقتراحاتي` + (nt ? ` · ${nt} ملاحظة` : '') : 'موافق على كل اقتراحاتي' + (nt ? ` · ${nt} ملاحظة` : ''); }
+function reply() {
+  const L = ['ردّي على تقرير الإحصائيات وشاشات الحفظ:'];
+  PLACES.forEach(P => {
+    const rows = [];
+    P.items.concat(S.extra[P.id] || []).forEach(it => {
+      const mine = !P.items.includes(it), c = S.c[it.id] || it.sug, t = S.txt[it.id + '.t'] ?? it.t, note = S.n[it.id];
+      let line = '- ' + t + (mine ? ' (طلب جديد): ' + (S.txt[it.id + '.d'] ?? it.d) : ': ' + label(it, c) + (c === it.sug ? ' ✓' : ' (غيّرته)'));
+      if (it.input && c === it.input && S.n[it.id + '.in']) line += ': ' + S.n[it.id + '.in'];
+      if (note) line += ' | ملاحظة: ' + note;
+      rows.push(line);
+    });
+    const edited = Object.keys(S.txt).filter(k => k.startsWith(P.id + '.')).length;
+    if (rows.length) L.push('', '[' + (S.txt[P.id + '.name'] ?? P.name) + ']', ...rows);
+  });
+  const te = Object.keys(S.txt).length; if (te) L.push('', '(عدّلت نص ' + te + ' مكان في الصفحة)');
+  return L.join('\n');
+}
+function setEdit(on) {
+  document.body.classList.toggle('editing', on);
+  document.querySelectorAll('[data-txt]').forEach(e => { e.contentEditable = on ? 'true' : 'false'; });
+  document.getElementById('edit').textContent = on ? 'خلصت تعديل' : 'تعديل النص';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.opts button');
+  if (b) { const id = b.closest('.item').dataset.id; S.c[id] = b.dataset.k; save(); paint(); return; }
+  const a = e.target.closest('[data-add]');
+  if (a) { const p = a.dataset.add, id = 'x' + Date.now(); (S.extra[p] = S.extra[p] || []).push({ id, t: 'بند جديد', d: 'اكتب هنا اللي عايزه', opts: null }); save(); paint(); setEdit(true);
+    const el = document.querySelector(`[data-txt="${id}.d"]`); if (el) { el.focus(); document.getSelection().selectAllChildren(el); } return; }
+  const r = e.target.closest('[data-rm]');
+  if (r) { for (const p in S.extra) S.extra[p] = S.extra[p].filter(x => x.id !== r.dataset.rm); save(); paint(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.note) { S.n[t.dataset.note] = t.value; save(); }
+  else if (t.dataset.in) { S.n[t.dataset.in + '.in'] = t.value; save(); }
+  else if (t.dataset.txt) { const k = t.dataset.txt, [id, f] = [k.slice(0, k.lastIndexOf('.')), k.slice(k.lastIndexOf('.') + 1)];
+    const ex = Object.values(S.extra).flat().find(x => x.id === id);
+    if (ex) ex[f] = t.innerText; else S.txt[k] = f === 'job' ? t.innerHTML : t.innerText; save(); }
+});
+document.getElementById('edit').onclick = () => setEdit(!document.body.classList.contains('editing'));
+document.getElementById('reset').onclick = () => { if (confirm('ترجع كل اختياراتي وتمسح ملاحظاتك وتعديلاتك؟')) { S = { c: {}, n: {}, txt: {}, extra: {} }; save(); paint(); } };
+document.getElementById('copy').onclick = async () => { const t = reply(), o = document.getElementById('outT'); o.value = t; document.getElementById('out').style.display = 'block';
+  try { await navigator.clipboard.writeText(t); } catch (e) { o.select(); document.execCommand('copy'); } };
+document.getElementById('outX').onclick = () => { document.getElementById('out').style.display = 'none'; };
+window.qkReply = reply;   // read by Claude from the browser pane
+paint();
+</script>
 </html>
