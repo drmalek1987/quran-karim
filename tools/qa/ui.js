@@ -277,8 +277,8 @@ async function fresh(ctx, vp) {
   await check(G13, 'إمساكية رمضان (أيام رمضان كلها بالإمساك) ومشاركتها صورة', async () => { await go('#/prayer', 800); await p.click('#prMonth'); await wait(600); const n = await ev(() => document.querySelectorAll('.ims tbody tr').length >= 29 && document.title !== '' && document.getElementById('title').textContent === 'إمساكية رمضان' && document.querySelector('.ims th:nth-child(3)').textContent === 'الإمساك' ? 30 : -1);
     await ev(() => AppBridge.shares = []); await p.click('#imsShare'); await wait(800); const sh = await ev(() => AppBridge.shares); return assert(n === 30 && sh.length === 1 && sh[0][1] === 'imsakia.png', n + JSON.stringify(sh)); });
   await check(G13, 'إحصائيات القراءة بتعد الصفحات اللي اتفتحت', async () => { await ev(() => localStorage.removeItem('q.stats')); for (const n of [10, 11, 12, 11]) await go('#/p/' + n, 500);
-    // 5.11 G5: the numbers moved to «الإحصائيات»; the khatma screen keeps a link card with today's pages
-    await go('#/khatma', 700); const card = await ev(() => { const a = document.querySelector('a.st-link[href="#/stats"]'); return !!a && /٢|٣|٤/.test(a.textContent); });
+    // 5.11 G5: the numbers moved to «الإحصائيات»; 5.13 P2.10: the khatma screen keeps only a link (no numbers, no rewards)
+    await go('#/khatma', 700); const card = await ev(() => { const a = document.querySelector('a.st-link[href="#/stats"]'); return !!a && !/[٠-٩]/.test(a.textContent) && !document.querySelector('.view .rw-grid, #view .rw-grid'); });
     await go('#/stats', 700); return card && await ev(() => { const b = document.querySelector('.st-nums b'); return !!b && ['٢', '٣', '٤'].includes(b.textContent) && document.querySelectorAll('.kh-sec:first-child .st-bar').length === 7; }); });
   await check(G13, 'ختمة رمضان بتظهر وبتعمل خطة على أيام رمضان', async () => { await ev(() => localStorage.removeItem(Object.keys(localStorage).find(k => /khatma/.test(k)) || 'x')); await go('#/khatma', 700);
     const card = await ev(() => !!document.getElementById('kRamadan')); await p.click('#kRamadan'); await wait(500);
@@ -459,9 +459,10 @@ async function fresh(ctx, vp) {
   await g18('مايك البحث', async () => {
     await mock(); await go('#/search', 700); await ev(() => document.getElementById('qMic').click()); await wait(200); await fin(FRAG); await wait(900);
     const r = await ev(() => { const e = document.querySelector('.result'); return e && [e.dataset.s, e.dataset.a]; }); return assert(r && r[0] === '2' && r[1] === '255', JSON.stringify(r)); });
-  await g18('إحصائيات التعرّف في الإعدادات', async () => {
+  await g18('إحصائيات التعرّف في صفحة الإحصائيات بس (5.13 P2.10: مش في الإعدادات)', async () => {
     await mock(); await go('#/p/10', 800); await ev(() => document.getElementById('rdMic').click()); await fin(A255); await wait(500); await ev(() => document.getElementById('rdMic').click());
-    await p.click('#btnSettings'); await wait(300); const t = await ev(() => document.getElementById('asrStats').textContent); await closeS(); return assert(t.trim() && t.includes('مقطع'), t); });
+    await p.click('#btnSettings'); await wait(300); const inSet = await ev(() => !!document.getElementById('asrStats')); await closeS();
+    await go('#/stats', 700); const t = await ev(() => document.querySelector('.stats').textContent); return assert(!inSet && t.includes('مقطع') && t.includes('أيام متتالية'), String(inSet) + ' ' + t.slice(0, 80)); });
   for (const ed of ['kfgqpc', 'kfold']) await g18('القص على إطار الصفحة (' + ed + ')', async () => {
     await ev(e => { localStorage.setItem('q.edition', JSON.stringify(e)); localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); }, ed); await p.reload(); await wait(800);
     await go('#/p/42', 900); const a = await ev(() => !!document.querySelector('.page-wrap.crop'));

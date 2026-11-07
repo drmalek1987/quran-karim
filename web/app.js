@@ -2788,8 +2788,8 @@
   function dayKey(dn) { var t = new Date(dn * 864e5); return t.getUTCFullYear() + "-" + (t.getUTCMonth() + 1) + "-" + t.getUTCDate(); }
   // the khatma screen keeps a one-line card that opens the stats
   function statsLink() {
-    var st = load("stats", {}), today = dayNum(new Date()), wk = 0; for (var i = 0; i < 7; i++) wk += dayPages(st[dayKey(today - i)]);
-    return '<a class="kh-sec st-link" href="#/stats">' + ic("chart") + "<span><b>الإحصائيات</b><small>اليوم " + ar(dayPages(st[dayKey(today)])) + " صفحة · آخر ٧ أيام " + ar(wk) + " صفحة</small></span><i>←</i></a>";
+    // 5.13 P2.10: a link only; the numbers live in More › Stats
+    return '<a class="kh-sec st-link" href="#/stats">' + ic("chart") + "<span><b>الإحصائيات</b></span><i>←</i></a>";
   }
   // a % ring with its label under it (the label carries the meaning, never the colour alone)
   function stRing(p, label) {
@@ -2834,7 +2834,7 @@
   function showStats() {
     titleEl.textContent = "الإحصائيات";
     btnBack.hidden = false;
-    view.innerHTML = '<div class="stats">' + statsHtml() + hifzStatsHtml() + asrStatsHtml() + donateStatsHtml() + "</div>";
+    view.innerHTML = '<div class="stats">' + statsHtml() + rewardsHtml() + hifzStatsHtml() + asrStatsHtml() + donateStatsHtml() + "</div>";
     var pb = document.getElementById("stPriv");
     if (pb) pb.onclick = function () {
       // The sheet opens already scrolled to the privacy box: it slides up there, with no jump after it shows (5.13 P2.4).
@@ -2933,7 +2933,7 @@
         '<div class="kh-btns">' + (P.left ? '<button id="kDone">' + ic("check") + "قرأت ورد اليوم</button>" : "") +
         '<button id="kAt">' + ic("edit") + "تعديل موضعي</button>" + '<button id="kStop" class="danger">' + ic("trash") + "إلغاء الخطة</button></div>";
     }
-    html += ramadanHtml() + "</section>" + statsLink() + rewardsHtml() +
+    html += ramadanHtml() + "</section>" + statsLink() +
       '<section class="kh-sec"><h3>' + ic("check") + 'متابعة الحفظ</h3><button class="kh-main" id="kHifz">' + ic("book") + hifzSummary() + "</button></section>" +
       '<section class="kh-sec"><h3>' + ic("mark") + "العلامات</h3>";
     var M = marks();

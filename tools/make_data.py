@@ -69,6 +69,10 @@ with open(out, "w", encoding="utf-8", newline="\n") as f:
     data = {"s": surahs, "t": text, "q": search, "p": pages, "first": starts[0], "last": last_page, "count": 560}
     if rects:
         data["r"] = rects
+    # the 240 rub' al-hizb starts ("s:a"), for test ranges by quarter/half of a juz or of the mushaf (5.13 P2.6)
+    rub = json.load(open(os.path.join(ROOT, "data", "rub.json"), encoding="utf-8"))
+    assert len(rub) == 240
+    data["h"] = [[int(x) for x in k.split(":")] for k in rub]
     json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
     f.write(";\n")
 print("wrote", out, os.path.getsize(out), "bytes")
