@@ -248,3 +248,8 @@ Resume: build quran-karim-v5.11.apk (manifest 5.11/53, about ar+en, sw quran-v48
 5.11 build ✅ quran-karim-v5.11.apk (53, signer 7d8b31d2): ui.js 196/0, donate 14/0, data 28/0, matrix 40/0, i18n clean, Maestro 4 AVDs PASS. Installed on Phone_API35. No GitHub release (ask the user first).
 Resume: deliver the 5.11 phone list (QA-checklist § 5.11) to the user; next G6 hifz redesign (effort high).
 
+## 5.11 G6 — hifz hub: test first, map boxes per surah, start ayah, follow, auto flip — done 2026-11-07
+Goal check: the hifz test is the main use of recitation recognition; a hub around it with a start ayah and page following = near-complete app + more real recognition use. Effort high.
+ui.js 201/0, i18n clean. Phone check pending (follow scroll with real recitation). Not in an APK yet (5.11 APK built before G6).
+Resume: G7 (recitation following/timing engine) — needs real recitation audio; then rebuild an APK with G6/G7 for the user.
+

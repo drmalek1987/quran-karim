@@ -843,6 +843,7 @@
     if (s > 1) document.getElementById("prev").onclick = function () { go(s - 1, 1); };
 
     document.getElementById("sHifz").onclick = function () { hifzToggle(); };
+    if (hifz.on) { hifz.pages = null; hifz.box = null; }   // the text view: no page to turn or follow
     if (hifz.on) hifzMount(Q.t[s - 1].map(function (t, i) { return s + ":" + (i + 1); }), function () {
       view.querySelectorAll(".ayah").forEach(function (x) {
         var k = s + ":" + x.dataset.a, bad = hifz.shown[k] ? reciteBad(k) : [], sig = bad.join(",");
@@ -1212,7 +1213,7 @@
         var rs = (Q.r && Q.r[hs - 1] && Q.r[hs - 1][ha - 1]) || [];
         if (rs.some(function (b) { return pages.indexOf(b[0]) >= 0; })) items.push(hs + ":" + ha);
       }
-    hifz.pages = pages;
+    hifz.pages = pages; hifz.box = boxOf;
     hifzMount(items, function () {
       view.querySelectorAll(".hifz-mask, .rc-badw").forEach(function (x) { x.remove(); });
       items.forEach(function (k) {
@@ -1791,7 +1792,9 @@
   // and the bar shows the next one in order, shows all, or hides all. What is shown resets when the page changes.
   var hifz = { on: false, shown: {}, items: [], paint: null, next: null };
   function hifzToggle() { hifz.on = !hifz.on; hifz.shown = {}; recite.V = {}; recite.disp = null; recite.ptr = null; recite.ok = recite.words = 0; recite.wrong = []; if (!hifz.on) { hifz.test = null; reciteStop(); } var y = window.scrollY; route(); hifzBar(); window.scrollTo(0, y); }
-  function hifzMount(items, paint) { hifz.items = items; hifz.shown = {};
+  function hifzMount(items, paint) { hifz.items = items; hifz.shown = {}; hifz.fk = null;
+    // a test that starts at a chosen ayah (map › «ابدأ من الآية», 5.11 G6): the ayat before it stay open as context
+    var T0 = hifz.test; if (T0 && T0.a > 1) items.forEach(function (k) { var p = k.split(":"); if (+p[0] < T0.s || (+p[0] === T0.s && +p[1] < T0.a)) hifz.shown[k] = true; });
     // a new page while reciting: ayat already recited (one split over the page end) stay open, and the words heard so
     // far in this utterance belong to the last page, so the matcher skips them
     if (recite.on) { items.forEach(function (k) { if ((k + ":" + (rWords(k).length - 1)) in (recite.V || {})) hifz.shown[k] = true; }); recite.skip = recite.heard || 0; recite.base = null; } hifz.paint = paint; hifz.next = null; paint(); hifzBar(); }
@@ -1863,7 +1866,29 @@
   function hifzRevealed(k) {
     var items = hifz.items, next = hifz.next;
     if (!next || !hifz.shown[k] || k !== items[items.length - 1] || (!recite.on && items.some(function (x) { return !hifz.shown[x]; }))) return;
+    // «قلب تلقائي» off (5.11 G6): the page's last ayah ends a test right there; outside a test the page just stays
+    if (!load("hifzFlip", true)) {
+      setTimeout(function () { if (!hifz.on || hifz.next !== next || !hifz.shown[k]) return; if (hifz.test) hifzTestDone(); else toast("خلصت الصفحة"); }, 1200);
+      return;
+    }
     setTimeout(function () { if (hifz.on && hifz.next === next && hifz.shown[k]) next(); }, 1200);
+  }
+  // While reciting a test on the pages, the next hidden ayah is kept in view (between the bar and 70% of the screen).
+  function hifzFollow() {
+    if (!hifz.on || !recite.on || !hifz.box) return;
+    var k = hifz.items.filter(function (x) { return !hifz.shown[x]; })[0]; if (!k || k === hifz.fk) return; hifz.fk = k;
+    var sa = k.split(":"), b = Q.r[sa[0] - 1] && Q.r[sa[0] - 1][sa[1] - 1] && Q.r[sa[0] - 1][sa[1] - 1][0], bx = b && hifz.box(b[0]); if (!bx) return;
+    var r = bx.getBoundingClientRect(), y = r.top + r.height * b[2] / 1000, top = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight + 8;
+    if (y < top || y > innerHeight * 0.7) window.scrollBy({ top: y - Math.max(top, innerHeight * 0.3), behavior: "smooth" });
+  }
+  // the mic opens in a test on the pages: the view goes to the top of the page being tested
+  function hifzPageTop() {
+    if (!hifz.on || !hifz.box) return;
+    var k = hifz.items.filter(function (x) { return !hifz.shown[x]; })[0] || hifz.items[0], sa = k && k.split(":");
+    var b = sa && Q.r[sa[0] - 1] && Q.r[sa[0] - 1][sa[1] - 1] && Q.r[sa[0] - 1][sa[1] - 1][0], bx = hifz.box(b ? b[0] : hifz.pages[0]); if (!bx) return;
+    var c = bx.closest(".vp-c") || bx.closest(".page-wrap") || bx, top = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight;
+    window.scrollTo({ top: Math.max(0, c.getBoundingClientRect().top + window.scrollY - top - 4), behavior: "auto" });
+    hifz.fk = null;
   }
   function hifzBar() {
     var bar = document.getElementById("hifzBar");
@@ -1881,16 +1906,18 @@
         else if (c === "all") hifz.items.forEach(function (x) { hifz.shown[x] = true; });
         else if (c === "none") hifz.shown = {};
         else if (c === "x") return hifzToggle();
+        else if (c === "flip") { var fo = !load("hifzFlip", true); save("hifzFlip", fo); toast(fo ? "الصفحة هتتقلب لوحدها في آخرها" : "مش هتتقلب: الاختبار بيخلص في آخر الصفحة"); }
         hifz.paint(); hifzBar();
         if (c === "nx" && k) hifzRevealed(k);
       };
     }
-    var n = hifz.items.filter(function (x) { return hifz.shown[x]; }).length;
+    var n = hifz.items.filter(function (x) { return hifz.shown[x]; }).length, fl = load("hifzFlip", true);
+    hifzFollow();
     var T = hifz.test, tm = T ? Object.keys(T.miss).length : 0, ts = T ? Object.keys(T.seen).length : 0;
     bar.innerHTML = (T ? '<div class="hz-info"><b>' + (recite.on ? "بسمع…" : "اختبار الحفظ") + "</b><span>" + (recite.words ? "كلمات صح " + ar(recite.words - recite.wrong.length) + " · غلط " + ar(recite.wrong.length) : "افتكرت " + ar(ts - tm) + " · نسيت " + ar(tm)) + "</span></div>" :
       '<div class="hz-info"><b>وضع الحفظ</b><span>' + ar(n) + " من " + ar(hifz.items.length) + " آية ظاهرة</span></div>") +
       '<div class="hz-btns"><button data-c="nx" class="hz-main">' + ic("eye") + (T ? "افتكرتها" : "اكشف التالية") + "</button>" + (T ? '<button data-c="mic"' + (recite.on ? ' class="rec"' : "") + ' aria-label="سمّع بصوتك">' + ic("mic") + '</button><button data-c="done">' + ic("check") + "خلصت</button>" : "") + (T ? "" : '<button data-c="pv" aria-label="أخفِ آخر آية">' + ic("eyeoff") + "</button>") +
-      (T ? "" : '<button data-c="all">الكل</button><button data-c="none">إخفاء</button>') + '<button data-c="x" aria-label="إنهاء وضع الحفظ">' + ic("x") + "</button></div>";
+      (T ? "" : '<button data-c="all">الكل</button><button data-c="none">إخفاء</button>') + (hifz.pages ? '<button data-c="flip" class="hz-flip' + (fl ? " on" : "") + '" aria-pressed="' + fl + '" aria-label="قلب الصفحة تلقائي">' + ic("book") + "<small>قلب تلقائي</small></button>" : "") + '<button data-c="x" aria-label="إنهاء وضع الحفظ">' + ic("x") + "</button></div>";
   }
 
   // ---------- التسميع بالصوت ----------
@@ -2163,7 +2190,7 @@
     if (recite.on) { recite.on = false; recite.base = null; Mic.stop(); hifzBar(); reciteCap(); return; }
     if (!window.ReciteBridge) return toast("التسميع بالصوت شغال في التطبيق على الموبايل بس");
     if (!micGate(reciteToggle)) return;
-    recite.on = true; recite.k = null; recite.pos = 0; recite.base = null; Mic.start(); hifzBar(); reciteCap();
+    recite.on = true; recite.k = null; recite.pos = 0; recite.base = null; hifzPageTop(); Mic.start(); hifzBar(); reciteCap();
   }
   function reciteStop() { if (recite.on) { recite.on = false; Mic.stop(); reciteCap(); } }
 
@@ -3072,6 +3099,11 @@
     Object.keys(L).forEach(function (s) { var r = parseDay(L[s].r || L[s].m); if (!best || r < best.r) best = { s: +s, r: r }; });
     return best;
   }
+  // 5.11 G6: the hifz test, the map and the log, one tap from each other (the test is the main tool)
+  function hzNav(cur) {
+    return '<nav class="z-sort hz-nav">' + [["#/hifztest", "اختبار الحفظ"], ["#/hifzmap", "خريطة الحفظ"], ["#/hifzlog", "متابعة الحفظ"]].map(function (x) {
+      return '<a href="' + x[0] + '"' + (x[0] === cur ? ' class="on" aria-current="page"' : "") + ">" + x[1] + "</a>"; }).join("") + "</nav>";
+  }
   function showHifzLog() {
     titleEl.textContent = "متابعة الحفظ";
     btnBack.hidden = false;
@@ -3085,7 +3117,7 @@
       html += '<li data-s="' + s + '" class="' + (e ? "on" : "") + '"><span class="hl-n">' + ar(s) + "</span><b>" + Q.s[s - 1][0] + "</b>" +
         (e ? "<small>راجعتها من " + ar(today - parseDay(e.r || e.m)) + " يوم</small>" : "<small>" + ar(Q.s[s - 1][3]) + " آية</small>") + '<i class="hl-chk">' + (e ? "✓" : "") + "</i></li>";
     }
-    view.innerHTML = '<div class="hl">' + html + "</ul></div>";
+    view.innerHTML = '<div class="hl">' + hzNav("#/hifzlog") + html + "</ul></div>";
     function put(s, v) { var D = hifzLogData(); if (v) D[s] = v; else delete D[s]; save("hifzLog", D); syncAlarms(); var y = window.scrollY; showHifzLog(); window.scrollTo(0, y); }
     view.querySelectorAll(".hl-list li").forEach(function (li) { li.onclick = function () { var s = +li.dataset.s; if (L[s] && !confirm("تشيل " + Q.s[s - 1][0] + " من المحفوظ؟")) return; put(s, L[s] ? null : { m: todayStr(), r: todayStr() }); }; });
     view.querySelectorAll("[data-rev]").forEach(function (b) { b.onclick = function () { var s = +b.dataset.rev, e = L[s]; e.r = todayStr(); put(s, e); toast("تقبّل الله، اتسجلت المراجعة"); }; });
@@ -3468,16 +3500,45 @@
   function showHifzMap() {
     titleEl.textContent = "خريطة الحفظ";
     btnBack.hidden = false;
-    var pc = hifzPageColors(), cnt = pc.cnt, cells = "";
-    for (var n = Q.first; n <= Q.last; n++) cells += '<a class="hm-c c' + pc.c[n] + '" href="#/p/' + n + '" title="' + ar(n) + '"></a>';
+    var pc = hifzPageColors(), cnt = pc.cnt, cells = "", L = hifzLogData(), sc = load("hifzScores", {}), HA = load("hifzAyat", {}), today = dayNum(new Date());
+    // a page holding more than one surah gets one box per surah (5.11 G6): the colour rules of hifzPageColors, for that
+    // surah's ayat on that page
+    function segCol(s, n) {
+      var e = L[s], c = !e ? 0 : today - parseDay(e.r || e.m) > 14 || (sc[s] && sc[s].score < 70) ? 2 : 3, got = 0, tot = 0, age = 0, bad = false;
+      Q.p[s - 1].forEach(function (pg, i) { if (pg !== n) return; tot++; var h = HA[s + ":" + (i + 1)]; if (h) { got++; age = Math.max(age, today - parseDay(h.d)); if (!h.ok) bad = true; } });
+      if (got) c = Math.max(c, got < tot ? 1 : age > 14 || bad ? 2 : 3);
+      return c;
+    }
+    for (var n = Q.first; n <= Q.last; n++) {
+      var ss = []; for (var s = 1; s <= 114; s++) { var ps = Q.p[s - 1]; if (ps[0] <= n && ps[ps.length - 1] >= n) ss.push(s); }
+      if (ss.length < 2) cells += '<a class="hm-c c' + pc.c[n] + '" href="#/p/' + n + '" data-p="' + n + '" data-s="' + (ss[0] || surahOfPage(n)) + '" title="' + ar(n) + '"></a>';
+      else ss.forEach(function (s) { cells += '<a class="hm-c hm-s c' + segCol(s, n) + '" href="#/p/' + n + '" data-p="' + n + '" data-s="' + s + '" title="' + Q.s[s - 1][0] + " · " + ar(n) + '"></a>'; });
+    }
     var tot = Q.last - Q.first + 1, pct = Math.round(cnt[3] * 1000 / tot + cnt[2] * 1000 / tot) / 10;
     var lg = [["c3", "محفوظة ومراجَعة", cnt[3]], ["c2", "محتاجة مراجعة", cnt[2]], ["c1", "محفوظة جزئيًا", cnt[1]], ["c0", "لسه", cnt[0]]];
-    view.innerHTML = '<div class="hm"><div class="hl-top"><div class="hl-ring" style="--p:' + pct + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(cnt[2] + cnt[3]) + " صفحة محفوظة</b><small>من " + ar(tot) + " صفحة</small><small>" + EDS[edition].name + "</small></div></div>" +
+    view.innerHTML = '<div class="hm">' + hzNav("#/hifzmap") + '<div class="hl-top"><div class="hl-ring" style="--p:' + pct + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(cnt[2] + cnt[3]) + " صفحة محفوظة</b><small>من " + ar(tot) + " صفحة</small><small>" + EDS[edition].name + "</small></div></div>" +
       '<div class="hm-lg">' + lg.map(function (l) { return '<span><i class="hm-c ' + l[0] + '"></i>' + l[1] + " (" + ar(l[2]) + ")</span>"; }).join("") + "</div>" +
       '<div class="hm-grid">' + cells + "</div>" +
-      '<p class="hint">كل مربع صفحة، اضغط عليه يفتحها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
+      '<p class="hint">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع عشان تختار الآية وتبدأ الاختبار. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
       '<button class="continue" id="hmLog">' + ic("check") + " سجّل السور اللي حفظتها</button></div>";
     document.getElementById("hmLog").onclick = function () { location.hash = "#/hifzlog"; };
+    view.querySelectorAll(".hm-grid .hm-c").forEach(function (c) { c.onclick = function (e) { e.preventDefault(); hzPick(+c.dataset.s, +c.dataset.p); }; });
+  }
+  // a box of the map: choose the ayah to start from, then test on the mushaf (the main way), with hidden words, or just read
+  function hzPick(s, n) {
+    var ay = []; Q.p[s - 1].forEach(function (pg, i) { if (pg === n) ay.push(i + 1); }); if (!ay.length) ay = [1];
+    var d = el('<div class="dlg-back"><div class="dlg hz-pick"><b>سورة ' + Q.s[s - 1][0] + " · صفحة " + ar(n) + '</b><label class="hz-from">ابدأ من الآية <select class="input" id="hzA">' +
+      ay.map(function (a) { return '<option value="' + a + '">' + ar(a) + "</option>"; }).join("") + "</select></label>" +
+      '<div class="hz-acts"><button class="continue" id="hzMus">' + ic("book") + " اختبار على المصحف</button>" +
+      '<button class="continue" id="hzWords">' + ic("eyeoff") + " اختبار بالكلمات</button>" +
+      '<button class="continue" id="hzOpen">' + ic("text") + ' افتح الصفحة</button></div><div class="dlg-btns"><button class="dlg-no">إلغاء</button></div></div></div>').firstChild;
+    document.body.appendChild(d);
+    var a = function () { return +d.querySelector("#hzA").value; }, close = function () { d.remove(); };
+    d.onclick = function (e) { if (e.target === d) close(); };
+    d.querySelector(".dlg-no").onclick = close;
+    d.querySelector("#hzMus").onclick = function () { var x = a(); close(); hifzTestPages(s, x); };
+    d.querySelector("#hzWords").onclick = function () { var x = a(), st = load("hifzTest", { lv: 25 }); close(); save("hifzTest", { lv: st.lv || 25, s: s, from: x }); location.hash = "#/hifztest/" + s; };
+    d.querySelector("#hzOpen").onclick = function () { close(); location.hash = "#/p/" + n; };
   }
 
   // ---------- الختمة الجماعية للعيلة ----------
@@ -3698,7 +3759,7 @@
     var from = st.s === s && st.from ? st.from : 1, cnt = Q.s[s - 1][3], to = Math.min(cnt, from + 9), lv = st.lv || 25;
     var opts = ""; for (var i = 1; i <= 114; i++) opts += '<option value="' + i + '"' + (i === s ? " selected" : "") + ">" + ar(i) + ". " + Q.s[i - 1][0] + (L[i] ? " ✓" : "") + "</option>";
     // Hide every n-th word from a random start, so each round hides different words; the level is the share hidden.
-    var html = '<div class="ht"><div class="ht-top"><select class="input" id="htS">' + opts + '</select><div class="z-sort ht-lv"><span>إخفاء</span>' +
+    var html = '<div class="ht">' + hzNav("#/hifztest") + '<div class="ht-top"><select class="input" id="htS">' + opts + '</select><div class="z-sort ht-lv"><span>إخفاء</span>' +
       [[25, "ربع الكلمات"], [50, "النص"], [100, "كل الكلمات"]].map(function (x) { return '<button data-l="' + x[0] + '"' + (x[0] === lv ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div></div>" +
       hifzMini() +
       '<p class="hint">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت». الآيات ' + ar(from) + "–" + ar(to) + " من " + ar(cnt) + '.</p><div class="ht-text">';

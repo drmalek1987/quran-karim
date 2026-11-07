@@ -17,6 +17,11 @@
   var WD = { "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri", "السبت": "Sat" };
   var D = {
     // 5.11 G1.8: strings the English scan (tools/qa/i18n_scan.js) found untranslated, and the G3.9 mic tips / mic test
+    // 5.11 G6: hifz hub, map picker, auto flip
+    "سورة @ · صفحة #": "Surah @ · page #", "@ · #": "@ · #", "ابدأ من الآية": "Start from ayah", "اختبار على المصحف": "Test on the mushaf", "اختبار بالكلمات": "Test with hidden words",
+    "افتح الصفحة": "Open the page", "إلغاء": "Cancel", "قلب تلقائي": "Auto flip", "قلب الصفحة تلقائي": "Turn the page by itself", "خلصت الصفحة": "Page done",
+    "الصفحة هتتقلب لوحدها في آخرها": "The page will turn by itself at its end", "مش هتتقلب: الاختبار بيخلص في آخر الصفحة": "No auto flip: the test ends at the end of the page",
+    "كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع عشان تختار الآية وتبدأ الاختبار. «محتاجة مراجعة» لو آخر مراجعة من أكتر من # يوم أو نتيجة الاختبار أقل من #٪.": "Each box is a page; a page with more than one surah has a box per surah. Tap a box to choose the ayah and start the test. «Needs review» if the last review was more than # days ago or the test score is under #%.",
     // 5.11 G5: the stats screen
     "الإحصائيات": "Statistics", "اليوم # صفحة · آخر # أيام # صفحة": "Today # pages · last # days # pages", "صفحات محفوظة": "Pages memorised",
     "آية اتسمعت": "Ayahs recited", "آية للمراجعة": "Ayahs to review", "اختبار بالصوت": "Voice tests", "دقة التسميع": "Recitation accuracy",
