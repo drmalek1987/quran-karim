@@ -234,4 +234,4 @@ Resume: G3.9 mic tips + mic test (micTips, q.micTest, Settings row «اختبا�
 Resume (2026-11-07): new session from plans/5.11-session-prompt-3.md — G3.9 next, then the carried-over 5c/5d/G1.8 + donate.js fix, then 5.11 build/QA.
 G3.9 ✅ (ui.js 186/0, donate.js all PASS after dropping the obsolete phone-recogniser check). Goal check: mic SNR test cuts noise-caused misrecognitions → toward >95%.
 G1.8 ✅ English UI review (i18n_scan.js, 35 strings, harakat-rule fix; ui.js 186/0). Goal check: a complete app for non-Arabic readers.
-Resume: G2 5c then 5d (effort HIGH — ask the user to switch effort first), then the 5.11 build + full QA.
+Resume (2026-11-07): new session from plans/5.11-session-prompt-4.md — G2 5c/5d at effort high (measure headless Playwright + emulator CDP), then the 5.11 build + full QA.
