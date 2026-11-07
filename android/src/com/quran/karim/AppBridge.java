@@ -49,6 +49,15 @@ class AppBridge {
         });
     }
 
+    /** "top,bottom,fsTop,fsBottom" in css px: the WebView's inset from the screen edges now, and with the system bars
+     *  hidden (the cutout only). Full screen uses it to glide the page once, straight to where it ends (5.11 G2). */
+    @JavascriptInterface
+    public String insets() {
+        if (Build.VERSION.SDK_INT < 30) return "";
+        float d = activity.getResources().getDisplayMetrics().density;
+        return (MainActivity.insT / d) + "," + (MainActivity.insB / d) + "," + (MainActivity.cutT / d) + "," + (MainActivity.cutB / d);
+    }
+
     /** A tap buzz at the strength chosen in Settings: 1 light, 2 medium, 3 strong. */
     @JavascriptInterface
     public void buzz(int level) {

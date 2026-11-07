@@ -41,6 +41,8 @@ public class MainActivity extends Activity {
     private QiblaBridge qibla;
     private AudioCache audio;
     private SpeechBridge speech;
+    /** The WebView's padding now (system bars + cutout) and the cutout alone (what is left in full screen), in px. */
+    static volatile int insT, insB, cutT, cutB;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -128,7 +130,10 @@ public class MainActivity extends Activity {
             root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                 public WindowInsets onApplyWindowInsets(View v, WindowInsets in) {
                     android.graphics.Insets i = in.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                    android.graphics.Insets c = in.getInsets(WindowInsets.Type.displayCutout());
                     v.setPadding(i.left, i.top, i.right, i.bottom);
+                    // for AppBridge.insets(): the page's full screen glide knows ahead where the WebView will be (5.11 G2)
+                    insT = i.top; insB = i.bottom; cutT = c.top; cutB = c.bottom;
                     return WindowInsets.CONSUMED;
                 }
             });

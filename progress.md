@@ -235,3 +235,9 @@ Resume (2026-11-07): new session from plans/5.11-session-prompt-3.md — G3.9 ne
 G3.9 ✅ (ui.js 186/0, donate.js all PASS after dropping the obsolete phone-recogniser check). Goal check: mic SNR test cuts noise-caused misrecognitions → toward >95%.
 G1.8 ✅ English UI review (i18n_scan.js, 35 strings, harakat-rule fix; ui.js 186/0). Goal check: a complete app for non-Arabic readers.
 Resume (2026-11-07): new session from plans/5.11-session-prompt-4.md — G2 5c/5d at effort high (measure headless Playwright + emulator CDP), then the 5.11 build + full QA.
+
+## 5.11 G2 5c/5d — full-screen glide in both flip modes, one way only — done 2026-11-07
+Goal check: a calm, jump-free reading screen is core to the near-complete app (user-reported twice). Effort high.
+Cause: MainActivity pads the WebView by the system-bar insets, so immersive() grows (and, without a cutout, moves) the WebView after the CSS glide -> second glide the other way. Fix: AppBridge.insets() lets fsSet lay the page out for the final viewport (--vh) and pre-shift it (--fsdy) so ONE glide lands; cleared in the resize frame. Vertical: FLIP on the visible .vp-c, anchor kept. Measured per frame: headless 0/8 -> 8/8, emulator CDP 4/8 -> 8/8. ui.js 194/0. QA-checklist 5.11 section repaired (G3.9 line had been inserted after every line of the file).
+Resume: 5.11 version bump (manifest done: 5.11/53; about text ar+en, sw.js cache) -> build quran-karim-v5.11.apk -> full QA (ui.js, donate.js, matrix.js, Maestro 4 AVDs, i18n_scan) -> then G4 (plan written under item 10).
+

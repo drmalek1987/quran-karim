@@ -4297,8 +4297,9 @@
     });
     fsFlipUntil = Date.now() + 900; fsFlipRects = lay;
   }
-  // the resize from immersive(): glide from where the page was laid out before it
+  // the resize from immersive(): glide from where the page was laid out before it (only when the insets are not known, see fsPend)
   window.addEventListener("resize", function () {
+    if (fsPend) { fsLand(); return; }
     if (Date.now() > fsFlipUntil || !fsFlipRects) return;
     // where each page is drawn right now: its layout before the resize moved by the running glide
     var fl = fsFlipRects.map(function (x) {
@@ -4307,6 +4308,24 @@
     });
     fsFlipRects = null; fsFlipUntil = 0; fsFlip(fl);
   });
+  // 5.11 G2 5c/5d: hiding the system bars both grows the WebView and moves its top up by the status bar (MainActivity pads it
+  // by the insets), which a CSS glide cannot see: the page went down, jumped up 24 px and glided back. AppBridge.insets()
+  // tells where the WebView will be, so the page is laid out for the final viewport (--vh) and shifted by the coming move
+  // (--fsdy) at once: ONE glide goes straight to its last place, and when the resize lands both are cleared in the same
+  // frame (the CSS moves by S, the WebView by -S: nothing moves on screen).
+  var fsNorm = null, fsPend = null;   // fsNorm: [S, G] = top shift and height growth of full screen, read while the bars show
+  function fsInsets() {
+    try { var t = window.AppBridge && AppBridge.insets && AppBridge.insets(); if (!t) return null; var a = t.split(",").map(Number);
+      return a.length === 4 && a.every(isFinite) ? [a[0] - a[2], a[0] + a[1] - a[2] - a[3]] : null; } catch (e) { return null; }
+  }
+  var fsDy = 0;   // --fsdy now
+  function fsVar(k, v) { if (k === "--fsdy") fsDy = v || 0; if (v === null) root.style.removeProperty(k); else root.style.setProperty(k, v + "px"); }
+  // the resize came (or never will): the page is laid out for the real viewport again
+  function fsLand(timedOut) {
+    var pd = fsPend; fsPend = null; if (!pd) return; clearTimeout(pd.t);
+    if (timedOut && !pd.vr) { var fl = fsFlipStart(); fsVar("--vh", null); fsVar("--fsdy", 0); if (fl) fsFlip(fl); return; }
+    fsVar("--vh", null); fsVar("--fsdy", timedOut ? 0 : pd.after);
+  }
   // A tap on a mushaf page hides the bars and buttons a moment later, leaving only the page; the next tap brings them back.
   var fsT = 0;
   function fsSet(on) {
@@ -4315,19 +4334,30 @@
     if (document.body.classList.contains("fs") === on) return;
     var bar = document.querySelector(".bar"), h = bar ? bar.offsetHeight : 0, vr = document.body.classList.contains("vread");
     if (h) root.style.setProperty("--barh", h + "px");   // the bar's height, so its space can shrink with the slide (style.css body.fs .bar)
+    if (fsPend) fsLand(true);
     // vertical reading: the page on screen stays where it is while the bars go or come back (its top is put back
-    // after the change and once more after the layout settles), so full screen never moves to another page
-    var anc = null, t0 = 0;
-    if (vr) { var vb = document.querySelectorAll(".page-box.vp"); for (var i = 0; i < vb.length; i++) { var r = vb[i].getBoundingClientRect(); if (r.bottom > 80) { anc = vb[i]; t0 = r.top; break; } } }
-    var fl = vr ? null : fsFlipStart();
+    // after the change and once more after the layout settles), so full screen never moves to another page; its size change
+    // (the side padding goes) glides like the single page (5.11 G2 5c)
+    var anc = null, t0 = 0, vis = [];
+    if (vr) { var vb = document.querySelectorAll(".vp-c"); for (var i = 0; i < vb.length; i++) { var r = vb[i].getBoundingClientRect(); if (r.bottom > 80 && !anc) { anc = vb[i]; t0 = r.top; } if (r.bottom > 0 && r.top < innerHeight) vis.push([vb[i], r]); else if (anc) break; } }
+    var fl = vr ? (vis.length ? vis : null) : fsFlipStart();
+    var dy0 = fsDy;
+    if (on) { var ins = fsInsets(); if (ins) fsNorm = ins; }
+    var sg = fsNorm && window.AppBridge && AppBridge.immersive ? fsNorm : null;
+    if (sg && (sg[0] || sg[1])) {
+      // vertical: the list keeps its place, so only the WebView's move is made up for (by S while the bars are hidden)
+      fsPend = { vr: vr, after: vr ? (on ? sg[0] : 0) : 0, t: setTimeout(function () { fsLand(true); }, 900) };
+      fsVar("--vh", innerHeight + (on ? sg[1] : -sg[1]));
+      fsVar("--fsdy", vr ? (on ? 0 : sg[0]) : (on ? -sg[0] : sg[0]));
+    }
     document.body.classList.toggle("fs", on);
+    // (the --fsdy shift that makes up for the WebView's move is not undone by the scroll)
+    if (anc) { var fix = function () { var d = anc.getBoundingClientRect().top - t0 - (fsDy - dy0); if (Math.abs(d) > 1) window.scrollBy(0, d); }; fix(); requestAnimationFrame(fix); setTimeout(fix, 320); }
     if (fl) fsFlip(fl);
-    if (anc) { var fix = function () { var d = anc.getBoundingClientRect().top - t0; if (Math.abs(d) > 1) window.scrollBy(0, d); }; fix(); requestAnimationFrame(fix); setTimeout(fix, 320); }
-    // Hiding the system bars resizes the WebView: going in, that waits until the page has glided into place, so the two
-    // motions don't run over each other (the resize then only nudges the page, and that nudge glides too).
+    // the system bars go (or come back) together with the glide: with the insets known the resize no longer moves the page
     clearTimeout(fsImmT);
     var imm = function () { try { if (window.AppBridge && AppBridge.immersive) AppBridge.immersive(on); } catch (e) {} };
-    if (on) fsImmT = setTimeout(function () { if (document.body.classList.contains("fs")) imm(); }, 440); else imm();
+    if (on && !sg) fsImmT = setTimeout(function () { if (document.body.classList.contains("fs")) imm(); }, 440); else imm();
   }
   var fsImmT = 0;
   document.addEventListener("click", function (e) {

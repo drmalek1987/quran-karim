@@ -604,6 +604,15 @@ async function fresh(ctx, vp) {
     await p.screenshot({ path: process.env.SHOT_DIR ? process.env.SHOT_DIR + '/g39-mictips.png' : __dirname + '/g39-mictips.png' }); await p.click('.mt-dlg .dlg-ok'); await wait(400);
     const after = await ev(() => { const r = [window.__st, localStorage.getItem('q.micTips'), !document.querySelector('.mt-dlg'), !!document.getElementById('micTestBtn').closest('#settings, .settings, body')]; try { document.getElementById('rdMic').click(); } catch (e) {} window.ReciteBridge = window.__rb; if (!window.__rb) delete window.ReciteBridge; return r; });
     return assert(shown && /ممتاز|كويس|ضعيف/.test(res[0]) && res[1] !== undefined && res[2] && after[1] === '1' && after[2] && after[3], JSON.stringify([shown, res, after])); });
+  // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
+  // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
+  { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }
+    const NM = { h: 'الأفقي', v: 'العمودي', entry: 'الدخول', exit: 'الخروج', auto: 'تلقائي', back: 'بالرجوع', manual: 'باللمس' };
+    for (const k of ['h entry auto', 'h exit back', 'h entry manual', 'h exit manual', 'v entry auto', 'v exit back', 'v entry manual', 'v exit manual']) {
+      const [t, d, how] = k.split(' ');
+      await check(G511, 'ملء الشاشة (' + NM[t] + '، ' + NM[d] + ' ' + NM[how] + '): الصفحة بتتحرك في اتجاه واحد من غير نطّة', () => { const r = fm[k]; if (!r) throw new Error(fm.err || 'no data');
+        return assert(r.ok, JSON.stringify({ up: r.up, down: r.down, maxStep: r.maxStep, maxW: r.maxWidthStep, fsAt: r.fsAt })); });
+    } }
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
