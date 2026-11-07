@@ -1127,3 +1127,7 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .hz-go{display:flex;gap:8px;margin-top:12px}.hz-go .continue{flex:1;margin:0;display:flex;align-items:center;justify-content:center;gap:6px}.hz-go svg{width:20px;height:20px}
 .hz-due{margin-bottom:14px}
 .ht-tot{display:block;margin-top:10px;padding:10px;border-radius:12px;background:var(--soft);font-size:15px}.ht-tot b{display:inline;font-size:20px}
+
+/* 5.15 S1/S7: daily review ward, today card */
+.hz-daily{align-items:center;gap:8px}.hz-daily span{font-size:14px}.hz-wgo{width:100%;margin:4px 0 10px}
+.td-card{cursor:pointer}.td-go{border:0;border-radius:10px;padding:8px 14px;background:var(--accent);color:#fff;font:inherit;flex:none}
