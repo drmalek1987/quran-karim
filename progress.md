@@ -271,3 +271,4 @@ ui.js: 1 FAIL fixed by editing the G6 vertical check (scroll 230 not 700) + new 
 Flip-off sim "failure" was the sim (same hash, no re-render); fixed. 5.12 built + full QA green (see QA-checklist 5.12).
 Resume: install quran-karim-v5.12.apk on the phone (adb -s bee81250 install -r) when connected, send the 5.12 re-test list (QA-checklist 5.12); then G10 (GPU). No GitHub release without asking.
 - 2026-11-07: 5.12 installed on the user's phone (bee81250); re-test list (2, 11, 12, 16, 19) sent. Resume: act on the 5.12 phone results; then G10 (GPU).
+- 2026-11-07: user's phone re-test of 5.12: items 2, 11, 12, 16, 19 all PASS. Stats: 149 ms per decode (3.9 s audio) — same per-decode cost as 5.11 (147), as expected: 5.12 decodes twice as often, not slower. Resume: G10 (noise/speed retrain, GPU, hours; plan under items 30/31 of 5.11-plan.md) — only with the PC left on; G8 waits for the user; GitHub release of 5.12 only if the user asks.
