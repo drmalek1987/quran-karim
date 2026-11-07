@@ -245,4 +245,6 @@ Resume: 5.11 version bump (manifest done: 5.11/53; about text ar+en, sw.js cache
 Goal check: findable tools (hifz first) and one place for reading/hifz/recognition numbers = near-complete app; the recognition rings show where recognition is weak (noise, mic) -> supports >95%. Folded into the 5.11 build (not delivered yet) so the user gets one APK and one full QA. Effort: session at high (≥ low/medium needed).
 G4: titled groups, odd group's first tile spans. G5: #/stats (reading, hifz, recognition, voice recordings on the phone), khatma link card, i18n for all new text + hifz-test strings (tr() matches «١٢. يوسف»). ui.js 196/0, i18n_scan clean (adds #/stats).
 Resume: build quran-karim-v5.11.apk (manifest 5.11/53, about ar+en, sw quran-v48 already bumped) -> full QA (ui.js done 196/0, donate.js, data.py, matrix.js, Maestro on Phone/Small/Fold/Tablet API35) -> deliver phone list; then G6 (hifz redesign, high).
+5.11 build ✅ quran-karim-v5.11.apk (53, signer 7d8b31d2): ui.js 196/0, donate 14/0, data 28/0, matrix 40/0, i18n clean, Maestro 4 AVDs PASS. Installed on Phone_API35. No GitHub release (ask the user first).
+Resume: deliver the 5.11 phone list (QA-checklist § 5.11) to the user; next G6 hifz redesign (effort high).
 
