@@ -22,7 +22,7 @@
     // 5.11 G6: hifz hub, map picker, auto flip
     "بعد آخر آية هتفتح الآيات اللي بعدها والمايك شغال": "After the last ayah the next ayat open, with the mic still on", "الاختبار هيخلص عند آخر آية وتطلع النتيجة": "The test ends at the last ayah and shows the score",
     "#٪ افتكرت # من # كلمة · كمّل": "#% · remembered # of # words · go on",
-    "سورة @ · صفحة #": "Surah @ · page #", "@ · #": "@ · #", "ابدأ من الآية": "Start from ayah", "اختبار على المصحف": "Test on the mushaf", "اختبار بالكلمات": "Test with hidden words",
+    "سورة @ · صفحة #": "Surah @ · page #", "@ · #": "@ · #", "ابدأ من الآية": "Start from ayah", "من الآية #": "From ayah #", "السورة": "Surah", "اختبار على المصحف": "Test on the mushaf", "اختبار بالكلمات": "Test with hidden words",
     "افتح الصفحة": "Open the page", "إلغاء": "Cancel", "قلب تلقائي": "Auto flip", "قلب الصفحة تلقائي": "Turn the page by itself", "خلصت الصفحة": "Page done",
     "الصفحة هتتقلب لوحدها في آخرها": "The page will turn by itself at its end", "مش هتتقلب: الاختبار بيخلص في آخر الصفحة": "No auto flip: the test ends at the end of the page",
     "كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع عشان تختار الآية وتبدأ الاختبار. «محتاجة مراجعة» لو آخر مراجعة من أكتر من # يوم أو نتيجة الاختبار أقل من #٪.": "Each box is a page; a page with more than one surah has a box per surah. Tap a box to choose the ayah and start the test. «Needs review» if the last review was more than # days ago or the test score is under #%.",

@@ -484,3 +484,15 @@
 - (phone PASS 2026-11-07, all 5 items) #16: reading mode (corner mic, الشمرلي) feels faster: partials every 0.5 s instead of 1 s (finals unchanged). Report Stats › «ملي ثانية لكل فك» again.
 - #19: vertical (عمودي) hifz: the page you reach (by reciting or by scrolling) opens with its masks; only the pages after it are blank.
 - 5.12 build QA (2026-11-07, quran-karim-v5.12.apk, versionCode 54, signer 7d8b31d2): ui.js kfgqpc 214/0 (new: phone #11, #12 on/off, #19) · recite_sim.js scenario I ✓ · donate.js 0 FAIL · data.py 28/0 · matrix.js 40/0 · i18n_scan: no new UI text (misses are Quran/qiraat/i'rab words, ayah marks, «العربية») · Maestro smoke PASS on Phone_API35, Small_API35, Fold_API35, Tablet_API35. Installed on the user's phone (M2007J3SY, bee81250) over 5.11, data kept.
+
+## 5.13 — user patch 2 (phone tests, numbered by P2 item)
+- P2.3: the consent dialog (mic without the model, or welcome step 3) says «ليس الآن» (English: Not now).
+- P2.8: under the mushaf pages (every edition, horizontal and vertical) there is no «وضع الحفظ» button any more; hifz mode starts from خريطة الحفظ / اختبار الحفظ.
+- P2.11: no «هامش المصحف الموضوعي» under the pages, even with the thematic colours on.
+- P2.9: Settings › التحميلات has no «هامش المصحف الموضوعي» row; a copy downloaded before is deleted by itself (~9 MB freed).
+- P2.4: More › Stats › تسجيلات الصوت › «الخصوصية وتسجيلات الصوت»: Settings slides up already at the privacy box, with no jump after it opens.
+- P2.5: اختبار الحفظ: next to the surah there is «من الآية N»; the test starts from that ayah (ten ayat) and remembers it.
+- P2.7: phone held sideways, full screen (wait 5 s or tap): the page keeps its width (it shrank to about half before), all editions.
+- P2.2: the home screen has the round mic above the tabs: recite any ayah → its page opens and the reading is followed there; in text mode the ayah opens in the text view.
+- Not in this build (need the user's OK first): P2.10 stats inventory and P2.6 hifz-screens plan → plans/5.13-P2.10-P2.6-report.html; P2.1 waits for G8.
+- 5.13 build QA (2026-11-07, quran-karim-v5.13.apk, versionCode 55, signer 7d8b31d2): ui.js kfgqpc 220/0 (new group «نسخة 5.13 (باتش 2)»: P2.2/3/4/5/7/8/9/11; recite_sim inside ✓) · donate.js 0 FAIL · data.py 28/0 · matrix.js 40/0 · i18n_scan: no new UI misses (added «من الآية #», «السورة») · fs-motion headless 8/8 · emulator over CDP: home mic above tabs, htA 286 options, no pHifz/thmNotes, landscape full screen width kept (773→773) · Maestro smoke PASS on Phone_API35, Small_API35, Fold_API35, Tablet_API35. Not yet on the user's phone (bee81250 not connected).
