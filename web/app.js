@@ -374,7 +374,7 @@
       "هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</p>" +
       '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
       '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>' +
-      '<div class="dlg-btns"><button class="dlg-no">مش دلوقتي</button><button class="dlg-ok" disabled>موافق</button></div></div></div>').firstChild;
+      '<div class="dlg-btns"><button class="dlg-no">ليس الآن</button><button class="dlg-ok" disabled>موافق</button></div></div></div>').firstChild;
     document.body.appendChild(d);
     var t = d.querySelector("#cTerms"), ok = d.querySelector(".dlg-ok");
     t.onchange = function () { ok.disabled = !t.checked; };
@@ -479,8 +479,8 @@
     asrBtn(); var box = document.getElementById("edDl"); if (!box) return;
     if (!window.EdBridge) { ["dlGroup", "dlRow"].forEach(function (id) { document.getElementById(id).hidden = true; });
       var ab = document.getElementById("asrDl"); if (ab) ab.innerHTML = '<p class="hint">تنزيل النموذج شغال في التطبيق على الموبايل بس.</p>'; return; }
-    var ids = ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).concat(window.THEMATIC ? ["thmnotes"] : []), any = false;
-    var nm = function (k) { return EDS[k] ? EDS[k].name : "هامش المصحف الموضوعي"; };
+    var ids = ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }), any = false;
+    var nm = function (k) { return EDS[k].name; };
     paintAsrDl();
     box.innerHTML = ids.map(function (k) {
       var st = EdBridge.state(k); if (st === "ready" && EDS[k]) any = true;
@@ -509,7 +509,9 @@
     if (!window.EdBridge || !confirm("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.")) return;
     ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
   };
-  var ED_MB = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46, thmnotes: 9 };
+  var ED_MB = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46 };
+  // 5.13: the thematic-margin images are gone from the app; free them on phones that fetched them.
+  setTimeout(function () { try { if (window.EdBridge && EdBridge.state("thmnotes") === "ready") EdBridge.remove("thmnotes"); } catch (e) {} }, 3000);
   // Settings › Downloads: each recitation model, to fetch or free it.
   function paintAsrDl() {
     var box = document.getElementById("asrDl"); if (!box) return;
@@ -1003,33 +1005,6 @@
   var thmOn = load("thematic", false), thmPages = null, thmEd = null;
   var THM_COL = [["#e6f6fa", "#c9ebf2"], ["#e9f5e6", "#cfeac6"], ["#f8dde0", "#efbfc3"], ["#fdf8dc", "#fbefaa"], ["#ece3f0", "#d8c9e8"], ["#fee4d4", "#fdcdb0"], ["#fde3ef", "#f9cadf"]];
   var THM_NAMES = ["آيات الله في الكون والأنفس، وفضله على عباده", "النبي ﷺ والمؤمنون وجزاؤهم والجنة", "آيات الأحكام", "قصص الرسل والأنبياء والأمم السابقة", "القرآن الكريم، وصفات الإنسان، والرد على المشركين، وسنة الله في خلقه", "يوم القيامة وعلاماته، والموت والقبر والحساب والحشر والبعث", "جهنم وأوصافها، وعذاب المشركين والكافرين فيها"];
-  // The colour key under the pages, while the thematic colours are on.
-  // Under the pages: the bottom margin of the thematic mushaf (the topic of each colour on that page, with its ayahs), as
-  // the printed margin itself, cut from the scan (tools/thematic_notes.py). Its pages are the King Fahd ones, so another
-  // edition shows the margins of every King Fahd page its open page shares ayahs with. The images are one download.
-  function thmKey() {
-    if (!thmOn || !window.THEMATIC) return "";
-    return '<details class="thm-key page-thm" id="thmNotes"><summary>' + ic("book") + 'هامش المصحف الموضوعي</summary><div class="thm-notes"></div></details>';
-  }
-  function kfPagesOf(n) {
-    if (edition === "kfgqpc" || edition === "kfold" || !window.ED_KFGQPC) return [n];
-    var out = [];
-    for (var s = 0; s < 114; s++) for (var x = 0; x < Q.p[s].length; x++) if (Q.p[s][x] === n) { var k = ED_KFGQPC.p[s][x]; if (out.indexOf(k) < 0) out.push(k); }
-    return out.sort(function (x, y) { return x - y; });
-  }
-  function thmNotesFill() {
-    var d = document.getElementById("thmNotes"); if (!d || !d.open) return;
-    var box = d.querySelector(".thm-notes"), n = +(location.hash.match(/^#\/p\/(\d+)/) || [])[1];
-    if (!n) return;
-    if (window.EdBridge && EdBridge.state("thmnotes") !== "ready") {
-      box.innerHTML = '<p class="hint">الهامش محتاج تنزيل (حوالي ٦ ميجا).</p><button class="btn" id="thmDl">تنزيل الهامش</button>';
-      document.getElementById("thmDl").onclick = function () { box.innerHTML = '<p class="hint">بيتنزّل… تابعه من الإعدادات › التحميلات</p>'; needEd("thmnotes", thmNotesFill, true); };
-      return;
-    }
-    var ps = kfPagesOf(n);
-    box.innerHTML = ps.length ? ps.map(function (p) { return (ps.length > 1 ? "<small>صفحة " + ar(p) + " في المصحف الموضوعي</small>" : "") + '<img alt="هامش صفحة ' + p + '" src="thmnotes/' + pad(p) + '.webp">'; }).join("") : '<p class="hint">مفيش آيات في الصفحة دي.</p>';
-  }
-  document.addEventListener("toggle", function (e) { if (e.target.id === "thmNotes") thmNotesFill(); }, true);
   function thmLayer(n) {
     if (!thmOn || !window.THEMATIC || !Q.r) return "";
     if (thmEd !== edition || !thmPages) {
@@ -1061,7 +1036,7 @@
       var cw = vc ? 1 - (vl + vr) / 100 : 1, ch = vc ? 1 - (vc[0] + vc[2]) / 100 : 1;
       html += '<div class="vp-c" style="padding-top:' + ratio * ch / cw + '%"><div class="page-box vp" data-p="' + p + '" style="width:' + 100 / cw + "%;height:" + 100 / ch + "%;left:" + (-vl / cw) + "%;top:" + (vc ? -vc[0] / ch : 0) + '%"><img loading="lazy" alt="صفحة ' + p + '" src="' + ed.dir + pad(p) + '.avif">' + tjLayer(p) + "</div></div>";
     }
-    view.innerHTML = html + "</div>" + thmKey() + rdMicHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
+    view.innerHTML = html + "</div>" + rdMicHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
       '</button><button id="vDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>";
     var list = view.querySelector(".vpages"), hl0 = hl;
     var vbar = document.querySelector(".bar"); if (vbar) root.style.setProperty("--barh", vbar.offsetHeight + "px");
@@ -1292,7 +1267,7 @@
         var cs = cv && ced.mirror && p % 2 ? ' style="--cl:' + cv[1] / 100 + ";--cr:" + cv[3] / 100 + '"' : "";
         return '<div class="page-box" data-p="' + p + '"' + cs + '><img' + (p === n ? ' id="pg"' : "") + ' alt="صفحة ' + p + '" src="' + EDS[edition].dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
       }).join("") + (sp ? "</div>" : "") + "</div>" +
-      '<div class="page-tools"><button id="pHifz">' + ic(hifz.on ? "eye" : "eyeoff") + (hifz.on ? "إنهاء وضع الحفظ" : "وضع الحفظ") + '</button><button id="pMark">' + ic("mark") + 'علامة على هذه الصفحة</button><a class="tj-key" href="#/tajweed">' + ic("book") + "دليل ألوان التجويد</a></div>" + thmKey() +
+      '<div class="page-tools"><button id="pMark">' + ic("mark") + 'علامة على هذه الصفحة</button><a class="tj-key" href="#/tajweed">' + ic("book") + "دليل ألوان التجويد</a></div>" +
       '<p class="page-info">' + info + "</p>" +
       '<div class="page-nav"><button id="pPrev">' + ic("right") + 'السابقة</button><input id="pNum" type="number" inputmode="numeric" min="' + Q.min + '" max="' + (Q.count - 1) +
       '" value="' + n + '"><button id="pNext">التالية' + ic("left") + '</button>' +
@@ -1336,7 +1311,6 @@
         if (!hit || (hl && hl.s === hit[0] && hl.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
       });
     });
-    document.getElementById("pHifz").onclick = function () { hifzToggle(); };
     if (hifz.on) {
       hifzPagesMount(pages, boxOf);
       // Revealing the page's last ayah turns to the next page by itself.
@@ -1823,6 +1797,7 @@
   // Memorisation mode in the page and text views: every ayah is hidden; tapping one shows or hides it again,
   // and the bar shows the next one in order, shows all, or hides all. What is shown resets when the page changes.
   var hifz = { on: false, shown: {}, items: [], paint: null, next: null };
+  window.hifzToggle = function () { hifzToggle(); };
   function hifzToggle() { hifz.on = !hifz.on; hifz.shown = {}; recite.V = {}; recite.disp = null; recite.ptr = null; recite.ok = recite.words = 0; recite.wrong = []; if (!hifz.on) { hifz.test = null; reciteStop(); } var y = window.scrollY; route(); hifzBar(); window.scrollTo(0, y); }
   function hifzMount(items, paint) { hifz.items = items; hifz.shown = {}; hifz.fk = null;
     // a test that starts at a chosen ayah (map › «ابدأ من الآية», 5.11 G6): the ayat before it stay open as context

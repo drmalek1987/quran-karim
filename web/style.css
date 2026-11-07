@@ -996,11 +996,6 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
 .dl-p { display: block; height: 6px; border-radius: 3px; background: #0002; overflow: hidden; margin: 6px 0 2px; min-width: 120px; }
 .dl-p i { display: block; height: 100%; background: #2e7d5b; transition: width .3s; }
 /* Under the pages it reads like the tajweed guide link: same size, colour and icon; the key opens beneath it. */
-.page-thm { margin: 6px 12px; text-align: center; }
-.page-thm > summary { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12.5px; color: var(--accent); list-style: none; padding: 4px 2px; }
-.page-thm > summary::-webkit-details-marker { display: none; }
-.page-thm > summary .ic { width: 15px; height: 15px; }
-.page-thm ul { text-align: start; padding: 8px 12px; border-radius: 12px; background: var(--card, #fff); }
 /* Vertical reading: listen and night buttons keep their look in every theme and page colour */
 .vbar button { width: 46px; height: 46px; border: 0; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
   background: var(--gold-soft); color: var(--gold); box-shadow: 0 2px 8px #0003; filter: none !important; mix-blend-mode: normal; -webkit-appearance: none; appearance: none; }
@@ -1030,9 +1025,6 @@ body.has-player .rd-cap { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 
 body.sheet-open .rd-mic { display: none; }
 .tsb-ph .tsb-add { border-style: dashed; color: var(--accent); }
 .tsb-x { font-style: normal; margin-inline-start: 4px; opacity: .7; padding: 0 4px; }
-.thm-notes { display: grid; gap: 6px; margin-top: 6px; }
-.thm-notes img { width: 100%; border-radius: 8px; background: #fff; }
-.thm-notes small { color: var(--muted); font-size: 12px; }
 #idxMic.on { color: #d63031; animation: micPulse 1.2s infinite; }
 /* recitation from memory: wrong words in red (text and scans), peek at hidden words, tap feedback */
 .rc-bad { color: #d64541; text-decoration: underline wavy #d64541; text-underline-offset: 6px; }

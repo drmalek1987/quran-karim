@@ -112,7 +112,7 @@ async function measureAll(p, log) {
   }
   return { ins, res };
 }
-module.exports = { headlessPage, measureAll };
+module.exports = { headlessPage, measureAll, cdpPage };
 
 if (require.main === module) (async () => {
   const p = CDP ? await cdpPage(CDP) : await headlessPage(await loadPW().chromium.launch(), process.env.LAG === undefined ? undefined : +process.env.LAG);

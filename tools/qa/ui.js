@@ -154,7 +154,7 @@ async function fresh(ctx, vp) {
 
   // ---------- الحفظ ----------
   const G9 = 'الحفظ والمراجعة';
-  await check(G9, 'وضع الحفظ يخفي آيات الصفحة', async () => { await go('#/p/582'.replace('582', '560') === '' ? '' : '#/p/541', 1000); await p.click('#pHifz'); await wait(500); return ev(() => document.querySelectorAll('.hifz-mask').length > 0 && !!document.getElementById('hifzBar')); });
+  await check(G9, 'وضع الحفظ يخفي آيات الصفحة', async () => { await go('#/p/582'.replace('582', '560') === '' ? '' : '#/p/541', 1000); await ev(() => hifzToggle()); await wait(500); return ev(() => document.querySelectorAll('.hifz-mask').length > 0 && !!document.getElementById('hifzBar')); });
   await check(G9, 'اكشف التالية / الكل / إخفاء', async () => { const t0 = await ev(() => document.querySelectorAll('.hifz-mask').length); await p.click('#hifzBar button[data-c=nx]'); const t1 = await ev(() => document.querySelectorAll('.hifz-mask').length); await p.click('#hifzBar button[data-c=all]'); const t2 = await ev(() => document.querySelectorAll('.hifz-mask').length); await p.click('#hifzBar button[data-c=none]'); const t3 = await ev(() => document.querySelectorAll('.hifz-mask').length); return assert(t1 < t0 && t2 === 0 && t3 === t0, [t0, t1, t2, t3].join()); });
   await check(G9, 'الضغط على آية مخفية يكشفها', async () => { const t0 = await ev(() => document.querySelectorAll('.hifz-mask').length); const r = await ev(() => { const m = document.querySelector('.hifz-mask').getBoundingClientRect(); return [m.left + m.width / 2, m.top + m.height / 2]; }); await p.mouse.click(r[0], r[1]); await wait(200); return ev(t0 => document.querySelectorAll('.hifz-mask').length < t0, t0); });
   await check(G9, 'إنهاء وضع الحفظ', async () => { await p.click('#hifzBar button[data-c=x]'); await wait(300); return ev(() => !document.getElementById('hifzBar') && !document.querySelector('.hifz-mask')); });
@@ -404,9 +404,6 @@ async function fresh(ctx, vp) {
     const on = await ev(() => document.body.classList.contains('fs')); const b1 = await ev(() => qBack()); const off = await ev(() => !document.body.classList.contains('fs')); await wait(1700); const b2 = await ev(() => qBack()); await wait(300); const b3 = await ev(() => location.hash);
     await ev(() => { window.QA_NOFS = true; }); return assert(on && b1 && off && b2 === true && !/^#\/p\/70/.test(b3), JSON.stringify([on, b1, off, b2, b3])); });
   await check(G17, 'الأذكار: الصوت للآيات بس', async () => { await go('#/azkar/m', 800); const r = await ev(() => [...document.querySelectorAll('.zikr')].every(z => !z.querySelector('.z-play') || /سورة/.test(z.querySelector('.z-src').textContent))); return assert(r, String(r)); });
-  await check(G17, 'هامش المصحف الموضوعي تحت الصفحة (صورة الهامش المطبوع)', async () => { await ev(() => localStorage.setItem('q.thematic', 'true')); await p.reload(); await go('#/p/27', 900);
-    await ev(() => { document.getElementById('thmNotes').open = true; }); await wait(800); const r = await ev(() => { const i = document.querySelector('.thm-notes img'); return i && [i.getAttribute('src'), i.naturalWidth]; }); await ev(() => localStorage.setItem('q.thematic', 'false'));
-    return assert(r && /thmnotes\/\d{3}\.webp/.test(r[0]), JSON.stringify(r)); });
   // ---------- نسخة 5.4/5.5 ----------
   const G18 = 'نسخة 5.4/5.5';
   const LSK = ['q.turn', 'q.mode', 'q.edition', 'q.hifzAyat', 'q.hifzLog', 'q.hifzScores', 'q.asrStats', 'q.hifzTest'];
@@ -435,9 +432,9 @@ async function fresh(ctx, vp) {
     await go('#/hifzmap', 700); const c = await ev(() => document.querySelector('.hm-grid a[href="#/p/604"]').className); return assert(!/\bc0\b/.test(c), c); });
   await g18('وضع الحفظ على المصحف بيكشف سطر سطر', async () => {
     await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); }); await p.reload(); await wait(800); await mock(); await go('#/p/42', 900);
-    await p.click('#pHifz'); await wait(500); const m0 = await ev(() => document.querySelectorAll('.hifz-mask').length);
+    await ev(() => hifzToggle()); await wait(500); const m0 = await ev(() => document.querySelectorAll('.hifz-mask').length);
     await ev(() => document.getElementById('rdMic').click()); await wait(200); await fin('الله لا اله الا هو الحي القيوم لا تاخذه سنه ولا نوم له ما في السماوات وما في الارض من ذا الذي يشفع عنده الا باذنه'); await wait(500);
-    const m1 = await ev(() => document.querySelectorAll('.hifz-mask').length); await ev(() => { document.getElementById('rdMic').click(); document.getElementById('pHifz').click(); });
+    const m1 = await ev(() => document.querySelectorAll('.hifz-mask').length); await ev(() => { document.getElementById('rdMic').click(); hifzToggle(); });
     return assert(m0 - m1 >= 1 && m1 > 0, m0 + '->' + m1); });
   await g18('النص جنب المايك بيتبع القراءة', async () => {
     await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); }); await mock(); await go('#/p/48', 900);
@@ -680,6 +677,24 @@ async function fresh(ctx, vp) {
     await G('phone #12: اختبار الكلمات: «قلب تلقائي» مقفول: الاختبار بيخلص عند آخر آية والنتيجة بتظهر', R => assert(R.I.off[0] === 1 && !R.I.off[1] && /٪/.test(R.I.off[2]), JSON.stringify(R.I.off)));
     await G('G7: زمن فك الكلام من الموديل بيتسجل في الإحصائيات', R => assert(R.H[0] === 420 && R.H[1] === 1 && R.H[2] === 3000, JSON.stringify(R.H)));
     await G('G7: مفيش أخطاء JavaScript في محاكاة التسميع', R => assert(!R.errs.length, R.errs.join(' | '))); }
+  // ---------- 5.13: user patch 2 ----------
+  const G513 = 'نسخة 5.13 (باتش 2)';
+  await check(G513, 'P2.3: زرار الموافقة «ليس الآن» بدل «مش دلوقتي»', async () => { await go('#/p/2', 900);
+    const r = await ev(() => { const eb = window.EdBridge, nb = window.NvBridge, rb = window.ReciteBridge;
+      window.EdBridge = { state: () => 'none', remove() {}, get() {} }; window.NvBridge = { ready: () => false, start() {}, stop() {} }; window.ReciteBridge = { start() {}, stop() {}, setHints() {} };
+      localStorage.removeItem('q.modelConsent'); document.getElementById('rdMic').click(); const b = document.querySelector('.dlg .dlg-no'), t = b && b.textContent;
+      if (b) b.click(); window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge; if (!rb) delete window.ReciteBridge; return t; });
+    return assert(r === 'ليس الآن', String(r)); });
+  await check(G513, 'P2.8 + P2.11: مفيش زرار وضع الحفظ ولا هامش المصحف الموضوعي تحت الصفحات (أفقي وعمودي)', async () => { await ev(() => localStorage.setItem('q.thematic', 'true')); await p.reload(); await go('#/p/27', 900);
+    const a = await ev(() => [!!document.getElementById('pHifz'), !!document.getElementById('thmNotes'), !!document.getElementById('pMark')]);
+    await ev(() => localStorage.setItem('q.turn', '"v"')); await p.reload(); await go('#/p/27', 1200); const v = await ev(() => [!!document.getElementById('thmNotes'), !!document.querySelector('.page-thm')]);
+    await ev(() => { localStorage.setItem('q.thematic', 'false'); localStorage.setItem('q.turn', '"h"'); }); await p.reload(); await wait(600);
+    return assert(!a[0] && !a[1] && a[2] && !v[0] && !v[1], JSON.stringify([a, v])); });
+  await check(G513, 'P2.9: مفيش بند تحميل هامش المصحف الموضوعي في الإعدادات › التحميلات، ونسخته القديمة بتتمسح', async () => { await go('#/', 600);
+    const r = await ev(async () => { const eb = window.EdBridge; let gone = ''; window.EdBridge = { state: k => k === 'thmnotes' ? 'ready' : 'none', remove(k) { gone += k; }, get() {}, pause() {} };
+      document.getElementById('btnSettings').click(); await new Promise(z => setTimeout(z, 400)); const box = document.getElementById('edDl'); const t = box ? box.textContent : 'nobox'; document.getElementById('closeSettings').click();
+      window.EdBridge = eb; if (!eb) delete window.EdBridge; return t; });
+    return assert(r !== 'nobox' && !/هامش/.test(r) && /الملك فهد|فهد|الشمرلي/.test(r), r.slice(0, 120)); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }
