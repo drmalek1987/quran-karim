@@ -19,6 +19,7 @@ const ED = process.env.ED || 'kfgqpc';
 const KSUF = ED === 'harmain' ? '' : '.' + ED, EDDIR = ED === 'harmain' ? '/pages/' : 'editions/' + ED + '/';
 let p, errs = [];
 async function check(group, name, fn) {
+  if (process.env.ONLY && !group.includes(process.env.ONLY)) return;
   try { const r = await fn(); out.push([group, name, r === false ? 'FAIL' : 'PASS', r === false || r === true || r === undefined ? '' : String(r)]); }
   catch (e) { out.push([group, name, 'FAIL', e.message.split('\n')[0].slice(0, 160)]); }
 }
@@ -695,6 +696,14 @@ async function fresh(ctx, vp) {
       document.getElementById('btnSettings').click(); await new Promise(z => setTimeout(z, 400)); const box = document.getElementById('edDl'); const t = box ? box.textContent : 'nobox'; document.getElementById('closeSettings').click();
       window.EdBridge = eb; if (!eb) delete window.EdBridge; return t; });
     return assert(r !== 'nobox' && !/هامش/.test(r) && /الملك فهد|فهد|الشمرلي/.test(r), r.slice(0, 120)); });
+  await check(G513, 'P2.4: الإحصائيات › «الخصوصية وتسجيلات الصوت» بتفتح الإعدادات على صندوق الخصوصية من غير نطّة', async () => {
+    await ev(() => { window.QA_NB = window.NvBridge; window.NvBridge = Object.assign({}, window.NvBridge || {}, { donateStats: () => '{"waiting":2,"rejected":{}}' }); }); await go('#/', 300); await go('#/stats', 800);
+    await ev(() => { window.NvBridge = window.QA_NB; if (!window.NvBridge) delete window.NvBridge; });
+    const r = await ev(async () => { const sb = document.querySelector('#settings .sheet-body'), g = document.getElementById('privGroup'); const tops = [];
+      document.getElementById('stPriv').click(); const t0 = performance.now();
+      while (performance.now() - t0 < 700) { await new Promise(z => requestAnimationFrame(z)); tops.push(Math.round(sb.scrollTop)); }
+      const res = { tops: [...new Set(tops)], off: Math.round(g.getBoundingClientRect().top - sb.getBoundingClientRect().top), open: g.open, max: sb.scrollHeight - sb.clientHeight, jb: document.querySelector('.set-jump').offsetHeight }; document.getElementById('closeSettings').click(); return res; });
+    return assert(r.open && r.tops.length === 1 && r.tops[0] > 0 && (Math.abs(r.off - r.jb) < 40 || Math.abs(r.tops[0] - r.max) <= 1), JSON.stringify(r)); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

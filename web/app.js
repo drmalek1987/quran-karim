@@ -2832,8 +2832,12 @@
     view.innerHTML = '<div class="stats">' + statsHtml() + hifzStatsHtml() + asrStatsHtml() + donateStatsHtml() + "</div>";
     var pb = document.getElementById("stPriv");
     if (pb) pb.onclick = function () {
+      // The sheet opens already scrolled to the privacy box: it slides up there, with no jump after it shows (5.13 P2.4).
+      var g = document.getElementById("privGroup"), sb = sheet.querySelector(".sheet-body");
+      if (g) g.open = true;
       document.getElementById("btnSettings").click();
-      setTimeout(function () { var g = document.getElementById("privGroup"); if (g) { g.open = true; g.scrollIntoView({ block: "start" }); } }, 350);
+      var at = function () { if (!g || !sb) return; var jb = sb.querySelector(".set-jump"); sb.scrollTop = g.getBoundingClientRect().top - sb.getBoundingClientRect().top + sb.scrollTop - (jb ? jb.offsetHeight : 0) - 8; };
+      at(); requestAnimationFrame(at);
     };
   }
 
