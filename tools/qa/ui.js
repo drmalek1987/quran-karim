@@ -715,6 +715,17 @@ async function fresh(ctx, vp) {
     const m = () => q.evaluate(() => Math.round(document.getElementById('pg').closest('.page-box').getBoundingClientRect().width));
     const a = await m(); await q.evaluate(() => document.body.classList.add('fs')); await q.waitForTimeout(700); const f = await m(); await ctx.close();
     return assert(f >= a - 1, a + ' -> ' + f); });
+  await check(G513, 'P2.2: المايك ظاهر على طول في الرئيسية (فوق شريط التابات)، بيلاقي الآية وينقل لصفحتها ويتابع القراءة', async () => {
+    await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); }); await p.reload(); await wait(800); await mock(); await go('#/', 800);
+    const pos = await ev(() => { const m = document.getElementById('rdMic'), t = document.getElementById('tabbar'); return m && t && [Math.round(m.getBoundingClientRect().bottom), Math.round(t.getBoundingClientRect().top), getComputedStyle(m).display]; });
+    await ev(() => document.getElementById('rdMic').click()); const t = await ev(() => QURAN.t[17][0].split(' '));
+    await fin(t.slice(0, 7).join(' ')); await wait(1200); const h1 = await ev(() => location.hash);
+    await fin(t.slice(7).join(' ')); await wait(600); const cap = await ev(() => { const c = document.querySelector('.rd-cap'); return c && c.textContent.slice(0, 40); });
+    const on = await ev(() => document.getElementById('rdMic').classList.contains('on')); await ev(() => document.getElementById('rdMic').click());
+    await ev(() => localStorage.setItem('q.mode', '"text"')); await p.reload(); await wait(800); await mock(); await go('#/', 800);
+    await ev(() => document.getElementById('rdMic').click()); await fin(t.slice(0, 7).join(' ')); await wait(900); const h2 = await ev(() => location.hash);
+    await ev(() => localStorage.setItem('q.mode', '"pages"')); await p.reload(); await wait(800);
+    return assert(pos && pos[0] <= pos[1] && pos[2] !== 'none' && /^#\/p\/\d+/.test(h1) && on && cap && /الكهف/.test(cap) && /^#\/s\/18\/1/.test(h2), JSON.stringify([pos, h1, on, cap, h2])); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

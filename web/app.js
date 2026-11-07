@@ -742,7 +742,10 @@
     if (hj) html += '<div class="hj-bar">' + ic("moon") + "<span>" + new Date().toLocaleDateString(window.LANG === "en" ? "en-GB" : "ar-EG", { weekday: "long" }) + " " + hj.text + "</span>" + (fs ? "<small>يُستحب صيامه: " + fs + "</small>" : "") + "</div>";
     html += '<div class="home-row"><button class="mini" id="tPrayer">' + ic("clock") + "<span>" + prayerTileText() + "</span></button>" + goalCard() + "</div>";
     html += khatmaCard();
-    view.innerHTML = html + '<div id="idx"></div>';
+    // 5.13 P2.2: the mic is always on the home screen: it finds the ayah being recited anywhere in the Quran, opens its
+    // page and follows the reading there (the same rdToggle / rdHear as the mic on the mushaf)
+    rdPage = null;
+    view.innerHTML = html + '<div id="idx"></div>' + rdMicHtml();
     document.getElementById("kCard").onclick = function () { location.hash = "#/khatma"; };
     document.getElementById("tPrayer").onclick = function () { location.hash = "#/prayer"; };
     document.getElementById("tGoal").onclick = goalDialog;
@@ -2297,6 +2300,8 @@
   }
   function rdGo(s, a) {
     var p = pageOf(s, a); rd.s = s; rd.a = a;
+    // heard from the home screen while reading in the text view: open the ayah there (following runs on the mushaf only)
+    if (!rdPage && mode !== "pages") { location.hash = "#/s/" + s + "/" + a; return; }
     if (rdPage && (rdPage.pages ? rdPage.pages.indexOf(p) >= 0 : rdPage.box(p))) { rdPage.mark(s, a); rdPaint(); return; }
     // the next page: turned with the effect chosen in Settings (curl / slide), like a tap on the next-page button
     if (rdPage && rdPage.pages && rdPage.turn && p === rdPage.pages[rdPage.pages.length - 1] + 1) { rdPage.turn(); return; }

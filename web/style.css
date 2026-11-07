@@ -1036,6 +1036,9 @@ body.sheet-open .rd-mic { display: none; }
 .ht-pg.on { background: var(--accent); color: #fff; }
 .tap-ok { box-shadow: 0 0 0 3px #2ecc71 !important; transition: box-shadow .1s; }
 .rd-mic.on, .ht-rec .rec, .hifz-bar .rec { background: #d64541 !important; color: #fff !important; }
+/* 5.13 P2.2: the home screen's mic sits above the tab bar (and the player, when it shows) */
+body.has-tabs .rd-mic, body.has-tabs .rd-cap { bottom: calc(80px + env(safe-area-inset-bottom)); }
+body.has-tabs.has-player .rd-mic, body.has-tabs.has-player .rd-cap { bottom: calc(154px + env(safe-area-inset-bottom)); }
 body.has-hifz .rd-mic, body.has-hifz .rd-cap { bottom: calc(96px + env(safe-area-inset-bottom)); }   /* above the memorisation bar */
 
 /* hifz test layout: mini map card, big mic, one row of icon buttons, wrong-ayat chips */
