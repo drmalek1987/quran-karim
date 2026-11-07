@@ -544,7 +544,7 @@ body.has-player.has-bar .player { display: none; }
 .marks .ic { width: 16px; height: 16px; }
 
 /* Text input sheet (bookmark names). */
-.dlg-back { position: fixed; inset: 0; z-index: 20; background: rgba(0, 0, 0, .35); display: flex; align-items: flex-end; justify-content: center; padding: 12px; }
+.dlg-back { position: fixed; inset: 0; z-index: 25; background: rgba(0, 0, 0, .35); display: flex; align-items: flex-end; justify-content: center; padding: 12px; }
 .dlg { width: 100%; max-width: 480px; background: var(--card); border-radius: 22px; padding: 16px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 12px; animation: up .25s cubic-bezier(.2, .8, .3, 1); }
 .dlg b { font-size: 15px; color: var(--accent); }
 .dlg .input { margin: 0; }
