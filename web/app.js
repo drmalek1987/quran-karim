@@ -3848,8 +3848,10 @@
     if (!s) s = st.s || (due ? due.s : 1);
     var from = st.s === s && st.from ? st.from : 1, cnt = Q.s[s - 1][3], to = Math.min(cnt, from + 9), lv = st.lv || 25;
     var opts = ""; for (var i = 1; i <= 114; i++) opts += '<option value="' + i + '"' + (i === s ? " selected" : "") + ">" + ar(i) + ". " + Q.s[i - 1][0] + (L[i] ? " ✓" : "") + "</option>";
+    // the start ayah, next to the surah (5.13 P2.5, like the map's «ابدأ من الآية»); the test shows ten ayat from it
+    var aopts = ""; for (var i2 = 1; i2 <= cnt; i2++) aopts += '<option value="' + i2 + '"' + (i2 === from ? " selected" : "") + ">من الآية " + ar(i2) + "</option>";
     // Hide every n-th word from a random start, so each round hides different words; the level is the share hidden.
-    var html = '<div class="ht">' + hzNav("#/hifztest") + '<div class="ht-top"><select class="input" id="htS">' + opts + '</select><div class="z-sort ht-lv"><span>إخفاء</span>' +
+    var html = '<div class="ht">' + hzNav("#/hifztest") + '<div class="ht-top"><div class="ht-pick"><select class="input" id="htS" aria-label="السورة">' + opts + '</select><select class="input" id="htA" aria-label="ابدأ من الآية">' + aopts + '</select></div><div class="z-sort ht-lv"><span>إخفاء</span>' +
       [[25, "ربع الكلمات"], [50, "النص"], [100, "كل الكلمات"]].map(function (x) { return '<button data-l="' + x[0] + '"' + (x[0] === lv ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div></div>" +
       hifzMini() +
       '<p class="hint">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت». الآيات ' + ar(from) + "–" + ar(to) + " من " + ar(cnt) + '.</p><div class="ht-text">';
@@ -3951,6 +3953,7 @@
         } };
       htv.fix.hidden = true;
     }
+    document.getElementById("htA").onchange = function () { save("hifzTest", { lv: lv, s: s, from: +this.value }); showHifzTest(s); };
     document.getElementById("htS").onchange = function () { save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };
     view.querySelectorAll(".ht-lv button").forEach(function (b) { b.onclick = function () { save("hifzTest", { lv: +b.dataset.l, s: s, from: from }); showHifzTest(s); }; });
     view.querySelectorAll(".ht-bad button").forEach(function (b) { b.onclick = function () { save("hifzTest", { lv: lv, s: s, from: +b.dataset.a }); showHifzTest(s); window.scrollTo(0, 0); }; });

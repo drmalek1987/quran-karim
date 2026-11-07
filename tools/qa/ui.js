@@ -704,6 +704,11 @@ async function fresh(ctx, vp) {
       while (performance.now() - t0 < 700) { await new Promise(z => requestAnimationFrame(z)); tops.push(Math.round(sb.scrollTop)); }
       const res = { tops: [...new Set(tops)], off: Math.round(g.getBoundingClientRect().top - sb.getBoundingClientRect().top), open: g.open, max: sb.scrollHeight - sb.clientHeight, jb: document.querySelector('.set-jump').offsetHeight }; document.getElementById('closeSettings').click(); return res; });
     return assert(r.open && r.tops.length === 1 && r.tops[0] > 0 && (Math.abs(r.off - r.jb) < 40 || Math.abs(r.tops[0] - r.max) <= 1), JSON.stringify(r)); });
+  await check(G513, 'P2.5: اختبار الحفظ: اختيار الآية جنب السورة، والاختبار بيبدأ منها والاختيار بيتحفظ', async () => { await go('#/hifztest/2', 900);
+    const r = await ev(async () => { const a = document.getElementById('htA'), sR = document.getElementById('htS').getBoundingClientRect(), aR = a.getBoundingClientRect();
+      a.value = '30'; a.onchange.call(a); await new Promise(z => setTimeout(z, 500)); const first = document.querySelector('.ht-text .ayah-no').textContent;
+      return [Math.abs(sR.top - aR.top) < 4, a.options.length, first, JSON.parse(localStorage.getItem('q.hifzTest')).from, document.getElementById('htA').value]; });
+    return assert(r[0] && r[1] === 286 && /٣٠/.test(r[2]) && r[3] === 30 && r[4] === '30', JSON.stringify(r)); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

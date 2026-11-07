@@ -867,6 +867,7 @@ body.has-tabs .player { bottom: 70px; }
 .du-cats button { flex: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--card); color: inherit; font: inherit; font-size: 13px; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
 .du-cats button .ic { width: 16px; height: 16px; } .du-cats button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ht-top { display: grid; gap: 8px; } .ht-top select { margin: 0; }
+.ht-pick { display: flex; gap: 8px; } .ht-pick #htS { flex: 1; min-width: 0; } .ht-pick #htA { flex: none; width: auto; max-width: 42%; }
 .ht-text { background: var(--pbg, var(--card)); color: var(--pink, inherit); border-radius: 18px; padding: 16px; font-family: "Amiri Quran", serif; font-size: calc(var(--quran-size, 26px) * .9); line-height: 2.3; text-align: justify; box-shadow: var(--shadow); }
 .ht-w { font: inherit; color: transparent; background: rgba(15,107,79,.12); border: 0; border-bottom: 2px dashed var(--accent); border-radius: 6px; padding: 0 4px; cursor: pointer; }
 .ht-w.shown { color: inherit; } .ht-w.miss { background: rgba(214,69,65,.15); border-color: #d64541; } .ht-w.ok { background: rgba(15,107,79,.15); border-bottom-style: solid; }
