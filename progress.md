@@ -253,3 +253,7 @@ Goal check: the hifz test is the main use of recitation recognition; a hub aroun
 ui.js 201/0, i18n clean. Phone check pending (follow scroll with real recitation). Not in an APK yet (5.11 APK built before G6).
 Resume: G7 (recitation following/timing engine) — needs real recitation audio; then rebuild an APK with G6/G7 for the user.
 
+## 5.11 G7 — recitation following and timing — done 2026-11-07 (JS + NvAsr), phone check pending
+Goal check: the biggest user-felt gap; measured with recite_sim.js (8 scenarios) and stream_cut.py (52 continuous streams). Partial-only freeze chosen because cutting pieces lowered word verdicts (0.6–2.5 pt) — rejected against the >95% goal.
+Resume: full QA + rebuild quran-karim-v5.11.apk (G1–G7) -> deliver phone list; then G10 (noise/speed retrain, GPU, hours) only if usage allows; G8 waits for the user (backend + consent wording).
+

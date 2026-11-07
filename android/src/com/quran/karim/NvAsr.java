@@ -36,6 +36,12 @@ class NvAsr {
     static final int PERMISSION_REQUEST = 79;
     private static final int SR = 16000, NF = 512, WIN = 400, HOP = 160, NB = 257, NM = 80;
     private static final int PRE = SR * 3 / 10; private static final double QUIET_END = 1.0;
+    // 5.11 G7: a partial decodes only the audio after the piece's frozen point; once that is longer than FREEZE s, the part
+    // up to the quietest 100 ms block of its last 2 s (a breath, below 0.6 x the median level) is decoded once and its text
+    // kept. The FINAL piece is decoded whole as before (same verdicts). tools/asr/eval/stream_cut.py, 52 continuous
+    // streams: mean partial decode 5.3 -> 3.7 s of audio (p90 10 -> 6 s), finals unchanged (89.5% words right).
+    private static final int BLK = SR / 10; private static final double FREEZE = 6.0;
+    private String frozen = "";                                       // the frozen text of the piece being heard (worker thread)
     private final Activity act;
     private final WebView web;
     private final File dir;
@@ -205,10 +211,12 @@ class NvAsr {
         final AudioRecord mic = ar;
         rec = new Thread(new Runnable() { public void run() {
             short[] blk = new short[SR / 10];
-            float[] seg = new float[SR * 12]; int len = 0, lastPartial = 0;
+            float[] seg = new float[SR * 12]; int len = 0, lastPartial = 0, frz = 0;
+            float[] be = new float[121];                                     // each 100 ms block's level in the piece
             float[] pre = new float[PRE]; int preN = 0;                       // the last 0.3 s before speech
             double floor = 0.004, quiet = 0, voiced = 0;
             mic.startRecording();
+            frozen = "";
             tell("", "state:listening");
             try {
                 while (on) {
@@ -219,19 +227,22 @@ class NvAsr {
                     floor = e < floor ? e : floor * 0.995 + e * 0.005;   // the room's own level
                     boolean speech = e > Math.max(VMIN, floor * 3);
                     double dt = n / (double) SR;
-                    if (speech && len == 0) { System.arraycopy(pre, PRE - preN, seg, 0, preN); len = preN; }
-                    if (speech || len > 0) { int k = Math.min(n, seg.length - len); for (int i = 0; i < k; i++) seg[len + i] = blk[i] / 32768f; len += k; }
+                    if (speech && len == 0) { System.arraycopy(pre, PRE - preN, seg, 0, preN); len = preN; for (int b = 0; b <= preN / BLK && b < be.length; b++) be[b] = 1f; }
+                    if (speech || len > 0) { int k = Math.min(n, seg.length - len); for (int i = 0; i < k; i++) seg[len + i] = blk[i] / 32768f;
+                        be[Math.min(be.length - 1, len / BLK)] = (float) e; if (k > 0) be[Math.min(be.length - 1, (len + k - 1) / BLK)] = (float) e; len += k; }
                     { int k = Math.min(n, PRE); System.arraycopy(pre, k, pre, 0, PRE - k);     // always keep the newest PRE samples
                       for (int i = 0; i < k; i++) pre[PRE - k + i] = blk[n - k + i] / 32768f; preN = Math.min(PRE, preN + k); }
                     if (speech) { voiced += dt; quiet = 0; } else if (len > 0) quiet += dt;
                     boolean end = len > 0 && (quiet > QUIET_END || len >= seg.length);
                     if (end) {
                         if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final"); } }); }
-                        len = 0; lastPartial = 0; quiet = 0; voiced = 0;
+                        len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0;
                     } else if (len - lastPartial >= SR && voiced > 0.5 && !decoding) {
                         lastPartial = len; decoding = true;
-                        final float[] y = java.util.Arrays.copyOf(seg, len);
-                        work.execute(new Runnable() { public void run() { emit(y, "partial"); } });
+                        final int cut = freezeAt(be, frz, len);
+                        final float[] y = java.util.Arrays.copyOfRange(seg, frz, cut > 0 ? cut : len);
+                        if (cut > 0) frz = cut;
+                        work.execute(new Runnable() { public void run() { emit(y, cut > 0 ? "freeze" : "partial"); } });
                     }
                 }
             } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); }
@@ -239,11 +250,26 @@ class NvAsr {
         rec.start();
     }
 
+    // Where to freeze the piece for partials (a sample index), or -1: see FREEZE.
+    private static int freezeAt(float[] be, int frz, int len) {
+        if (len - frz <= FREEZE * SR) return -1;
+        int nb = Math.min(be.length, len / BLK), f0 = frz / BLK, w0 = Math.max(f0 + 1, nb - 20), w1 = nb - 2;
+        if (w1 <= w0 || nb - f0 < 3) return -1;
+        int best = w0; for (int i = w0; i < w1; i++) if (be[i] < be[best]) best = i;
+        float[] m = java.util.Arrays.copyOfRange(be, f0, nb); java.util.Arrays.sort(m);
+        return be[best] < 0.6f * m[m.length / 2] ? (best + 1) * BLK : -1;
+    }
+
     private void emit(float[] y, String kind) {
         try {
             if (!on) return;
+            long t0 = android.os.SystemClock.elapsedRealtime();
             String t = decode(louder(y));
-            String before = "";
+            // how long the decode took and how much audio it read: the page keeps the average (Stats, 5.11 G7)
+            String before = "window.nvMs=" + (android.os.SystemClock.elapsedRealtime() - t0) + ";window.nvLen=" + (y.length * 1000L / SR) + ";";
+            if (kind.equals("freeze")) { frozen = (frozen + " " + t).trim(); t = frozen; kind = "partial"; }
+            else if (kind.equals("partial")) t = (frozen + " " + t).trim();
+            else frozen = "";
             if (kind.equals("final")) {
                 int n;
                 synchronized (finals) {
@@ -256,12 +282,12 @@ class NvAsr {
                     Ctc.Grp g = c.group(lastLp);
                     synchronized (grps) { grps.put(n, g); java.util.Iterator<Integer> it = grps.keySet().iterator(); while (grps.size() > 4) { it.next(); it.remove(); } }
                 }
-                before = "window.nvSeq=" + n + ";";
+                before += "window.nvSeq=" + n + ";";
             }
             if (on && t.length() > 0) tell(t, kind, before);
         } catch (Throwable e) {
             if (on) tell("", "state:error:run " + e.getMessage());
-        } finally { if (kind.equals("partial")) decoding = false; }
+        } finally { if (!kind.equals("final")) decoding = false; }
     }
 
     // Quiet speech (a low voice, the phone held far) is raised to about -30 dBFS before the model, at most 30x; loud

@@ -1,0 +1,66 @@
+{
+ "note": "5.11 G7: 52 continuous streams (ho_reciters, 0.12 s gaps), shipped phone int8 model. 0.0 = today; 6.0/5.0 = cut pieces (finals change); f6.0/f5.0 = freeze partials only (finals = today, word_right/wrong_flagged of the last partial). Shipped: f6.",
+ "streams": 52,
+ "res": {
+  "0.0": {
+   "word_right": 0.8946,
+   "wrong_flagged": 0.958,
+   "pieces": 207,
+   "piece_mean_s": 8.14,
+   "piece_max_s": 12.0,
+   "partial_mean_s": 5.33,
+   "partial_p90_s": 10.0,
+   "final_decode_rtf": 0.0184,
+   "words": 1432,
+   "neg": 119
+  },
+  "6.0": {
+   "word_right": 0.8883,
+   "wrong_flagged": 0.9412,
+   "pieces": 344,
+   "piece_mean_s": 4.85,
+   "piece_max_s": 10.3,
+   "partial_mean_s": 2.85,
+   "partial_p90_s": 5.0,
+   "final_decode_rtf": 0.0185,
+   "words": 1432,
+   "neg": 119
+  },
+  "5.0": {
+   "word_right": 0.8694,
+   "wrong_flagged": 0.9496,
+   "pieces": 400,
+   "piece_mean_s": 4.15,
+   "piece_max_s": 7.8,
+   "partial_mean_s": 2.47,
+   "partial_p90_s": 4.0,
+   "final_decode_rtf": 0.0191,
+   "words": 1432,
+   "neg": 119
+  },
+  "f6.0": {
+   "word_right": 0.8792,
+   "wrong_flagged": 0.958,
+   "pieces": 207,
+   "piece_mean_s": 8.14,
+   "piece_max_s": 12.0,
+   "partial_mean_s": 3.66,
+   "partial_p90_s": 6.0,
+   "final_decode_rtf": 0.0,
+   "words": 1432,
+   "neg": 119
+  },
+  "f5.0": {
+   "word_right": 0.8806,
+   "wrong_flagged": 0.9328,
+   "pieces": 207,
+   "piece_mean_s": 8.14,
+   "piece_max_s": 12.0,
+   "partial_mean_s": 3.25,
+   "partial_p90_s": 5.0,
+   "final_decode_rtf": 0.0,
+   "words": 1432,
+   "neg": 119
+  }
+ }
+}

@@ -2204,7 +2204,9 @@
     // the piece is for the next page) and the page turns now, not after the piece ends + 700 ms (5.11 G7)
     var pe = hifzPageEnd(disp, keys, nOwn);
     if (!fin && pe && r) {
-      Object.keys(r.v).forEach(function (i) { disp[keys[i]] = r.v[i]; });
+      // the page's own words get their verdicts; words already in the next page only when right (a partial's last word
+      // can be cut in the middle, and the rest of this piece is skipped there)
+      Object.keys(r.v).forEach(function (i) { if (+i < nOwn || r.v[i] === 1) disp[keys[i]] = r.v[i]; });
       fin = true; recite.disp = disp; reciteCommit(disp, r, keys); recite.skip = recite.heard; recite.cmt = true;
       hifz.items.forEach(function (k) { if (!hifz.shown[k] && (k + ":" + (rWords(k).length - 1)) in disp) { hifz.shown[k] = true; revealed.push(k); } });
     }
