@@ -276,7 +276,9 @@ async function fresh(ctx, vp) {
   await check(G13, 'إمساكية رمضان (أيام رمضان كلها بالإمساك) ومشاركتها صورة', async () => { await go('#/prayer', 800); await p.click('#prMonth'); await wait(600); const n = await ev(() => document.querySelectorAll('.ims tbody tr').length >= 29 && document.title !== '' && document.getElementById('title').textContent === 'إمساكية رمضان' && document.querySelector('.ims th:nth-child(3)').textContent === 'الإمساك' ? 30 : -1);
     await ev(() => AppBridge.shares = []); await p.click('#imsShare'); await wait(800); const sh = await ev(() => AppBridge.shares); return assert(n === 30 && sh.length === 1 && sh[0][1] === 'imsakia.png', n + JSON.stringify(sh)); });
   await check(G13, 'إحصائيات القراءة بتعد الصفحات اللي اتفتحت', async () => { await ev(() => localStorage.removeItem('q.stats')); for (const n of [10, 11, 12, 11]) await go('#/p/' + n, 500);
-    await go('#/khatma', 700); return ev(() => { const b = document.querySelector('.st-nums b'); return !!b && ['٢', '٣', '٤'].includes(b.textContent) && document.querySelectorAll('.st-bar').length === 7; }); });
+    // 5.11 G5: the numbers moved to «الإحصائيات»; the khatma screen keeps a link card with today's pages
+    await go('#/khatma', 700); const card = await ev(() => { const a = document.querySelector('a.st-link[href="#/stats"]'); return !!a && /٢|٣|٤/.test(a.textContent); });
+    await go('#/stats', 700); return card && await ev(() => { const b = document.querySelector('.st-nums b'); return !!b && ['٢', '٣', '٤'].includes(b.textContent) && document.querySelectorAll('.kh-sec:first-child .st-bar').length === 7; }); });
   await check(G13, 'ختمة رمضان بتظهر وبتعمل خطة على أيام رمضان', async () => { await ev(() => localStorage.removeItem(Object.keys(localStorage).find(k => /khatma/.test(k)) || 'x')); await go('#/khatma', 700);
     const card = await ev(() => !!document.getElementById('kRamadan')); await p.click('#kRamadan'); await wait(500);
     const k = await ev(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /khatma/.test(k))))); return assert(card && k.ramadan && k.days >= 29 && k.days <= 30, JSON.stringify(k)); });
@@ -291,7 +293,7 @@ async function fresh(ctx, vp) {
   await check(G13, 'السبحة: هزة طويلة عند الوصول للعدد', async () => { await go('#/tasbih', 600); await p.click('#tsbReset'); await p.click('.tsb-goal button[data-g="33"]'); await ev(() => AppBridge.buzzes = []);
     for (let i = 0; i < 33; i++) await p.click('#tsbBtn'); const bz = await ev(() => AppBridge.buzzes); return assert(bz.length === 33 && bz[32] === 'p:700' && typeof bz[0] === 'number', JSON.stringify(bz.slice(-2))); });
   await check(G13, 'إحصائية الكلمات والحروف وتذكير آخر اليوم', async () => { await ev(() => { localStorage.removeItem('q.stats'); localStorage.removeItem('q.statsWL'); localStorage.setItem('q.reminders', JSON.stringify({ stat: { on: true, t: '23:59' } })); });
-    await go('#/p/3', 600); await go('#/khatma', 2500); const t = await ev(() => document.querySelector('.st-wl').textContent); const a = await ev(() => AppBridge.alarms.filter(e => e.title === 'قراءتك النهارده'));
+    await go('#/p/3', 600); await go('#/stats', 2500); const t = await ev(() => document.querySelector('.st-wl').textContent); const a = await ev(() => AppBridge.alarms.filter(e => e.title === 'قراءتك النهارده'));
     return assert(/[١-٩][٠-٩]* كلمة/.test(t) && a.length >= 20 && (a[0].text.includes('كلمة') || new Date(a[0].at).getDate() !== new Date().getDate()), t + ' | ' + (a[0] || {}).text); });
   await check(G13, 'نسخة احتياطية: حفظ واسترجاع', async () => { const fs = require('fs'), os = require('os'), path = require('path'); const dl = p.waitForEvent('download').catch(() => null);
     await ev(() => { window.__bk = null; AppBridge.shareFile = (t, n) => { window.__bk = [t, n]; }; localStorage.setItem('q.notes', JSON.stringify({ '1:1': 'اختبار النسخة' })); });
@@ -302,7 +304,7 @@ async function fresh(ctx, vp) {
 
   const G14 = 'مزايا نسخة 3.7';
   await check(G14, 'الشريط السفلي بـ4 أزرار ويختفي وقت القراءة', async () => { await go('#/', 700); const a = await ev(() => [document.querySelectorAll('#tabbar button').length, document.getElementById('tabbar').hidden]);
-    await p.click('#tabbar button[data-h="#/more"]'); await wait(500); const m = await ev(() => location.hash === '#/more' && document.querySelectorAll('.tiles.more .tile').length === 12); await go('#/p/5', 800); const hid = await ev(() => document.getElementById('tabbar').hidden);
+    await p.click('#tabbar button[data-h="#/more"]'); await wait(500); const m = await ev(() => location.hash === '#/more' && document.querySelectorAll('.tiles.more .tile').length === 13); await go('#/p/5', 800); const hid = await ev(() => document.getElementById('tabbar').hidden);
     return assert(a[0] === 4 && !a[1] && m && hid, JSON.stringify([a, m, hid])); });
   await check(G14, 'شاشة الترحيب: الطبعة والمدينة والتذكيرات', async () => { await go('#/welcome', 800); await p.click('.wel-opts button[data-e=shamarly]'); await p.click('.wel-next'); await p.selectOption('#wCity', { index: 2 });
     await p.click('.wel-next'); await p.click('.wel-next'); await p.click('[data-w=m] + span'); await p.click('.wel-next'); await wait(600);
@@ -604,6 +606,26 @@ async function fresh(ctx, vp) {
     await p.screenshot({ path: process.env.SHOT_DIR ? process.env.SHOT_DIR + '/g39-mictips.png' : __dirname + '/g39-mictips.png' }); await p.click('.mt-dlg .dlg-ok'); await wait(400);
     const after = await ev(() => { const r = [window.__st, localStorage.getItem('q.micTips'), !document.querySelector('.mt-dlg'), !!document.getElementById('micTestBtn').closest('#settings, .settings, body')]; try { document.getElementById('rdMic').click(); } catch (e) {} window.ReciteBridge = window.__rb; if (!window.__rb) delete window.ReciteBridge; return r; });
     return assert(shown && /ممتاز|كويس|ضعيف/.test(res[0]) && res[1] !== undefined && res[2] && after[1] === '1' && after[2] && after[3], JSON.stringify([shown, res, after])); });
+  await check(G511, 'G4: «المزيد» في مجموعات بعناوين (الحفظ أولاً)، كل زرار بيفتح شاشته', async () => { await go('#/more', 500);
+    const g = await ev(() => [...document.querySelectorAll('.more-g')].map(x => x.querySelector('.more-h').textContent + ':' + x.querySelectorAll('.tile').length));
+    const hs = await ev(() => [...document.querySelectorAll('.more-g .tile')].map(b => b.dataset.h)); const bad = [];
+    for (const h of hs) { await go('#/more', 250); await p.click('.tile[data-h="' + h + '"]'); await wait(350); if (!(await ev(() => location.hash)).startsWith(h)) bad.push(h); }
+    await go('#/', 300);
+    return assert(g[0] === 'الحفظ:3' && g.length === 4 && hs.length >= 12 && hs[0] === '#/hifztest' && !bad.length, JSON.stringify([g, bad])); });
+  await check(G511, 'G5: «الإحصائيات» فيها القراءة والحفظ والتعرّف (+ تسجيلات الصوت على الموبايل) بالأرقام الصح', async () => {
+    const keep = await ev(() => ['q.asrStats', 'q.hifzAyat', 'q.reciteLog', 'q.donate'].map(k => [k, localStorage.getItem(k)]));
+    await ev(() => { const d = new Date(), k = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+      localStorage.setItem('q.asrStats', JSON.stringify({ [k]: { u: 5, w: 40, ok: 9, bad: 1, rh: 3, rm: 1 } })); localStorage.setItem('q.hifzAyat', JSON.stringify({ '1:1': { d: k, ok: 1 }, '1:2': { d: k, ok: 0 } }));
+      localStorage.setItem('q.reciteLog', JSON.stringify([{ s: 1, d: k, ay: 7, w: 20, bad: 1 }])); });
+    await go('#/more', 400); await p.click('.tile[data-h="#/stats"]'); await wait(600);
+    const web = await ev(() => [location.hash, [...document.querySelectorAll('.stats .kh-sec')].length, [...document.querySelectorAll('.st-asr .hl-ring b')].map(b => b.textContent).join(','),
+      document.querySelector('.st-hifz .st-nums').textContent.replace(/\s+/g, ''), document.querySelector('#tabbar button.on, #tabbar .on') ? document.querySelector('#tabbar .on').dataset.h : '']);
+    await ev(() => { window.NvBridge = { donateStats: () => JSON.stringify({ waiting: 4, rejected: { quiet: 1 } }) }; localStorage.setItem('q.donate', '1'); }); await go('#/', 200); await go('#/stats', 500);
+    const ph = await ev(() => [document.querySelectorAll('.stats .kh-sec').length, document.querySelector('.st-don .st-nums').textContent.replace(/\s+/g, '')]);
+    await p.click('#stPriv'); await wait(700); const pv = await ev(() => { const g = document.getElementById('privGroup'); return !!g && g.open && !document.getElementById('settings').hidden; });
+    await ev(k => { delete window.NvBridge; k.forEach(([a, v]) => v === null ? localStorage.removeItem(a) : localStorage.setItem(a, v)); }, keep); await p.keyboard.press('Escape'); await ev(() => { const c = document.getElementById('closeSettings'); if (c) c.click(); }); await go('#/', 300);
+    return assert(web[0] === '#/stats' && web[1] === 3 && web[2] === '٩٠٪,٧٥٪,—' && web[3].includes('٢آية') && web[3].includes('١آية') && web[3].includes('٩٥٪') && web[4] === '#/more' &&
+      ph[0] === 4 && ph[1].includes('٤') && ph[1].includes('شغالة') && pv, JSON.stringify([web, ph, pv])); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

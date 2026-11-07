@@ -2669,6 +2669,63 @@
       '<div class="st-bars">' + bars + '</div><p class="hint">بتتحسب الصفحات اللي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).</p></section>';
   }
 
+  // ---------- الإحصائيات (5.11 G5): القراءة والحفظ والتعرّف على التلاوة وتسجيلات الصوت في شاشة واحدة ----------
+  function dayKey(dn) { var t = new Date(dn * 864e5); return t.getUTCFullYear() + "-" + (t.getUTCMonth() + 1) + "-" + t.getUTCDate(); }
+  // the khatma screen keeps a one-line card that opens the stats
+  function statsLink() {
+    var st = load("stats", {}), today = dayNum(new Date()), wk = 0; for (var i = 0; i < 7; i++) wk += dayPages(st[dayKey(today - i)]);
+    return '<a class="kh-sec st-link" href="#/stats">' + ic("chart") + "<span><b>الإحصائيات</b><small>اليوم " + ar(dayPages(st[dayKey(today)])) + " صفحة · آخر ٧ أيام " + ar(wk) + " صفحة</small></span><i>←</i></a>";
+  }
+  // a % ring with its label under it (the label carries the meaning, never the colour alone)
+  function stRing(p, label) {
+    return '<div class="st-ring"><div class="hl-ring" style="--p:' + (p == null ? 0 : p) + '"><b>' + (p == null ? "—" : ar(p) + "٪") + "</b></div><small>" + label + "</small></div>";
+  }
+  function hifzStatsHtml() {
+    var pc = hifzPageColors(), tot = Q.last - Q.first + 1, pct = Math.round(pc.cnt[3] * 1000 / tot + pc.cnt[2] * 1000 / tot) / 10, HA = load("hifzAyat", {}), rv = 0, n = 0;
+    Object.keys(HA).forEach(function (k) { if (HA[k]) { n++; if (HA[k].ok === 0) rv++; } });
+    var log = load("reciteLog", []), w = 0, b = 0; log.forEach(function (x) { w += x.w; b += x.bad; });
+    return '<section class="kh-sec st-hifz"><h3>' + ic("eyeoff") + "الحفظ</h3>" +
+      '<div class="st-hz">' + stRing(pct, "صفحات محفوظة") + '<div class="st-nums n2"><div><b>' + ar(n) + "</b><small>آية اتسمعت</small></div><div><b>" + ar(rv) + "</b><small>آية للمراجعة</small></div><div><b>" + ar(log.length) +
+      "</b><small>اختبار بالصوت</small></div><div><b>" + (w ? ar(Math.round((w - b) / w * 100)) + "٪" : "—") + "</b><small>دقة التسميع</small></div></div></div>" +
+      (log.length ? reciteHistory().replace(/^<div class="rc-hist"><b>[^<]*<\/b><p class="hint">[^<]*<\/p>/, '<div class="rc-hist st-hist"><b>آخر الاختبارات</b>') : "") +
+      '<div class="st-go"><a href="#/hifztest">اختبار الحفظ</a><a href="#/hifzmap">خريطة الحفظ</a></div></section>';
+  }
+  function asrStatsHtml() {
+    var S = load("asrStats", {}), t = {}, today = dayNum(new Date()), days = [], max = 1, i;
+    Object.keys(S).forEach(function (d) { if (today - parseDay(d) < 7) for (var k in S[d]) t[k] = (t[k] || 0) + S[d][k]; });
+    var h = '<section class="kh-sec st-asr"><h3>' + ic("mic") + "التعرّف على التلاوة</h3>";
+    if (!t.u) return h + '<p class="hint">لسه مفيش قراءة بالمايك في آخر ٧ أيام. الأرقام دي بتتحسب على الموبايل بس.</p></section>';
+    var pc = function (a, c) { return a + c ? Math.round(a * 100 / (a + c)) : null; };
+    for (i = 6; i >= 0; i--) { var e = S[dayKey(today - i)] || {}; days.push(e.w || 0); max = Math.max(max, e.w || 0); }
+    var names = ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"], bars = "";
+    days.forEach(function (c, j) {
+      var wd = new Date((today - 6 + j) * 864e5).getUTCDay(), nm = j === 6 ? "اليوم" : names[wd];
+      bars += '<div class="st-bar" title="' + ar(c) + '"><i style="height:' + Math.round(c / max * 100) + '%"></i><b>' + (c ? ar(c) : "") + "</b><small>" + nm + "</small></div>";
+    });
+    return h + '<div class="st-nums n2"><div><b>' + ar(t.u) + "</b><small>مقطع اتسمع</small></div><div><b>" + ar(t.w || 0) + "</b><small>كلمة اتسمعت</small></div></div>" +
+      '<div class="st-rings">' + stRing(pc(t.ok || 0, t.bad || 0), "التسميع صح") + stRing(pc(t.rh || 0, t.rm || 0), "المتابعة في الصفحة") + stRing(pc(t.loc || 0, t.lost || 0), "الفهرس والبحث لقوا الآية") + "</div>" +
+      '<p class="st-cap">الكلمات اللي اتسمعت كل يوم</p><div class="st-bars">' + bars + "</div>" +
+      '<p class="hint">آخر ٧ أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات.</p></section>';
+  }
+  function donateStatsHtml() {
+    if (!(window.NvBridge && NvBridge.donateStats)) return "";
+    var st = {}; try { st = JSON.parse(NvBridge.donateStats()); } catch (e) {}
+    var rej = 0; for (var k in st.rejected || {}) rej += st.rejected[k];
+    return '<section class="kh-sec st-don"><h3>' + ic("wave") + "تسجيلات الصوت</h3>" +
+      '<div class="st-nums n3"><div><b>' + (load("donate", 0) ? "شغالة" : "مقفولة") + "</b><small>المساعدة في التحسين</small></div><div><b>" + ar(st.waiting || 0) + "</b><small>مستني يترفع</small></div><div><b>" + ar(rej) +
+      '</b><small>ما اتحفظش</small></div></div><div class="st-go"><button id="stPriv">الخصوصية وتسجيلات الصوت</button></div></section>';
+  }
+  function showStats() {
+    titleEl.textContent = "الإحصائيات";
+    btnBack.hidden = false;
+    view.innerHTML = '<div class="stats">' + statsHtml() + hifzStatsHtml() + asrStatsHtml() + donateStatsHtml() + "</div>";
+    var pb = document.getElementById("stPriv");
+    if (pb) pb.onclick = function () {
+      document.getElementById("btnSettings").click();
+      setTimeout(function () { var g = document.getElementById("privGroup"); if (g) { g.open = true; g.scrollIntoView({ block: "start" }); } }, 350);
+    };
+  }
+
   // ---------- المكافآت ----------
   // Badges for keeping to the khatma plan's daily portion (days in a row), and for completed khatmas. Kept for all editions
   // together in q.rewards = {days: {"Y-M-D": 1}, khatmas: n, got: [badge ids]}.
@@ -2756,7 +2813,7 @@
         '<div class="kh-btns">' + (P.left ? '<button id="kDone">' + ic("check") + "قرأت ورد اليوم</button>" : "") +
         '<button id="kAt">' + ic("edit") + "تعديل موضعي</button>" + '<button id="kStop" class="danger">' + ic("trash") + "إلغاء الخطة</button></div>";
     }
-    html += ramadanHtml() + "</section>" + statsHtml() + rewardsHtml() +
+    html += ramadanHtml() + "</section>" + statsLink() + rewardsHtml() +
       '<section class="kh-sec"><h3>' + ic("check") + 'متابعة الحفظ</h3><button class="kh-main" id="kHifz">' + ic("book") + hifzSummary() + "</button></section>" +
       '<section class="kh-sec"><h3>' + ic("mark") + "العلامات</h3>";
     var M = marks();
@@ -3372,11 +3429,11 @@
       bar.querySelectorAll("button").forEach(function (b) { b.onclick = function () { location.hash = b.dataset.h; }; });
     }
     var cur = h === "#" ? "#/" : h;
-    var show = cur === "#/" || /^#\/(azkar|prayer|more|duas|tasbih|qibla|khatma|hifzlog|hifztest|hifzmap|family|topics|imsakia|tajweed|qiraat)/.test(cur);
+    var show = cur === "#/" || /^#\/(azkar|prayer|more|duas|tasbih|qibla|khatma|hifzlog|hifztest|hifzmap|family|topics|imsakia|tajweed|qiraat|stats)/.test(cur);
     bar.hidden = !show; document.body.classList.toggle("has-tabs", show);
     bar.querySelectorAll("button").forEach(function (b) {
       var t = b.dataset.h, on = t === "#/" ? cur === "#/" : cur.indexOf(t) === 0 || (t === "#/prayer" && /^#\/(imsakia|qibla)/.test(cur)) ||
-        (t === "#/more" && /^#\/(duas|tasbih|khatma|hifz|family|topics|tajweed|qiraat)/.test(cur));
+        (t === "#/more" && /^#\/(duas|tasbih|khatma|hifz|family|topics|tajweed|qiraat|stats)/.test(cur));
       b.classList.toggle("on", on);
     });
   }
@@ -3503,11 +3560,14 @@
   function showMore() {
     titleEl.textContent = "المزيد";
     btnBack.hidden = true;
-    var T = [["#/khatma", "target", "الختمة والعلامات", "kh"], ["#/duas", "hands", "أدعية مختارة", "sun"], ["#/tasbih", "beads", "السبحة", "sun"],
-      ["#/hifzlog", "check", "متابعة الحفظ", "qib"], ["#/hifztest", "eyeoff", "اختبار الحفظ", "tjw"], ["#/qibla", "compass", "اتجاه القبلة", "qib"],
-      ["#/tajweed", "wave", "أحكام التجويد", "tjw"], ["#/qiraat", "book", "القراءات العشر", "qra"], ["#/imsakia", "calendar", "إمساكية رمضان", "kh"],
-      ["#/topics", "list", "مواضيع القرآن", "qra"], ["#/hifzmap", "grid", "خريطة الحفظ", "tjw"], ["#/family", "users", "ختمة العيلة", "kh"]];
-    view.innerHTML = '<div class="tiles more">' + T.map(function (t) { return '<button class="tile" data-h="' + t[0] + '"><span class="tile-ic ' + t[3] + '">' + ic(t[1]) + "</span>" + t[2] + "</button>"; }).join("") + "</div>" +
+    // 5.11 G4: the tools in titled groups (memorisation first: the hifz test is its main tool, G6), settings at the bottom
+    var G = [["الحفظ", [["#/hifztest", "eyeoff", "اختبار الحفظ", "tjw"], ["#/hifzmap", "grid", "خريطة الحفظ", "tjw"], ["#/hifzlog", "check", "متابعة الحفظ", "qib"]]],
+      ["القراءة والختمة", [["#/khatma", "target", "الختمة والعلامات", "kh"], ["#/family", "users", "ختمة العيلة", "kh"], ["#/topics", "list", "مواضيع القرآن", "qra"], ["#/stats", "chart", "الإحصائيات", "qib"]]],
+      ["التجويد والقراءات", [["#/tajweed", "wave", "أحكام التجويد", "tjw"], ["#/qiraat", "book", "القراءات العشر", "qra"]]],
+      ["أدعية وعبادات", [["#/duas", "hands", "أدعية مختارة", "sun"], ["#/tasbih", "beads", "السبحة", "sun"], ["#/qibla", "compass", "اتجاه القبلة", "qib"], ["#/imsakia", "calendar", "إمساكية رمضان", "kh"]]]];
+    view.innerHTML = G.map(function (g) {
+      return '<section class="more-g"><h3 class="more-h">' + g[0] + '</h3><div class="tiles more">' + g[1].map(function (t, i) { return '<button class="tile' + (g[1].length % 2 && !i ? " main" : "") + '" data-h="' + t[0] + '"><span class="tile-ic ' + t[3] + '">' + ic(t[1]) + "</span>" + t[2] + "</button>"; }).join("") + "</div></section>";
+    }).join("") +
       '<div class="more-row"><button class="continue" id="mSet">' + ic("gear") + ' الإعدادات</button><button class="continue" id="mWel">' + ic("rep") + " شاشة الترحيب</button></div>";
     view.querySelectorAll(".tile").forEach(function (b) { b.onclick = function () { location.hash = b.dataset.h; }; });
     document.getElementById("mSet").onclick = function () { document.getElementById("btnSettings").click(); };
@@ -4436,6 +4496,8 @@
       showTasbih();
     } else if (h === "#/more") {
       showMore();
+    } else if (h === "#/stats") {
+      showStats();
     } else if ((m = h.match(/^#\/duas(?:\/(\w+))?/))) {
       showDuas(m[1]);
     } else if ((m = h.match(/^#\/hifztest(?:\/(\d+))?/))) {

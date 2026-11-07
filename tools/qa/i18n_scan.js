@@ -29,7 +29,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await click('#btnSettings');
   await p.evaluate(() => document.querySelectorAll('#settings details').forEach(d => d.open = true)); await wait(300); await grab('settings');
   await click('#closeSettings');
-  for (const h of ['#/s/2', '#/a/2/255', '#/more', '#/prayer', '#/azkar', '#/tajweed', '#/khatma', '#/hifzlog', '#/hifzmap', '#/hifztest', '#/search', '#/tasbih', '#/qibla', '#/imsakia', '#/qiraat', '#/topics', '#/family', '#/duas'])
+  for (const h of ['#/s/2', '#/a/2/255', '#/more', '#/stats', '#/prayer', '#/azkar', '#/tajweed', '#/khatma', '#/hifzlog', '#/hifzmap', '#/hifztest', '#/search', '#/tasbih', '#/qibla', '#/imsakia', '#/qiraat', '#/topics', '#/family', '#/duas'])
   { await go(h); await grab(h); }
   await b.close();
   const list = Object.entries(seen).map(([t, w]) => ({ t, w }));

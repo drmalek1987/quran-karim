@@ -1080,3 +1080,29 @@ body.vread.fs .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
 /* 5.11 G3.9 mic tips */
 .mt-tips{margin:8px 0;padding-inline-start:18px;line-height:1.8}
 #mtRes:empty{display:none}
+
+/* 5.11 G4: More menu in titled groups */
+.more-g { margin: 0 0 14px; }
+.more-h { margin: 4px 4px 8px; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: 0; }
+.more-g .tiles.more { margin: 0; }
+/* an odd group: its first tile (the hifz test, the main memorisation tool) takes the whole row on a phone */
+.more-g .tile.main { grid-column: 1 / -1; }
+@media (min-width: 600px) { .more-g .tiles.more { grid-template-columns: 1fr 1fr 1fr; } .more-g .tile.main { grid-column: auto; } }
+
+/* 5.11 G5: the stats screen (tiles, % rings with their label, single-series bars in the accent colour) */
+.st-nums.n2 { grid-template-columns: repeat(2, 1fr); } .st-nums.n3 { grid-template-columns: repeat(3, 1fr); }
+.st-nums.n2 > div, .st-nums.n3 > div { padding: 8px 4px; border-radius: 12px; background: rgba(127,127,127,.08); }
+.st-hz { display: flex; gap: 14px; align-items: center; } .st-hz .st-nums { flex: 1; margin: 0; }
+.st-rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 4px; text-align: center; }
+.st-ring { display: flex; flex-direction: column; align-items: center; gap: 6px; } .st-ring small { font-size: 11.5px; line-height: 1.35; color: var(--muted); }
+.st-ring .hl-ring { width: 66px; height: 66px; } .st-ring .hl-ring b { width: 52px; height: 52px; font-size: 14px; }
+.st-hz > .st-ring .hl-ring { width: 84px; height: 84px; } .st-hz > .st-ring .hl-ring b { width: 68px; height: 68px; font-size: 16px; }
+.st-cap { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+.st-go { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.st-go a, .st-go button { flex: 1; text-align: center; padding: 9px 10px; border-radius: 12px; border: 0; background: rgba(15,107,79,.09); color: var(--accent); font: inherit; font-size: 13.5px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.st-hist { margin-top: 12px; }
+.st-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+.st-link > .ic { width: 22px; height: 22px; color: var(--accent); } .st-link span { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.st-link small { color: var(--muted); font-size: 12.5px; } .st-link i { font-style: normal; color: var(--accent); font-weight: 700; }
+html.en .st-link i { display: inline-block; transform: scaleX(-1); }
+

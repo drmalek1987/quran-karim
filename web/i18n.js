@@ -17,6 +17,18 @@
   var WD = { "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri", "السبت": "Sat" };
   var D = {
     // 5.11 G1.8: strings the English scan (tools/qa/i18n_scan.js) found untranslated, and the G3.9 mic tips / mic test
+    // 5.11 G5: the stats screen
+    "الإحصائيات": "Statistics", "اليوم # صفحة · آخر # أيام # صفحة": "Today # pages · last # days # pages", "صفحات محفوظة": "Pages memorised",
+    "آية اتسمعت": "Ayahs recited", "آية للمراجعة": "Ayahs to review", "اختبار بالصوت": "Voice tests", "دقة التسميع": "Recitation accuracy",
+    "آخر الاختبارات": "Latest tests", "#/#/# · # آية · # غلط": "#/#/# · # ayahs · # mistakes", "مقطع اتسمع": "Pieces heard", "كلمة اتسمعت": "Words heard",
+    "لسه مفيش قراءة بالمايك في آخر # أيام. الأرقام دي بتتحسب على الموبايل بس.": "No recitation with the mic in the last # days yet. These numbers are counted on the phone only.",
+    "التسميع صح": "Recited correctly", "المتابعة في الصفحة": "Followed on the page", "الفهرس والبحث لقوا الآية": "Index & search found the ayah",
+    "الكلمات اللي اتسمعت كل يوم": "Words heard per day", "تسجيلات الصوت": "Voice recordings", "شغالة": "On", "مقفولة": "Off",
+    "آخر # أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات.": "Last # days, on the phone only. If a rate is low, try a quieter place or «Mic test» in Settings.",
+    "المساعدة في التحسين": "Helping improve", "مستني يترفع": "Waiting to upload", "ما اتحفظش": "Not kept",
+    // 5.11 QA: the hifz test screen (surah list «١٢. يوسف», progress line, buttons)
+    "#. @": "#. @", "#٪ محفوظ · # آية للمراجعة": "#% memorised · # ayahs to review", "خريطة الحفظ ←": "Memorisation map →", "سجّل": "Record", "اظهر": "Show",
+    "الحفظ": "Memorisation", "القراءة والختمة": "Reading and khatma", "التجويد والقراءات": "Tajweed and qira'at", "أدعية وعبادات": "Duas and worship",
     "اقرأ آية وأنا أفتحها": "Recite an ayah and I'll open it", "القراءة بالصوت": "Read by voice", "طبعة الملك فهد القديمة": "Older King Fahd edition",
     "التعرّف على التلاوة": "Recitation recognition", "اختبار المايك": "Mic test", "اختبر": "Test", "لا": "No",
     "لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت.": "If you agree, the app keeps short clips of your recitation and sends them with no name or account, to improve recitation recognition for every reciter. They upload on Wi-Fi only unless you allow mobile data, and you can stop and delete your recordings at any time.",
@@ -59,7 +71,7 @@
     "نسخة احتياطية (العلامات والختمة والملاحظات والحفظ والإعدادات)": "Backup (bookmarks, khatma, notes, hifz, settings)", "حفظ نسخة": "Save a copy", "استرجاع": "Restore",
     "ختمة رمضان": "Ramadan khatma", "رمضان بعد # يوم (# فبراير)، الخطة # يوم تبدأ أوله.": "Ramadan in # days (Feb #); a #-day plan starting on its first day.", "ابدأ": "Start", "استبدل الخطة": "Replace plan",
     "إحصائيات القراءة": "Reading stats", "صفحة اليوم": "pages today", "آخر ٧ أيام": "last 7 days", "آخر ٣٠ يوم": "last 30 days", "يوم متتالي": "day streak", "أطول مدة": "best streak",
-    "اليوم:": "Today:", "كلمة و": "words and", "حرف": "letters", "آخر ٣٠ يوم:": "Last 30 days:", "اليوم": "Today",
+    "اليوم:": "Today:", "كلمة و": "words and ", "حرف": "letters", "آخر ٣٠ يوم:": "Last 30 days:", "اليوم": "Today",
     "أحد": "Sun", "اثنين": "Mon", "ثلاثاء": "Tue", "أربعاء": "Wed", "خميس": "Thu", "جمعة": "Fri", "سبت": "Sat",
     "بتتحسب الصفحات اللي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).": "Counts the mushaf pages you opened (each page once a day).",
     "متابعة الحفظ": "Memorisation log", "سجّل السور اللي حفظتها": "Log the surahs you know by heart", "حفظت # سورة": "# surahs memorised", "# آية من #": "# of # verses",
@@ -328,7 +340,7 @@
     if (dm) return WD[dm[1]] + " " + latin(dm[2]) + "/" + latin(dm[3]);
     var vals = [];
     surahNames();
-    if (names && !surahRe) surahRe = new RegExp("(^|سورة |: |\\()(" + names.slice().sort(function (a, b) { return b.length - a.length; }).join("|") + ")(?=$|[\\s)·،…»:.])", "g");
+    if (names && !surahRe) surahRe = new RegExp("(^|سورة |: |\\(|^[٠-٩]+\\. )(" + names.slice().sort(function (a, b) { return b.length - a.length; }).join("|") + ")(?=$|[\\s)·،…»:.])", "g");
     // Placeholders in the order they appear in the text.
     var marks = [];
     var k = t.replace(juzRe, function (m, j, off) { marks.push([off, "%", JUZ_AR.indexOf(j) + 1]); return "الجزء \u0002"; });
