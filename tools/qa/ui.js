@@ -653,11 +653,18 @@ async function fresh(ctx, vp) {
     await ev(() => { localStorage.setItem('q.turn', '"v"'); window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; }); await p.reload(); await wait(900);
     await ev(() => { window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; });
     await go('#/hifzmap', 700); await p.click('.hm-grid .hm-c[data-p="50"]'); await wait(300); await p.click('#hzMus'); await wait(1800);
-    await ev(() => window.scrollBy(0, 700)); await wait(300); const before = await ev(() => document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top);
+    // inside page 50 (still across 40% of the screen, so it stays the page being tested)
+    await ev(() => window.scrollBy(0, 230)); await wait(300); const before = await ev(() => document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top);
     await p.click('#hifzBar [data-c="mic"]'); await wait(400);
     const r = await ev(() => [document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top, document.querySelector('.bar').offsetHeight]);
-    await p.click('#hifzBar [data-c="mic"]').catch(() => {}); await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); localStorage.removeItem('q.turn'); delete window.ReciteBridge; }); await p.reload(); await wait(800);
-    return assert(before < -300 && Math.abs(r[0] - r[1]) < 20, JSON.stringify([before, r])); });
+    await p.click('#hifzBar [data-c="mic"]').catch(() => {});
+    return assert(before < -150 && Math.abs(r[0] - r[1]) < 20, JSON.stringify([before, r])); });
+  await check(G511, 'phone #19: عمودي: الصفحة اللي بتوصلها بالتمرير بتتفتح بالأقنعة (مش فاضية)، واللي بعدها مخفية', async () => {
+    await ev(() => { const b = document.querySelector('.page-box.vp[data-p="51"]'); window.scrollTo(0, b.getBoundingClientRect().top + scrollY - 100); }); await wait(500);
+    const r = await ev(() => { const b = document.querySelector('.page-box.vp[data-p="51"]'), im = b.querySelector('img'), b2 = document.querySelector('.page-box.vp[data-p="52"] img');
+      return [getComputedStyle(im).visibility, b.querySelectorAll('.hifz-mask').length, getComputedStyle(b2).visibility, document.querySelectorAll('.page-box.vp[data-p="50"] .hifz-mask').length]; });
+    await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); localStorage.removeItem('q.turn'); delete window.ReciteBridge; }); await p.reload(); await wait(800);
+    return assert(r[0] === 'visible' && r[1] > 0 && r[2] === 'hidden' && r[3] === 0, JSON.stringify(r)); });
   // G7: recitation following, with pieces fed the way NvAsr sends them (tools/qa/recite_sim.js, own browser context)
   { let R = null; try { R = await require('./recite_sim.js').run(b); } catch (e) { R = { err: e.message }; }
     const G = (n, f) => check(G511, n, () => { if (!R || R.err) throw new Error((R && R.err) || 'no data'); return f(R); });

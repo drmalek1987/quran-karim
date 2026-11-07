@@ -47,6 +47,10 @@ class NvAsr {
     private final File dir;
     private final ExecutorService work = Executors.newSingleThreadExecutor();
     private volatile boolean on = false, decoding = false;
+    // 5.11 phone #16 (reading felt slow; 147 ms per decode of 3.9 s on M2007J3SY): a partial every 0.5 s of new speech
+    // instead of 1 s, but never more often than twice the last decode time, so a slow phone is not kept busy.
+    // Finals are untouched (same word verdicts).
+    private volatile long partMs = 0;
     private OrtEnvironment env;
     private OrtSession session;
     private String[] vocab;
@@ -200,7 +204,7 @@ class NvAsr {
 
     // The microphone, in 100 ms blocks. A piece of speech starts with the 0.3 s before the voice was heard (so the first
     // letter of a word after a pause is not cut) and ends after 1.0 s of quiet (or at 12 s), so a reciter's pauses and
-    // long madd do not split a word; while it goes on, it is decoded about every second for the words so far, unless the
+    // long madd do not split a word; while it goes on, it is decoded about every half second for the words so far, unless the
     // last decode is still running. (Both tuned with tools/asr/eval/bench.py: word verdicts 86.8% -> 94.3% with rAlign.)
     private void listen() {
         int min = AudioRecord.getMinBufferSize(SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
@@ -237,7 +241,7 @@ class NvAsr {
                     if (end) {
                         if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final"); } }); }
                         len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0;
-                    } else if (len - lastPartial >= SR && voiced > 0.5 && !decoding) {
+                    } else if (len - lastPartial >= Math.max(SR / 2, partMs * 2 * SR / 1000) && voiced > 0.5 && !decoding) {
                         lastPartial = len; decoding = true;
                         final int cut = freezeAt(be, frz, len);
                         final float[] y = java.util.Arrays.copyOfRange(seg, frz, cut > 0 ? cut : len);
@@ -266,7 +270,8 @@ class NvAsr {
             long t0 = android.os.SystemClock.elapsedRealtime();
             String t = decode(louder(y));
             // how long the decode took and how much audio it read: the page keeps the average (Stats, 5.11 G7)
-            String before = "window.nvMs=" + (android.os.SystemClock.elapsedRealtime() - t0) + ";window.nvLen=" + (y.length * 1000L / SR) + ";";
+            long ms = android.os.SystemClock.elapsedRealtime() - t0; if (!kind.equals("final")) partMs = ms;
+            String before = "window.nvMs=" + ms + ";window.nvLen=" + (y.length * 1000L / SR) + ";";
             if (kind.equals("freeze")) { frozen = (frozen + " " + t).trim(); t = frozen; kind = "partial"; }
             else if (kind.equals("partial")) t = (frozen + " " + t).trim();
             else frozen = "";

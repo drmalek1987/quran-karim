@@ -99,6 +99,30 @@ async function run(b) {
     await stopTest(); await wait(300); out.G.off = await ev(() => (document.getElementById('vhzSt') || {}).textContent);
     await ev(() => localStorage.removeItem('q.turn'));
   }
+  // I) words test (#/hifztest, 5.11 phone #11/#12): the text follows the reader; with «قلب تلقائي» the last word heard on a
+  // PARTIAL opens the next ayat with the mic still on (the rest of that piece skipped); off, the test ends with the score
+  {
+    const W2 = (from, to) => ev(([f, t]) => { const o = []; for (let a = f; a <= t; a++) o.push(...window.QURAN.t[1][a - 1].split(' ').filter(w => /[ء-يٱ]/.test(w))); return o; }, [from, to]);
+    const words = await W2(1, 10), nx = await W2(11, 11);
+    await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); localStorage.setItem('q.hifzFlip', 'true'); }); await go('#/hifztest/2', 900);
+    const flipBtn = await ev(() => !!document.querySelector('#htFlip.on'));
+    await p.click('#htMic'); await wait(200); await say('', 'state:listening');
+    const top0 = await ev(() => Math.round(document.querySelector('.ht-text').getBoundingClientRect().top));
+    await say(words.slice(0, Math.floor(words.length * 0.8)).join(' '), 'partial'); await wait(700);
+    const fol = await ev(() => { const ok = [...document.querySelectorAll('.ht-text .ht-v, .ht-text .ht-w')]; const e = ok[Math.floor(ok.length * 0.8)]; const r = e.getBoundingClientRect(); return [Math.round(r.top), innerHeight]; });
+    await say(words.join(' '), 'partial'); await wait(400);
+    const moved = await ev(() => [JSON.parse(localStorage.getItem('q.hifzTest')).from, document.querySelector('#htMic').classList.contains('rec'), document.querySelector('.ht-text [data-a="11"]') ? 1 : 0]);
+    await say(words.concat(nx).join(' '), 'partial'); await wait(200);
+    const nxOk = await ev(() => { const w = [...document.querySelectorAll('.ht-text [data-a="11"]')]; return [w.filter(e => e.classList.contains('ht-w')).length, w.filter(e => e.classList.contains('ht-w') && e.classList.contains('ok')).length, document.querySelectorAll('.ht-text .ht-w.miss').length]; });
+    await say(words.concat(nx).join(' '), 'final'); await wait(200);
+    await p.click('#htMic'); await wait(200);
+    // off: the end of the part ends the test with the score
+    await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); localStorage.setItem('q.hifzFlip', 'false'); }); await go('#/hifztest/2', 900);
+    await p.click('#htMic'); await wait(200); await say('', 'state:listening'); await say(words.join(' '), 'partial'); await wait(300);
+    const off = await ev(() => [JSON.parse(localStorage.getItem('q.hifzTest')).from, document.querySelector('#htMic').classList.contains('rec'), document.getElementById('htRes').textContent]);
+    await ev(() => localStorage.removeItem('q.hifzFlip'));
+    out.I = { flipBtn, top0, fol, moved, nxOk, off };
+  }
   // H) decode time reaches the stats
   await ev(() => { window.nvMs = 420; window.nvLen = 3000; window.onRecite('بسم الله', 'partial'); });
   out.H = await ev(() => { const S = JSON.parse(localStorage.getItem('q.asrStats') || '{}'), d = Object.values(S).pop() || {}; return [d.dms, d.dn, d.dlen]; });

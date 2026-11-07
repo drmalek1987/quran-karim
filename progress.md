@@ -263,3 +263,9 @@ Resume (2026-11-07): new session from plans/5.11-session-prompt-5.md — the use
 
 - 2026-11-07: 5.11 installed on the user's phone (M2007J3SY) over USB; 21-item phone list sent. plans/5.11-session-prompt-5.md updated for the next session.
 Resume (2026-11-07): new session from plans/5.11-session-prompt-5.md — act on the user's phone feedback for 5.11 (by list item number), then G10 (GPU), G8 waits for the user.
+
+## 5.11 phone feedback (21 items) — in progress 2026-11-07, paused by the user
+Goal check: items 2/11/12/16/19 are real phone gaps in hifz/following, the main use of recognition; #16 changes only partial timing (finals untouched -> no accuracy risk).
+Done in code (not built/QA'd yet): #2 consent dialogs' donate switch always starts off (was showing the 5.10 choice); #19 vertical hifz: scroll watcher now masks the page reached (vHz; while reciting the page is kept until hifz.next or it leaves the top); #11 words test follows the next word + mic start puts text under the bar; #12 words test «قلب تلقائي» button (q.hifzFlip): last word heard on a partial opens the next 10 ayat with the mic on (rest of the piece skipped via htv.skip), off -> ends with the score; #16 NvAsr partial every 0.5 s (min 2x last decode ms) instead of 1 s. User reported 147 ms/decode at 3.9 s audio (bench 3.7 s).
+ui.js: 1 FAIL fixed by editing the G6 vertical check (scroll 230 not 700) + new check «phone #19»; recite_sim.js new scenario I (words test) written, first run not checked yet.
+Resume: run node tools/qa/recite_sim.js (check out.I), add ui.js asserts for I, run ui.js -> bump 5.12 (manifest/about/sw) -> build -> full QA -> install on phone bee81250 -> send the user a short re-test list (2, 11, 12, 16, 19). Then G10.

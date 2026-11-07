@@ -373,7 +373,7 @@
     var d = el('<div class="dlg-back"><div class="dlg cs-dlg"><b>نموذج التعرّف على التلاوة</b><p class="hint">بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. ' +
       "هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</p>" +
       '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
-      '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cDonate"' + (load("donate", 0) === 1 ? " checked" : "") + "><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>" +
+      '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>' +
       '<div class="dlg-btns"><button class="dlg-no">مش دلوقتي</button><button class="dlg-ok" disabled>موافق</button></div></div></div>').firstChild;
     document.body.appendChild(d);
     var t = d.querySelector("#cTerms"), ok = d.querySelector(".dlg-ok");
@@ -1048,7 +1048,7 @@
     if (/^#\/p\//.test(location.hash) && lastSpread !== null && spreadOn() !== lastSpread) route();
   });
   // ---------- vertical reading: every page of the edition in one scroll ----------
-  var vCur = 0, vHold = false;
+  var vCur = 0, vHold = false, vHz = null;
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   function showPagesV(n, hl) {
     var ed = EDS[edition], ratio = edition === "harmain" ? 160.6 : edition === "kfgqpc" ? 143.7 : edition === "kfold" ? 143.5 : 141.4, html = '<div class="vpages">';
@@ -1092,9 +1092,21 @@
       vHide(p);
       hifz.next = function () {
         var b = boxOf(p + 1); if (!b) return;
+        hifz.vgo = p + 1;
         window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight, behavior: "smooth" });
       };
     }
+    // The scroll watcher found another page across the screen (5.11 phone #19: the page reached used to stay blank,
+    // since only setCur masked a page). While reciting, the masked page is kept until the turn to the next one
+    // (hifz.next) or until it has gone off the top, so a page edge passing 40% does not open its unrecited ayat.
+    vHz = function (p) {
+      var cur = hifz.pages && hifz.pages[0]; if (!hifz.on || p === cur) return;
+      if (recite.on && p !== hifz.vgo && cur) {
+        var cb = boxOf(cur), bh = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight;
+        if (cb && cb.getBoundingClientRect().bottom > bh) return;
+      }
+      hifz.vgo = null; vHifz(p);
+    };
     rdPage = { pages: null, mark: function (s, a) { mark(s, a); ayahBar(null); var b = Q.r[s - 1][a - 1][0], bx = b && boxOf(b[0]);
       // a far ayah (found anywhere in the Quran) is jumped to at once and put in place again once the pages around it
       // have loaded; a near one scrolls smoothly
@@ -1153,6 +1165,7 @@
       var p = +bx.dataset.p;
       if (p !== vCur) { vCur = p; titleEl.textContent = "صفحة " + ar(p); currentSurah = p >= Q.first && p <= Q.last ? surahOfPage(p) : 0;
         history.replaceState(null, "", "#/p/" + p + ((/\?a=.*$/.exec(location.hash) || [""])[0])); save(edKey("lastPage"), p); trackPage(p); }
+      if (hifz.on && vHz) vHz(p);
     }
   }, { passive: true });
 
@@ -3754,7 +3767,7 @@
         body = '<div class="wel-ic">' + ic("mic") + "</div><h2>نموذج التعرّف على التلاوة</h2><p>بيسمع تلاوتك ويتابعها في المصحف ويصحّح التسميع. بيشتغل على الموبايل من غير إنترنت، وحجمه " + ar(ASRM.asrnv.mb) + " ميجا (الأفضل تنزّله على wifi).</p>" +
           (asrReady("asrnv") ? '<p class="wel-got">✓ النموذج جاهز</p>' : aq ? '<p class="wel-got">جاري التنزيل… تابعه من الإعدادات › التحميلات</p>' :
           '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
-          '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wDonate"' + (load("donate", 0) === 1 ? " checked" : "") + "><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>" +
+          '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>' +
           '<button class="continue" id="wDl" disabled>' + ic("dl") + " حمّل النموذج</button>");
       } else body = '<div class="wel-ic">' + ic("bell") + "</div><h2>تحب نفكّرك بإيه؟</h2><p>تقدر تغيّر المواعيد بعدين من شاشة الصلاة.</p>" +
         [["adhan", "الأذان في مواعيده"], ["m", "أذكار الصباح"], ["e", "أذكار المساء"], ["kahf", "الكهف يوم الجمعة"], ["stat", "ملخص قراءة اليوم"]].map(function (r) {
@@ -3847,7 +3860,9 @@
 
   // ---------- اختبار الحفظ: كلمات مخفية تكشفها لما تنساها ----------
   function showHifzTest(s) {
-    if (htv.on) { htv.on = false; Mic.stop(); }          // a voice test left running on an earlier render
+    // a voice test left running on an earlier render stops, unless it goes on into the next ayat (htv.more)
+    var carry = htv.on && htv.carry ? { skip: htv.carrySkip || 0 } : null;
+    if (htv.on && !carry) { htv.on = false; Mic.stop(); }
     titleEl.textContent = "اختبار الحفظ";
     btnBack.hidden = false;
     var L = hifzLogData(), due = hifzDue(), st = load("hifzTest", { lv: 25 });
@@ -3878,7 +3893,10 @@
       '<div class="ht-ibs"><button class="continue" id="htQari">' + ic("aplay") + "<span>القارئ</span></button>" +
       '<button class="continue" id="htRec">' + ic("mic") + "<span>سجّل</span></button>" +
       '<button class="continue" id="htPeek">' + ic("eye") + "<span>اظهر</span></button>" +
-      '<button class="continue" id="htPages">' + ic("book") + "<span>المصحف</span></button></div>" +
+      '<button class="continue" id="htPages">' + ic("book") + "<span>المصحف</span></button>" +
+      // «قلب تلقائي» here too (5.11 phone #12, the same q.hifzFlip as the mushaf bar): reciting past the last ayah opens
+      // the next ayat with the mic still on; off, the test ends at the last ayah with the score
+      '<button class="continue' + (load("hifzFlip", true) ? " on" : "") + '" id="htFlip" aria-pressed="' + load("hifzFlip", true) + '">' + ic("anext") + "<span>قلب تلقائي</span></button></div>" +
       '<audio id="htAudio" controls hidden></audio>' +
       '<div class="ht-foot"><button class="continue" id="htDone">' + ic("check") + " خلصت</button>" +
       (to < cnt ? '<button class="continue" id="htNext">الآيات اللي بعدها</button>' : "") + '</div><p class="ht-res" id="htRes"></p>' +
@@ -3913,11 +3931,28 @@
     // or said wrong. The heard words are aligned with the test's words ayah by ayah (rAlign), so a misheard extra word
     // does not throw the rest off.
     var htMic = document.getElementById("htMic");
+    document.getElementById("htFlip").onclick = function () {
+      var fo = !load("hifzFlip", true); save("hifzFlip", fo); this.classList.toggle("on", fo); this.setAttribute("aria-pressed", fo);
+      toast(fo ? "بعد آخر آية هتفتح الآيات اللي بعدها والمايك شغال" : "الاختبار هيخلص عند آخر آية وتطلع النتيجة");
+    };
     if (htMic) htMic.onclick = function () {
       if (htv.on) { htv.on = false; Mic.stop(); htMic.classList.remove("rec"); htMic.innerHTML = ic("mic") + " سمّع بالصوت"; return; }
+      htvSetup(0);
+      if (!micGate(function () { htMic.click(); })) { htv.on = false; return; }
+      reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
+      htvTop();
+    };
+    // the mic opens (or the next ayat open with it on): the text goes under the bar, then follows the reader (5.11 #11)
+    function htvTop() {
+      var t = view.querySelector(".ht-text"), bh = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight;
+      if (t) window.scrollTo({ top: Math.max(0, t.getBoundingClientRect().top + window.scrollY - bh - 8), behavior: "auto" });
+    }
+    function htvSetup(skip) {
       var ws = [].slice.call(view.querySelectorAll(".ht-w, .ht-v"));
       var nth = {}, hk = ws.map(function (e) { var a = e.dataset.a; nth[a] = (nth[a] || 0); return s + ":" + a + ":" + nth[a]++; });   // "s:a:w", w = place in rWords
-      htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), keys: hk, ptr: 0, V: {}, shownV: {}, force: {},
+      htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), keys: hk, ptr: 0, V: {}, shownV: {}, force: {}, skip: skip || 0,
+        // the next ayat with the mic on (q.hifzFlip): this part is scored and saved, then the same mic goes on
+        more: to < cnt ? function () { htv.carry = true; document.getElementById("htDone").click(); var t = document.getElementById("htRes").textContent; save("hifzTest", { lv: lv, s: s, from: to + 1 }); showHifzTest(s); return t; } : null,
         // a word's look for a verdict: 1 green, 0 red, null not judged yet (hidden again); words the reader tapped stay
         set: function (i, v) {
           var e = ws[i]; if (!e.classList.contains("ht-w") || e.dataset.tap) return;
@@ -3928,11 +3963,15 @@
           else if (!miss) { missed++; e.classList.remove("ok"); e.classList.add("shown", "miss"); }
         },
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
-        btn: htMic, s: s, fix: document.getElementById("htFix"), done: function () { document.getElementById("htDone").click(); } };
+        btn: htMic, s: s, fix: document.getElementById("htFix"), done: function () { document.getElementById("htDone").click(); },
+        // the next word to say is kept in view, between the bar and 70% of the screen (5.11 #11)
+        follow: function (at) {
+          var e = ws[Math.min(ws.length - 1, at)]; if (!e) return;
+          var r = e.getBoundingClientRect(), top = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight + 8;
+          if (r.top < top || r.bottom > innerHeight * 0.7) window.scrollBy({ top: r.top - Math.max(top, innerHeight * 0.3), behavior: "smooth" });
+        } };
       htv.fix.hidden = true;
-      if (!micGate(function () { htMic.click(); })) return;
-      reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
-    };
+    }
     document.getElementById("htS").onchange = function () { save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };
     view.querySelectorAll(".ht-lv button").forEach(function (b) { b.onclick = function () { save("hifzTest", { lv: +b.dataset.l, s: s, from: from }); showHifzTest(s); }; });
     view.querySelectorAll(".ht-bad button").forEach(function (b) { b.onclick = function () { save("hifzTest", { lv: lv, s: s, from: +b.dataset.a }); showHifzTest(s); window.scrollTo(0, 0); }; });
@@ -3957,6 +3996,10 @@
       if (D[s]) { D[s].r = todayStr(); D[s].score = score; save("hifzLog", D); syncAlarms(); }
       var res = load("hifzScores", {}); res[s] = { d: todayStr(), score: score }; save("hifzScores", res);
     };
+    if (carry) {
+      if (!htMic) { htv.on = false; Mic.stop(); return; }
+      htvSetup(carry.skip); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف"; htvTop();
+    }
   }
 
   // Every button of the hifz test (page and bar) flashes green when pressed, so the reader sees it took the tap.
@@ -3982,15 +4025,24 @@
     // the reader started, went back or repeated. While a piece is still being heard only right words show (green), so
     // nothing turns red ahead of the reader; at its end its verdicts are kept (a word read again takes the new verdict).
     var fin = kind === "final", hyp = (text || "").split("\n")[0], n = htv.sk.length;
-    var r = rLocal(norm(hyp).split(/\s+/).filter(Boolean).map(rSkel), htv.sk, htv.ptr), disp = {};
-    if (fin) ctcJudge(r, function (i) { return htv.keys[i]; });
+    // the words of this piece heard before the next ayat opened (htv.more) belong to the last part: skipped
+    var hw = norm(hyp).split(/\s+/).filter(Boolean), sk = htv.skip || 0, hn = hw.length;
+    if (fin) htv.skip = 0;
+    var r = sk >= hw.length ? null : rLocal(hw.slice(sk).map(rSkel), htv.sk, htv.ptr), disp = {};
+    if (fin && !sk) ctcJudge(r, function (i) { return htv.keys[i]; });
+    // the last word heard right while the piece is still going on: this part is done now, not at the pause (5.11 #12/#16)
+    var endNow = !fin && r && r.v[n - 1] === 1;
     Object.keys(htv.V).forEach(function (i) { disp[i] = htv.V[i]; });
-    if (r) Object.keys(r.v).forEach(function (i) { if (fin || r.v[i] === 1) disp[i] = r.v[i]; });
+    if (r) Object.keys(r.v).forEach(function (i) { if (fin || endNow || r.v[i] === 1) disp[i] = r.v[i]; });
     for (var i = 0; i < n; i++) { var nv = i in disp ? disp[i] : null, ov = i in htv.shownV ? htv.shownV[i] : null; if (nv !== ov) htv.set(i, nv); }
     htv.shownV = disp;
+    var far = htv.ptr; Object.keys(disp).forEach(function (i) { if (disp[i] === 1 && +i + 1 > far) far = +i + 1; });
+    htv.follow(far);
+    if (endNow) { htv.V = disp; htv.ptr = r.b; }
     if (fin) {
       htv.fix.hidden = true;
-      if (r) {
+      if (r && sk) { htv.V = disp; htv.ptr = r.b; }
+      else if (r) {
         htv.V = disp; htv.ptr = r.b;
         // Q3: a piece read fully right, with the model on and the reader's consent, becomes a labelled training clip.
         // A piece with red words offers «أنا قريت صح»: it turns them green and, with consent, sends the piece as a
@@ -4009,8 +4061,13 @@
       }
     }
     // the end reached (the very last word may be misheard or cut by the mic): the test finishes by itself
-    if (fin && r && htv.ptr >= n - 1) {
+    if ((fin || endNow) && r && htv.ptr >= n - 1) {
       setTimeout(donateSend, 1000);
+      // «قلب تلقائي» on and more ayat in the surah: score this part and open the next ones with the mic still on
+      if (htv.more && load("hifzFlip", true)) {
+        htv.carrySkip = fin ? 0 : hn; toast((htv.more() || "").split("،")[0] + " · كمّل");
+        return;
+      }
       htv.on = false; Mic.stop(); htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت";
       htv.done(); var rs = document.getElementById("htRes"); if (rs) rs.scrollIntoView({ block: "center", behavior: "smooth" });
     }
