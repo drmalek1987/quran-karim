@@ -658,6 +658,18 @@ async function fresh(ctx, vp) {
     const r = await ev(() => [document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top, document.querySelector('.bar').offsetHeight]);
     await p.click('#hifzBar [data-c="mic"]').catch(() => {}); await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); localStorage.removeItem('q.turn'); delete window.ReciteBridge; }); await p.reload(); await wait(800);
     return assert(before < -300 && Math.abs(r[0] - r[1]) < 20, JSON.stringify([before, r])); });
+  // G7: recitation following, with pieces fed the way NvAsr sends them (tools/qa/recite_sim.js, own browser context)
+  { let R = null; try { R = await require('./recite_sim.js').run(b); } catch (e) { R = { err: e.message }; }
+    const G = (n, f) => check(G511, n, () => { if (!R || R.err) throw new Error((R && R.err) || 'no data'); return f(R); });
+    await G('G7: التسميع: الصفحة بتتقلب على الـ partial أول ما آخر كلمة فيها تتسمع (مش final + ٧٠٠ ms)', R => assert(R.A.hash === R.A.want && R.A.ms < 400, JSON.stringify(R.A)));
+    await G('G7: آخر كلمة اتسمعت غلط والقارئ كمّل في الصفحة اللي بعدها: بتتقلب برضه', R => assert(R.B.mid === '#/p/' + R.pages.whole && R.B.hash === R.B.want, JSON.stringify(R.B)));
+    await G('G7: السطر بيتفتح لما القارئ يعدّيه حتى لو فيه كلمة لسه ما اتحكمش عليها', R => assert(R.D.right === R.D.misheard, JSON.stringify(R.D)));
+    await G('G7: القراءة بالصوت: آية مكمّلة على الصفحة اللي بعدها بتقلب عند آخر كلمة مطبوعة (الشمرلي) وتفضل منورة', R => assert(R.C.hash.startsWith(R.C.want) && R.C.lit > 0, JSON.stringify(R.C)));
+    await G('G7: القراءة بالصوت: القارئ نط لآية تانية بتتلقط بعد ٤ كلمات مش في مكانها', R => assert(/٢٥٨/.test(R.E.at2) && /^#\/p\/43/.test(R.E.hash), JSON.stringify(R.E)));
+    await G('G7: القراءة بالصوت بالعرض: الكلمة اللي بتتقري بتفضل ظاهرة (الصفحة بتنزل معاها)', R => assert(R.F && R.F.sy > 0 && R.F.top >= 0 && R.F.top < R.F.ih * 0.75, JSON.stringify(R.F)));
+    await G('G7: التسميع في الوضع العمودي: الصفحات اللي بعد الصفحة الحالية مخفية لحد ما توصلها', R => assert(R.G.after === 'hidden' && R.G.own === 'visible' && !R.G.off, JSON.stringify(R.G)));
+    await G('G7: زمن فك الكلام من الموديل بيتسجل في الإحصائيات', R => assert(R.H[0] === 420 && R.H[1] === 1 && R.H[2] === 3000, JSON.stringify(R.H)));
+    await G('G7: مفيش أخطاء JavaScript في محاكاة التسميع', R => assert(!R.errs.length, R.errs.join(' | '))); }
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

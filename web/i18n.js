@@ -17,6 +17,8 @@
   var WD = { "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri", "السبت": "Sat" };
   var D = {
     // 5.11 G1.8: strings the English scan (tools/qa/i18n_scan.js) found untranslated, and the G3.9 mic tips / mic test
+    // 5.11 G7
+    "ملي ثانية لكل فك": "ms per decode", "ملي ثانية لكل فك (# ث صوت)": "ms per decode (# s of audio)",
     // 5.11 G6: hifz hub, map picker, auto flip
     "سورة @ · صفحة #": "Surah @ · page #", "@ · #": "@ · #", "ابدأ من الآية": "Start from ayah", "اختبار على المصحف": "Test on the mushaf", "اختبار بالكلمات": "Test with hidden words",
     "افتح الصفحة": "Open the page", "إلغاء": "Cancel", "قلب تلقائي": "Auto flip", "قلب الصفحة تلقائي": "Turn the page by itself", "خلصت الصفحة": "Page done",

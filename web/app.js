@@ -1089,6 +1089,7 @@
     // which then becomes the masked page.
     function vHifz(p) {
       hifzPagesMount([p], boxOf);
+      vHide(p);
       hifz.next = function () {
         var b = boxOf(p + 1); if (!b) return;
         window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight, behavior: "smooth" });
@@ -1221,13 +1222,17 @@
         // While reciting, each line of the ayah opens once all its words are judged (the line or the ayah, whichever
         // ends first), with its wrong words red; the ayah counts as shown only at its end, as before.
         var sa = k.split(":"), rs0 = Q.r[sa[0] - 1][sa[1] - 1], V = recite.on ? (recite.disp || recite.V || {}) : {}, wl = rWords(k);
+        // the furthest word judged in this ayah (any word of a later ayah = past its end): a line the reader is past opens
+        // even if one of its words is not judged yet (5.11 G7; it is judged on the final piece, red if wrong)
+        var past = -1; for (var pi = wl.length - 1; pi >= 0; pi--) if ((k + ":" + pi) in V) { past = pi; break; }
+        if (recite.on && past < wl.length - 1 && laterHeard(k, V)) past = wl.length;
         var lw = function (w) { return norm(w).length + 1; }, tot = wl.reduce(function (t, w) { return t + lw(w); }, 0);
         var span = rs0.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0, mids = [], c0 = 0;
         wl.forEach(function (w) { mids.push((c0 + lw(w) / 2) / tot * span); c0 += lw(w); });
         rs0.forEach(function (b) {
           var x0 = acc, x1 = acc + b[3] - b[1]; acc = x1;
           var mine = []; mids.forEach(function (m, i) { if (m >= x0 && m < x1) mine.push(i); });
-          if (mine.length && mine.every(function (i) { return (k + ":" + i) in V; })) {
+          if (mine.length && (mine.every(function (i) { return (k + ":" + i) in V; }) || (recite.on && past > mine[mine.length - 1]))) {
             mine.forEach(function (i) { if (V[k + ":" + i] === 0) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, "rc-badw"); });
             return;
           }
@@ -1238,6 +1243,20 @@
         });
       });
     });
+  }
+  // vertical hifz: the pages after the one being recited show nothing until they are reached (5.11 G7)
+  function vHide(p) {
+    var st = document.getElementById("vhzSt"); if (!st) { st = document.createElement("style"); st.id = "vhzSt"; document.head.appendChild(st); }
+    st.textContent = p && hifz.on ? ".vpages > .vp-c:nth-child(n+" + (p - Q.min + 2) + ") > .page-box > *:not(.hifz-mask) { visibility: hidden; }" : "";
+  }
+  // any word of an ayah after k (on the pages being recited) judged
+  var lhV = null, lhMax = 0;
+  function laterHeard(k, V) {
+    if (V !== lhV) {
+      lhV = V; lhMax = 0; var on = {}; hifz.items.forEach(function (x) { on[x] = 1; }); if (hifz.look) on[hifz.look] = 1;
+      for (var x in V) { var p = x.split(":"), ka = p[0] + ":" + p[1]; if (on[ka]) lhMax = Math.max(lhMax, +p[0] * 1000 + +p[1]); }
+    }
+    var sa = k.split(":"); return lhMax > +sa[0] * 1000 + +sa[1];
   }
   var shownPage = 0;
   function showPage(n, hl) {
@@ -1271,7 +1290,7 @@
     function boxOf(p) { return view.querySelector('.page-box[data-p="' + p + '"]'); }
     rdPage = { pages: pages, mark: function (s, a) { mark(s, a); ayahBar(null); }, box: boxOf, turn: function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); } };
     // reading by voice went on to this page (turned with the page effect): light the ayah being read
-    if (rd.on && rd.s && pages.indexOf(pageOf(rd.s, rd.a)) >= 0) setTimeout(function () { if (rdPage && rdPage.pages === pages) { rdPage.mark(rd.s, rd.a); rdPaint(); } }, 0);
+    if (rd.on && rd.s && ((Q.r[rd.s - 1] && Q.r[rd.s - 1][rd.a - 1]) || []).some(function (b) { return pages.indexOf(b[0]) >= 0; })) setTimeout(function () { if (rdPage && rdPage.pages === pages) { rdPage.mark(rd.s, rd.a); rdPaint(); } }, 0);
     function mark(s, a, q) {
       view.querySelectorAll(".ayah-box:not(.play)").forEach(function (x) { x.remove(); });
       hl = s ? { s: s, a: a, q: q || "" } : null;
@@ -1797,7 +1816,7 @@
     var T0 = hifz.test; if (T0 && T0.a > 1) items.forEach(function (k) { var p = k.split(":"); if (+p[0] < T0.s || (+p[0] === T0.s && +p[1] < T0.a)) hifz.shown[k] = true; });
     // a new page while reciting: ayat already recited (one split over the page end) stay open, and the words heard so
     // far in this utterance belong to the last page, so the matcher skips them
-    if (recite.on) { items.forEach(function (k) { if ((k + ":" + (rWords(k).length - 1)) in (recite.V || {})) hifz.shown[k] = true; }); recite.skip = recite.heard || 0; recite.base = null; } hifz.paint = paint; hifz.next = null; paint(); hifzBar(); }
+    if (recite.on) { items.forEach(function (k) { if ((k + ":" + (rWords(k).length - 1)) in (recite.V || {})) hifz.shown[k] = true; }); if (!recite.cmt) recite.skip = recite.heard || 0; recite.cmt = false; recite.base = null; } hifz.paint = paint; hifz.next = null; hifz.ending = null; paint(); hifzBar(); }
   function hifzFlip(k) {
     hifz.shown[k] = !hifz.shown[k];
     // In a test on the mushaf, an ayah tapped open counts as forgotten; one opened with «افتكرتها» counts as remembered.
@@ -1826,6 +1845,10 @@
   // Every ayah recited (or revealed in a test) goes on the hifz map by itself: q.hifzAyat {"s:a": {d: day, ok: 1|0}}.
   function hifzMark(k, ok) {
     var H = load("hifzAyat", {}); H[k] = { d: todayStr(), ok: ok ? 1 : 0 }; save("hifzAyat", H);
+  }
+  function hifzMarks(m) {
+    var ks = Object.keys(m); if (!ks.length) return;
+    var H = load("hifzAyat", {}), d = todayStr(); ks.forEach(function (k) { H[k] = { d: d, ok: m[k] ? 1 : 0 }; }); save("hifzAyat", H);
   }
   function hifzTestDone() {
     var t = hifz.test, seen = Object.keys(t.seen).length, miss = Object.keys(t.miss).length;
@@ -1856,12 +1879,31 @@
     });
     return last;
   }
-  // While reciting, the page turns once the last word printed on it is heard, not when its (possibly split) ayah ends.
-  function hifzPageEnd(disp) {
-    var items = hifz.items, next = hifz.next; if (!recite.on || !next || !items || !items.length || !hifz.pages) return;
+  // While reciting, the page turns once the last word printed on it is heard, not when its (possibly split) ayah ends,
+  // or once 2+ words of the next page's first ayah are heard right (the last word was misheard). True = the page is done.
+  function hifzPageEnd(disp, keys, nOwn) {
+    var items = hifz.items, next = hifz.next; if (!recite.on || !next || !items || !items.length || !hifz.pages || hifz.ending === next) return false;
     var k = items[items.length - 1], i = lastWordOnPages(k, hifz.pages);
-    if (i < 0 || !((k + ":" + i) in disp)) return;
-    setTimeout(function () { if (hifz.on && hifz.next === next) next(); }, 700);
+    if (i >= 0 && disp[k + ":" + i] === 1) return true;
+    if (i >= 0 && (k + ":" + i) in disp && disp[k + ":" + i] === 0) return true;
+    var ahead = 0; for (var j = nOwn; keys && j < keys.length; j++) if (disp[keys[j]] === 1) ahead++;
+    return ahead >= 2;
+  }
+  // the page is done: turn now («قلب تلقائي»), or end the test there
+  function hifzPageGo() {
+    var next = hifz.next; if (!next || hifz.ending === next) return; hifz.ending = next;
+    setTimeout(function () {
+      if (!hifz.on || hifz.next !== next) return;
+      if (load("hifzFlip", true)) next(); else if (hifz.test) hifzTestDone();
+    }, 150);
+  }
+  // the next page's first ayah (or nothing: the last page, auto flip off, or the page's last ayah runs on there anyway)
+  function hifzLook() {
+    if (!hifz.next || !hifz.pages || !hifz.items.length || !load("hifzFlip", true)) return null;
+    var k = hifz.items[hifz.items.length - 1], sa = k.split(":"), s = +sa[0], a = +sa[1];
+    if (lastWordOnPages(k, hifz.pages) < rWords(k).length - 1) return null;
+    if (a < Q.s[s - 1][3]) a++; else if (s < 114) { s++; a = 1; } else return null;
+    return hifz.items.indexOf(s + ":" + a) >= 0 ? null : s + ":" + a;
   }
   function hifzRevealed(k) {
     var items = hifz.items, next = hifz.next;
@@ -1893,6 +1935,7 @@
   function hifzBar() {
     var bar = document.getElementById("hifzBar");
     document.body.classList.toggle("has-hifz", hifz.on);
+    if (!hifz.on || !document.body.classList.contains("vread")) vHide(0);
     if (!hifz.on) { if (bar) bar.remove(); return; }
     if (!bar) {
       bar = document.createElement("div"); bar.id = "hifzBar"; bar.className = "hifz-bar"; document.body.appendChild(bar);
@@ -2120,6 +2163,10 @@
     var shownBefore = JSON.parse(recite.base.shown), keys = [], E = [];
     hifz.items.forEach(function (x) { hifz.shown[x] = !!shownBefore[x]; });
     hifz.items.forEach(function (k) { rWords(k).forEach(function (w, i) { keys.push(k + ":" + i); E.push(rSkel(w)); }); });
+    // 5.11 G7: the matcher also sees the next page's first ayah, so words read there count at once (and show after the
+    // turn), and reading that went on past a misheard last word still turns the page
+    var nOwn = keys.length, look = hifz.look = hifzLook();
+    if (look) rWords(look).forEach(function (w, i) { keys.push(look + ":" + i); E.push(rSkel(w)); });
     var p0 = keys.indexOf(recite.ptr); if (p0 < 0) { var nk = rNext(); p0 = nk ? keys.indexOf(nk + ":0") : 0; }
     var hw = norm(text).split(" ").filter(Boolean); recite.heard = hw.length;
     if (recite.skip) { hw = hw.slice(recite.skip); if (fin) recite.skip = recite.heard = 0; } else if (fin) recite.heard = 0;
@@ -2130,25 +2177,40 @@
     hifz.items.forEach(function (k) { if (!hifz.shown[k] && (k + ":" + (rWords(k).length - 1)) in disp) { hifz.shown[k] = true; revealed.push(k); } });
     if (r) { var last = keys[r.b - 1].split(":"); recite.k = last[0] + ":" + last[1]; recite.pos = +last[2] + 1; }
     recite.disp = disp;
-    if (fin) {
+    if (fin) reciteCommit(disp, r, keys);
+    function reciteCommit(disp, r, keys) {
       recite.V = disp; recite.base = null;
       if (r) recite.ptr = r.b < keys.length ? keys[r.b] : null;
       // the score: every judged word of the ayat that are done
       var by = {}; recite.ok = recite.words = 0; recite.wrong = [];
+      // only the ayat this piece judged are (re)marked and alerted: re-marking every ayah of the session on each piece
+      // read and wrote the whole q.hifzAyat again and again, slower the longer the session (5.11 G7)
+      var touched = null, marks = {};
+      if (r) { touched = {}; Object.keys(r.v).forEach(function (i) { var pk = keys[i].split(":"); touched[pk[0] + ":" + pk[1]] = 1; }); }
       Object.keys(disp).forEach(function (x) { var sa = x.split(":"), k = sa[0] + ":" + sa[1]; (by[k] = by[k] || []).push([+sa[2], disp[x]]); });
       Object.keys(by).forEach(function (k) {
         if (!((k + ":" + (rWords(k).length - 1)) in disp)) return;
         var ws = rWords(k), bad = by[k].filter(function (x) { return x[1] === 0; });
         recite.words += by[k].length; recite.ok += by[k].length - bad.length;
         bad.sort(function (x, y) { return x[0] - y[0]; }).forEach(function (x) { recite.wrong.push([k, ws[x[0]]]); });
+        if (touched && !touched[k]) return;
         if (bad.length > 5 && load("errAlert", true) && !(recite.alerted = recite.alerted || {})[k]) { recite.alerted[k] = 1; errAlert(); }
         if (hifz.test) { hifz.test.seen[k] = 1; if (bad.length) hifz.test.miss[k] = 1; else delete hifz.test.miss[k]; }
-        hifzMark(k, !bad.length);
+        marks[k] = !bad.length;
       });
+      hifzMarks(marks);
+    }
+    // the end of the page heard while the piece is still going on: what was heard so far counts as final (the rest of
+    // the piece is for the next page) and the page turns now, not after the piece ends + 700 ms (5.11 G7)
+    var pe = hifzPageEnd(disp, keys, nOwn);
+    if (!fin && pe && r) {
+      Object.keys(r.v).forEach(function (i) { disp[keys[i]] = r.v[i]; });
+      fin = true; recite.disp = disp; reciteCommit(disp, r, keys); recite.skip = recite.heard; recite.cmt = true;
+      hifz.items.forEach(function (k) { if (!hifz.shown[k] && (k + ":" + (rWords(k).length - 1)) in disp) { hifz.shown[k] = true; revealed.push(k); } });
     }
     hifz.paint(); hifzBar(); reciteCap();
     if (fin) revealed.forEach(hifzRevealed);
-    if (fin) hifzPageEnd(recite.disp);
+    if (pe) hifzPageGo();
   }
   // The words of the ayah being recited, only as far as they were heard (red = wrong), under the corner mic.
   function reciteCap() {
@@ -2215,6 +2277,7 @@
     document.querySelectorAll(".rd-word").forEach(function (x) { x.remove(); });
     if (!rd.on || !rd.s || !rdPage) return;
     wordBoxes(rd.s, rd.a, rdWords(rd.s, rd.a), rd.w, rdPage.box, "rd-word");
+    rdFollow();
   }
   // Boxes for word w of an ayah on the scan: the ayah's letters spread over its line pieces (right to left, in reading
   // order), as the scans have no word boxes. box(page) gives the page's element.
@@ -2281,13 +2344,41 @@
         var nw = rdWords(rd.s, rd.a + 1).map(norm);
         for (var k = 0; k < Math.min(3, nw.length); k++) if (rdSame(hw, nw[k])) { rdNext(); rd.w = k + 1; hit = true; break; }
       }
-      rd.miss = hit ? 0 : (rd.miss || 0) + 1; asrStat(hit ? "rh" : "rm");
+      // a short word (في، ما، أن) fits almost anywhere: it does not prove the reader is still here (5.11 G7)
+      var strong = hit && hw.length > 2;
+      rd.miss = strong ? 0 : hit ? (rd.miss || 0) : (rd.miss || 0) + 1; asrStat(hit ? "rh" : "rm");
+      if (strong) rd.lost = []; else (rd.lost = rd.lost || []).push(hw);     // the words since the last one that surely fitted
+      if (!hit && rd.miss >= 4 && rd.miss < 8 && rd.lost.length >= 4 && rdRelocate()) return;
       if (rd.w >= aw.length && hit) rdNext();
     });
-    // lost: many words that fit nowhere near; look for the place again from what is heard next
     if (rd.miss >= 8) { rd.s = 0; rd.heard = []; rd.miss = 0; }
     if (rd.s && rd.w >= rdWords(rd.s, rd.a).length) rdNext();
+    rdSplitTurn();
     rdPaint();
+  }
+  // a few words that fit nowhere near: the reader may have jumped (the next page, another ayah). The words heard since the
+  // last sure fit are looked for around this page (quranLocate) after 4 misses, before the 8-miss start from scratch (5.11 G7)
+  function rdRelocate() {
+    var mp = /^#\/p\/(\d+)/.exec(location.hash), g = quranLocate(rd.lost.map(rSkel), mp ? +mp[1] : 0); if (!g) return false;
+    var F = quranFlat(), q = g.p - 1, s = F.s[q], a = F.a[q]; if (s === rd.s && a === rd.a) return false;
+    rd.s = s; rd.a = a; rd.w = rdTok(s, a, F.w[q] + 1); rd.miss = 0; rd.lost = []; rd.split = null;
+    rdGo(s, a); rdHints(); return true;
+  }
+  // tokens of the ayah (rdWords) that hold the first n real words (rWords skips tokens with no letters)
+  function rdTok(s, a, n) { var t = rdWords(s, a), c = 0; for (var i = 0; i < t.length; i++) { if (norm(t[i]).replace(/\s/g, "")) c++; if (c >= n) return i + 1; } return t.length; }
+  // an ayah that runs on to the next page: the page turns when its last word printed here is read (5.11 G7)
+  function rdSplitTurn() {
+    if (!rd.s || !rdPage || !rdPage.pages || !rdPage.turn) return;
+    var k = rd.s + ":" + rd.a, li = lastWordOnPages(k, rdPage.pages), real = rWords(k).length;
+    if (li < 0 || li >= real - 1 || rd.split === k + "@" + rdPage.pages[0]) return;
+    var t = rdWords(rd.s, rd.a), c = 0; for (var i = 0; i < rd.w && i < t.length; i++) if (norm(t[i]).replace(/\s/g, "")) c++;
+    if (c - 1 >= li) { rd.split = k + "@" + rdPage.pages[0]; rdPage.turn(); }
+  }
+  // the word being read stays in view (portrait and landscape, single page and vertical), between the bar and 70%
+  function rdFollow() {
+    var w = document.querySelector(".rd-word"); if (!w) return;
+    var r = w.getBoundingClientRect(), top = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight + 8;
+    if (r.top < top || r.bottom > innerHeight * 0.7) window.scrollBy({ top: r.top - Math.max(top, innerHeight * 0.35), behavior: "smooth" });
   }
   // Of the recogniser's guesses, the one that fits the ayah being read best (or, before it is found, any ayah best).
   function rdPick(alts) {
@@ -2330,7 +2421,7 @@
     if (!micGate(rdToggle)) return;
     if (!m && !window.ReciteBridge) return toast("القراءة بالصوت شغالة في التطبيق على الموبايل بس");
     reciteStop(); player.stop();
-    rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0 };
+    rd = { on: true, s: 0, a: 0, w: 0, heard: [], done: 0, lost: [], split: null };
     if (m) {
       Asr.start(m, function (t, k) {
         if (k === "final") { if (window.onRecite) onRecite(t, "final"); return; }
@@ -2482,6 +2573,8 @@
   window.onRecite = function (text, kind) {
     var alts = (text || "").split("\n"); text = alts[0];
     if (kind === "final" && text) { asrStat("u"); asrStat("w", norm(text).split(/\s+/).filter(Boolean).length); }
+    // NvAsr tells how long each decode took (5.11 G7): the stats show the average, for the phone's real numbers
+    if (window.nvMs != null && (kind === "final" || kind === "partial")) { asrStat("dms", window.nvMs); asrStat("dn"); if (window.nvLen) asrStat("dlen", window.nvLen); window.nvMs = window.nvLen = null; }
     if (rd.on) {
       if (kind.indexOf("state:") === 0) {
         var st0 = kind.slice(6);
@@ -2729,7 +2822,8 @@
       var wd = new Date((today - 6 + j) * 864e5).getUTCDay(), nm = j === 6 ? "اليوم" : names[wd];
       bars += '<div class="st-bar" title="' + ar(c) + '"><i style="height:' + Math.round(c / max * 100) + '%"></i><b>' + (c ? ar(c) : "") + "</b><small>" + nm + "</small></div>";
     });
-    return h + '<div class="st-nums n2"><div><b>' + ar(t.u) + "</b><small>مقطع اتسمع</small></div><div><b>" + ar(t.w || 0) + "</b><small>كلمة اتسمعت</small></div></div>" +
+    var lat = t.dn ? '<div><b>' + ar(Math.round(t.dms / t.dn)) + "</b><small>ملي ثانية لكل فك" + (t.dlen ? " (" + ar(Math.round(t.dlen / t.dn / 100) / 10) + " ث صوت)" : "") + "</small></div>" : "";
+    return h + '<div class="st-nums ' + (lat ? "n3" : "n2") + '"><div><b>' + ar(t.u) + "</b><small>مقطع اتسمع</small></div><div><b>" + ar(t.w || 0) + "</b><small>كلمة اتسمعت</small></div>" + lat + "</div>" +
       '<div class="st-rings">' + stRing(pc(t.ok || 0, t.bad || 0), "التسميع صح") + stRing(pc(t.rh || 0, t.rm || 0), "المتابعة في الصفحة") + stRing(pc(t.loc || 0, t.lost || 0), "الفهرس والبحث لقوا الآية") + "</div>" +
       '<p class="st-cap">الكلمات اللي اتسمعت كل يوم</p><div class="st-bars">' + bars + "</div>" +
       '<p class="hint">آخر ٧ أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات.</p></section>';
