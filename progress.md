@@ -256,4 +256,7 @@ Resume: G7 (recitation following/timing engine) — needs real recitation audio;
 ## 5.11 G7 — recitation following and timing — done 2026-11-07 (JS + NvAsr), phone check pending
 Goal check: the biggest user-felt gap; measured with recite_sim.js (8 scenarios) and stream_cut.py (52 continuous streams). Partial-only freeze chosen because cutting pieces lowered word verdicts (0.6–2.5 pt) — rejected against the >95% goal.
 Resume: full QA + rebuild quran-karim-v5.11.apk (G1–G7) -> deliver phone list; then G10 (noise/speed retrain, GPU, hours) only if usage allows; G8 waits for the user (backend + consent wording).
+5.11 FINAL build ✅ quran-karim-v5.11.apk (G1–G7; 53; signer 7d8b31d2): ui.js 210/0, donate 0 FAIL, data 28/0, matrix 40/0, i18n clean, recite_sim ✓, Maestro 4 AVDs PASS. Installed on Phone_API35. No GitHub release (ask first).
+Goal check for G10: needs hours of GPU training and the user's phone gate; the user asked to shut the PC down at the end of this session -> plan written under items 30/31, not started.
+Resume (2026-11-07): new session from plans/5.11-session-prompt-5.md — the user's phone review of 5.11 (QA-checklist § 5.11, G7 a–h + G3.9), then G10 (GPU), G8 waits for the user.
 
