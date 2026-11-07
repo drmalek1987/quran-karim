@@ -956,7 +956,9 @@ body.pgview .page-info, body.pgview .page-tip { max-height: 120px; overflow: hid
 body.fs.pgview .page-info, body.fs.pgview .page-tip { opacity: 0; max-height: 0; margin-block: 0; pointer-events: none; }
 body.fs .vpages { padding: 0; }
 body.fs .page-wrap.crop { min-height: var(--vh, 100vh); align-items: center; }
-body.fs .page-wrap.crop .page-box { --W: min(100%, calc(var(--vh, 100vh) * var(--asp))); }
+/* 5.13 P2.7: full screen fits the page to the screen height but never below the width it had before (the 640px floor of the
+   normal view), so a phone held sideways keeps its wide page instead of shrinking it to the short height */
+body.fs .page-wrap.crop .page-box { --W: min(100%, max(640px, calc(var(--vh, 100vh) * var(--asp)))); }
 body.fs .page-wrap.crop .spread-row { min-height: var(--vh, 100vh); align-items: center; }
 body.fs .page-wrap.crop .spread-row .page-box { --W: min(50%, calc(var(--vh, 100vh) * var(--asp))); }
 
