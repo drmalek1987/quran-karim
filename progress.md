@@ -260,3 +260,6 @@ Resume: full QA + rebuild quran-karim-v5.11.apk (G1–G7) -> deliver phone list;
 Goal check for G10: needs hours of GPU training and the user's phone gate; the user asked to shut the PC down at the end of this session -> plan written under items 30/31, not started.
 Resume (2026-11-07): new session from plans/5.11-session-prompt-5.md — the user's phone review of 5.11 (QA-checklist § 5.11, G7 a–h + G3.9), then G10 (GPU), G8 waits for the user.
 
+
+- 2026-11-07: 5.11 installed on the user's phone (M2007J3SY) over USB; 21-item phone list sent. plans/5.11-session-prompt-5.md updated for the next session.
+Resume (2026-11-07): new session from plans/5.11-session-prompt-5.md — act on the user's phone feedback for 5.11 (by list item number), then G10 (GPU), G8 waits for the user.
