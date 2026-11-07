@@ -497,3 +497,16 @@
 - Not in this build (need the user's OK first): P2.10 stats inventory and P2.6 hifz-screens plan → plans/5.13-P2.10-P2.6-report.html; P2.1 waits for G8.
 - 5.13 build QA (2026-11-07, quran-karim-v5.13.apk, versionCode 55, signer 7d8b31d2): ui.js kfgqpc 220/0 (new group «نسخة 5.13 (باتش 2)»: P2.2/3/4/5/7/8/9/11; recite_sim inside ✓) · donate.js 0 FAIL · data.py 28/0 · matrix.js 40/0 · i18n_scan: no new UI misses (added «من الآية #», «السورة») · fs-motion headless 8/8 · emulator over CDP: home mic above tabs, htA 286 options, no pHifz/thmNotes, landscape full screen width kept (773→773) · Maestro smoke PASS on Phone_API35, Small_API35, Fold_API35, Tablet_API35. Not yet on the user's phone (bee81250 not connected).
 - P2.12 (after the 5.13 APK; in the next build): مصحف الحرمين in full screen: the page is centred top/bottom like the other editions (it sat at the top).
+
+## 5.14 — المراجعة والإحصائيات والحرمين (phone tests, P2.6 / P2.10 / P2.12)
+1. المزيد › الحفظ: البند اسمه «المراجعة». وتحت «اختبار الحفظ / خريطة الحفظ / المراجعة» الصف بيعلّم «المراجعة».
+2. «المراجعة» › كارت «اختبرني»: اختار المدى (سورة، جزء، آيات من سورة، ربع جزء، نصف جزء، ربع المصحف، نصف المصحف، القرآن كله). السطر اللي تحت بيقول «من … إلى … · عدد الآيات».
+3. اختار «بالسرد» واضغط «على المصحف»: الاختبار بيفتح على أول آية في المدى، ولما تكشف آخر آية بيخلص لوحده وتطلع النتيجة.
+4. اختار «عشوائي (٣–١٢ آية)»: التطبيق بيختار كذا موضع جوه المدى (كل ما المدى يكبر، المواضع تزيد)، وكل موضع من ٣ لـ ١٢ آية. في «بالكلمات» فيه زرار «الموضع اللي بعده» ومكتوب «الموضع ١ من …». و«على المصحف» بيروح للموضع اللي بعده لوحده. وفي الآخر بتطلع نتيجة واحدة للاختبار كله.
+5. اختبار بالكلمات على مدى فيه أكتر من سورة (مثلاً ربع جزء عمّ): «الآيات اللي بعدها» بتكمّل للسورة اللي بعدها. وفي آخر جزء، بعد «خلصت»، بتظهر «نتيجة الاختبار كله».
+6. علامة ✓ على السورة بتظهر لوحدها لما تسمّع ٨٠٪ من آياتها صح، وبتتشال لو النسبة نزلت. الضغط على السورة في القايمة بيختارها في الكارت بس، وما بيعلّمهاش.
+7. «عليك مراجعة» بتعرض كل السور اللي جه ميعادها (عدّى عليها أكتر من ١٤ يوم، أو آخر نتيجة أقل من ٧٠٪). كل سورة جنبها «اختبرني»، ومفيش «راجعتها» ولا «اقرأ» ولا الدايرة.
+8. الختمة: كارت الإحصائيات زرار من غير أرقام، والمكافآت بقت في صفحة الإحصائيات. والإعدادات: سطر «آخر ٧ أيام» اتشال.
+9. اختبار الحفظ وخريطة الحفظ: الدواير وسجل التسميع وأرقام الألوان لسه موجودة.
+10. مصحف الحرمين في ملء الشاشة: الصفحة في النص، مش لازقة فوق.
+- 5.14 build QA (2026-11-08, quran-karim-v5.14.apk, versionCode 57, sw quran-v52, signer 7d8b31d2): ui.js kfgqpc 229/0 (5.13 group 16/0: P2.6 auto ✓ at 80%, ranges, random places 3–12, mushaf/words tests over places and ranges, due list; P2.10 rewards in Stats) · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · i18n_scan: no misses on More/Khatma/Stats/hifz pages (D513) · fs-motion headless 8/8 (in ui.js) · emulator Phone_API35 over CDP: version 5.14, «المراجعة» card + 114 surahs, no ring/«راجعتها», rewards only in Stats, random juz 30 = 9 places, words test 113→114 with whole-test score; screenshot tools/qa/p26-emu-review.png.

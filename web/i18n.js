@@ -328,7 +328,7 @@
     "التطبيق بيعلّم السورة ✓ لوحده لما تسمّع #٪ من آياتها صح في الاختبارات.": "The app ticks a surah ✓ by itself once you recite #% of its verses right in tests.",
     "آخر مراجعة من # يوم": "Last review # days ago", "آخر مراجعة من # يوم · آخر نتيجة #٪": "Last review # days ago · last score #%",
     "#٪ · آخر مراجعة من # يوم": "#% · last review # days ago", "# آية · آخر مراجعة من # يوم": "# verses · last review # days ago",
-    "الاختبار لحد": "Test up to", "نتيجة الاختبار كله:": "Whole test score:", "(افتكرت # من # كلمة)": "(remembered # of # words)" };
+    "الاختبار لحد": "Test up to", "الموضع # من #": "Place # of #", "الموضع اللي بعده": "Next place", "نتيجة الاختبار كله:": "Whole test score:", "(افتكرت # من # كلمة)": "(remembered # of # words)" };
   for (var c513 in D513) if (D[c513] === undefined) D[c513] = D513[c513];
   for (var c49 in D49) if (D[c49] === undefined) D[c49] = D49[c49];
   for (var c39 in D39) if (D[c39] === undefined) D[c39] = D39[c39];

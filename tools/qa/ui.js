@@ -749,12 +749,35 @@ async function fresh(ctx, vp) {
       const j2 = hzRange({ k: 'j', n: 2 }), q1 = hzRange({ k: 'jq', n: 1, q: 1 }), h1 = hzRange({ k: 'mh', q: 1 }), h2 = hzRange({ k: 'mh', q: 2 }), all = hzRange({ k: 'all' }), sr = hzRange({ k: 'a', s: 2, a1: 5, a2: 9 });
       return [j2[0] === g(2, 142), j2[1] === g(2, 252), q1[0] === 0 && q1[1] === g(2, 43), h1[0] === 0 && h1[1] === g(18, 74), h2[0] === g(18, 75) && h2[1] === 6235, all[1] === 6235, sr[0] === g(2, 5) && sr[1] === g(2, 9)]; });
     return assert(r.every(Boolean), JSON.stringify(r)); });
-  await check(G513, 'P2.6: «عشوائي» بيختار من ٥ لـ ١٢ آية جوه المدى (جزء عمّ، ٦ مرات)', async () => { const k = await hzKeep(), r = [];
-    await ev(() => localStorage.setItem('q.hzScope', JSON.stringify({ k: 'j', s: 1, n: 30, q: 1, a1: 1, a2: 7, w: 'r' })));
-    for (let i = 0; i < 6; i++) { await go('#/', 150); await go('#/hifzlog', 500); await p.click('#hzGoW'); await wait(400);
-      r.push(await ev(() => { const t = JSON.parse(localStorage.getItem('q.hifzTest')); const S = window.QURAN.s; let a0 = 0; for (let i = 0; i < 77; i++) a0 += S[i][3]; let st = 0; for (let i = 0; i < t.s - 1; i++) st += S[i][3]; st += t.from - 1;
-        return [t.n, t.end - st + 1, st >= a0 && t.end <= 6235, location.hash.startsWith('#/hifztest/')]; })); }
-    await hzBack(k); return assert(r.every(x => x[0] >= 5 && x[0] <= 12 && x[1] === x[0] && x[2] && x[3]), JSON.stringify(r)); });
+  await check(G513, '5.14: «عشوائي» = عدد مواضع عشوائي على قد المدى، كل موضع ٣–١٢ آية جوه المدى ومن غير تداخل', async () => {
+    const r = await ev(() => { const out = []; for (const c of [{ k: 's', s: 112 }, { k: 's', s: 2 }, { k: 'j', n: 30 }, { k: 'all' }]) for (let i = 0; i < 20; i++) {
+      const R = hzRange(c), len = R[1] - R[0] + 1, P = hzParts(Object.assign({ w: 'r' }, c)), mx = Math.max(1, Math.min(10, Math.ceil(len / 30)));
+      const ok = P.length >= 1 && P.length <= mx && P.every((x, j) => x[0] >= R[0] && x[1] <= R[1] && (len <= 3 || (x[1] - x[0] + 1 >= 3 && x[1] - x[0] + 1 <= 12)) && (!j || x[0] > P[j - 1][1] + 1));
+      if (!ok) out.push([c, JSON.stringify(P)]); if (i === 0) out.push(c.k + (c.s || c.n || '') + ':' + P.length); }
+      return out; });
+    const k = await hzKeep(); await ev(() => localStorage.setItem('q.hzScope', JSON.stringify({ k: 'j', s: 1, n: 30, q: 1, a1: 1, a2: 7, w: 'r' })));
+    await go('#/', 150); await go('#/hifzlog', 500); const lab = await ev(() => document.querySelector('.hz-way button[data-w=r]').textContent); await p.click('#hzGoW'); await wait(500);
+    const t = await ev(() => JSON.parse(localStorage.getItem('q.hifzTest'))); await hzBack(k);
+    return assert(r.every(x => typeof x === 'string') && lab.includes('٣–١٢') && t.pt >= 5 && t.pc.length === t.pt - 1 && t.n >= 3 && t.n <= 12, JSON.stringify([r.filter(x => typeof x !== 'string').slice(0, 2), r.filter(x => typeof x === 'string'), lab, t.pt, t.n])); });
+  await check(G513, '5.14: اختبار الكلمات العشوائي بيعدّي على المواضع واحد ورا التاني ونتيجة واحدة في الآخر', async () => { const k = await hzKeep();
+    await ev(() => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); const g = (s, a) => A[s - 1] + a - 1;
+      localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1, n: 4, end: g(112, 4), acc: { h: 0, m: 0 }, pc: [[g(114, 1), g(114, 3)]], pn: 1, pt: 2 })); });
+    await go('#/', 150); await go('#/hifztest/112', 700); const a = await ev(() => [document.getElementById('htNext') && document.getElementById('htNext').textContent, (document.querySelector('.ht-place') || {}).textContent]);
+    await p.click('#htDone'); await wait(200); const mid = await ev(() => !document.getElementById('htTot')); await p.click('#htNext'); await wait(600);
+    const b2 = await ev(() => [location.hash, document.querySelectorAll('.ht-text .ayah-no').length, !!document.getElementById('htNext'), (document.querySelector('.ht-place') || {}).textContent]);
+    await p.click('.ht-w[data-a="1"]'); await p.click('#htDone'); await wait(300); const t = await ev(() => (document.getElementById('htTot') || {}).textContent || '');
+    await hzBack(k); await go('#/', 300);
+    return assert(a[0] === 'الموضع اللي بعده' && a[1] === 'الموضع ١ من ٢' && mid && b2[0] === '#/hifztest/114' && b2[1] === 3 && !b2[2] && b2[3] === 'الموضع ٢ من ٢' && /٪/.test(t) && !/١٠٠٪/.test(t), JSON.stringify([a, mid, b2, t])); });
+  await check(G513, '5.14: اختبار المصحف العشوائي بيقلب للموضع التاني لوحده ويخلص بعد آخر موضع', async () => { const k = await hzKeep();
+    await ev(() => { ['q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 112, n: 1, q: 1, a1: 1, a2: 4, w: 'o' })); });
+    const P = await ev(() => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); const g = (s, a) => A[s - 1] + a - 1; return [[g(112, 1), g(112, 2)], [g(114, 1), g(114, 3)]]; });
+    await go('#/', 300); await ev(P => hzTestStart({ k: 's', s: 112, w: 'r' }, 'm', P), P); await wait(1200);
+    for (let i = 0; i < 2; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1800);
+    const mid = await ev(() => [!!document.getElementById('hifzBar'), location.hash]);
+    for (let i = 0; i < 3; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1800);
+    const end = await ev(() => [!document.getElementById('hifzBar'), (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112] || {}).score]);
+    await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()));
+    await hzBack(k); await go('#/', 300); return assert(mid[0] && /^#\/p\/604/.test(mid[1]) && end[0] && end[1] === 100, JSON.stringify([mid, end])); });
   await check(G513, 'P2.6: اختبار المصحف بمدى (سورة الإخلاص بالسرد) بيخلص لوحده عند آخر آية ويحط ✓', async () => { const k = await hzKeep();
     await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 112, n: 1, q: 1, a1: 1, a2: 4, w: 'o' })); });
     await go('#/hifzlog', 600); await p.click('#hzGoM'); await wait(1200);
