@@ -1117,3 +1117,13 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .hz-btns .hz-flip { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; opacity: .55; }
 .hz-btns .hz-flip.on { opacity: 1; } .hz-btns .hz-flip small { font-size: 9.5px; line-height: 1; }
 
+/* 5.13 P2.6 «المراجعة»: the «اختبرني» card (range, way, mushaf/words), the due list and the memorised surahs */
+.hz-card{padding:14px;border-radius:16px;background:var(--soft);margin-bottom:14px}
+.hz-card h3,.hz-h{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:16px}.hz-card h3 svg,.hz-h svg{width:20px;height:20px}
+.hz-row{display:flex;flex-wrap:wrap;gap:8px}.hz-row select{flex:1 1 140px;min-width:0;width:auto}
+.hz-ays{align-items:center;margin-top:8px}.hz-ays span{font-size:14px;opacity:.8}.hz-ays select{flex:1 1 70px}
+.hz-rng{margin:10px 0 0}
+.hz-way{margin-top:8px}
+.hz-go{display:flex;gap:8px;margin-top:12px}.hz-go .continue{flex:1;margin:0;display:flex;align-items:center;justify-content:center;gap:6px}.hz-go svg{width:20px;height:20px}
+.hz-due{margin-bottom:14px}
+.ht-tot{display:block;margin-top:10px;padding:10px;border-radius:12px;background:var(--soft);font-size:15px}.ht-tot b{display:inline;font-size:20px}

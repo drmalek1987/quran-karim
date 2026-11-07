@@ -317,6 +317,19 @@
     "تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.": "Delete every clip sent from this phone and those still waiting? This also stops sharing.",
     "المسح متاح في التطبيق على الموبايل بس": "Deleting works only in the phone app", "بيمسح…": "Deleting…", "اتمسحت كل تسجيلاتك": "All your recordings were deleted",
     "المسح ما نجحش، جرّب تاني": "Deleting failed, try again", "المسح ما نجحش، اتأكد من النت وجرّب تاني": "Deleting failed, check the connection and try again" };
+  // 5.13 P2.6 «المراجعة» and P2.10
+  var D513 = { "المراجعة": "Review", "المراجعة واختبار الحفظ": "Review and memorisation test", "سورة": "Surah", "جزء": "Juz", "آيات من سورة": "Verses of a surah",
+    "ربع جزء": "Quarter of a juz", "نصف جزء": "Half a juz", "ربع المصحف": "Quarter of the Quran", "نصف المصحف": "Half of the Quran", "القرآن كله": "The whole Quran",
+    "الربع الأول": "First quarter", "الربع الثاني": "Second quarter", "الربع الثالث": "Third quarter", "الربع الرابع": "Fourth quarter", "النصف الأول": "First half", "النصف الثاني": "Second half",
+    "المدى": "Range", "الجزء من المدى": "Part", "إلى الآية": "To verse", "من": "From", "إلى": "to", "@ #": "@ #", "#. @ ✓": "#. @ ✓",
+    "بالسرد": "In order", "عشوائي (#–# آية)": "Random (#–# verses)", "على المصحف": "On the mushaf", "بالكلمات": "With words",
+    "عليك مراجعة": "Due for review", "السور اللي حفظتها": "Surahs you memorised",
+    "مفيش مراجعة متأخرة. السورة بتظهر هنا لما يعدّي على آخر مراجعة ليها أكتر من # يوم، أو لو آخر نتيجة ليها أقل من #٪.": "Nothing overdue. A surah shows here when its last review was more than # days ago, or its last score was under #%.",
+    "التطبيق بيعلّم السورة ✓ لوحده لما تسمّع #٪ من آياتها صح في الاختبارات.": "The app ticks a surah ✓ by itself once you recite #% of its verses right in tests.",
+    "آخر مراجعة من # يوم": "Last review # days ago", "آخر مراجعة من # يوم · آخر نتيجة #٪": "Last review # days ago · last score #%",
+    "#٪ · آخر مراجعة من # يوم": "#% · last review # days ago", "# آية · آخر مراجعة من # يوم": "# verses · last review # days ago",
+    "الاختبار لحد": "Test up to", "نتيجة الاختبار كله:": "Whole test score:", "(افتكرت # من # كلمة)": "(remembered # of # words)" };
+  for (var c513 in D513) if (D[c513] === undefined) D[c513] = D513[c513];
   for (var c49 in D49) if (D[c49] === undefined) D[c49] = D49[c49];
   for (var c39 in D39) if (D[c39] === undefined) D[c39] = D39[c39];
   for (var c38 in D38) if (D[c38] === undefined) D[c38] = D38[c38];

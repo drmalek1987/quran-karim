@@ -283,9 +283,9 @@ async function fresh(ctx, vp) {
   await check(G13, 'ختمة رمضان بتظهر وبتعمل خطة على أيام رمضان', async () => { await ev(() => localStorage.removeItem(Object.keys(localStorage).find(k => /khatma/.test(k)) || 'x')); await go('#/khatma', 700);
     const card = await ev(() => !!document.getElementById('kRamadan')); await p.click('#kRamadan'); await wait(500);
     const k = await ev(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /khatma/.test(k))))); return assert(card && k.ramadan && k.days >= 29 && k.days <= 30, JSON.stringify(k)); });
-  await check(G13, 'متابعة الحفظ: تسجيل سورة ومراجعتها والنسبة', async () => { await go('#/hifzlog', 700); await p.click('.hl-list li[data-s="112"]'); await p.click('.hl-list li[data-s="1"]'); await wait(300);
-    const r = await ev(() => [document.querySelector('.hl-top b').textContent, document.querySelectorAll('.hl-list li.on').length, !!document.querySelector('.hl-due')]); await p.click('.hl-due [data-rev]'); await wait(300);
-    return assert(r[1] === 2 && r[2] && /٢/.test(r[0]), JSON.stringify(r)); });
+  await check(G13, 'المراجعة: كارت «اختبرني» والسور الـ ١١٤ وزرار الخريطة', async () => { await go('#/hifzmap', 700); await p.click('#hmLog'); await wait(600);
+    const r = await ev(() => [location.hash, document.querySelectorAll('.hl-list li').length, !!document.getElementById('hzCard'), !!document.getElementById('hzGoM') && !!document.getElementById('hzGoW'), document.querySelectorAll('.hz-way button').length]);
+    return assert(r[0] === '#/hifzlog' && r[1] === 114 && r[2] && r[3] && r[4] === 2, JSON.stringify(r)); });
   await check(G13, 'صوت مؤذن مختلف لكل صلاة وتذكير قبل الأذان', async () => { await go('#/prayer', 900);
     await p.click('[data-open=fajr]'); await p.selectOption('.pv-v[data-p=fajr]', 'basit'); await wait(400); await p.click('[data-open=dhuhr]'); await p.selectOption('.pv-v[data-p=dhuhr]', 'afasy'); await wait(400); await p.click('.pv-pre[data-p=dhuhr][data-m="15"]'); await wait(400);
     await p.click('.pv-play[data-p=dhuhr]'); const pv = await ev(() => AppBridge.preview); await p.click('.pv-play[data-p=dhuhr]'); await go('#/', 2500);
@@ -733,6 +733,52 @@ async function fresh(ctx, vp) {
     await q.evaluate(() => document.body.classList.add('fs')); await q.waitForTimeout(700);
     const r = await q.evaluate(() => { const x = document.getElementById('pg').getBoundingClientRect(); return [Math.round(x.top), Math.round(innerHeight - x.bottom)]; }); await ctx.close();
     return assert(r[0] > 20 && Math.abs(r[0] - r[1]) < 20, JSON.stringify(r)); });
+  // 5.13 P2.6 «المراجعة»: ✓ by itself at 80%, test ranges, random part, mushaf test ending at the range, words test across surahs
+  const hzKeep = async () => ev(() => ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores', 'q.hzScope', 'q.hifzTest'].map(k => [k, localStorage.getItem(k)]));
+  const hzBack = async k => ev(k => k.forEach(([a, v]) => v === null ? localStorage.removeItem(a) : localStorage.setItem(a, v)), k);
+  await check(G513, 'P2.6: ✓ السورة بيتحط لوحده عند ٨٠٪ من آياتها صح وبيتشال تحتها، والضغط على السورة ما بيعلّمش', async () => { const k = await hzKeep();
+    await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); });
+    await go('#/hifztest/112', 700); await p.click('#htDone'); await wait(300); const on = await ev(() => !!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[112]);
+    await go('#/', 200); await go('#/hifztest/112', 700); await p.click('.ht-w[data-a="1"]'); await p.click('.ht-w[data-a="2"]'); await p.click('#htDone'); await wait(300);
+    const off = await ev(() => !JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[112]);
+    await go('#/hifzlog', 700); await p.click('.hl-list li[data-s="113"]'); await wait(300);
+    const tap = await ev(() => [!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[113], JSON.parse(localStorage.getItem('q.hzScope')).s, document.getElementById('hzS').value, document.querySelector('.hl-list li[data-s="112"] small').textContent]);
+    await hzBack(k); return assert(on && off && tap[0] && tap[1] === 113 && tap[2] === '113' && tap[3].includes('٥٠٪'), JSON.stringify([on, off, tap])); });
+  await check(G513, 'P2.6: المدى: الجزء ٢ بيبدأ بـ ٢:١٤٢، ربع الجزء ١ = ربعين، نص المصحف الأول بيخلص قبل ١٨:٧٥', async () => {
+    const r = await ev(() => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); const g = (s, a) => A[s - 1] + a - 1;
+      const j2 = hzRange({ k: 'j', n: 2 }), q1 = hzRange({ k: 'jq', n: 1, q: 1 }), h1 = hzRange({ k: 'mh', q: 1 }), h2 = hzRange({ k: 'mh', q: 2 }), all = hzRange({ k: 'all' }), sr = hzRange({ k: 'a', s: 2, a1: 5, a2: 9 });
+      return [j2[0] === g(2, 142), j2[1] === g(2, 252), q1[0] === 0 && q1[1] === g(2, 43), h1[0] === 0 && h1[1] === g(18, 74), h2[0] === g(18, 75) && h2[1] === 6235, all[1] === 6235, sr[0] === g(2, 5) && sr[1] === g(2, 9)]; });
+    return assert(r.every(Boolean), JSON.stringify(r)); });
+  await check(G513, 'P2.6: «عشوائي» بيختار من ٥ لـ ١٢ آية جوه المدى (جزء عمّ، ٦ مرات)', async () => { const k = await hzKeep(), r = [];
+    await ev(() => localStorage.setItem('q.hzScope', JSON.stringify({ k: 'j', s: 1, n: 30, q: 1, a1: 1, a2: 7, w: 'r' })));
+    for (let i = 0; i < 6; i++) { await go('#/', 150); await go('#/hifzlog', 500); await p.click('#hzGoW'); await wait(400);
+      r.push(await ev(() => { const t = JSON.parse(localStorage.getItem('q.hifzTest')); const S = window.QURAN.s; let a0 = 0; for (let i = 0; i < 77; i++) a0 += S[i][3]; let st = 0; for (let i = 0; i < t.s - 1; i++) st += S[i][3]; st += t.from - 1;
+        return [t.n, t.end - st + 1, st >= a0 && t.end <= 6235, location.hash.startsWith('#/hifztest/')]; })); }
+    await hzBack(k); return assert(r.every(x => x[0] >= 5 && x[0] <= 12 && x[1] === x[0] && x[2] && x[3]), JSON.stringify(r)); });
+  await check(G513, 'P2.6: اختبار المصحف بمدى (سورة الإخلاص بالسرد) بيخلص لوحده عند آخر آية ويحط ✓', async () => { const k = await hzKeep();
+    await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 112, n: 1, q: 1, a1: 1, a2: 4, w: 'o' })); });
+    await go('#/hifzlog', 600); await p.click('#hzGoM'); await wait(1200);
+    for (let i = 0; i < 4; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1500);
+    const r = await ev(() => [!document.getElementById('hifzBar'), !!JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112], !!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[112]]);
+    await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await hzBack(k); await go('#/', 300);
+    return assert(r.every(Boolean), JSON.stringify(r)); });
+  await check(G513, 'P2.6: اختبار الكلمات بمدى بيعدّي من الفلق للناس ويعرض نتيجة الاختبار كله في الآخر', async () => { const k = await hzKeep();
+    await ev(() => localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 113, from: 1, n: 10, end: 6235, acc: { h: 0, m: 0 } })));
+    await go('#/hifztest/113', 700); const a = await ev(() => [document.querySelectorAll('.ht-text .ayah-no').length, !!document.getElementById('htNext')]);
+    await p.click('.ht-w[data-a="1"]'); await p.click('#htDone'); await wait(200); await p.click('#htNext'); await wait(600);
+    const b2 = await ev(() => [location.hash, document.querySelectorAll('.ht-text .ayah-no').length, !!document.getElementById('htNext')]);
+    await p.click('#htDone'); await wait(300); const t = await ev(() => { const e = document.getElementById('htTot'); return e ? e.textContent : ''; });
+    await hzBack(k); await go('#/', 300);
+    return assert(a[0] === 5 && a[1] && b2[0] === '#/hifztest/114' && b2[1] === 6 && !b2[2] && /٪/.test(t) && !/١٠٠٪/.test(t), JSON.stringify([a, b2, t])); });
+  await check(G513, 'P2.6: «عليك مراجعة» بتعرض كل السور المستحقة، ومفيش «راجعتها» ولا «اقرأ» ولا الدايرة', async () => { const k = await hzKeep();
+    await ev(() => { const d = new Date(Date.now() - 30 * 864e5), o = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(), n = new Date(), t = n.getFullYear() + '-' + (n.getMonth() + 1) + '-' + n.getDate();
+      localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzLog', JSON.stringify({ 1: { m: o, r: o }, 112: { m: o, r: o }, 113: { m: t, r: t }, 114: { m: t, r: t } }));
+      localStorage.setItem('q.hifzScores', JSON.stringify({ 113: { d: t, score: 50 }, 114: { d: t, score: 95 } })); });
+    await go('#/', 200); await go('#/hifzlog', 700);
+    const r = await ev(() => [[...document.querySelectorAll('.hz-due .hl-due [data-test]')].map(b => b.dataset.test).sort().join(','), !!document.querySelector('[data-rev], .hl .hl-ring, .hl-top'),
+      [...document.querySelectorAll('.hl button')].some(b => /اقرأ|راجعتها/.test(b.textContent)), document.querySelectorAll('.hl-list li.on').length]);
+    await p.click('.hz-due [data-test="112"]'); await wait(300); const pick = await ev(() => document.getElementById('hzS') && document.getElementById('hzS').value);
+    await hzBack(k); return assert(r[0] === '1,112,113' && !r[1] && !r[2] && r[3] === 4 && pick === '112', JSON.stringify([r, pick])); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }
