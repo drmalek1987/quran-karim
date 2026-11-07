@@ -270,3 +270,4 @@ Done in code (not built/QA'd yet): #2 consent dialogs' donate switch always star
 ui.js: 1 FAIL fixed by editing the G6 vertical check (scroll 230 not 700) + new check «phone #19»; recite_sim.js scenario I first run: flip ON passes (moves to ayah 11, mic stays on, ayah-11 words 3/3 ok, follow keeps word at 253/844); flip OFF FAILS: one partial with all 10 ayat does not end the test (mic still on, htRes empty) — debug endNow (r.v[n-1] on a single long partial from ptr 0?).
 Flip-off sim "failure" was the sim (same hash, no re-render); fixed. 5.12 built + full QA green (see QA-checklist 5.12).
 Resume: install quran-karim-v5.12.apk on the phone (adb -s bee81250 install -r) when connected, send the 5.12 re-test list (QA-checklist 5.12); then G10 (GPU). No GitHub release without asking.
+- 2026-11-07: 5.12 installed on the user's phone (bee81250); re-test list (2, 11, 12, 16, 19) sent. Resume: act on the 5.12 phone results; then G10 (GPU).
