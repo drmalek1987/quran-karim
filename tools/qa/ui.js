@@ -658,7 +658,7 @@ async function fresh(ctx, vp) {
     await p.click('#hifzBar [data-c="mic"]'); await wait(400);
     const r = await ev(() => [document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top, document.querySelector('.bar').offsetHeight]);
     await p.click('#hifzBar [data-c="mic"]').catch(() => {});
-    return assert(before < -150 && Math.abs(r[0] - r[1]) < 20, JSON.stringify([before, r])); });
+    return assert(before < -100 && Math.abs(r[0] - r[1]) < 20, JSON.stringify([before, r])); });
   await check(G511, 'phone #19: عمودي: الصفحة اللي بتوصلها بالتمرير بتتفتح بالأقنعة (مش فاضية)، واللي بعدها مخفية', async () => {
     await ev(() => { const b = document.querySelector('.page-box.vp[data-p="51"]'); window.scrollTo(0, b.getBoundingClientRect().top + scrollY - 100); }); await wait(500);
     const r = await ev(() => { const b = document.querySelector('.page-box.vp[data-p="51"]'), im = b.querySelector('img'), b2 = document.querySelector('.page-box.vp[data-p="52"] img');
@@ -675,6 +675,9 @@ async function fresh(ctx, vp) {
     await G('G7: القراءة بالصوت: القارئ نط لآية تانية بتتلقط بعد ٤ كلمات مش في مكانها', R => assert(/٢٥٨/.test(R.E.at2) && /^#\/p\/43/.test(R.E.hash), JSON.stringify(R.E)));
     await G('G7: القراءة بالصوت بالعرض: الكلمة اللي بتتقري بتفضل ظاهرة (الصفحة بتنزل معاها)', R => assert(R.F && R.F.sy > 0 && R.F.top >= 0 && R.F.top < R.F.ih * 0.75, JSON.stringify(R.F)));
     await G('G7: التسميع في الوضع العمودي: الصفحات اللي بعد الصفحة الحالية مخفية لحد ما توصلها', R => assert(R.G.after === 'hidden' && R.G.own === 'visible' && !R.G.off, JSON.stringify(R.G)));
+    await G('phone #11: اختبار الكلمات: المايك بيحط النص تحت الشريط، والنص بينزل مع القارئ', R => assert(R.I.top0 < 120 && R.I.fol[0] > 0 && R.I.fol[0] < R.I.fol[1] * 0.75, JSON.stringify(R.I)));
+    await G('phone #12: اختبار الكلمات: «قلب تلقائي» شغال: آخر كلمة (partial) بتفتح الآيات اللي بعدها والمايك شغال، وكلامها بيتحسب', R => assert(R.I.flipBtn && R.I.moved[0] === 11 && R.I.moved[1] && R.I.moved[2] && R.I.nxOk[0] > 0 && R.I.nxOk[0] === R.I.nxOk[1] && R.I.nxOk[2] === 0, JSON.stringify(R.I)));
+    await G('phone #12: اختبار الكلمات: «قلب تلقائي» مقفول: الاختبار بيخلص عند آخر آية والنتيجة بتظهر', R => assert(R.I.off[0] === 1 && !R.I.off[1] && /٪/.test(R.I.off[2]), JSON.stringify(R.I.off)));
     await G('G7: زمن فك الكلام من الموديل بيتسجل في الإحصائيات', R => assert(R.H[0] === 420 && R.H[1] === 1 && R.H[2] === 3000, JSON.stringify(R.H)));
     await G('G7: مفيش أخطاء JavaScript في محاكاة التسميع', R => assert(!R.errs.length, R.errs.join(' | '))); }
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated

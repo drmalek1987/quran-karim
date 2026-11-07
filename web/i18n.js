@@ -20,6 +20,8 @@
     // 5.11 G7
     "ملي ثانية لكل فك": "ms per decode", "ملي ثانية لكل فك (# ث صوت)": "ms per decode (# s of audio)",
     // 5.11 G6: hifz hub, map picker, auto flip
+    "بعد آخر آية هتفتح الآيات اللي بعدها والمايك شغال": "After the last ayah the next ayat open, with the mic still on", "الاختبار هيخلص عند آخر آية وتطلع النتيجة": "The test ends at the last ayah and shows the score",
+    "#٪ افتكرت # من # كلمة · كمّل": "#% · remembered # of # words · go on",
     "سورة @ · صفحة #": "Surah @ · page #", "@ · #": "@ · #", "ابدأ من الآية": "Start from ayah", "اختبار على المصحف": "Test on the mushaf", "اختبار بالكلمات": "Test with hidden words",
     "افتح الصفحة": "Open the page", "إلغاء": "Cancel", "قلب تلقائي": "Auto flip", "قلب الصفحة تلقائي": "Turn the page by itself", "خلصت الصفحة": "Page done",
     "الصفحة هتتقلب لوحدها في آخرها": "The page will turn by itself at its end", "مش هتتقلب: الاختبار بيخلص في آخر الصفحة": "No auto flip: the test ends at the end of the page",

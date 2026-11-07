@@ -117,7 +117,7 @@ async function run(b) {
     await say(words.concat(nx).join(' '), 'final'); await wait(200);
     await p.click('#htMic'); await wait(200);
     // off: the end of the part ends the test with the score
-    await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); localStorage.setItem('q.hifzFlip', 'false'); }); await go('#/hifztest/2', 900);
+    await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); localStorage.setItem('q.hifzFlip', 'false'); }); await go('#/hifzmap', 500); await go('#/hifztest/2', 900);
     await p.click('#htMic'); await wait(200); await say('', 'state:listening'); await say(words.join(' '), 'partial'); await wait(300);
     const off = await ev(() => [JSON.parse(localStorage.getItem('q.hifzTest')).from, document.querySelector('#htMic').classList.contains('rec'), document.getElementById('htRes').textContent]);
     await ev(() => localStorage.removeItem('q.hifzFlip'));
