@@ -161,7 +161,7 @@
   var EDS = {
     harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0 }
   };
-  if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1 }, window.ED_KFGQPC);
+  if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1 }   /* w: "editions/kfgqpc-w/" after the word-box gate passes (5.19 B) */, window.ED_KFGQPC);
   // طبعة الملك فهد القديمة = the scanned older Madinah print (HA's PDF, PDF page = page + 3). Its lines are the same as the
   // King Fahd edition's, so its ayah boxes are those boxes moved onto the scan's text frame (tools/kfold/make_edition.py).
   if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1 }, window.ED_KFOLD);
@@ -1126,7 +1126,9 @@
       });
       ayahBar(s, a, function () { mark(null); }, function () { location.hash = "#/s/" + s + "/" + a; });
     }
+    pageWordPress(list);
     list.addEventListener("click", function (e) {
+      if (Date.now() - lpPageAt < 700) return;   // the click that ends a long press (word meaning)
       var bx = e.target.closest(".page-box"); if (!bx) return;
       var r = bx.getBoundingClientRect(), hit = ayahAt(+bx.dataset.p, (e.clientX - r.left) / r.width * 1000, (e.clientY - r.top) / r.height * 1000);
       if (!hit || (hl0 && hl0.s === hit[0] && hl0.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
@@ -1339,7 +1341,7 @@
     // Tapping the scan picks the ayah under the finger, using the same measured boxes.
     boxes.forEach(function (bx) {
       bx.addEventListener("click", function (e) {
-        if (Date.now() - dragEnd < 400) return;
+        if (Date.now() - dragEnd < 400 || Date.now() - lpPageAt < 700) return;
         var r = bx.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
         var hit = ayahAt(+bx.dataset.p, x, y);
         if (hifz.on) { if (hit) hifzFlip(hit[0] + ":" + hit[1]); return; }
@@ -1382,6 +1384,8 @@
     // Arabic mushaf: the next page comes from the left, so dragging to the right turns forward.
     // With the page-turn effect on, the sheet follows the finger; otherwise a swipe turns the page when lifted.
     var wrap = view.querySelector(".page-wrap"), g = null;
+    pageWordPress(wrap);
+    if (EDS[edition].w) pages.forEach(function (p) { wbNeed(p, function () {}); });   // exact word boxes for this page, ahead of use
     wrap.addEventListener("pointerdown", function (e) {
       var zoomed = window.visualViewport && window.visualViewport.scale > 1.05;
       g = e.isPrimary && !zoomed && !curling ? { x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, v: 0, c: null } : null;
@@ -1414,6 +1418,59 @@
     wrap.addEventListener("pointercancel", function (e) { release(e, true); });
   }
   function pad(n) { return ("00" + n).slice(-3); }
+
+  // ---------- معنى الكلمة على صفحات المصحف (5.19) ----------
+  // Word boxes measured on the scan (tools/page_geometry/word_boxes.py): editions/<id>-w/NNN.js calls QWB(id, page, rows),
+  // rows [s, a, w, x0, y0, x1, y1] per mille, w = the word's place in rWords(). Loaded per page when needed.
+  window.QWB = function (ed, n, rows) { store["wb/" + ed + "/" + n] = rows; };
+  function wbNeed(p, done) { var ed = EDS[edition]; if (!ed || !ed.w) return done(null); need("wb/" + edition + "/" + p, ed.w + pad(p) + ".js", done); }
+  function wbRows(p) { return EDS[edition] && EDS[edition].w ? store["wb/" + edition + "/" + p] || null : null; }
+  // The word under (x, y) per mille of page p: [s, a, w] from the measured boxes, else estimated from the ayah's line
+  // boxes by letter count (the inverse of wordBoxes()).
+  function pageWordAt(p, x, y, done) {
+    wbNeed(p, function (rows) {
+      if (rows && rows.length) {
+        var best = null, bd = 1e9;
+        rows.forEach(function (r) { var dx = x < r[3] ? r[3] - x : x > r[5] ? x - r[5] : 0, dy = y < r[4] ? r[4] - y : y > r[6] ? y - r[6] : 0, d = dx + 3 * dy; if (d < bd) { bd = d; best = r; } });
+        if (best && bd < 20) return done([best[0], best[1], best[2]]);
+      }
+      var hit = ayahAt(p, x, y); if (!hit) return done(null);
+      var s = hit[0], a = hit[1], ws = rWords(s + ":" + a), rs = Q.r[s - 1][a - 1], len = function (w) { return norm(w).length + 1; };
+      var total = ws.reduce(function (t, w) { return t + len(w); }, 0), span = rs.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0, pos = -1;
+      rs.forEach(function (r) {
+        var w = r[3] - r[1];
+        if (pos < 0 && r[0] === p && r[1] === hit[2] && r[2] === hit[3]) pos = (acc + Math.min(w, Math.max(0, r[3] - x))) / span * total;
+        acc += w;
+      });
+      var from = 0; for (var i = 0; i < ws.length; i++) { from += len(ws[i]); if (pos < from) return done([s, a, i]); }
+      done([s, a, ws.length - 1]);
+    });
+  }
+  window.QA_pageWordAt = pageWordAt;
+  // Long press (480 ms, one finger, no move) on a mushaf page opens the word's meaning. Taps, swipes, the page curl,
+  // pinch zoom, the hifz reveal and reciting are left as they are.
+  var lpPageAt = 0;
+  function pageWordPress(root) {
+    var t = null, st = null, fingers = 0;
+    function stop() { clearTimeout(t); t = null; }
+    root.addEventListener("pointerdown", function (e) {
+      fingers++; stop();
+      if (fingers > 1 || hifz.on || recite.on || rd.on || curling) return;
+      var bx = e.target.closest(".page-box"); if (!bx) return;
+      st = { x: e.clientX, y: e.clientY };
+      t = setTimeout(function () {
+        t = null; var r = bx.getBoundingClientRect();
+        pageWordAt(+bx.dataset.p, (st.x - r.left) / r.width * 1000, (st.y - r.top) / r.height * 1000, function (h) {
+          if (!h) return; lpPageAt = Date.now();
+          try { if (window.AppBridge && AppBridge.buzz) AppBridge.buzz(1); else if (navigator.vibrate) navigator.vibrate(15); } catch (er) {}
+          wordSheet(h[0], h[1], h[2], rWords(h[0] + ":" + h[1])[h[2]]);
+        });
+      }, 480);
+    });
+    root.addEventListener("pointermove", function (e) { if (t && st && (Math.abs(e.clientX - st.x) > 10 || Math.abs(e.clientY - st.y) > 10)) stop(); });
+    ["pointerup", "pointercancel"].forEach(function (k) { root.addEventListener(k, function () { fingers = Math.max(0, fingers - 1); stop(); }); });
+    root.addEventListener("contextmenu", function (e) { if (e.target.closest(".page-box")) e.preventDefault(); });
+  }
 
   // Ayah boxes grouped by page, built on first use: byPage[n] = [[s, a, x0, y0, x1, y1], ...].
   var byPage = null;
@@ -2399,6 +2456,22 @@
   // order), as the scans have no word boxes. box(page) gives the page's element.
   function wordBoxes(s, a, ws, wi, box, cls) {
     var rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], len = function (w) { return norm(w).length + 1; };
+    // 5.19: the measured word boxes when this edition has them (wi counted among the real words, as rWords)
+    if (EDS[edition] && EDS[edition].w) {
+      var ri = 0, got = false, pgs = [];
+      for (var k = 0; k < wi; k++) if (norm(ws[k]).replace(/\s/g, "")) ri++;
+      rs.forEach(function (r) { if (pgs.indexOf(r[0]) < 0) pgs.push(r[0]); });
+      pgs.forEach(function (p) {
+        var rows = wbRows(p); if (!rows) { wbNeed(p, function () {}); return; }
+        rows.forEach(function (r) {
+          if (r[0] !== s || r[1] !== a || r[2] !== ri) return; var bx = box(p); if (!bx) return; got = true;
+          var d = document.createElement("div"); d.className = cls;
+          d.style.cssText = "left:" + r[3] / 10 + "%;top:" + r[4] / 10 + "%;width:" + (r[5] - r[3]) / 10 + "%;height:" + (r[6] - r[4]) / 10 + "%";
+          bx.appendChild(d);
+        });
+      });
+      if (got) return;
+    }
     var total = ws.reduce(function (t, w) { return t + len(w); }, 0), from = 0;
     for (var i = 0; i < wi; i++) from += len(ws[i]);
     var to = from + len(ws[wi] || ""), span = rs.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0;

@@ -22,3 +22,4 @@ tools/asr/gpu/phone_ft/
 tools/asr/gpu/data/
 tools/qa/matrix/
 tools/qa/i18n-missing.json
+!web/editions/*-w/

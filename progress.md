@@ -376,3 +376,8 @@ Goal check: pages are how most people read; the same exact word boxes also fix r
 A = long press on a page with the estimated word (inverse of wordBoxes) + word chips to correct, all editions.
 B = exact word boxes from tajweed_pages.align() (lab + mp + meta) -> web/editions/<id>-w/NNN.js, gate >=97% on a 60-word review.
 Resume: wait for the user's go; A fits under 85% now, B after the weekly reset 2026-11-10 19:00 UTC.
+- 5.19 B started (user: «ابدأ مرحلة B مباشرة» + a way for Haramain). word_boxes.py + app long press on pages (estimate on
+  all editions; exact boxes behind EDS.kfgqpc.w, off). Gate NOT passed: review 57/60 (ayah-end circles); colour mask ->
+  0 weak pages but 260 squeezed words; page 586 ayah rects offset from the scan (81:8/9 one word left). Details + Haramain
+  route: plans/5.19-session-prompt.md. Stopped at weekly 82% / context 257k.
+Resume: new session from plans/5.19-session-prompt.md after the reset 2026-11-10 19:00 UTC (first: page 586 rect check).
