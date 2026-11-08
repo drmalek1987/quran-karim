@@ -321,3 +321,6 @@ Goal check: Z1/Z2 shrink the on-phone ASR model without hurting recognition (gat
 - Z1v done: `nv_shrink_parity.py` on 394 s of VAD pieces (ho_reciters/test_L1/ho_noisy): max |logit diff| 0.0, argmax diffs 0, RTF 0.0176 vs 0.0177 (base and L2). Full gate run tag Z1base (phone_Z1base) to confirm vs gate_base57.
 - Z2 in progress: ORT 1.22 Android .so contains MatMulNBits. `nv_int4.py` (int4 blk32 sym + int8 Conv) -> z1/base.int4.onnx 79.5 MB; argmax differs on 8.9% frames vs int8, PC RTF ~+20% -> needs full gate (tag Z2base) + phone load/RTF before any ship.
 Resume: check gate_Z1base summary == gate_base57; run `nv_gate.py Z2base x` (copy z1/base.int4.onnx into phone_Z2base/); ask user base vs L2 for pack v3; then S6.
+- Gate Z1base == gate_base57 on all 100 metrics (only wall time differs) -> Z1 PASSED.
+- User chose L2 for pack v3 (2026-11-08). Z2 now on L2: z1/L2.int4.onnx, gate tag Z2L2 vs gate_L2.
+Resume: compare gate_Z2L2 vs gate_L2; if within noise -> phone load/RTF test; else pack v3 = z1/L2.int8.onnx (Z1 only, 115 MB). Then S6 (effort high).
