@@ -15,7 +15,7 @@ ROOT = os.environ.get('QROOT', r'D:\Quran App')
 QT = os.path.join(ROOT, 'qtrain')
 LEVEL = os.environ.get('LEVEL', 'L1'); DRY = os.environ.get('DRY') == '1'
 INIT = os.environ.get('INIT', '')
-STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000}[LEVEL]))
+STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000}[LEVEL]))
 EVAL = int(os.environ.get('EVAL', 200 if LEVEL == 'L1' else 400))
 LR, WARM = float(os.environ.get('LR', 1e-5)), 200
 BATCH_SEC, ACC = float(os.environ.get('BATCH_SEC', 60)), int(os.environ.get('ACC', 2))
@@ -23,7 +23,9 @@ SEED = 11
 # fp16 autocast gives NaN in this encoder on the Turing GPU (checked 2026-11-06: fp32 decodes right) -> fp32 by default
 AMP = os.environ.get('AMP') == '1'
 MIX = {'L1': {'L1': .7, 'replay': .3}, 'L2': {'L2': .5, 'L1': .2, 'replay': .3},
-       'L3': {'L3': .45, 'L2': .15, 'L1': .1, 'replay': .3}}[LEVEL]
+       'L3': {'L3': .45, 'L2': .15, 'L1': .1, 'replay': .3},
+       # G10 (Patch 3 S4): noisy / reverberant / fast / slow copies from g10_prep.py, with the clean levels and replay kept
+       'G10': {'G10': .35, 'L2': .2, 'L1': .15, 'replay': .3}}[LEVEL]
 FREEZE = 1 / 2 if LEVEL == 'L1' else 1 / 3
 # retry knob (plan D: one retry per failed level): REPLAY=0.4 scales the other shares down to fill 60%
 if os.environ.get('REPLAY'):
@@ -109,6 +111,8 @@ def data():
     rep = [dict(x, path=os.path.join(QT, 'gpu-train', 'data', 'clips', x['id'] + '.wav'), pw=1.0)
            for x in J(os.path.join(QT, 'gpu-train', 'data', 'train.json')) if x['id'] not in banned]
     tr['replay'] = rep
+    g10 = os.path.join(QT, 'g10', 'aug.json')
+    if os.path.exists(g10): tr['G10'] = [dict(x, path=x['wav'], pw=1.0) for x in J(g10)]
     ev['train_' + LEVEL] = random.Random(SEED).sample(tr[LEVEL], min(150, len(tr[LEVEL])))   # B6 overfit gap
     return tr, ev
 
@@ -248,7 +252,7 @@ def main():
                 (time.time() - t0) / step, torch.cuda.max_memory_allocated() / 1e9))
         if step % EVAL == 0 or step == steps:
             r = {k: cer(m, v) for k, v in ev.items()}; R['step%d' % step] = r; log('MEASURE step %d %s' % (step, r))
-            own = 'test_' + LEVEL
+            own = 'noisy10' if LEVEL == 'G10' else 'test_' + LEVEL   # G10 aims at noise; clean must not get worse
             clean_ok = all(r[k] <= ref[k] + 0.3 for k in ('ho_reciters', 'ho_retasy', 'tlog') if r.get(k) is not None)
             noisy_ok = all(r[k] <= ref[k] for k in ('noisy20', 'noisy10', 'noisy5') if r.get(k) is not None)
             if clean_ok and noisy_ok and r[own] < ref[own] and (best is None or r[own] < best[1]):
