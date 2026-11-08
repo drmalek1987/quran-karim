@@ -4445,28 +4445,60 @@
   // choice). The answer marks the ayah right or wrong in q.hifzAyat, so wrong ones come back in S1/S2 and here (40%).
   var mtq = { n: 0, ok: 0, q: null }, mtv = { on: false };
   function mutKey(w) { var n = norm(w); return n.length > 3 ? n.replace(/^[وف]/, "") : n; }
+  // letter for letter (no vowels): «وما» and «فما», «يعملون» and «تعملون» are different words here
+  function mutX(w) { return norm(w); }
   function mutBuild(k) {
-    var p = k.split(":").map(Number), T = Q.t[p[0] - 1][p[1] - 1].split(" "), TK = T.map(mutKey), seen = {};
+    var p = k.split(":").map(Number), T = Q.t[p[0] - 1][p[1] - 1].split(" "), TX = T.map(mutX), TK = T.map(mutKey), seen = {};
+    var mine = {}; TK.forEach(function (w) { mine[w] = 1; });
+    var nextOf = function (v) { return v[1] < Q.s[v[0] - 1][3] ? [v[0], v[1] + 1] : null; };
     var cs = (MUTASH[k] || []).map(function (ps) { return ps[0]; }).filter(function (v) { var x = v[0] + ":" + v[1]; if (x === k || seen[x]) return false; seen[x] = 1; return true; }).map(function (v) {
-      var W = Q.t[v[0] - 1][v[1] - 1].split(" "), WK = W.map(mutKey), l = 0;
-      while (l < W.length && l < T.length && WK[l] === TK[l]) l++;
-      return { v: v, W: W, l: l, r: Math.random() };
+      var W = Q.t[v[0] - 1][v[1] - 1].split(" "), WX = W.map(mutX), WK = W.map(mutKey), l = 0;
+      while (l < W.length && l < T.length && WX[l] === TX[l]) l++;
+      // wording shared with the ayah (its words found in this one): the test is about verbal look-alikes
+      var ov = WK.filter(function (w) { return mine[w]; }).length / Math.max(WK.length, TK.length);
+      return { v: v, W: W, l: l, ov: ov, same: WX.join(" ") === TX.join(" "), r: Math.random() };
     });
+    // 5.17b: look-alikes in the same surah (الأعراف ٦١ «ضلالة» / ٦٧ «سفاهة») are told apart by the ayah before, shown
+    // above the question, so one whose ayah before is the same as this one's is left out; an ayah 1 has none, so all
+    // of its same-surah look-alikes are. Only close wording counts (40% of the words or more).
+    var ctxK = function (s, a) { return a > 1 ? Q.t[s - 1][a - 2].split(" ").map(mutX).join(" ") : ""; }, myCtx = ctxK(p[0], p[1]);
+    cs = cs.filter(function (c) { return c.ov >= 0.4 && (c.v[0] !== p[0] || (p[1] > 1 && ctxK(c.v[0], c.v[1]) !== myCtx)); });
     if (!cs.length) return null;
-    cs.sort(function (x, y) { return y.l - x.l || x.r - y.r; });
-    var pre = Math.min(Math.max(cs[0].l, 2), T.length - 1);
-    if (pre < 1) return null;
-    var full = function (W) { return W.map(mutKey).join(" "); };
-    var opts = [{ v: p, W: T.slice(pre), ok: 1 }], have = {}; have[full(opts[0].W)] = 1;
-    cs.forEach(function (c) { if (opts.length >= 3 || c.W.length <= pre) return; var W = c.W.slice(pre), f = full(W); if (have[f]) return; have[f] = 1; opts.push({ v: c.v, W: W, ok: 0 }); });
-    if (opts.length < 2) return null;
+    var list, pre, after = false;
+    if (cs.some(function (c) { return c.same; })) {
+      // an ayah repeated word for word (فبأي آلاء ربكما تكذبان): only what comes after tells them apart, so the question
+      // is the whole ayah and the choices are the ayah after it in each place
+      var nT = nextOf(p); if (!nT) return null;
+      after = true; pre = T.length;
+      list = [{ v: nT, W: Q.t[nT[0] - 1][nT[1] - 1].split(" "), ok: 1 }];
+      cs.filter(function (c) { return c.same; }).sort(function (x, y) { return x.r - y.r; }).forEach(function (c) { var nv = nextOf(c.v); if (nv) list.push({ v: nv, W: Q.t[nv[0] - 1][nv[1] - 1].split(" "), ok: 0 }); });
+    } else {
+      cs.sort(function (x, y) { return y.l - x.l || y.ov - x.ov || x.r - y.r; });
+      // the opening stops before the first word (even one letter) that differs from the closest look-alike
+      pre = Math.min(Math.max(cs[0].l, 2), T.length - 1);
+      if (pre < 1) return null;
+      list = [{ v: p, W: T.slice(pre), ok: 1 }];
+      cs.forEach(function (c) { if (c.W.length > pre) list.push({ v: c.v, W: c.W.slice(pre), ok: 0 }); });
+    }
+    var full = function (W) { return W.map(mutX).join(" "); };
+    var opts = [], have = {};
+    list.forEach(function (o) { if (opts.length >= 3 || !o.W.length) return; var f = full(o.W); if (have[f]) return; have[f] = 1; opts.push(o); });
+    if (opts.length < 2 || !opts[0].ok) return null;
     // each choice is cut to the fewest words (4 or more) that still tell them apart
     var mx = Math.max.apply(null, opts.map(function (o) { return o.W.length; })), n = Math.min(4, mx);
     for (; n < mx; n++) { var t = {}, dup = false; opts.forEach(function (o) { var f = full(o.W.slice(0, n)); if (t[f]) dup = true; t[f] = 1; }); if (!dup) break; }
     opts.forEach(function (o) { o.txt = o.W.slice(0, n).join(" ") + (o.W.length > n ? " …" : ""); o.cmp = o.W.slice(0, n).map(rSkel); });
+    // the telling words, marked once answered: a word is marked where another choice has a different word (letter for
+    // letter) in the same place, so a changed letter and a changed order (والصابئين والنصارى / والنصارى والصابئين) both show
+    opts.forEach(function (o) {
+      o.marked = o.W.slice(0, n).map(function (w, i) { var d = opts.some(function (x) { return x !== o && (!x.W[i] || i >= n || mutX(x.W[i]) !== mutX(w)); }); return d ? "<mark>" + esc(w) + "</mark>" : esc(w); }).join(" ") + (o.W.length > n ? " …" : "");
+      // a choice that is the start of a longer one (الشعراء ٩٠ / ق ٣١): where it ends is what tells it apart
+      if (o.marked.indexOf("<mark>") < 0) o.marked += ' <mark class="mt-end">(آخر الآية)</mark>';
+    });
     for (var i = opts.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = opts[i]; opts[i] = opts[j]; opts[j] = x; }
-    return { k: k, s: p[0], a: p[1], pre: T.slice(0, pre).join(" "), opts: opts };
+    return { k: k, s: p[0], a: p[1], pre: T.slice(0, pre).join(" "), after: after, opts: opts, ctx: p[1] > 1 ? Q.t[p[0] - 1][p[1] - 2] : "" };
   }
+  if (window.QA_NOFS) window.QA_mut = mutBuild;   // the UI checks (tools/qa/ui.js) build every question
   function mutPool() {
     var memo = load("mutAll", 0) ? {} : hifzLogData(), all = Object.keys(MUTASH);
     var keys = Object.keys(memo).length ? all.filter(function (k) { return memo[k.split(":")[0]]; }) : all;
@@ -4495,10 +4527,10 @@
       '<div class="z-sort mt-scope"><button data-m="0"' + (all ? "" : ' class="on"') + '>من محفوظي</button><button data-m="1"' + (all ? ' class="on"' : "") + ">كل القرآن</button></div>" +
       (!all && !memoN ? '<p class="hint">لسه مفيش سور محفوظة، فالأسئلة من القرآن كله.</p>' : "") +
       '<p class="hint">كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت. <b class="mt-score" id="mtScore">صح ' + ar(mtq.ok) + " من " + ar(mtq.n) + "</b></p>" +
-      (q ? '<div class="mt-q"><span class="mut-ref" id="mtRef">سورة ' + Q.s[q.s - 1][0] + " · الآية " + ar(q.a) + '</span><div class="ay-text mt-pre" lang="ar">' + esc(q.pre) + ' …</div></div><div class="mt-opts">' +
+      (q ? '<div class="mt-q"><span class="mut-ref" id="mtRef">سورة ' + Q.s[q.s - 1][0] + " · الآية " + ar(q.a) + "</span>" + (q.ctx ? '<div class="ay-text mt-ctx" lang="ar">' + esc(q.ctx) + ' <span class="ayah-no">﴿' + ar(q.a - 1) + "﴾</span></div>" : "") + '<div class="ay-text mt-pre" lang="ar">' + esc(q.pre) + (q.after ? ' <span class="ayah-no">﴿' + ar(q.a) + '﴾</span></div><p class="hint mt-aft">الآية دي متكررة بنصها، إيه الآية اللي بعدها هنا؟</p></div>' : " …</div></div>") + '<div class="mt-opts">' +
         q.opts.map(function (o, i) { return '<button class="mt-ch" data-i="' + i + '"><span class="ay-text" lang="ar">' + esc(o.txt) + '</span><small class="mt-src" hidden>سورة ' + Q.s[o.v[0] - 1][0] + " · الآية " + ar(o.v[1]) + "</small></button>"; }).join("") + "</div>" +
         (window.ReciteBridge ? '<button class="continue ht-mic" id="mtMic">' + ic("mic") + " سمّع التكملة</button>" : "") +
-        '<p class="ht-res" id="mtRes"></p><div class="ht-foot"><button class="continue" id="mtNext">' + ic("anext") + ' السؤال اللي بعده</button><a class="continue" href="#/a/' + q.s + "/" + q.a + '">' + ic("book") + " افتح الآية</a></div>"
+        '<p class="ht-res" id="mtRes"></p><div class="ht-foot"><button class="continue" id="mtNext">' + ic("anext") + ' السؤال اللي بعده</button><button class="continue" id="mtOpen" data-s="' + q.s + '" data-a="' + q.a + '">' + ic("book") + " افتح الآية</button></div>"
         : '<p class="hint">مفيش أسئلة هنا.</p>') + "</div>";
     view.querySelectorAll(".mt-scope button").forEach(function (b) { b.onclick = function () { save("mutAll", +b.dataset.m); mtq.q = null; showMutashTest(); }; });
     if (!q) return;
@@ -4508,20 +4540,21 @@
       var o = q.opts[i], ok = !!o.ok;
       mtq.n++; if (ok) mtq.ok++;
       hifzMark(q.k, ok);
-      view.querySelectorAll(".mt-ch").forEach(function (b, j) { b.disabled = true; b.querySelector(".mt-src").hidden = false; if (q.opts[j].ok) b.classList.add("ok"); else if (j === i) b.classList.add("miss"); });
+      view.querySelectorAll(".mt-ch").forEach(function (b, j) { b.disabled = true; b.querySelector(".mt-src").hidden = false; b.querySelector(".ay-text").innerHTML = q.opts[j].marked; if (q.opts[j].ok) b.classList.add("ok"); else if (j === i) b.classList.add("miss"); });
       document.getElementById("mtScore").textContent = "صح " + ar(mtq.ok) + " من " + ar(mtq.n);
       document.getElementById("mtRes").innerHTML = (ok ? "<b>صح</b>ما شاء الله" : "<b>غلط</b>دي تكملة سورة " + Q.s[o.v[0] - 1][0] + " · الآية " + ar(o.v[1])) +
         '<span class="ay-text mt-full" lang="ar">' + esc(Q.t[q.s - 1][q.a - 1]) + ' <span class="ayah-no">﴿' + ar(q.a) + "﴾</span></span>";
     }
     view.querySelectorAll(".mt-ch").forEach(function (b) { b.onclick = function () { pick(+b.dataset.i); }; });
     document.getElementById("mtNext").onclick = function () { mtq.q = mutNext(); showMutashTest(); window.scrollTo(0, 0); };
+    document.getElementById("mtOpen").onclick = function () { if (mode === "pages") openAyahPage(q.s, q.a, ""); else location.hash = "#/s/" + q.s + "/" + q.a; };
     var mb = document.getElementById("mtMic");
     if (mb) mb.onclick = function () {
-      if (mtv.on) return mtvOff();
+      if (mtv.on) { var L0 = mtv.last; mtvOff(); if (L0 && L0.ok) pick(L0.best); else toast("مش واضح، جرّب تاني"); return; }
       if (answered) return;
       if (!micGate(function () { mb.click(); })) return;
       reciteStop(); player.stop(); if (htv.on) { htv.on = false; Mic.stop(); }
-      mtv = { on: true, btn: mb, pick: pick, q: q };
+      mtv = { on: true, btn: mb, pick: pick, q: q, last: null };
       Mic.start(); mb.classList.add("rec"); mb.innerHTML = ic("astop") + " إيقاف";
     };
   }
@@ -4536,14 +4569,16 @@
       else { if (st === "noperm") toast("محتاج إذن الميكروفون"); mtvOff(); }
       return;
     }
-    if (kind !== "final") return;
+    if (kind !== "final" && kind !== "partial") return;
     var hw = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean).map(rSkel);
     if (!hw.length) return;
     var sc = mtv.q.opts.map(function (o) { return mutHit(hw, o.cmp); }), best = 0;
     sc.forEach(function (x, i) { if (x > sc[best]) best = i; });
-    var tie = sc.filter(function (x) { return x === sc[best]; }).length > 1;
-    // nothing clear yet (the opening only, or too little heard): keep listening
-    if (sc[best] < 0.5 || tie) return toast("مش واضح، كمّل التكملة");
+    var tie = sc.filter(function (x) { return x === sc[best]; }).length > 1, ok = sc[best] >= 0.5 && !tie;
+    mtv.last = { best: best, ok: ok };
+    // a partial decides as soon as one whole choice was heard (fast); a final once one choice is clearly ahead
+    if (kind === "partial") { if (sc[best] === 1 && !tie) mtv.pick(best); return; }
+    if (!ok) return toast("مش واضح، كمّل التكملة");   // the opening only, or too little heard: keep listening
     mtv.pick(best);
   };
 
@@ -4556,16 +4591,18 @@
     btnBack.hidden = false;
     if (htv.on) { htv.on = false; Mic.stop(); }
     var st = load("talqin", { s: 1, a: 1, n: 3 }), s = s0 || st.s || 1;
-    var a = st.s === s && st.a >= 1 && st.a <= Q.s[s - 1][3] ? st.a : 1, N = st.n || 3, step = st.step || 1;
-    save("talqin", { s: s, a: a, n: N });
-    var cnt = Q.s[s - 1][3];
+    var cnt = Q.s[s - 1][3], a = st.s === s && st.a >= 1 && st.a <= cnt ? st.a : 1, N = st.n || 3, step = st.step || 1;
+    var b = st.s === s && st.b >= a ? Math.min(cnt, st.b, a + 19) : a;   // the group's last ayah (one ayah by default, 20 at most)
+    save("talqin", { s: s, a: a, b: b, n: N });
     var opts = ""; for (var i = 1; i <= 114; i++) opts += '<option value="' + i + '"' + (i === s ? " selected" : "") + ">" + ar(i) + ". " + Q.s[i - 1][0] + "</option>";
-    var aopts = ""; for (var j = 1; j <= cnt; j++) aopts += '<option value="' + j + '"' + (j === a ? " selected" : "") + ">الآية " + ar(j) + "</option>";
-    var words = Q.t[s - 1][a - 1].split(" ").map(function (w, k) {
+    var aopts = ""; for (var j = 1; j <= cnt; j++) aopts += '<option value="' + j + '"' + (j === a ? " selected" : "") + ">من الآية " + ar(j) + "</option>";
+    var bopts = ""; for (var j2 = a; j2 <= Math.min(cnt, a + 19); j2++) bopts += '<option value="' + j2 + '"' + (j2 === b ? " selected" : "") + ">لحد الآية " + ar(j2) + "</option>";
+    var words = "";
+    for (var y = a; y <= b; y++) words += Q.t[s - 1][y - 1].split(" ").map(function (w, k) {
       if (!/[ء-يٱ]/.test(w)) return w;
-      return '<button class="ht-w" data-a="' + a + '" data-w="' + k + '">' + w + "</button>";
-    }).join(" ") + ' <span class="ayah-no">﴿' + ar(a) + "﴾</span>";
-    view.innerHTML = '<div class="ht tq">' + hzNav("") + '<div class="ht-top"><div class="ht-pick"><select class="input" id="tqS" aria-label="السورة">' + opts + '</select><select class="input" id="tqA" aria-label="الآية">' + aopts + "</select></div>" +
+      return '<button class="ht-w" data-a="' + y + '" data-w="' + k + '">' + w + "</button>";
+    }).join(" ") + ' <span class="ayah-no">﴿' + ar(y) + "﴾</span> ";
+    view.innerHTML = '<div class="ht tq">' + hzNav("") + '<div class="ht-top"><div class="ht-pick"><select class="input" id="tqS" aria-label="السورة">' + opts + '</select><select class="input" id="tqA" aria-label="من الآية">' + aopts + '</select><select class="input" id="tqB" aria-label="لحد الآية">' + bopts + "</select></div>" +
       '<div class="z-sort tq-n"><span>القارئ يقرا</span>' + [1, 3, 5, 7].map(function (x) { return '<button data-n="' + x + '"' + (x === N ? ' class="on"' : "") + ">" + ar(x) + (x === 1 ? " مرة" : " مرات") + "</button>"; }).join("") + "</div></div>" +
       '<ol class="tq-steps"><li data-st="1">اسمع</li><li data-st="2">اقرا</li><li data-st="3">سمّع</li></ol>' +
       '<p class="hint" id="tqHint"></p><div class="ht-text tq-text" id="tqText" lang="ar">' + words + "</div>" +
@@ -4574,8 +4611,9 @@
       '<p class="ht-res" id="tqRes"></p></div>';
     var T = document.getElementById("tqText"), B = document.getElementById("tqBtns"), H = document.getElementById("tqHint"), missed = 0, done = false;
     var ws = [].slice.call(T.querySelectorAll(".ht-w"));
-    function nextAy() { var n = a < cnt ? [s, a + 1] : s < 114 ? [s + 1, 1] : null; if (!n) return toast("ختمت القرآن، ما شاء الله"); save("talqin", { s: n[0], a: n[1], n: N, step: 1, auto: 1 }); if (n[0] !== s) history.replaceState(null, "", "#/talqin/" + n[0]); showTalqin(n[0]); window.scrollTo(0, 0); }
-    function listen() { player.playRange(s, a, a, N, function () { if (document.body.contains(T) && step === 1) go(2); }); }
+    // the next group, the same size, in this surah (or the next surah from its first ayah)
+    function nextAy() { var k = b - a, n = b < cnt ? [s, b + 1, Math.min(cnt, b + 1 + k)] : s < 114 ? [s + 1, 1, Math.min(Q.s[s][3], 1 + k)] : null; if (!n) return toast("ختمت القرآن، ما شاء الله"); save("talqin", { s: n[0], a: n[1], b: n[2], n: N, step: 1, auto: 1 }); if (n[0] !== s) history.replaceState(null, "", "#/talqin/" + n[0]); showTalqin(n[0]); window.scrollTo(0, 0); }
+    function listen() { player.playRange(s, a, b, N, function () { if (document.body.contains(T) && step === 1) go(2); }); }
     function go(k) {
       step = k; htvOff();
       view.querySelectorAll(".tq-steps li").forEach(function (li) { li.classList.toggle("on", +li.dataset.st === k); li.classList.toggle("done", +li.dataset.st < k); });
@@ -4583,14 +4621,14 @@
       ws.forEach(function (e) { e.classList.remove("shown", "ok", "miss", "uns"); delete e.dataset.tap; if (k !== 3) e.classList.add("shown"); });
       missed = 0; done = false; document.getElementById("tqRes").innerHTML = "";
       if (k === 1) {
-        H.textContent = "اسمع القارئ وهو بيقرا الآية " + ar(N) + (N === 1 ? " مرة" : " مرات") + "، والآية مستخبية.";
+        H.textContent = (a === b ? "اسمع القارئ وهو بيقرا الآية " : "اسمع القارئ وهو بيقرا الآيات ") + ar(N) + (N === 1 ? " مرة" : " مرات") + (a === b ? "، والآية مستخبية." : "، والآيات مستخبية.");
         B.innerHTML = '<button class="continue" id="tqPlay">' + ic("aplay") + "<span>اسمع</span></button><button class=\"continue\" id=\"tqSkip\">" + ic("anext") + "<span>اقراها</span></button>";
         document.getElementById("tqPlay").onclick = listen;
         document.getElementById("tqSkip").onclick = function () { player.stop(); go(2); };
       } else if (k === 2) {
         H.textContent = "اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.";
         B.innerHTML = '<button class="continue" id="tqAgain">' + ic("rep") + "<span>اسمع تاني</span></button><button class=\"continue\" id=\"tqHide\">" + ic("eyeoff") + "<span>خبّيها وسمّع</span></button>";
-        document.getElementById("tqAgain").onclick = function () { player.playRange(s, a, a, 1); };
+        document.getElementById("tqAgain").onclick = function () { player.playRange(s, a, b, 1); };
         document.getElementById("tqHide").onclick = function () { player.stop(); go(3); };
       } else {
         H.textContent = "سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».";
@@ -4612,16 +4650,17 @@
       if (done) return; done = true; htvOff();
       ws.forEach(function (b) { if (!b.classList.contains("shown")) b.classList.add("shown", "ok"); });
       var n = ws.length, sc = n ? Math.round((n - missed) / n * 100) : 100;
-      hifzMark(s + ":" + a, !missed); asrStat("ok", n - missed); asrStat("bad", missed);
+      for (var z = a; z <= b; z++) hifzMark(s + ":" + z, !T.querySelector('.ht-w.miss[data-a="' + z + '"]'));
+      asrStat("ok", n - missed); asrStat("bad", missed);
       document.getElementById("tqRes").innerHTML = "<b>" + ar(sc) + "٪</b> " + (missed ? "نسيت " + ar(missed) + " من " + ar(n) + " كلمة" : "ما شاء الله، صح كلها") +
-        '<span class="tq-go"><button class="continue" id="tqNext">' + ic("anext") + ' الآية اللي بعدها</button><button class="continue" id="tqRep">' + ic("rep") + " عيد الآية</button></span>";
+        '<span class="tq-go"><button class="continue" id="tqNext">' + ic("anext") + (a === b ? " الآية اللي بعدها" : " الآيات اللي بعدها") + '</button><button class="continue" id="tqRep">' + ic("rep") + (a === b ? " عيد الآية" : " عيد الآيات") + "</button></span>";
       document.getElementById("tqNext").onclick = nextAy;
       document.getElementById("tqRep").onclick = function () { go(1); listen(); };
     }
     function htvOff() { if (!htv.on) return; htv.on = false; Mic.stop(); var m = document.getElementById("tqMic"); if (m) { m.classList.remove("rec"); m.innerHTML = ic("mic") + " سمّع بالصوت"; } }
     // the hifz test's voice path (window.onRecite › htv): the same matcher, verdict colours, «أنا قريت صح» and donation
     function htvOn(btn) {
-      var nth = 0, hk = ws.map(function () { return s + ":" + a + ":" + nth++; });
+      var nth = {}, hk = ws.map(function (e) { var y = e.dataset.a; nth[y] = nth[y] || 0; return s + ":" + y + ":" + nth[y]++; });
       htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), keys: hk, ptr: 0, V: {}, shownV: {}, force: {}, skip: 0, more: null,
         set: function (i, v) {
           var e = ws[i]; if (e.dataset.tap) return;
@@ -4634,12 +4673,18 @@
           else if (!miss) { missed++; e.classList.remove("ok"); e.classList.add("shown", "miss"); }
         },
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
-        btn: btn, s: s, fix: document.getElementById("htFix"), done: finish, follow: function () {} };
+        btn: btn, s: s, fix: document.getElementById("htFix"), done: finish,
+        follow: function (at) {   // a long group: the next word to say stays in view
+          var e = ws[Math.min(ws.length - 1, at)]; if (!e) return;
+          var r = e.getBoundingClientRect(), top = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight + 8;
+          if (r.top < top || r.bottom > innerHeight * 0.7) window.scrollBy({ top: r.top - Math.max(top, innerHeight * 0.3), behavior: "smooth" });
+        } };
       htv.fix.hidden = true;
     }
     document.getElementById("tqS").onchange = function () { save("talqin", { s: +this.value, a: 1, n: N }); location.replace("#/talqin/" + this.value); };
-    document.getElementById("tqA").onchange = function () { player.stop(); save("talqin", { s: s, a: +this.value, n: N }); showTalqin(s); };
-    view.querySelectorAll(".tq-n button").forEach(function (b) { b.onclick = function () { N = +b.dataset.n; save("talqin", { s: s, a: a, n: N }); view.querySelectorAll(".tq-n button").forEach(function (x) { x.classList.toggle("on", x === b); }); if (step === 1) go(1); }; });
+    document.getElementById("tqA").onchange = function () { player.stop(); var a2 = +this.value; save("talqin", { s: s, a: a2, b: Math.min(cnt, a2 + (b - a)), n: N }); showTalqin(s); };
+    document.getElementById("tqB").onchange = function () { player.stop(); save("talqin", { s: s, a: a, b: +this.value, n: N }); showTalqin(s); };
+    view.querySelectorAll(".tq-n button").forEach(function (bt) { bt.onclick = function () { N = +bt.dataset.n; save("talqin", { s: s, a: a, b: b, n: N }); view.querySelectorAll(".tq-n button").forEach(function (x) { x.classList.toggle("on", x === bt); }); if (step === 1) go(1); }; });
     go(1);
     if (st.auto) listen();   // the next ayah starts with the reciter by itself
   }

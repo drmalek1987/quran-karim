@@ -579,3 +579,12 @@
 6. S8: شغّل التلاوة، واضغط زرار التحميل في المشغّل: «الاستماع من غير إنترنت». اختار السورة أو الجزء واضغط «حمّل»: الشريط بيتملى والعدّاد بيزيد، و«إلغاء التحميل» بيوقفه. اقفل النت وشغّل السورة: بتشتغل.
 7. S8: مؤقت النوم: ١٥ دقيقة بيبان في المشغّل «النوم بعد ١٥ د» والزرار بيبقى ساعة. بعد الوقت التلاوة بتقف. «آخر السورة» بيوقف في آخر السورة ومبيكمّلش اللي بعدها. «إلغاء المؤقت» بيلغيه. اقفل الشاشة والمؤقت شغال: بيقف برضه.
 - 5.17 build QA (2026-11-08, quran-karim-v5.17.apk, versionCode 63, sw quran-v58, signer 7d8b31d2): ui.js kfgqpc 265 checks, 3 FAIL fixed and re-run PASS (two tile counts grew with the 2 new «المزيد» tiles; the S8 «آخر السورة» check raced the auto-advance and now watches the player until it stops) · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim no errors · i18n_scan: no new untranslated UI string (D517) · Maestro smoke PASS on Small/Fold/Tablet/Phone API35. bee81250 not on adb at release time: APK left ready.
+
+## 5.17b — ملاحظات المستخدم على 5.17 (phone tests)
+1. التلقين: «من الآية» و«لحد الآية» (لحد ٢٠ آية): القارئ بيقرا المجموعة كلها N مرة، والتسميع بيعلّم كل آية لوحدها، و«الآيات اللي بعدها» بتفتح مجموعة بنفس الحجم.
+2. المتشابهات: «سمّع التكملة» بيختار أول ما تقول التكملة (من غير ما تسكت)، و«إيقاف» بيحكم باللي اتسمع.
+3. المتشابهات: صندوق السؤال ذهبي ومختلف عن الاختيارات، وفوقه الآية اللي قبله (السياق: الأعراف ٦١ «ضلالة» مش ٦٧ «سفاهة»).
+4. المتشابهات: «افتح الآية» بتفتح المصحف على الطبعة المختارة أو النص، حسب طريقة العرض.
+5. المتشابهات: فرق حرف واحد (وما/فما) بيبان في الاختيارات، وبعد الإجابة الكلمة المميزة متظللة (ولو الفرق في ترتيب الكلمات، أو الاختيار بيخلص بدري «(آخر الآية)»).
+6. المتشابهات: آية متكررة بنصها (فبأي آلاء ربكما تكذبان): السؤال «إيه الآية اللي بعدها هنا؟».
+- 5.17b build QA (2026-11-08, quran-karim-v5.17b.apk, versionCode 64, sw quran-v59, signer 7d8b31d2): ui.js kfgqpc 271/0 · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim no errors · i18n D517 lines added · Maestro smoke PASS on 4 AVDs. bee81250 not on adb; published as GitHub release v5.17b (user asked).

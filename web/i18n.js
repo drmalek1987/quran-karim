@@ -356,7 +356,9 @@
     "مؤقت النوم": "Sleep timer", "# دقيقة": "# min", "ساعة": "1 hour", "آخر السورة": "End of the surah", "إلغاء المؤقت": "Cancel the timer", "قفل": "Close",
     "النوم بعد # د": "Sleep in # min", "النوم آخر السورة": "Sleep at surah end", "التلاوة هتقف بعد # دقيقة": "Recitation stops in # min",
     "التلاوة هتقف في آخر السورة": "Recitation stops at the end of the surah", "اتلغى مؤقت النوم": "Sleep timer cancelled", "وقّفت التلاوة، تصبح على خير": "Recitation stopped, good night",
-    "@ · آية #": "@ · ayah #", "الآية": "Ayah" };
+    "@ · آية #": "@ · ayah #", "الآية": "Ayah", "لحد الآية #": "To ayah #", "لحد الآية": "To ayah", "من الآية": "From ayah", "الآيات اللي بعدها": "Next ayat", "عيد الآيات": "Repeat the ayat",
+    "اسمع القارئ وهو بيقرا الآيات # مرة، والآيات مستخبية.": "Listen to the reciter read the ayat # time, with the ayat hidden.",
+    "اسمع القارئ وهو بيقرا الآيات # مرات، والآيات مستخبية.": "Listen to the reciter read the ayat # times, with the ayat hidden.", "مش واضح، جرّب تاني": "Not clear, try again", "الآية دي متكررة بنصها، إيه الآية اللي بعدها هنا؟": "This ayah is repeated word for word: which ayah comes after it here?" };
   for (var c517 in D517) if (D[c517] === undefined) D[c517] = D517[c517];
   for (var c513 in D513) if (D[c513] === undefined) D[c513] = D513[c513];
   for (var c49 in D49) if (D[c49] === undefined) D[c49] = D49[c49];

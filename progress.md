@@ -346,3 +346,5 @@ Goal check: S3/S5 close the hifz loop (mutashabihat slips + talqin for new ayat)
 - Full QA passed (QA-checklist 5.17). bee81250 not on adb: APK quran-karim-v5.17.apk left ready.
 Resume: the user installs/tests 5.17 (QA-checklist 5.17 lines 1–7) and the pack v3 update; then next sprint per plans/5.11-plan.md (S7 «النهارده», G8 waits for the user).
 - GitHub release v5.17 published with the user's OK (2026-11-08).
+- 5.17b (user notes on 5.17): talqin on a group (q.talqin.b, ≤20 ayat; next group same size); mutash: mic decides on partials + «إيقاف» uses the last heard (finals after stop were dropped), gold question box + the ayah before as context, «افتح الآية» = openAyahPage/#/s by mode; letter-exact choices (mutX = norm; و/ف no longer stripped), look-alikes need ≥40% shared words, same-surah ones only when their ayah before differs; word-for-word repeats ask for the next ayah (78 questions); telling words marked by position (order swaps too, «(آخر الآية)» for a prefix). 799 questions of 1550 keys. versionCode 64, sw quran-v59.
+Resume: user phone test of 5.17b (QA-checklist 5.17 + 5.17b) and pack v3; next sprint per plans/5.11-plan.md (S7 «النهارده»).

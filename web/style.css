@@ -1147,7 +1147,8 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .ht-bad>summary{display:flex;align-items:center}
 .hz-wway{margin:8px 0}
 /* 5.17 S3: اختبار المتشابهات */
-.mt-q { background: var(--card); border-radius: 16px; padding: 12px 14px; margin: 10px 0; box-shadow: var(--shadow, none); }
+.mt-q { background: var(--gold-soft); border: 2px solid var(--gold); border-radius: 16px; padding: 12px 14px; margin: 10px 0; box-shadow: var(--shadow, none); }
+.mt-q .mut-ref { color: var(--gold); }
 .mt-pre { font-size: 24px; margin-top: 6px; }
 .mt-opts { display: grid; gap: 8px; margin: 10px 0; }
 .mt-ch { font: inherit; color: inherit; text-align: start; background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; cursor: pointer; }
@@ -1158,7 +1159,7 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .mt-src { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
 .mt-score { color: var(--accent); white-space: nowrap; }
 .mt-full { display: block; font-size: 21px; margin-top: 8px; }
-.mt .ht-foot a.continue { text-align: center; text-decoration: none; }
+.tq .ht-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .tq .ht-pick #tqS { grid-column: 1 / -1; }
 /* 5.17 S5: التلقين */
 .tq-steps { display: flex; gap: 6px; list-style: none; padding: 0; margin: 10px 0; counter-reset: tq; }
 .tq-steps li { flex: 1; text-align: center; padding: 6px 4px; border-radius: 10px; background: var(--card); color: var(--muted); font-size: 14px; counter-increment: tq; }
@@ -1179,3 +1180,6 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .zz-opts button.on { background: var(--accent); color: #fff; }
 .pl-zz.on { color: var(--accent); }
 .pl-zz i { font-style: normal; font-size: 10px; }
+.mt-ctx { font-size: 18px; color: var(--muted); margin-top: 6px; border-bottom: 1px dashed var(--gold); padding-bottom: 6px; }
+.mt-ch mark { background: rgba(255, 196, 0, .45); color: inherit; border-radius: 4px; }
+.mt-end { font-size: 14px; }

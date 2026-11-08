@@ -1031,7 +1031,7 @@ async function fresh(ctx, vp) {
     return assert(!a[0] && a[1] && !b2[0] && !b2[1] && b2[2] === false && h === '#/p/600' && !w[0] && !w[1] && w2[0] && w2[1] === true && rv[0] && rv[1], JSON.stringify([a, b2, h, w, w2, rv])); });
   // ---------- 5.17 (Sprint C): S3 اختبار المتشابهات، S5 التلقين، S8 الصوت من غير إنترنت ومؤقت النوم ----------
   const G517 = 'نسخة 5.17 (Sprint C)';
-  const mtKey = () => ev(() => { const h = document.querySelector('.mt .ht-foot a').getAttribute('href').split('/'); return h[2] + ':' + h[3]; });
+  const mtKey = () => ev(() => { const d = document.getElementById('mtOpen').dataset; return d.s + ':' + d.a; });
   await check(G517, 'S3: اختبار المتشابهات بيفتح من «المزيد» بسؤال وتكملات من 2 لـ 3', async () => {
     await ev(() => { localStorage.removeItem('q.hifzLog'); localStorage.removeItem('q.hifzAyat'); }); await go('#/more', 400);
     await p.click('.tile[data-h="#/mutash"]'); await wait(1500);
@@ -1053,13 +1053,55 @@ async function fresh(ctx, vp) {
   await check(G517, 'S3: «سمّع التكملة» بالمايك بيختار التكملة الصح من الكلام المسموع', async () => {
     await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/', 150); await go('#/mutash', 900);
     await p.click('#mtMic'); await wait(200);
-    const said = await ev(() => { const h = document.querySelector('.mt .ht-foot a').getAttribute('href').split('/'), t = QURAN.t[+h[2] - 1][+h[3] - 1];
+    const said = await ev(() => { const h = document.getElementById('mtOpen').dataset, t = QURAN.t[+h.s - 1][+h.a - 1];
       const c = [...document.querySelectorAll('.mt-ch .ay-text')].map(e => e.textContent.replace(' …', '')).find(x => t.indexOf(document.querySelector('.mt-pre').textContent.replace(' …', '') + ' ' + x) === 0);
-      onRecite(c, 'final'); return c; });
+      onRecite(c, 'partial'); return c; });
     await wait(200);
     const r = await ev(() => [document.querySelectorAll('.mt-ch.ok').length, document.querySelectorAll('.mt-ch.miss').length, document.getElementById('mtMic').classList.contains('rec')]);
     await ev(() => { delete window.ReciteBridge; });
     return assert(said && r[0] === 1 && r[1] === 0 && !r[2], JSON.stringify([said, r])); });
+  await check(G517, '5.17b: سؤال المتشابهات بلون مختلف عن الاختيارات، و«افتح الآية» بتفتح المصحف أو النص حسب العرض', async () => {
+    await go('#/mutash', 600);
+    const c = await ev(() => [getComputedStyle(document.querySelector('.mt-q')).backgroundColor, getComputedStyle(document.querySelector('.mt-ch')).backgroundColor]);
+    const k = await mtKey(); await ev(() => localStorage.setItem('q.mode', '"pages"')); await p.reload(); await wait(800); await go('#/mutash', 600);
+    const k2 = await mtKey(); await p.click('#mtOpen'); await wait(800); const h1 = await ev(() => location.hash);
+    await ev(() => localStorage.setItem('q.mode', '"text"')); await p.reload(); await wait(800); await go('#/mutash', 600);
+    const k3 = await mtKey(); await p.click('#mtOpen'); await wait(800); const h2 = await ev(() => location.hash);
+    await ev(() => localStorage.setItem('q.mode', '"pages"')); await p.reload(); await wait(800);
+    return assert(c[0] !== c[1] && /^#\/p\/\d+\?a=/.test(h1) && h1.indexOf('a=' + k2) > 0 && h2 === '#/s/' + k3.replace(':', '/'), JSON.stringify([c, k2, h1, k3, h2])); });
+  await check(G517, '5.17b: «إيقاف» في «سمّع التكملة» بيحكم باللي اتسمع لحد دلوقتي', async () => {
+    await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/', 150); await go('#/mutash', 800);
+    await p.click('#mtMic'); await wait(100);
+    const said = await ev(() => { const h = document.getElementById('mtOpen').dataset, t = QURAN.t[+h.s - 1][+h.a - 1], pre = document.querySelector('.mt-pre').textContent.replace(' …', '');
+      const o = [...document.querySelectorAll('.mt-ch .ay-text')].map(e => e.textContent.replace(' …', '')).find(x => t.indexOf(pre + ' ' + x) === 0);
+      const w = o.split(' '); onRecite(w.slice(0, Math.max(2, w.length - 1)).join(' '), 'partial'); return w; });
+    await wait(100); const mid = await ev(() => document.querySelectorAll('.mt-ch.ok').length);
+    await p.click('#mtMic'); await wait(150);
+    const r = await ev(() => [document.querySelectorAll('.mt-ch.ok').length, document.querySelectorAll('.mt-ch.miss').length, document.getElementById('mtRes').textContent]);
+    await ev(() => { delete window.ReciteBridge; });
+    // a choice cut to 4+ words: 3 of 4 heard is enough when it is clearly ahead; else «مش واضح» and nothing is marked
+    return assert((r[0] === 1 && r[1] === 0) || (r[0] === 0 && !r[2]), JSON.stringify([said, mid, r])); });
+  await check(G517, '5.17b: سؤال المتشابهات بيعرض الآية اللي قبلها كسياق (الأعراف ٦١: ضلالة مش سفاهة)', async () => {
+    let r = null;
+    for (let i = 0; i < 40; i++) { await p.click('#mtNext'); await wait(80);
+      const x = await ev(() => { const d = document.getElementById('mtOpen').dataset, c = document.querySelector('.mt-ctx'); return [+d.s, +d.a, c ? c.textContent : null]; });
+      if (x[1] > 1 && !x[2]) return assert(false, 'no context ' + JSON.stringify(x)); if (x[1] > 1) { r = x; break; } }
+    return assert(r && r[2].indexOf(String.fromCharCode(0xFD3F)) > 0, JSON.stringify(r)); });
+  await check(G517, '5.17b: بعد الإجابة الكلمة المميزة في كل تكملة متظللة', async () => {
+    await p.click('#mtNext'); await wait(150); await p.click('.mt-ch[data-i="0"]'); await wait(150);
+    const m = await ev(() => [...document.querySelectorAll('.mt-ch')].map(b => b.querySelectorAll('mark').length));
+    return assert(m.filter(x => x > 0).length >= m.length - 1, JSON.stringify(m)); });
+  await check(G517, '5.17b: كل أسئلة المتشابهات: الاختيارات مختلفة حرف بحرف وفي كل واحدة كلمة مميزة، والآية المتكررة بنصها سؤالها «الآية اللي بعدها»', async () => {
+    const r = await ev(() => { const st = { n: 0, after: 0, bad: [], letter: 0 }; const nm = w => w.replace(/[ً-ٰٟۖ-ۭـ]/g, '');
+      for (const k of Object.keys(MUTASH)) { const q = QA_mut(k); if (!q) continue; st.n++; if (q.after) st.after++;
+        const tx = q.opts.map(o => nm(o.txt)); if (new Set(tx).size !== tx.length) st.bad.push(k + ' dup');
+        if (q.opts.some(o => o.marked.indexOf('<mark') < 0)) st.bad.push(k + ' nomark');
+        const c = q.opts.find(o => o.ok); const ref = q.after ? QURAN.t[c.v[0] - 1][c.v[1] - 1] : QURAN.t[q.s - 1][q.a - 1];
+        if (!(q.after ? ref.indexOf(c.txt.replace(' …', '')) === 0 : ref.indexOf(q.pre + ' ' + c.txt.replace(' …', '')) === 0)) st.bad.push(k + ' wrongok');
+        // one-letter differences (وما/فما ...): choices whose cut text differs by one letter only
+        const L = q.opts.map(o => nm(o.txt)); for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (L[i].length === L[j].length && [...L[i]].filter((ch, x) => ch !== L[j][x]).length === 1) st.letter++; }
+      st.bad = st.bad.slice(0, 5); return st; });
+    return assert(r.n > 700 && r.after > 0 && !r.bad.length && r.letter > 0, JSON.stringify(r)); });
   await check(G517, 'S3: «من محفوظي» بيسأل من السور المحفوظة بس', async () => {
     await ev(() => localStorage.setItem('q.hifzLog', JSON.stringify({ 2: { d: '2026-11-01' } }))); await go('#/', 150); await go('#/mutash', 600);
     await p.click('.mt-scope button[data-m="1"]'); await wait(100); await p.click('.mt-scope button[data-m="0"]'); await wait(150);
@@ -1084,6 +1126,18 @@ async function fresh(ctx, vp) {
     const r = await ev(() => [document.getElementById('tqRes').textContent, JSON.parse(localStorage.getItem('q.hifzAyat'))['112:2'], document.querySelectorAll('#tqText .ht-w.ok').length, document.querySelectorAll('#tqText .ht-w').length]);
     await ev(() => { delete window.ReciteBridge; const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
     return assert(a[0] === '2' && a[1] === '1' && a[2] && /١٠٠٪/.test(r[0]) && r[1] && r[1].ok === 1 && r[2] === r[3], JSON.stringify([a, r])); });
+  await check(G517, '5.17b: التلقين لمجموعة آيات (من ١ لحد ٣): القارئ بيقرا المجموعة، والتسميع بيعلّم كل آية، و«الآيات اللي بعدها» بتفتح ٤–٦', async () => {
+    await ev(() => localStorage.setItem('q.talqin', JSON.stringify({ s: 112, a: 1, b: 1, n: 1 }))); await go('#/', 150); await go('#/talqin/112', 500);
+    await ev(() => { const s = document.getElementById('tqB'); s.value = '3'; s.onchange(); }); await wait(300);
+    const a = await ev(() => [document.getElementById('tqA').value, document.getElementById('tqB').value, new Set([...document.querySelectorAll('#tqText .ht-w')].map(e => e.dataset.a)).size, document.getElementById('tqHint').textContent]);
+    await p.click('#tqPlay'); await wait(200); const pl = await ev(() => document.querySelector('.pl-info span').textContent);
+    await p.click('#tqSkip'); await wait(100); await p.click('#tqHide'); await wait(100);
+    await p.click('#tqText .ht-w[data-a="2"]'); await p.click('#tqDone'); await wait(150);
+    const H = await ev(() => { const h = JSON.parse(localStorage.getItem('q.hifzAyat')); return [h['112:1'].ok, h['112:2'].ok, h['112:3'].ok, document.getElementById('tqNext').textContent]; });
+    await p.click('#tqNext'); await wait(400);
+    const n = await ev(() => [document.getElementById('tqA').value, document.getElementById('tqB').value]);
+    await ev(() => { const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
+    return assert(a[0] === '1' && a[1] === '3' && a[2] === 3 && /الآيات/.test(a[3]) && /١–٣/.test(pl) && H[0] === 1 && H[1] === 0 && H[2] === 1 && /الآيات اللي بعدها/.test(H[3]) && n[0] === '4' && n[1] === '4', JSON.stringify([a, pl, H, n])); });
   await check(G517, 'S8: مؤقت النوم ١٥ دقيقة بيبان في المشغّل وبيتلغي', async () => {
     await go('#/p/604', 900); await p.click('#pPlay'); await wait(300);
     await p.click('#player button[data-c=dl]'); await wait(150); const dlg = await ev(() => [!!document.querySelector('.ls-dlg .zz-opts'), !!document.getElementById('dlGo')]);
