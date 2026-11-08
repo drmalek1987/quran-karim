@@ -636,7 +636,7 @@ async function fresh(ctx, vp) {
     await p.click('.hm-grid .hm-c[data-p="604"][data-s="113"]'); await wait(300);
     const ops = await ev(() => [...document.querySelectorAll('.hz-pick #hzA option')].map(o => o.value).join(','));
     await p.selectOption('#hzA', '3'); await p.click('#hzMus'); await wait(1200);
-    const t = await ev(() => { const h = window.__hz = window.__hz || {}; return [location.hash, document.body.classList.contains('has-hifz'), document.querySelectorAll('.hz-flip.on:disabled').length]; });
+    const t = await ev(() => { const h = window.__hz = window.__hz || {}; return [location.hash, document.body.classList.contains('has-hifz'), document.querySelectorAll('.hz-flip.on:not(:disabled)').length]; });
     const sh = await ev(() => [...document.querySelectorAll('#hifzBar .hz-info span')].map(x => x.textContent).join(''));
     return assert(c[0] === '112,113,114' && c[1] === 1 && ops === '1,2,3,4,5' && t[0] === '#/p/604' && t[1] && t[2] === 1 && /٠/.test(sh), JSON.stringify([c, ops, t, sh])); });
   await check(G511, 'G6: آخر آية في آخر صفحة في المصحف بتنهي الاختبار (5.15b: مفيش «قلب تلقائي» جوه الاختبار)', async () => {
@@ -676,8 +676,8 @@ async function fresh(ctx, vp) {
     await G('G7: القراءة بالصوت بالعرض: الكلمة اللي بتتقري بتفضل ظاهرة (الصفحة بتنزل معاها)', R => assert(R.F && R.F.sy > 0 && R.F.top >= 0 && R.F.top < R.F.ih * 0.75, JSON.stringify(R.F)));
     await G('G7: التسميع في الوضع العمودي: الصفحات اللي بعد الصفحة الحالية مخفية لحد ما توصلها', R => assert(R.G.after === 'hidden' && R.G.own === 'visible' && !R.G.off, JSON.stringify(R.G)));
     await G('phone #11: اختبار الكلمات: المايك بيحط النص تحت الشريط، والنص بينزل مع القارئ', R => assert(R.I.top0 < 120 && R.I.fol[0] > 0 && R.I.fol[0] < R.I.fol[1] * 0.75, JSON.stringify(R.I)));
-    await G('phone #12: اختبار الكلمات (من غير زرار «قلب تلقائي»): آخر كلمة (partial) بتفتح الآيات اللي بعدها والمايك شغال، وكلامها بيتحسب', R => assert(R.I.flipBtn && R.I.moved[0] === 11 && R.I.moved[1] && R.I.moved[2] && R.I.nxOk[0] > 0 && R.I.nxOk[0] === R.I.nxOk[1] && R.I.nxOk[2] === 0, JSON.stringify(R.I)));
-    await G('phone #12 / 5.15b: اختبار الكلمات: حتى لو «قلب تلقائي» مقفول برّه، الاختبار بيكمّل للآيات اللي بعدها والمايك شغال', R => assert(R.I.off[0] === 11 && R.I.off[1], JSON.stringify(R.I.off)));
+    await G('phone #12: اختبار الكلمات («قلب تلقائي» شغال، 5.16d): آخر كلمة (partial) بتفتح الآيات اللي بعدها والمايك شغال، وكلامها بيتحسب', R => assert(R.I.flipBtn && R.I.moved[0] === 11 && R.I.moved[1] && R.I.moved[2] && R.I.nxOk[0] > 0 && R.I.nxOk[0] === R.I.nxOk[1] && R.I.nxOk[2] === 0, JSON.stringify(R.I)));
+    await G('5.16d: اختبار الكلمات من غير «المراجعة» و«قلب تلقائي» مقفول: آخر الآيات بتنهي الاختبار بالنتيجة', R => assert(R.I.off[0] === 1 && !R.I.off[1] && /٪/.test(R.I.off[2]), JSON.stringify(R.I.off)));
     await G('G7: زمن فك الكلام من الموديل بيتسجل في الإحصائيات', R => assert(R.H[0] === 420 && R.H[1] === 1 && R.H[2] === 3000, JSON.stringify(R.H)));
     await G('G7: مفيش أخطاء JavaScript في محاكاة التسميع', R => assert(!R.errs.length, R.errs.join(' | '))); }
   // ---------- 5.13: user patch 2 ----------
