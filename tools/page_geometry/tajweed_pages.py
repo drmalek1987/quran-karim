@@ -16,7 +16,7 @@ from multiprocessing import Pool
 import cv2, numpy as np
 from PIL import Image
 import pipe
-ROOT = '/mnt/project-files/quran-app'
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'build-src')
 QUADS = json.load(open('quads.json'))
 PAGE = ROOT + '/web/pages/%03d.avif'

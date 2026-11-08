@@ -50,7 +50,7 @@ def main():
         if os.path.exists(p): os.remove(p)
     # PLAY=1: the Google Play build, without the scanned edition (no publishing licence) and its tajweed layer.
     if PLAY:
-        for d in ("pages", "tjpages"): shutil.rmtree(os.path.join(W, d), ignore_errors=True)
+        for d in ("pages", "tjpages", "editions/harmain-w"): shutil.rmtree(os.path.join(W, d), ignore_errors=True)
         with open(os.path.join(W, "flags.js"), "w", newline="\n") as f: f.write("window.NO_HARMAIN = true;\n")
 
     # Page images are not in the APK: one zip per edition for the release the app downloads from (EdStore.java).

@@ -1276,6 +1276,23 @@ async function fresh(ctx, vp) {
         res([rows.length, x.length, x.every(r => r[5] - r[3] >= 6 && r[5] - r[3] < 300)]); })));
       return assert(r[0] > 30 && r[1] === 7 && r[2], JSON.stringify(r)); });   // 2:2 = 7 words
   }
+  if (ED === 'harmain') {
+    // the Haramain photos: word boxes aligned in the straightened frame, mapped back through the page's homography
+    const pick = async (n, s, a, w) => { await go('#/p/' + n, 1200); const xy = await wbPt(n, s, a, w); if (!xy) return ['no box'];
+      await longPress(xy); const r = await ev(() => { const d = document.querySelector('.wm-dlg'); if (!d) return null; const bs = [...d.querySelectorAll('.words button')];
+        return [bs.indexOf(d.querySelector('.words button.on')), d.querySelector('.words button.on').textContent, !!document.querySelector('#ayahBar button[data-c="x"]')]; });
+      await ev(() => window.qBack()); await wait(300); return r; };
+    await check(G519, 'الحرمين: ضغطة طويلة على «ٱلْكِتَٰبُ» في صفحة ٣ بتفتح معنى الكلمة دي', async () => {
+      const r = await pick(3, 2, 2, 1); return assert(r && r[0] === 1 && r[1] === 'ٱلْكِتَٰبُ' && !r[2], JSON.stringify(r)); });
+    await check(G519, 'الحرمين: أول كلمة في السطر (٣٣:٥٠ كلمة ٢٥، صفحة ٣٧٢) مربعها كامل ومش شريحة في آخر السطر اللي قبله', async () => {
+      const r = await pick(372, 33, 50, 24); return assert(r && r[0] === 24, JSON.stringify(r)); });
+    await check(G519, 'الحرمين: كلمة «قُتِلَتْ» (٨١:٩) في صفحة ٥٢٢ بتتعرف من مربعها', async () => {
+      const r = await pick(522, 81, 9, 2); return assert(r && r[1] === 'قُتِلَتْ', JSON.stringify(r)); });
+    await check(G519, 'الحرمين: مربعات صفحة ٣٧٢ كلها بعرض كلمة (مفيش شرايح) وكل كلمة ليها مربع واحد', async () => {
+      const r = await ev(() => new Promise(res => QA_wb(372, rows => { const k = new Set(rows.map(r => r.slice(0, 3).join(':')));
+        res([rows.length, k.size, rows.every(r => r[5] - r[3] >= 6 && r[5] - r[3] < 300 && r[6] - r[4] < 90)]); })));
+      return assert(r[0] > 100 && r[0] === r[1] && r[2], JSON.stringify(r)); });
+  }
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

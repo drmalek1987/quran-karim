@@ -1,8 +1,9 @@
 # Per page: warp the text frame (plus a margin) to a fixed size, find ayah-end markers and header bands.
 import sys; sys.path.insert(0, sys.argv[1] if len(sys.argv)>1 else '.')
-import cv2, json, numpy as np
+import os, cv2, json, numpy as np
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 Q=json.load(open('quads.json'))
-P='/mnt/project-files/quran-app/web/pages/%03d.jpg'
+P=ROOT+'/web/pages/%03d.jpg'
 SC=2; NW,NH=400*SC,600*SC; MG=14*SC
 def warp(n):
     img=cv2.imread(P%n); g=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)

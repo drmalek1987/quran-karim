@@ -159,7 +159,7 @@
   // طبعة الحرمين = the scanned PDF (web/pages, data in quran-data.js); طبعة الملك فهد = drawn from the King Fahd Complex
   // and طبعة الشمرلي = the printed PDFs (web/editions/<id>, data in editions/<id>.js; Shamarly pages 2..522), downloaded per edition.
   var EDS = {
-    harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0 }
+    harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0, w: "editions/harmain-w/" }   // w: measured word boxes (5.19, aligned in the straightened photo frame)
   };
   if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1, w: "editions/kfgqpc-w/" }, window.ED_KFGQPC);   // w: measured word boxes (5.19)
   // طبعة الملك فهد القديمة = the scanned older Madinah print (HA's PDF, PDF page = page + 3). Its lines are the same as the

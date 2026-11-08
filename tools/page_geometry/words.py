@@ -1,9 +1,10 @@
 # Ayah spans and word boxes on the scanned pages.
-import sys; sys.path.insert(0,'.')
+import sys, os; sys.path.insert(0,'.')
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import cv2, numpy as np, json, pipe
 MG,NW,NH=pipe.MG,pipe.NW,pipe.NH
 SLOT=80
-q=json.load(open('/mnt/project-files/quran-app/data/quran-uthmani-quranenc.json'))
+q=json.load(open(ROOT + '/data/quran-uthmani-quranenc.json', encoding='utf8'))
 WORDS=[[v['text'].split(' ') for v in s['verses']] for s in q]
 seq=json.load(open('seq.json'))
 S2=json.load(open('scan2.json'))

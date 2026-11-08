@@ -411,3 +411,16 @@ Resume: wait for ui-kfold/shamarly/harmain + donate/recite/i18n (scratchpad), re
   Next for Haramain: the planned route (tajweed_pages align() in the warped frame + inverse warp; Windows port of /mnt paths).
 - QA: kfold 280/0.
 Resume: wait for shamarly/harmain/donate/recite/i18n, re-run ED=kfgqpc ui.js (new selection check), commit + push, report.
+- Haramain word boxes (2026-11-09, side session): goal check = word picking on the Haramain pages (user: weak) -> near-complete app.
+  New tools/page_geometry/word_boxes_harmain.py: tajweed_pages.align() in the straightened frame (quads.json warp), word
+  columns -> its line slot -> inverse homography -> bbox per mille. Only the piece with most of a word's columns is kept
+  (the print never splits a word; spills onto the line before were the slivers). /mnt paths in pipe/words/tajweed_pages
+  -> repo-relative ROOT (run with PYTHONUTF8=1). GATE PASSED: 77,426/77,428 words, squeezed 0.000%, reviews SEED 518 60/60,
+  SEED 7 60/60. EDS.harmain.w added (app.js), harmain-w dropped from PLAY=1 build, 4 G519 harmain checks in ui.js.
+Resume: full QA (data.py + ui.js for kfgqpc/kfold/shamarly/harmain), build quran-karim-v5.19.apk, signer 7d8b31d2, commit + push.
+- QA 5.19 (alone, no overlap): data.py 28/0; ui.js kfgqpc 286/0, kfold 280/0, shamarly 280/12, harmain 286/19 (4 new G519
+  harmain checks PASS). The shamarly 12 + harmain 19 fails are older: a harmain run without EDS.harmain.w gives the same 19
+  (+ the 4 new ones). They are mic/hifz/recite tests written for King Fahd page numbers (2:255 -> p.42 etc.). Follow-up.
+  APK quran-karim-v5.19.apk 48.5 MB, signer 7d8b31d2 OK, 540 harmain-w files inside (dropped in PLAY=1).
+Resume: 5.19 done + pushed. Next: make the shamarly/harmain mic+hifz ui.js checks edition-aware (page per edition);
+  ask the user before the GitHub release.
