@@ -3413,7 +3413,7 @@
   window.hzRange = hzRange;   // QA
   var hzFoldOpen = false, hzMemoOpen = false, htBadOpen = false, hzFrom = false;
   window.addEventListener("hashchange", function () { if (hzFrom && !/^#\/(p|s|hifztest)\//.test(location.hash) && location.hash !== "#/hifzlog") hzFrom = false; });
-  window.hzFromState = function () { return hzFrom; };   // QA
+  window.hzFromState = function () { return hzFrom; }; window.hzFromSet = function (v) { hzFrom = v; };   // QA
   var HZ_K = [["s", "سورة"], ["j", "جزء"], ["a", "آيات من سورة"], ["jq", "ربع جزء"], ["jh", "نصف جزء"], ["mq", "ربع المصحف"], ["mh", "نصف المصحف"], ["all", "القرآن كله"]];
   function showHifzLog() {
     titleEl.textContent = "المراجعة";
@@ -4123,6 +4123,9 @@
     var from = st.s === s && st.from ? st.from : 1, cnt = Q.s[s - 1][3], lv = st.lv || 25;
     // a range test (المراجعة › اختبرني): parts of n ayat up to the range's last ayah, across surahs; acc adds up the parts
     var rg = st.s === s && st.end != null && st.end >= gIdx(s, from) ? { end: st.end, n: st.n || 10, acc: st.acc || { h: 0, m: 0 }, pc: st.pc || [], pn: st.pn || 1, pt: st.pt || 1 } : null;
+    // 5.16e: a range left over from an earlier «المراجعة» test does not follow into «اختبار الحفظ» (opened from its tab,
+    // home or the map): the test here is a plain one, «قلب تلقائي» works
+    if (rg && !hzFrom) { rg = null; ["end", "n", "acc", "pc", "pn", "pt", "cont"].forEach(function (x) { delete st[x]; }); save("hifzTest", st); }
     var endA = rg ? gAy(rg.end) : null, last = endA && endA[0] === s ? endA[1] : cnt;
     var to = Math.min(cnt, from + (rg ? rg.n : 10) - 1, last);
     var hzFl = load("hifzFlip", true);
