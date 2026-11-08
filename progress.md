@@ -324,3 +324,8 @@ Resume: check gate_Z1base summary == gate_base57; run `nv_gate.py Z2base x` (cop
 - Gate Z1base == gate_base57 on all 100 metrics (only wall time differs) -> Z1 PASSED.
 - User chose L2 for pack v3 (2026-11-08). Z2 now on L2: z1/L2.int4.onnx, gate tag Z2L2 vs gate_L2.
 Resume: compare gate_Z2L2 vs gate_L2; if within noise -> phone load/RTF test; else pack v3 = z1/L2.int8.onnx (Z1 only, 115 MB). Then S6 (effort high).
+- Z2 gate (Z2L2 vs L2): accuracy neutral (ALL verify 87.8->88.0, wrong_word_caught 92.9->92.3).
+- Z2 phone bench (bee81250, ORT 1.22, 4 threads, OrtBench via app_process; tools in %TEMP%): L2 int8(Z1) load 1067-1089 ms, run 12 s 284 ms, 4 s 98 ms.
+  int4 sym blk32: load 965, run12s 465 (+63%), 4s 158. int4 --acc 4: load 997, run12s 339 (+19%), 4s 115.
+  -> Z2 REJECTED (user rule 2026-11-08: latency as important as accuracy). Pack v3 = qtrain/gpu-train/z1/L2.int8.onnx (115.27 MB, Z1 only).
+Resume: S6 «مش متأكد» (effort high: user switches first), then pack v3 (medium), release (low).
