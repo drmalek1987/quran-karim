@@ -335,4 +335,4 @@ Resume: S6 «مش متأكد» (effort high: user switches first), then pack v3 
 Resume: pack v3 (L2+Z1 = qtrain/gpu-train/z1/L2.int8.onnx, new pack name, app deletes old nv.onnx), then release + full QA.
 - Pack v3 built: quran-karim-data/pack-v3/asrnv3.zip (50.1 MB: a.bin, vocab, ver.txt=3, ORT libs) + asrnvp3.zip (42.7 MB); join md5 = z1/L2.int8.onnx. Uploaded to editions (6f62198) with the user's OK; raw URLs 200.
 - App 5.16d (versionCode 62, sw quran-v57): ASRM ver 3 / 93 MB; NvAsr deletes the old nv.onnx before joining new parts. APK signer 7d8b31d2, installed on bee81250 (then the phone dropped off adb).
-Resume: QA results in %TEMP%/qa516d (sum.log); user phone test: Settings › Downloads «تحديث» model, then recite (S6 yellow words); then QA-checklist + HTML report + commit/push.
+Resume: 5.16d QA done (QA-checklist). Waiting for the user phone test of pack v3 + S6; then Sprint C (S3/S5/S8 = 5.17, plans/5.11-plan.md).

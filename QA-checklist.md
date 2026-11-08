@@ -563,3 +563,9 @@
 - 5.16b build QA (2026-11-08, quran-karim-v5.16b.apk, versionCode 60, sw quran-v55, signer 7d8b31d2; U3 + U4 + 5.16d auto-flip from the other session): ui.js kfgqpc 255/0 · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim.js all scenarios, no errors · Maestro smoke PASS on Small_API35, Fold_API35, Tablet_API35, Phone_API35 · installed on bee81250. S6 put off (weekly usage ~70%).
 3. 5.16e: اعمل اختبار بالكلمات من «المراجعة» (هنا «قلب تلقائي» شغال على طول وباهت)، وبعدها افتح «اختبار الحفظ» من تبويبه أو من الرئيسية: الاختبار هنا عادي، و«قلب تلقائي» بيشتغل ويتقفل باللمس.
 - 5.16c build QA (2026-11-08, quran-karim-v5.16c.apk, versionCode 61, sw quran-v56, signer 7d8b31d2): ui.js kfgqpc 256/0 (new 5.16e check; 5 older range checks mark «from المراجعة» via hzFromSet) · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim no errors · Maestro smoke PASS on 4 AVDs · installed on bee81250 (data kept).
+
+## 5.16d — Sprint B: موديل v3 + «مش متأكد» (phone tests)
+1. الإعدادات › التحميلات: نموذج التعرّف بيعرض «تحديث» (93 ميجا). بعد التحديث، التعرّف بيشتغل عادي، والمساحة ما اتضاعفتش.
+2. سمّع على المصحف بالصوت: التعرّف زي الأول أو أحسن (L2)، وبنفس السرعة.
+3. S6: الكلمة اللي التطبيق مش متأكد منها بتبان أصفر (كابشن، مصحف، «اختبار الحفظ»)، ومش بتتحسب غلط.
+- 5.16d build QA (2026-11-08, quran-karim-v5.16d.apk, versionCode 62, sw quran-v57, signer 7d8b31d2): ui.js kfgqpc 256/0 · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim no errors · i18n_scan unchanged (no new strings) · Maestro smoke PASS on 4 AVDs · Java/Python CTC parity 80/80, margins 1.2e-4 · installed on bee81250. Pack v3 on editions (asrnv3/asrnvp3). Phone model-update test: waiting for the user.

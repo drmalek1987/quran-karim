@@ -1,0 +1,25 @@
+<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تقرير 5.16d</title>
+<style>body{font-family:Tahoma,Arial;max-width:760px;margin:24px auto;padding:0 14px;line-height:1.8}.ok{color:#1a7f37;font-weight:bold}.no{color:#b42318;font-weight:bold}.y{background:#f4c43033;border-bottom:2px dotted #d4a017}code{direction:ltr;unicode-bidi:embed}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px}</style>
+<h1>إصدار 5.16d: Sprint B (موديل أصغر وأدق + «مش متأكد»)</h1>
+<p>الملف: <code>quran-karim-v5.16d.apk</code> (versionCode 62، والـ signer هو 7d8b31d2)، <span class="ok">واتسطّب على موبايلك.</span></p>
+<h2>١. موديل التعرّف v3</h2>
+<ul>
+<li><b>Z1:</b> شلت حتة من جوه الموديل ما كانتش بتتستخدم (الـ pos table)، فحجمه نزل من <b>131.7 لـ 115.3 MB</b>. والنتايج <span class="ok">زي ما هي بالظبط</span>: الفرق في الـ logits = 0.0، والـ gate الكامل (1907 كليب) مطابق.</li>
+<li><b>الموديل بقى L2</b> (زي ما اخترت): التعرّف أدق، والـ verify على كل الكليبات بقى <b>87.8٪ بدل 83.3٪</b>.</li>
+<li>التحميل بقى <b>93 ميجا</b> بدل 108 تقريباً. ولما يتحدّث، التطبيق بيمسح الموديل القديم الأول، عشان المساحة ما تتضاعفش.</li>
+<li><b>Z2 (int4) <span class="no">اترفض</span>:</b> الدقة كانت متعادلة، بس على موبايلك التعرّف كان أبطأ.</li>
+</ul>
+<table><tr><th>الموديل</th><th>الحجم</th><th>12 ثانية صوت</th><th>4 ثواني</th></tr>
+<tr><td>v3 (اللي اتشحن)</td><td>115 MB</td><td><b>284ms</b></td><td><b>98ms</b></td></tr>
+<tr><td>int4</td><td>79.5 MB</td><td>465ms (+63٪)</td><td>158ms</td></tr>
+<tr><td>int4 acc4</td><td>79.5 MB</td><td>339ms (+19٪)</td><td>115ms</td></tr></table>
+<h2>٢. S6: «<span class="y">مش متأكد</span>» بدل الأحمر</h2>
+<p>لو الموديل كان قريب جداً إنه يسمع الكلمة صح، الكلمة دلوقتي بتبان <span class="y">أصفر</span> بدل أحمر، ومش بتتحسب غلط، ومش بتتبعت تلقائي في التبرّع بالصوت. وعلى الـ bench:</p>
+<ul>
+<li>10٪ من الكلمات اللي كانت بتتعلّم حمرا غلط بقت صفرا.</li>
+<li>1.9٪ من الغلطات الحقيقية بقت صفرا بدل حمرا، يعني لسه متعلّم عليها بس مش هتتحسب غلط.</li>
+<li>الحد (1.0) سهل يتغيّر لو حبيت.</li>
+</ul>
+<h2>جرّب على الموبايل</h2>
+<ol><li>الإعدادات › التحميلات › «تحديث» نموذج التعرّف (93 ميجا، والأحسن على wifi).</li><li>سمّع على المصحف بالصوت: التعرّف لازم يبقى زي الأول أو أحسن، وبنفس السرعة.</li><li>الكلمة اللي التطبيق مش متأكد منها لازم تبان أصفر.</li></ol>
+<p class="ok">الفحص: ui.js ‏256 من 256، وdata ‏28/0، وmatrix ‏40/0، وdonate وrecite_sim من غير أي فشل، وi18n من غير نصوص جديدة، وMaestro عدّى على الـ 4 AVDs.</p>
