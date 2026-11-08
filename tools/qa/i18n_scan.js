@@ -31,6 +31,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await click('#closeSettings');
   for (const h of ['#/s/2', '#/a/2/255', '#/more', '#/stats', '#/prayer', '#/azkar', '#/tajweed', '#/khatma', '#/hifzlog', '#/hifzmap', '#/hifztest', '#/search', '#/tasbih', '#/qibla', '#/imsakia', '#/qiraat', '#/topics', '#/family', '#/duas'])
   { await go(h); await grab(h); }
+  // 5.17: the mutashabihat test answered, talqin's three steps and result, the player's listening dialog (sleep timer)
+  await go('#/mutash', 1500); await grab('#/mutash'); await click('.mt-ch'); await grab('#/mutash answered');
+  await go('#/talqin/112'); await grab('#/talqin'); await click('#tqSkip'); await grab('talqin 2'); await click('#tqHide'); await grab('talqin 3');
+  await click('#tqText .ht-w'); await click('#tqDone'); await grab('talqin done');
+  await click('#tqNext'); await click('#player button[data-c=dl]'); await grab('listen dialog'); await click('.ls-dlg [data-z="15"]'); await grab('player sleep');
   await b.close();
   const list = Object.entries(seen).map(([t, w]) => ({ t, w }));
   require('fs').writeFileSync(__dirname + '/i18n-missing.json', JSON.stringify(list, null, 1));

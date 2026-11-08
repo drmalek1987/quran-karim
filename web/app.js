@@ -1707,6 +1707,7 @@
     }
     audio.addEventListener("ended", function () {
       if (!cur) return;
+      if (sleep && !sleep.sura && Date.now() >= sleep.at) return sleepEnd();
       if (cur.step === "b") return start(cur.s, cur.a, "a");
       heard++;
       if (reps === 0 || heard < reps) { audio.currentTime = 0; audio.play().catch(function () {}); return show(); }
@@ -1717,6 +1718,7 @@
         return;
       }
       var n = next(cur.s, cur.a);
+      if (sleep && sleep.sura && (!n || n[0] !== cur.s)) return sleepEnd();
       Object.keys(urls).forEach(function (k) { if (k !== url(cur.s, cur.a) && (!n || k !== url(n[0], n[1])) && k !== url(1, 1)) { urls[k].then(URL.revokeObjectURL, function () {}); delete urls[k]; } });
       if (n) start(n[0], n[1]); else stop();
     });
@@ -1768,43 +1770,99 @@
           else if (c === "st") stop();
           else if (c === "nx") { var n = next(cur.s, cur.a); if (n) start(n[0], n[1], "a"); }
           else if (c === "pv") { var p = prev(cur.s, cur.a); if (p) start(p[0], p[1], "a"); }
-          else if (c === "dl") saveSurah(cur.s);
+          else if (c === "dl") listenDlg();
           else if (c === "sp") { ratesOpen = !ratesOpen; show(); }
           else if (c === "r") { rate = +b.dataset.r; save("rate", rate); setRate(); ratesOpen = false; show(); }
           else if (c === "rp") { reps = REPS[(REPS.indexOf(reps) + 1) % REPS.length]; save("repeat", reps); show(); toast(reps === 1 ? "بدون تكرار" : reps ? "تكرار كل آية " + ar(reps) + " مرات" : "تكرار الآية بلا توقف"); }
         };
       }
       bar.classList.toggle("rates", ratesOpen);
-      bar.innerHTML = '<div class="pl-info"><b>' + Q.s[cur.s - 1][0] + " · " + (cur.step === "b" ? "البسملة" : "آية " + ar(cur.a)) + (reps !== 1 && cur.step === "a" ? " · " + ar(Math.min(heard + 1, reps || heard + 1)) + (reps ? "/" + ar(reps) : "") : "") + "</b><span>" + (range ? "المقطع " + ar(range.from) + "–" + ar(range.to) +
+      bar.innerHTML = '<div class="pl-info"><b>' + Q.s[cur.s - 1][0] + " · " + (cur.step === "b" ? "البسملة" : "آية " + ar(cur.a)) + (reps !== 1 && cur.step === "a" ? " · " + ar(Math.min(heard + 1, reps || heard + 1)) + (reps ? "/" + ar(reps) : "") : "") + "</b><span>" + (sleep ? "<em>" + (sleep.sura ? "النوم آخر السورة" : "النوم بعد " + ar(Math.max(1, Math.ceil((sleep.at - Date.now()) / 60000))) + " د") + "</em> · " : "") + (range ? "المقطع " + ar(range.from) + "–" + ar(range.to) +
         (range.times !== 1 ? " · " + (range.times ? ar(range.done + 1) + "/" + ar(range.times) : "∞") : "") + " · " : "") + reciterName() + "</span></div>" +
         (ratesOpen ? '<div class="pl-rates">' + RATES.map(function (r) { return '<button data-c="r" data-r="' + r + '"' + (r === rate ? ' class="on"' : "") + ">" + rateText(r) + "</button>"; }).join("") + "</div>" : "") +
         '<div class="pl-btns"><button data-c="sp" class="pl-sp' + (rate !== 1 ? " on" : "") + '" aria-label="سرعة التلاوة">' + rateText(rate) + "</button>" +
         '<button data-c="rp" class="pl-rep' + (reps !== 1 ? " on" : "") + '" aria-label="تكرار الآية">' + ic("rep") + (reps === 1 ? "" : "<i>" + (reps ? ar(reps) : "∞") + "</i>") + "</button>" +
         '<button data-c="pv" aria-label="الآية السابقة">' + ic("aprev") + '</button><button data-c="pp" class="pl-main" aria-label="' + (playing ? "إيقاف مؤقت" : "تشغيل") + '">' +
         ic(playing ? "apause" : "aplay") + '</button><button data-c="nx" aria-label="الآية التالية">' + ic("anext") + "</button>" +
-        (window.AppBridge ? '<button data-c="dl" aria-label="حفظ السورة للاستماع بدون إنترنت">' + ic("dl") + "</button>" : "") +
+        '<button data-c="dl" class="pl-zz' + (sleep ? " on" : "") + '" aria-label="الاستماع من غير إنترنت ومؤقت النوم">' + ic(sleep ? "clock" : "dl") + "</button>" +
         '<button data-c="st" aria-label="إيقاف">' + ic("astop") + "</button></div>";
     }
-    // Downloads every ayah of the surah once, so it plays without internet.
-    var saving = false;
-    function saveSurah(s) {
-      if (saving) return toast("جارٍ الحفظ…");
-      saving = true; var n = Q.s[s - 1][3], done = 0, failed = 0, rec = reciter;
-      toast("جارٍ حفظ سورة " + Q.s[s - 1][0] + "…");
-      function one(a) {
-        if (a > n) {
-          saving = false;
-          return toast(failed ? "تعذّر حفظ " + ar(failed) + " آية، حاول مرة أخرى" : "حُفظت سورة " + Q.s[s - 1][0] + " بصوت " + reciterName() + " للاستماع بدون إنترنت");
-        }
-        fetch("https://everyayah.com/data/" + rec + "/" + pad(s) + pad(a) + ".mp3").then(function (r) { if (!r.ok) throw 0; done++; })
-          .catch(function () { failed++; }).then(function () { if (done && done % 20 === 0) toast(ar(done) + " من " + ar(n)); one(a + 1); });
+    // 5.17 S8: a surah or a juz saved for listening without internet. Each ayah is fetched once: in the app the fetch goes
+    // through AudioCache (MainActivity.shouldInterceptRequest), which keeps the file; 3 at a time, with progress and cancel.
+    var dl = null;
+    function dlList(kind, s, a) {
+      var L = [], p, e;
+      if (kind === "s") { p = [s, 1]; e = [s, Q.s[s - 1][3]]; }
+      else { var j = juzOf(s, a); p = JUZ[j - 1].slice(); e = j < 30 ? prev(JUZ[j][0], JUZ[j][1]) : [114, 6]; }
+      for (; p; p = next(p[0], p[1])) { L.push(p); if (p[0] === e[0] && p[1] === e[1]) break; }
+      if (L.some(function (x) { return x[1] === 1 && x[0] !== 1 && x[0] !== 9; }) && !L.some(function (x) { return x[0] === 1 && x[1] === 1; })) L.unshift([1, 1]);   // the basmala
+      return L;
+    }
+    function dlStart(kind, s, a) {
+      if (dl && !dl.end && !dl.stop) return toast("فيه تحميل شغال");
+      var L = dlList(kind, s, a), rec = reciter, d = { kind: kind, name: kind === "s" ? "سورة " + Q.s[s - 1][0] : "الجزء " + JUZ_NAMES[juzOf(s, a) - 1], n: L.length, done: 0, failed: 0, i: 0, stop: false, end: false };
+      dl = d;
+      function one() {
+        if (d.stop || d.i >= L.length) return;
+        var x = L[d.i++];
+        fetch("https://everyayah.com/data/" + rec + "/" + pad(x[0]) + pad(x[1]) + ".mp3").then(function (r) { if (!r.ok) throw 0; return r.blob(); }).then(function () { d.done++; }, function () { d.failed++; })
+          .then(function () {
+            if (d.done + d.failed >= d.n && !d.end) {
+              d.end = true;
+              toast(d.failed ? "تعذّر حفظ " + ar(d.failed) + " آية، حاول مرة أخرى" : "اتحفظت " + d.name + " للاستماع من غير إنترنت");
+            } else one();
+            dlPaint();
+          });
       }
-      one(1);
+      one(); one(); one();
+      dlPaint();
+    }
+    function dlPaint() {
+      var b = document.getElementById("dlBox"); if (!b) return;
+      if (!dl) { b.hidden = true; return; }
+      b.hidden = false;
+      var pc = dl.n ? Math.round((dl.done + dl.failed) / dl.n * 100) : 0;
+      b.querySelector("i").style.width = pc + "%";
+      b.querySelector("span").innerHTML = "<b>" + dl.name + "</b> <em>" + ar(dl.done) + " من " + ar(dl.n) + "</em>" + (dl.failed ? " <em>فشل " + ar(dl.failed) + "</em>" : "") + (dl.stop ? " <em>اتلغى</em>" : dl.end ? " <em>خلص</em>" : "");
+      b.querySelector("button").hidden = dl.end || dl.stop;
+    }
+    // Sleep timer: stops the reciter after 15/30/60 minutes, or at the end of the surah playing now.
+    var sleep = null, sleepT = 0, sleepTick = 0;
+    function sleepSet(m) {
+      clearTimeout(sleepT); clearInterval(sleepTick); sleep = null;
+      if (m === "s") sleep = { sura: true };
+      else if (m) { sleep = { at: Date.now() + m * 60000 }; sleepT = setTimeout(sleepEnd, m * 60000); sleepTick = setInterval(show, 30000); }
+      show();
+    }
+    function sleepEnd() { clearTimeout(sleepT); clearInterval(sleepTick); var was = !!sleep && !!cur; sleep = null; stop(); if (was) toast("وقّفت التلاوة، تصبح على خير"); }
+    function listenDlg() {
+      var s = cur ? cur.s : 1, a = cur ? cur.a : 1, j = juzOf(s, a), kind = "s";
+      var d = el('<div class="dlg-back"><div class="dlg ls-dlg">' +
+        (window.AppBridge ? '<b>الاستماع من غير إنترنت</b><p class="hint">' + reciterName() + '</p><div class="z-sort dl-pick"><button data-k="s" class="on">سورة ' + Q.s[s - 1][0] + '</button><button data-k="j">الجزء ' + JUZ_NAMES[j - 1] + "</button></div>" +
+          '<button class="continue" id="dlGo">' + ic("dl") + ' حمّل</button><div id="dlBox" hidden><div class="dl-bar"><i></i></div><span class="hint"></span> <button class="continue" id="dlStop">' + ic("x") + " إلغاء التحميل</button></div><hr>" : "") +
+        '<b>مؤقت النوم</b><div class="zz-opts">' + [[15, "١٥ دقيقة"], [30, "٣٠ دقيقة"], [60, "ساعة"], ["s", "آخر السورة"]].map(function (x) {
+          return '<button class="continue' + (x[0] === "s" && sleep && sleep.sura ? " on" : "") + '" data-z="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div>" +
+        (sleep ? '<button class="continue" data-z="0">' + ic("x") + " إلغاء المؤقت</button>" : "") +
+        '<div class="dlg-btns"><button type="button" class="dlg-no">قفل</button></div></div></div>').firstChild;
+      document.body.appendChild(d);
+      d.querySelector(".dlg-no").onclick = function () { d.remove(); };
+      d.onclick = function (e) { if (e.target === d) d.remove(); };
+      d.querySelectorAll(".dl-pick button").forEach(function (b) { b.onclick = function () { kind = b.dataset.k; d.querySelectorAll(".dl-pick button").forEach(function (x) { x.classList.toggle("on", x === b); }); }; });
+      if (window.AppBridge) {
+        d.querySelector("#dlGo").onclick = function () { dlStart(kind, s, a); };
+        d.querySelector("#dlStop").onclick = function () { if (dl) { dl.stop = true; dlPaint(); toast("اتلغى التحميل"); } };
+        dlPaint();
+      }
+      d.querySelectorAll("[data-z]").forEach(function (b) { b.onclick = function () {
+        var z = b.dataset.z; sleepSet(z === "s" ? "s" : +z); d.remove();
+        toast(z === "0" ? "اتلغى مؤقت النوم" : z === "s" ? "التلاوة هتقف في آخر السورة" : "التلاوة هتقف بعد " + ar(+z) + " دقيقة");
+      }; });
     }
     return { play: function (s, a) { range = null; start(s, a); },
       // onDone: called when the passage has finished by itself (not when it is stopped).
       // onRep: after each time through the passage.
       playRange: function (s, a, b, times, onDone, onRep) { range = { s: s, from: a, to: b, times: times === undefined ? 1 : times, done: 0, onDone: onDone, onRep: onRep }; start(s, a); }, paint: function () { paint(false); }, stop: stop,
+      listenDlg: listenDlg, sleepSet: sleepSet, dlList: dlList, dlState: function () { return dl; }, sleepState: function () { return sleep; },
       reciterChanged: function () { if (cur) start(cur.s, cur.a, "a"); } };
   })();
 
@@ -3822,7 +3880,7 @@
       bar.querySelectorAll("button").forEach(function (b) { b.onclick = function () { location.hash = b.dataset.h; }; });
     }
     var cur = h === "#" ? "#/" : h;
-    var show = cur === "#/" || /^#\/(azkar|prayer|more|duas|tasbih|qibla|khatma|hifzlog|hifztest|hifzmap|family|topics|imsakia|tajweed|qiraat|stats)/.test(cur);
+    var show = cur === "#/" || /^#\/(azkar|prayer|more|duas|tasbih|qibla|khatma|hifzlog|hifztest|hifzmap|mutash|talqin|family|topics|imsakia|tajweed|qiraat|stats)/.test(cur);
     bar.hidden = !show; document.body.classList.toggle("has-tabs", show);
     bar.querySelectorAll("button").forEach(function (b) {
       var t = b.dataset.h, on = t === "#/" ? cur === "#/" : cur.indexOf(t) === 0 || (t === "#/prayer" && /^#\/(imsakia|qibla)/.test(cur)) ||
@@ -3983,7 +4041,7 @@
     titleEl.textContent = "المزيد";
     btnBack.hidden = true;
     // 5.11 G4: the tools in titled groups (memorisation first: the hifz test is its main tool, G6), settings at the bottom
-    var G = [["الحفظ", [["#/hifztest", "eyeoff", "اختبار الحفظ", "tjw"], ["#/hifzmap", "grid", "خريطة الحفظ", "tjw"], ["#/hifzlog", "check", "المراجعة", "qib"]]],
+    var G = [["الحفظ", [["#/hifztest", "eyeoff", "اختبار الحفظ", "tjw"], ["#/hifzmap", "grid", "خريطة الحفظ", "tjw"], ["#/hifzlog", "check", "المراجعة", "qib"], ["#/mutash", "list", "اختبار المتشابهات", "qra"], ["#/talqin", "wave", "التلقين", "sun"]]],
       ["القراءة والختمة", [["#/khatma", "target", "الختمة والعلامات", "kh"], ["#/family", "users", "ختمة العيلة", "kh"], ["#/topics", "list", "مواضيع القرآن", "qra"], ["#/stats", "chart", "الإحصائيات", "qib"]]],
       ["التجويد والقراءات", [["#/tajweed", "wave", "أحكام التجويد", "tjw"], ["#/qiraat", "book", "القراءات العشر", "qra"]]],
       ["أدعية وعبادات", [["#/duas", "hands", "أدعية مختارة", "sun"], ["#/tasbih", "beads", "السبحة", "sun"], ["#/qibla", "compass", "اتجاه القبلة", "qib"], ["#/imsakia", "calendar", "إمساكية رمضان", "kh"]]]];
@@ -4379,6 +4437,211 @@
     var meta = { v: 2, text: w.map(function (e) { return e.textContent; }).join(" "), s: htv.s, a0: +f.a, w0: +f.w, a1: +l.a, w1: +l.w,
       kind: kind, hyp: p.hyp, src: "hifz", model: "nv-fc-large-pcd-v1.0", app: window.AppBridge && AppBridge.version ? AppBridge.version() : "" };
     try { NvBridge.donate2(JSON.stringify(meta), p.seq); } catch (e) {}
+  }
+
+  // ---------- 5.17 S3: اختبار المتشابهات ----------
+  // A question: the opening of an ayah that has look-alikes (window.MUTASH, loaded like mutashTab) and three ways it goes
+  // on: its own and those of the look-alikes after the same words. By tap or by voice (the heard words matched to each
+  // choice). The answer marks the ayah right or wrong in q.hifzAyat, so wrong ones come back in S1/S2 and here (40%).
+  var mtq = { n: 0, ok: 0, q: null }, mtv = { on: false };
+  function mutKey(w) { var n = norm(w); return n.length > 3 ? n.replace(/^[وف]/, "") : n; }
+  function mutBuild(k) {
+    var p = k.split(":").map(Number), T = Q.t[p[0] - 1][p[1] - 1].split(" "), TK = T.map(mutKey), seen = {};
+    var cs = (MUTASH[k] || []).map(function (ps) { return ps[0]; }).filter(function (v) { var x = v[0] + ":" + v[1]; if (x === k || seen[x]) return false; seen[x] = 1; return true; }).map(function (v) {
+      var W = Q.t[v[0] - 1][v[1] - 1].split(" "), WK = W.map(mutKey), l = 0;
+      while (l < W.length && l < T.length && WK[l] === TK[l]) l++;
+      return { v: v, W: W, l: l, r: Math.random() };
+    });
+    if (!cs.length) return null;
+    cs.sort(function (x, y) { return y.l - x.l || x.r - y.r; });
+    var pre = Math.min(Math.max(cs[0].l, 2), T.length - 1);
+    if (pre < 1) return null;
+    var full = function (W) { return W.map(mutKey).join(" "); };
+    var opts = [{ v: p, W: T.slice(pre), ok: 1 }], have = {}; have[full(opts[0].W)] = 1;
+    cs.forEach(function (c) { if (opts.length >= 3 || c.W.length <= pre) return; var W = c.W.slice(pre), f = full(W); if (have[f]) return; have[f] = 1; opts.push({ v: c.v, W: W, ok: 0 }); });
+    if (opts.length < 2) return null;
+    // each choice is cut to the fewest words (4 or more) that still tell them apart
+    var mx = Math.max.apply(null, opts.map(function (o) { return o.W.length; })), n = Math.min(4, mx);
+    for (; n < mx; n++) { var t = {}, dup = false; opts.forEach(function (o) { var f = full(o.W.slice(0, n)); if (t[f]) dup = true; t[f] = 1; }); if (!dup) break; }
+    opts.forEach(function (o) { o.txt = o.W.slice(0, n).join(" ") + (o.W.length > n ? " …" : ""); o.cmp = o.W.slice(0, n).map(rSkel); });
+    for (var i = opts.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = opts[i]; opts[i] = opts[j]; opts[j] = x; }
+    return { k: k, s: p[0], a: p[1], pre: T.slice(0, pre).join(" "), opts: opts };
+  }
+  function mutPool() {
+    var memo = load("mutAll", 0) ? {} : hifzLogData(), all = Object.keys(MUTASH);
+    var keys = Object.keys(memo).length ? all.filter(function (k) { return memo[k.split(":")[0]]; }) : all;
+    return keys.length ? keys : all;
+  }
+  function mutNext() {
+    var keys = mutPool(), HA = load("hifzAyat", {}), bad = keys.filter(function (k) { return HA[k] && HA[k].ok === 0; });
+    for (var t = 0; t < 60; t++) { var L = bad.length && Math.random() < 0.4 ? bad : keys, q = mutBuild(L[Math.floor(Math.random() * L.length)]); if (q) return q; }
+    return null;
+  }
+  // how much of a choice was said: the longest run of its words heard in order (LCS), over its length
+  function mutHit(hw, cw) {
+    var m = hw.length, n = cw.length, D = []; if (!n) return 0;
+    for (var i = 0; i <= m; i++) { D.push([]); for (var j = 0; j <= n; j++) D[i].push(!i || !j ? 0 : hw[i - 1] === cw[j - 1] ? D[i - 1][j - 1] + 1 : Math.max(D[i - 1][j], D[i][j - 1])); }
+    return D[m][n] / n;
+  }
+  function mtvOff() { if (!mtv.on) return; mtv.on = false; Mic.stop(); if (mtv.btn) { mtv.btn.classList.remove("rec"); mtv.btn.innerHTML = ic("mic") + " سمّع التكملة"; } }
+  function showMutashTest() {
+    titleEl.textContent = "اختبار المتشابهات";
+    btnBack.hidden = false;
+    if (!window.MUTASH) { view.innerHTML = '<p class="hint">جارٍ التحميل…</p>'; need("mut", "mutashabihat.js", function () { if (window.MUTASH && location.hash.indexOf("#/mutash") === 0) showMutashTest(); }); return; }
+    mtvOff();
+    if (!mtq.q || mtq.q.done) mtq.q = mutNext();
+    var q = mtq.q, all = !!load("mutAll", 0), memoN = Object.keys(hifzLogData()).length;
+    view.innerHTML = '<div class="ht mt">' + hzNav("") +
+      '<div class="z-sort mt-scope"><button data-m="0"' + (all ? "" : ' class="on"') + '>من محفوظي</button><button data-m="1"' + (all ? ' class="on"' : "") + ">كل القرآن</button></div>" +
+      (!all && !memoN ? '<p class="hint">لسه مفيش سور محفوظة، فالأسئلة من القرآن كله.</p>' : "") +
+      '<p class="hint">كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت. <b class="mt-score" id="mtScore">صح ' + ar(mtq.ok) + " من " + ar(mtq.n) + "</b></p>" +
+      (q ? '<div class="mt-q"><span class="mut-ref" id="mtRef">سورة ' + Q.s[q.s - 1][0] + " · الآية " + ar(q.a) + '</span><div class="ay-text mt-pre" lang="ar">' + esc(q.pre) + ' …</div></div><div class="mt-opts">' +
+        q.opts.map(function (o, i) { return '<button class="mt-ch" data-i="' + i + '"><span class="ay-text" lang="ar">' + esc(o.txt) + '</span><small class="mt-src" hidden>سورة ' + Q.s[o.v[0] - 1][0] + " · الآية " + ar(o.v[1]) + "</small></button>"; }).join("") + "</div>" +
+        (window.ReciteBridge ? '<button class="continue ht-mic" id="mtMic">' + ic("mic") + " سمّع التكملة</button>" : "") +
+        '<p class="ht-res" id="mtRes"></p><div class="ht-foot"><button class="continue" id="mtNext">' + ic("anext") + ' السؤال اللي بعده</button><a class="continue" href="#/a/' + q.s + "/" + q.a + '">' + ic("book") + " افتح الآية</a></div>"
+        : '<p class="hint">مفيش أسئلة هنا.</p>') + "</div>";
+    view.querySelectorAll(".mt-scope button").forEach(function (b) { b.onclick = function () { save("mutAll", +b.dataset.m); mtq.q = null; showMutashTest(); }; });
+    if (!q) return;
+    var answered = false;
+    function pick(i) {
+      if (answered) return; answered = true; q.done = 1; mtvOff();
+      var o = q.opts[i], ok = !!o.ok;
+      mtq.n++; if (ok) mtq.ok++;
+      hifzMark(q.k, ok);
+      view.querySelectorAll(".mt-ch").forEach(function (b, j) { b.disabled = true; b.querySelector(".mt-src").hidden = false; if (q.opts[j].ok) b.classList.add("ok"); else if (j === i) b.classList.add("miss"); });
+      document.getElementById("mtScore").textContent = "صح " + ar(mtq.ok) + " من " + ar(mtq.n);
+      document.getElementById("mtRes").innerHTML = (ok ? "<b>صح</b>ما شاء الله" : "<b>غلط</b>دي تكملة سورة " + Q.s[o.v[0] - 1][0] + " · الآية " + ar(o.v[1])) +
+        '<span class="ay-text mt-full" lang="ar">' + esc(Q.t[q.s - 1][q.a - 1]) + ' <span class="ayah-no">﴿' + ar(q.a) + "﴾</span></span>";
+    }
+    view.querySelectorAll(".mt-ch").forEach(function (b) { b.onclick = function () { pick(+b.dataset.i); }; });
+    document.getElementById("mtNext").onclick = function () { mtq.q = mutNext(); showMutashTest(); window.scrollTo(0, 0); };
+    var mb = document.getElementById("mtMic");
+    if (mb) mb.onclick = function () {
+      if (mtv.on) return mtvOff();
+      if (answered) return;
+      if (!micGate(function () { mb.click(); })) return;
+      reciteStop(); player.stop(); if (htv.on) { htv.on = false; Mic.stop(); }
+      mtv = { on: true, btn: mb, pick: pick, q: q };
+      Mic.start(); mb.classList.add("rec"); mb.innerHTML = ic("astop") + " إيقاف";
+    };
+  }
+  var mtvPrev = window.onRecite;
+  window.onRecite = function (text, kind) {
+    if (!mtv.on) return mtvPrev(text, kind);
+    if (!document.body.contains(mtv.btn)) { mtv.on = false; Mic.stop(); return; }
+    if (kind.indexOf("state:") === 0) {
+      var st = kind.slice(6);
+      if (st === "busy") toast("بيجهّز الموديل…");
+      else if (st === "listening") toast("سمّع التكملة");
+      else { if (st === "noperm") toast("محتاج إذن الميكروفون"); mtvOff(); }
+      return;
+    }
+    if (kind !== "final") return;
+    var hw = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean).map(rSkel);
+    if (!hw.length) return;
+    var sc = mtv.q.opts.map(function (o) { return mutHit(hw, o.cmp); }), best = 0;
+    sc.forEach(function (x, i) { if (x > sc[best]) best = i; });
+    var tie = sc.filter(function (x) { return x === sc[best]; }).length > 1;
+    // nothing clear yet (the opening only, or too little heard): keep listening
+    if (sc[best] < 0.5 || tie) return toast("مش واضح، كمّل التكملة");
+    mtv.pick(best);
+  };
+
+  // ---------- 5.17 S5: التلقين ----------
+  // One ayah at a time: (1) the reciter reads it N times, the text hidden; (2) the text shows and the reader reads it;
+  // (3) it hides and the reader recites it (by voice through the hifz test's matcher htv, or tapping forgotten words);
+  // then the next ayah. Each ayah's result goes to q.hifzAyat. State: q.talqin {s, a, n}.
+  function showTalqin(s0) {
+    titleEl.textContent = "التلقين";
+    btnBack.hidden = false;
+    if (htv.on) { htv.on = false; Mic.stop(); }
+    var st = load("talqin", { s: 1, a: 1, n: 3 }), s = s0 || st.s || 1;
+    var a = st.s === s && st.a >= 1 && st.a <= Q.s[s - 1][3] ? st.a : 1, N = st.n || 3, step = st.step || 1;
+    save("talqin", { s: s, a: a, n: N });
+    var cnt = Q.s[s - 1][3];
+    var opts = ""; for (var i = 1; i <= 114; i++) opts += '<option value="' + i + '"' + (i === s ? " selected" : "") + ">" + ar(i) + ". " + Q.s[i - 1][0] + "</option>";
+    var aopts = ""; for (var j = 1; j <= cnt; j++) aopts += '<option value="' + j + '"' + (j === a ? " selected" : "") + ">الآية " + ar(j) + "</option>";
+    var words = Q.t[s - 1][a - 1].split(" ").map(function (w, k) {
+      if (!/[ء-يٱ]/.test(w)) return w;
+      return '<button class="ht-w" data-a="' + a + '" data-w="' + k + '">' + w + "</button>";
+    }).join(" ") + ' <span class="ayah-no">﴿' + ar(a) + "﴾</span>";
+    view.innerHTML = '<div class="ht tq">' + hzNav("") + '<div class="ht-top"><div class="ht-pick"><select class="input" id="tqS" aria-label="السورة">' + opts + '</select><select class="input" id="tqA" aria-label="الآية">' + aopts + "</select></div>" +
+      '<div class="z-sort tq-n"><span>القارئ يقرا</span>' + [1, 3, 5, 7].map(function (x) { return '<button data-n="' + x + '"' + (x === N ? ' class="on"' : "") + ">" + ar(x) + (x === 1 ? " مرة" : " مرات") + "</button>"; }).join("") + "</div></div>" +
+      '<ol class="tq-steps"><li data-st="1">اسمع</li><li data-st="2">اقرا</li><li data-st="3">سمّع</li></ol>' +
+      '<p class="hint" id="tqHint"></p><div class="ht-text tq-text" id="tqText" lang="ar">' + words + "</div>" +
+      '<div class="ht-ibs tq-btns" id="tqBtns"></div>' +
+      '<button class="continue" id="htFix" hidden>' + ic("check") + " أنا قريت صح</button>" +
+      '<p class="ht-res" id="tqRes"></p></div>';
+    var T = document.getElementById("tqText"), B = document.getElementById("tqBtns"), H = document.getElementById("tqHint"), missed = 0, done = false;
+    var ws = [].slice.call(T.querySelectorAll(".ht-w"));
+    function nextAy() { var n = a < cnt ? [s, a + 1] : s < 114 ? [s + 1, 1] : null; if (!n) return toast("ختمت القرآن، ما شاء الله"); save("talqin", { s: n[0], a: n[1], n: N, step: 1, auto: 1 }); if (n[0] !== s) history.replaceState(null, "", "#/talqin/" + n[0]); showTalqin(n[0]); window.scrollTo(0, 0); }
+    function listen() { player.playRange(s, a, a, N, function () { if (document.body.contains(T) && step === 1) go(2); }); }
+    function go(k) {
+      step = k; htvOff();
+      view.querySelectorAll(".tq-steps li").forEach(function (li) { li.classList.toggle("on", +li.dataset.st === k); li.classList.toggle("done", +li.dataset.st < k); });
+      T.classList.toggle("tq-blur", k === 1); T.classList.toggle("tq-hide", k === 3);
+      ws.forEach(function (e) { e.classList.remove("shown", "ok", "miss", "uns"); delete e.dataset.tap; if (k !== 3) e.classList.add("shown"); });
+      missed = 0; done = false; document.getElementById("tqRes").innerHTML = "";
+      if (k === 1) {
+        H.textContent = "اسمع القارئ وهو بيقرا الآية " + ar(N) + (N === 1 ? " مرة" : " مرات") + "، والآية مستخبية.";
+        B.innerHTML = '<button class="continue" id="tqPlay">' + ic("aplay") + "<span>اسمع</span></button><button class=\"continue\" id=\"tqSkip\">" + ic("anext") + "<span>اقراها</span></button>";
+        document.getElementById("tqPlay").onclick = listen;
+        document.getElementById("tqSkip").onclick = function () { player.stop(); go(2); };
+      } else if (k === 2) {
+        H.textContent = "اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.";
+        B.innerHTML = '<button class="continue" id="tqAgain">' + ic("rep") + "<span>اسمع تاني</span></button><button class=\"continue\" id=\"tqHide\">" + ic("eyeoff") + "<span>خبّيها وسمّع</span></button>";
+        document.getElementById("tqAgain").onclick = function () { player.playRange(s, a, a, 1); };
+        document.getElementById("tqHide").onclick = function () { player.stop(); go(3); };
+      } else {
+        H.textContent = "سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».";
+        B.innerHTML = (window.ReciteBridge ? '<button class="continue ht-mic" id="tqMic">' + ic("mic") + " سمّع بالصوت</button>" : "") +
+          '<button class="continue" id="tqDone">' + ic("check") + "<span>خلصت</span></button><button class=\"continue\" id=\"tqRe\">" + ic("rep") + "<span>من الأول</span></button>";
+        document.getElementById("tqDone").onclick = finish;
+        document.getElementById("tqRe").onclick = function () { go(1); listen(); };
+        var m = document.getElementById("tqMic");
+        if (m) m.onclick = function () {
+          if (htv.on) return htvOff();
+          if (!micGate(function () { m.click(); })) return;
+          reciteStop(); player.stop(); mtvOff();
+          htvOn(m); Mic.start(); m.classList.add("rec"); m.innerHTML = ic("astop") + " إيقاف";
+        };
+      }
+    }
+    ws.forEach(function (b) { b.onclick = function () { if (step !== 3 || done || b.classList.contains("shown")) return; b.classList.add("shown", "miss"); b.dataset.tap = 1; missed++; }; });
+    function finish() {
+      if (done) return; done = true; htvOff();
+      ws.forEach(function (b) { if (!b.classList.contains("shown")) b.classList.add("shown", "ok"); });
+      var n = ws.length, sc = n ? Math.round((n - missed) / n * 100) : 100;
+      hifzMark(s + ":" + a, !missed); asrStat("ok", n - missed); asrStat("bad", missed);
+      document.getElementById("tqRes").innerHTML = "<b>" + ar(sc) + "٪</b> " + (missed ? "نسيت " + ar(missed) + " من " + ar(n) + " كلمة" : "ما شاء الله، صح كلها") +
+        '<span class="tq-go"><button class="continue" id="tqNext">' + ic("anext") + ' الآية اللي بعدها</button><button class="continue" id="tqRep">' + ic("rep") + " عيد الآية</button></span>";
+      document.getElementById("tqNext").onclick = nextAy;
+      document.getElementById("tqRep").onclick = function () { go(1); listen(); };
+    }
+    function htvOff() { if (!htv.on) return; htv.on = false; Mic.stop(); var m = document.getElementById("tqMic"); if (m) { m.classList.remove("rec"); m.innerHTML = ic("mic") + " سمّع بالصوت"; } }
+    // the hifz test's voice path (window.onRecite › htv): the same matcher, verdict colours, «أنا قريت صح» and donation
+    function htvOn(btn) {
+      var nth = 0, hk = ws.map(function () { return s + ":" + a + ":" + nth++; });
+      htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), keys: hk, ptr: 0, V: {}, shownV: {}, force: {}, skip: 0, more: null,
+        set: function (i, v) {
+          var e = ws[i]; if (e.dataset.tap) return;
+          if (htv.force[i]) v = 1;
+          var miss = e.classList.contains("miss");
+          e.classList.remove("uns");
+          if (v === null) { if (miss) missed--; e.classList.remove("shown", "ok", "miss"); }
+          else if (v === 1) { if (miss) missed--; e.classList.remove("miss"); e.classList.add("shown", "ok"); }
+          else if (v === 2) { if (miss) missed--; e.classList.remove("miss", "ok"); e.classList.add("shown", "uns"); }
+          else if (!miss) { missed++; e.classList.remove("ok"); e.classList.add("shown", "miss"); }
+        },
+        unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
+        btn: btn, s: s, fix: document.getElementById("htFix"), done: finish, follow: function () {} };
+      htv.fix.hidden = true;
+    }
+    document.getElementById("tqS").onchange = function () { save("talqin", { s: +this.value, a: 1, n: N }); location.replace("#/talqin/" + this.value); };
+    document.getElementById("tqA").onchange = function () { player.stop(); save("talqin", { s: s, a: +this.value, n: N }); showTalqin(s); };
+    view.querySelectorAll(".tq-n button").forEach(function (b) { b.onclick = function () { N = +b.dataset.n; save("talqin", { s: s, a: a, n: N }); view.querySelectorAll(".tq-n button").forEach(function (x) { x.classList.toggle("on", x === b); }); if (step === 1) go(1); }; });
+    go(1);
+    if (st.auto) listen();   // the next ayah starts with the reciter by itself
   }
 
   // ---------- السبحة ----------
@@ -5015,6 +5278,10 @@
       showDuas(m[1]);
     } else if ((m = h.match(/^#\/hifztest(?:\/(\d+))?/))) {
       showHifzTest(m[1] ? +m[1] : 0);
+    } else if (h === "#/mutash") {
+      showMutashTest();
+    } else if ((m = h.match(/^#\/talqin(?:\/(\d+))?/))) {
+      showTalqin(m[1] ? +m[1] : 0);
     } else if (h === "#/welcome") {
       location.replace("#/"); setTimeout(showWelcome, 50);
     } else if (h === "#/qibla") {

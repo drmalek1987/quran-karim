@@ -569,3 +569,13 @@
 2. سمّع على المصحف بالصوت: التعرّف زي الأول أو أحسن (L2)، وبنفس السرعة.
 3. S6: الكلمة اللي التطبيق مش متأكد منها بتبان أصفر (كابشن، مصحف، «اختبار الحفظ»)، ومش بتتحسب غلط.
 - 5.16d build QA (2026-11-08, quran-karim-v5.16d.apk, versionCode 62, sw quran-v57, signer 7d8b31d2): ui.js kfgqpc 256/0 · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim no errors · i18n_scan unchanged (no new strings) · Maestro smoke PASS on 4 AVDs · Java/Python CTC parity 80/80, margins 1.2e-4 · installed on bee81250. Pack v3 on editions (asrnv3/asrnvp3). Phone model-update test: waiting for the user.
+
+## 5.17 — Sprint C: المتشابهات + التلقين + الصوت من غير إنترنت (phone tests)
+1. S3: المزيد › «اختبار المتشابهات»: سؤال فيه بداية آية و٢–٣ تكملات. اختار تكملة: الصح بيبقى أخضر، والغلط أحمر، وتحت كل تكملة السورة بتاعتها. العدّاد «صح # من #» بيزيد.
+2. S3: «سمّع التكملة» بالمايك: سمّع تكملة الآية، والتطبيق بيختار التكملة اللي قلتها لوحده (صح أو غلط). لو الكلام مش واضح بيقول «مش واضح، كمّل التكملة».
+3. S3: «من محفوظي» بيسأل من السور المحفوظة بس، و«كل القرآن» من أي سورة. الغلط بيظهر بعد كده في «آيات غلطت فيها قبل كده» وفي المراجعة.
+4. S5: المزيد › «التلقين»: اختار سورة وآية وعدد مرات القارئ. «اسمع»: القارئ بيقرا الآية N مرة والآية متغبّشة، وبعدها بتظهر لوحدها (خطوة ٢). «خبّيها وسمّع»: الكلمات بتستخبى.
+5. S5: «سمّع بالصوت» في خطوة ٣: الكلمات بتظهر خضرا وانت بتقول، وفي آخر الآية النتيجة بتطلع لوحدها. «الآية اللي بعدها» بتفتح الآية الجاية والقارئ بيبدأ لوحده.
+6. S8: شغّل التلاوة، واضغط زرار التحميل في المشغّل: «الاستماع من غير إنترنت». اختار السورة أو الجزء واضغط «حمّل»: الشريط بيتملى والعدّاد بيزيد، و«إلغاء التحميل» بيوقفه. اقفل النت وشغّل السورة: بتشتغل.
+7. S8: مؤقت النوم: ١٥ دقيقة بيبان في المشغّل «النوم بعد ١٥ د» والزرار بيبقى ساعة. بعد الوقت التلاوة بتقف. «آخر السورة» بيوقف في آخر السورة ومبيكمّلش اللي بعدها. «إلغاء المؤقت» بيلغيه. اقفل الشاشة والمؤقت شغال: بيقف برضه.
+- 5.17 build QA (2026-11-08, quran-karim-v5.17.apk, versionCode 63, sw quran-v58, signer 7d8b31d2): ui.js kfgqpc 265 checks, 3 FAIL fixed and re-run PASS (two tile counts grew with the 2 new «المزيد» tiles; the S8 «آخر السورة» check raced the auto-advance and now watches the player until it stops) · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim no errors · i18n_scan: no new untranslated UI string (D517) · Maestro smoke PASS on Small/Fold/Tablet/Phone API35. bee81250 not on adb at release time: APK left ready.

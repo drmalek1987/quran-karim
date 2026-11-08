@@ -1146,3 +1146,36 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .hl-fold>summary.hl-sbtn{display:flex;align-items:center;gap:8px;margin:10px 0 0}
 .ht-bad>summary{display:flex;align-items:center}
 .hz-wway{margin:8px 0}
+/* 5.17 S3: اختبار المتشابهات */
+.mt-q { background: var(--card); border-radius: 16px; padding: 12px 14px; margin: 10px 0; box-shadow: var(--shadow, none); }
+.mt-pre { font-size: 24px; margin-top: 6px; }
+.mt-opts { display: grid; gap: 8px; margin: 10px 0; }
+.mt-ch { font: inherit; color: inherit; text-align: start; background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; cursor: pointer; }
+.mt-ch .ay-text { font-size: 21px; display: block; }
+.mt-ch.ok { border-color: var(--accent); background: rgba(15,107,79,.12); }
+.mt-ch.miss { border-color: #d64541; background: rgba(214,69,65,.12); }
+.mt-ch:disabled { cursor: default; }
+.mt-src { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+.mt-score { color: var(--accent); white-space: nowrap; }
+.mt-full { display: block; font-size: 21px; margin-top: 8px; }
+.mt .ht-foot a.continue { text-align: center; text-decoration: none; }
+/* 5.17 S5: التلقين */
+.tq-steps { display: flex; gap: 6px; list-style: none; padding: 0; margin: 10px 0; counter-reset: tq; }
+.tq-steps li { flex: 1; text-align: center; padding: 6px 4px; border-radius: 10px; background: var(--card); color: var(--muted); font-size: 14px; counter-increment: tq; }
+.tq-steps li::before { content: counter(tq) ". "; }
+.tq-steps li.on { background: var(--accent); color: #fff; font-weight: 700; }
+.tq-steps li.done { color: var(--accent); }
+.tq-text { font-size: 24px; transition: filter .3s; }
+.tq-text.tq-blur { filter: blur(7px); user-select: none; }
+.tq-btns { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+.tq-btns .ht-mic { grid-column: 1 / -1; flex-direction: row; justify-content: center; font-size: 15px; }
+.tq-go { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+/* 5.17 S8: offline audio + sleep timer */
+.dl-pick { display: grid; gap: 8px; margin: 10px 0; }
+.dl-pick button.on { background: var(--accent); color: #fff; }
+.dl-bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 10px 0 4px; }
+.dl-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.zz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.zz-opts button.on { background: var(--accent); color: #fff; }
+.pl-zz.on { color: var(--accent); }
+.pl-zz i { font-style: normal; font-size: 10px; }

@@ -306,7 +306,7 @@ async function fresh(ctx, vp) {
 
   const G14 = 'مزايا نسخة 3.7';
   await check(G14, 'الشريط السفلي بـ4 أزرار ويختفي وقت القراءة', async () => { await go('#/', 700); const a = await ev(() => [document.querySelectorAll('#tabbar button').length, document.getElementById('tabbar').hidden]);
-    await p.click('#tabbar button[data-h="#/more"]'); await wait(500); const m = await ev(() => location.hash === '#/more' && document.querySelectorAll('.tiles.more .tile').length === 13); await go('#/p/5', 800); const hid = await ev(() => document.getElementById('tabbar').hidden);
+    await p.click('#tabbar button[data-h="#/more"]'); await wait(500); const m = await ev(() => location.hash === '#/more' && document.querySelectorAll('.tiles.more .tile').length === 15); await go('#/p/5', 800); const hid = await ev(() => document.getElementById('tabbar').hidden);
     return assert(a[0] === 4 && !a[1] && m && hid, JSON.stringify([a, m, hid])); });
   await check(G14, 'شاشة الترحيب: الطبعة والمدينة والتذكيرات', async () => { await go('#/welcome', 800); await p.click('.wel-opts button[data-e=shamarly]'); await p.click('.wel-next'); await p.selectOption('#wCity', { index: 2 });
     await p.click('.wel-next'); await p.click('.wel-next'); await p.click('[data-w=m] + span'); await p.click('.wel-next'); await wait(600);
@@ -611,7 +611,7 @@ async function fresh(ctx, vp) {
     const hs = await ev(() => [...document.querySelectorAll('.more-g .tile')].map(b => b.dataset.h)); const bad = [];
     for (const h of hs) { await go('#/more', 250); await p.click('.tile[data-h="' + h + '"]'); await wait(350); if (!(await ev(() => location.hash)).startsWith(h)) bad.push(h); }
     await go('#/', 300);
-    return assert(g[0] === 'الحفظ:3' && g.length === 4 && hs.length >= 12 && hs[0] === '#/hifztest' && !bad.length, JSON.stringify([g, bad])); });
+    return assert(g[0] === 'الحفظ:5' && g.length === 4 && hs.length >= 14 && hs[0] === '#/hifztest' && !bad.length, JSON.stringify([g, bad])); });
   await check(G511, 'G5: «الإحصائيات» فيها القراءة والحفظ والتعرّف (+ تسجيلات الصوت على الموبايل) بالأرقام الصح', async () => {
     const keep = await ev(() => ['q.asrStats', 'q.hifzAyat', 'q.reciteLog', 'q.donate'].map(k => [k, localStorage.getItem(k)]));
     await ev(() => { const d = new Date(), k = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
@@ -1029,6 +1029,86 @@ async function fresh(ctx, vp) {
     await ev(() => localStorage.setItem('q.hifzFlip', 'false')); await go('#/', 150); await go('#/hifzlog', 600); await ev(() => hzTestStart({ k: 's', s: 112, w: 'o' }, 'm')); await wait(1200); const rv = await st();
     await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); localStorage.setItem('q.hifzFlip', 'true'); }); await hzBack(k); await go('#/', 200);
     return assert(!a[0] && a[1] && !b2[0] && !b2[1] && b2[2] === false && h === '#/p/600' && !w[0] && !w[1] && w2[0] && w2[1] === true && rv[0] && rv[1], JSON.stringify([a, b2, h, w, w2, rv])); });
+  // ---------- 5.17 (Sprint C): S3 اختبار المتشابهات، S5 التلقين، S8 الصوت من غير إنترنت ومؤقت النوم ----------
+  const G517 = 'نسخة 5.17 (Sprint C)';
+  const mtKey = () => ev(() => { const h = document.querySelector('.mt .ht-foot a').getAttribute('href').split('/'); return h[2] + ':' + h[3]; });
+  await check(G517, 'S3: اختبار المتشابهات بيفتح من «المزيد» بسؤال وتكملات من 2 لـ 3', async () => {
+    await ev(() => { localStorage.removeItem('q.hifzLog'); localStorage.removeItem('q.hifzAyat'); }); await go('#/more', 400);
+    await p.click('.tile[data-h="#/mutash"]'); await wait(1500);
+    const r = await ev(() => [location.hash, document.querySelectorAll('.mt-ch').length, !!document.querySelector('.mt-pre'), document.getElementById('mtScore').textContent]);
+    return assert(r[0] === '#/mutash' && r[1] >= 2 && r[1] <= 3 && r[2] && /٠ من ٠/.test(r[3]), JSON.stringify(r)); });
+  await check(G517, 'S3: الإجابة بتلوّن الصح والغلط، وبتتسجل في q.hifzAyat، والسؤال اللي بعده بيتغير', async () => {
+    let wrong = null, right = null;
+    for (let t = 0; t < 12 && !(wrong && right); t++) {
+      const k = await mtKey(), i = await ev(() => document.querySelectorAll('.mt-ch').length - 1);
+      await p.click('.mt-ch[data-i="' + (t % 2 ? 0 : i) + '"]'); await wait(150);
+      const r = await ev(k => { const b = [...document.querySelectorAll('.mt-ch')]; const H = JSON.parse(localStorage.getItem('q.hifzAyat') || '{}');
+        return { ok: b.filter(x => x.classList.contains('ok')).length, miss: b.filter(x => x.classList.contains('miss')).length, dis: b.every(x => x.disabled), src: b.every(x => !x.querySelector('.mt-src').hidden), h: H[k] && H[k].ok, res: document.getElementById('mtRes').textContent }; }, k);
+      if (r.ok !== 1 || !r.dis || !r.src) return assert(false, JSON.stringify(r));
+      if (r.miss) wrong = wrong || (r.h === 0 && /غلط/.test(r.res)); else right = right || (r.h === 1 && /صح/.test(r.res));
+      await p.click('#mtNext'); await wait(200);
+    }
+    const sc = await ev(() => document.getElementById('mtScore').textContent);
+    return assert(wrong && right && !/٠ من ٠/.test(sc), JSON.stringify([wrong, right, sc])); });
+  await check(G517, 'S3: «سمّع التكملة» بالمايك بيختار التكملة الصح من الكلام المسموع', async () => {
+    await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/', 150); await go('#/mutash', 900);
+    await p.click('#mtMic'); await wait(200);
+    const said = await ev(() => { const h = document.querySelector('.mt .ht-foot a').getAttribute('href').split('/'), t = QURAN.t[+h[2] - 1][+h[3] - 1];
+      const c = [...document.querySelectorAll('.mt-ch .ay-text')].map(e => e.textContent.replace(' …', '')).find(x => t.indexOf(document.querySelector('.mt-pre').textContent.replace(' …', '') + ' ' + x) === 0);
+      onRecite(c, 'final'); return c; });
+    await wait(200);
+    const r = await ev(() => [document.querySelectorAll('.mt-ch.ok').length, document.querySelectorAll('.mt-ch.miss').length, document.getElementById('mtMic').classList.contains('rec')]);
+    await ev(() => { delete window.ReciteBridge; });
+    return assert(said && r[0] === 1 && r[1] === 0 && !r[2], JSON.stringify([said, r])); });
+  await check(G517, 'S3: «من محفوظي» بيسأل من السور المحفوظة بس', async () => {
+    await ev(() => localStorage.setItem('q.hifzLog', JSON.stringify({ 2: { d: '2026-11-01' } }))); await go('#/', 150); await go('#/mutash', 600);
+    await p.click('.mt-scope button[data-m="1"]'); await wait(100); await p.click('.mt-scope button[data-m="0"]'); await wait(150);
+    const ks = []; for (let i = 0; i < 6; i++) { ks.push(await mtKey()); await p.click('#mtNext'); await wait(120); }
+    await ev(() => localStorage.removeItem('q.hifzLog'));
+    return assert(ks.every(k => k.split(':')[0] === '2'), ks.join(' ')); });
+  await check(G517, 'S5: التلقين: اسمع (الآية مستخبية) ← اقرا ← سمّع، والكلمة المنسية بتتحسب غلط', async () => {
+    await ev(() => localStorage.removeItem('q.talqin')); await go('#/more', 300); await p.click('.tile[data-h="#/talqin"]'); await wait(500);
+    await ev(() => { const s = document.getElementById('tqS'); s.value = '112'; s.onchange(); }); await wait(500);
+    const st = () => ev(() => [location.hash, document.querySelector('.tq-steps li.on').dataset.st, document.getElementById('tqText').className]);
+    const a = await st(); await p.click('#tqPlay'); await wait(300); const pl = await ev(() => !!document.getElementById('player'));
+    await p.click('#tqSkip'); await wait(150); const b2 = await st(); const sh = await ev(() => [...document.querySelectorAll('#tqText .ht-w')].every(e => e.classList.contains('shown')));
+    await p.click('#tqHide'); await wait(150); const c = await st(); const hid = await ev(() => [...document.querySelectorAll('#tqText .ht-w')].every(e => !e.classList.contains('shown')));
+    await p.click('#tqText .ht-w'); await p.click('#tqDone'); await wait(150);
+    const r = await ev(() => [document.getElementById('tqRes').textContent, JSON.parse(localStorage.getItem('q.hifzAyat'))['112:1'].ok, !!document.getElementById('tqNext')]);
+    return assert(a[0] === '#/talqin/112' && a[1] === '1' && /tq-blur/.test(a[2]) && pl && b2[1] === '2' && !/tq-blur/.test(b2[2]) && sh && c[1] === '3' && hid && /نسيت ١ من/.test(r[0]) && r[1] === 0 && r[2], JSON.stringify([a, pl, b2, sh, c, hid, r])); });
+  await check(G517, 'S5: «الآية اللي بعدها» بتفتح الآية 2 والقارئ بيبدأ لوحده، والتسميع بالمايك بيخلّص الآية صح', async () => {
+    await p.click('#tqNext'); await wait(400);
+    const a = await ev(() => [document.getElementById('tqA').value, document.querySelector('.tq-steps li.on').dataset.st, !!document.getElementById('player'), document.querySelector('.pl-info b') && document.querySelector('.pl-info b').textContent]);
+    await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; }); await p.click('#tqSkip'); await wait(100); await p.click('#tqHide'); await wait(100);
+    await p.click('#tqMic'); await wait(100); await ev(() => onRecite(QURAN.t[111][1], 'final')); await wait(300);
+    const r = await ev(() => [document.getElementById('tqRes').textContent, JSON.parse(localStorage.getItem('q.hifzAyat'))['112:2'], document.querySelectorAll('#tqText .ht-w.ok').length, document.querySelectorAll('#tqText .ht-w').length]);
+    await ev(() => { delete window.ReciteBridge; const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
+    return assert(a[0] === '2' && a[1] === '1' && a[2] && /١٠٠٪/.test(r[0]) && r[1] && r[1].ok === 1 && r[2] === r[3], JSON.stringify([a, r])); });
+  await check(G517, 'S8: مؤقت النوم ١٥ دقيقة بيبان في المشغّل وبيتلغي', async () => {
+    await go('#/p/604', 900); await p.click('#pPlay'); await wait(300);
+    await p.click('#player button[data-c=dl]'); await wait(150); const dlg = await ev(() => [!!document.querySelector('.ls-dlg .zz-opts'), !!document.getElementById('dlGo')]);
+    await p.click('.ls-dlg [data-z="15"]'); await wait(150);
+    const on = await ev(() => [document.querySelector('.pl-info span').textContent, document.querySelector('#player button[data-c=dl]').classList.contains('on')]);
+    await p.click('#player button[data-c=dl]'); await wait(150); await p.click('.ls-dlg [data-z="0"]'); await wait(150);
+    const off = await ev(() => [document.querySelector('.pl-info span').textContent, document.querySelector('#player button[data-c=dl]').classList.contains('on')]);
+    return assert(dlg[0] && /النوم بعد ١٥ د/.test(on[0]) && on[1] && !/النوم/.test(off[0]) && !off[1], JSON.stringify([dlg, on, off])); });
+  await check(G517, 'S8: مؤقت «آخر السورة» بيوقّف القارئ في آخر الإخلاص ومبيكمّلش الفلق', async () => {
+    await ev(() => { const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); }); await go('#/p/604', 700); await p.click('#pPlay'); await wait(100);
+    await p.click('#player button[data-c=dl]'); await wait(100); await p.click('.ls-dlg [data-z="s"]');
+    // every surah the player shows from now until it stops: the one it started in only (sleep at its end)
+    const seen = new Set(); let gone = false;
+    for (let i = 0; i < 150 && !gone; i++) { await wait(60); const b = await ev(() => document.querySelector('.pl-info b') ? document.querySelector('.pl-info b').textContent.split(' · ')[0] : null); if (b) seen.add(b); else gone = true; }
+    return assert(gone && seen.size === 1 && seen.has('الإخلاص'), JSON.stringify([gone, [...seen]])); });
+  await check(G517, 'S8: تحميل السورة للاستماع من غير إنترنت بشريط تقدّم، والجزء بيتلغي', async () => {
+    await ev(() => { window.AppBridge = window.AppBridge || { fake517: 1 }; }); await go('#/p/604', 600); await p.click('#pPlay'); await wait(300);
+    await p.click('#player button[data-c=dl]'); await wait(150); await p.click('#dlGo');
+    let s = ''; for (let i = 0; i < 40 && !/خلص$/.test(s); i++) { await wait(150); s = await ev(() => document.querySelector('#dlBox span').textContent); }
+    const w = await ev(() => document.querySelector('#dlBox i').style.width);
+    await p.click('.dl-pick button[data-k="j"]'); await p.click('#dlGo'); await wait(150); await p.click('#dlStop'); await wait(200);
+    const j = await ev(() => document.querySelector('#dlBox span').textContent);
+    await ev(() => { if (window.AppBridge && window.AppBridge.fake517) delete window.AppBridge; document.querySelectorAll('.dlg-back').forEach(e => e.remove()); const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
+    // surah 112: basmala + 4 ayat; juz 30: 564 ayat + basmala
+    return assert(/سورة الإخلاص ٥ من ٥ خلص/.test(s) && w === '100%' && /الجزء الثلاثون .* من ٥٦٥ اتلغى/.test(j), JSON.stringify([s, w, j])); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

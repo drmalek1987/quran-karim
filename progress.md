@@ -336,3 +336,12 @@ Resume: pack v3 (L2+Z1 = qtrain/gpu-train/z1/L2.int8.onnx, new pack name, app de
 - Pack v3 built: quran-karim-data/pack-v3/asrnv3.zip (50.1 MB: a.bin, vocab, ver.txt=3, ORT libs) + asrnvp3.zip (42.7 MB); join md5 = z1/L2.int8.onnx. Uploaded to editions (6f62198) with the user's OK; raw URLs 200.
 - App 5.16d (versionCode 62, sw quran-v57): ASRM ver 3 / 93 MB; NvAsr deletes the old nv.onnx before joining new parts. APK signer 7d8b31d2, installed on bee81250 (then the phone dropped off adb).
 Resume: 5.16d QA done (QA-checklist). Waiting for the user phone test of pack v3 + S6; then Sprint C (S3/S5/S8 = 5.17, plans/5.11-plan.md).
+
+## Sprint C = 5.17 (2026-11-08, session local_f5c88cb4)
+Goal check: S3/S5 close the hifz loop (mutashabihat slips + talqin for new ayat) and S8 makes listening offline (complete app). None of them touches the ASR path or its latency (S3 voice = one LCS over ≤3 short choices on the final text; S5 reuses htv as is).
+- S3 `#/mutash` (showMutashTest, mutBuild/mutNext/mutHit): opening = longest shared start with a look-alike (min 2 words), up to 3 continuations cut to the fewest words (≥4) that tell them apart; «من محفوظي»/«كل القرآن» (q.mutAll); wrong ayat drawn 40%; answers → hifzMark (q.hifzAyat). Voice: «سمّع التكملة», window.onRecite wrapper (mtv), pick when one choice ≥50% and no tie.
+- S5 `#/talqin/<s>` (showTalqin, q.talqin {s,a,n}): 1 اسمع (playRange N times, text blurred, auto → 2), 2 اقرا, 3 سمّع (ht-w words; mic = htv with its own set/done) → result → «الآية اللي بعدها» (reciter starts by itself).
+- S8 in player: the dl button opens «الاستماع» dialog (always; download part only in the app): surah/juz download, 3 fetches at a time through AudioCache, progress bar + cancel; sleep timer 15/30/60/«آخر السورة» (also checked on each ayah end, so it holds with the screen off).
+- ui.js 9 new 5.17 checks; i18n D517; QA-checklist 5.17 phone lines 1–7. Version 5.17 / 63 / quran-v58, signer 7d8b31d2.
+- Full QA passed (QA-checklist 5.17). bee81250 not on adb: APK quran-karim-v5.17.apk left ready.
+Resume: the user installs/tests 5.17 (QA-checklist 5.17 lines 1–7) and the pack v3 update; then next sprint per plans/5.11-plan.md (S7 «النهارده», G8 waits for the user).

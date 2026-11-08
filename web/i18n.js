@@ -336,6 +336,28 @@
     "آخر مراجعة من # يوم": "Last review # days ago", "آخر مراجعة من # يوم · آخر نتيجة #٪": "Last review # days ago · last score #%",
     "#٪ · آخر مراجعة من # يوم": "#% · last review # days ago", "# آية · آخر مراجعة من # يوم": "# verses · last review # days ago",
     "الاختبار لحد": "Test up to", "الموضع # من #": "Place # of #", "الموضع اللي بعده": "Next place", "نتيجة الاختبار كله:": "Whole test score:", "(افتكرت # من # كلمة)": "(remembered # of # words)" };
+  // 5.17 Sprint C: S3 mutashabihat test, S5 talqin, S8 offline audio + sleep timer
+  var D517 = { "اختبار المتشابهات": "Similar-verses test", "التلقين": "Talqin (listen and repeat)", "من محفوظي": "From what I memorised", "كل القرآن": "Whole Quran",
+    "لسه مفيش سور محفوظة، فالأسئلة من القرآن كله.": "No memorised surahs yet, so the questions come from the whole Quran.",
+    "كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت.": "Continue this ayah correctly: pick its continuation, or recite it.",
+    "صح # من #": "# of # right", "السؤال اللي بعده": "Next question", "افتح الآية": "Open the ayah", "صح": "Right", "غلط": "Wrong", "ما شاء الله": "Masha'Allah",
+    "دي تكملة سورة @ · الآية #": "That is how Surah @ · ayah # goes on", "سمّع التكملة": "Recite the continuation", "مش واضح، كمّل التكملة": "Not clear yet, go on reciting",
+    "مفيش أسئلة هنا.": "No questions here.", "الآية #": "Ayah #", "القارئ يقرا": "Reciter reads", "# مرة": "# time", "# مرات": "# times",
+    "اسمع": "Listen", "اقرا": "Read", "سمّع": "Recite", "اقراها": "Read it", "اسمع تاني": "Listen again", "خبّيها وسمّع": "Hide and recite", "من الأول": "From the start",
+    "اسمع القارئ وهو بيقرا الآية # مرة، والآية مستخبية.": "Listen to the reciter read the ayah # time, with the ayah hidden.",
+    "اسمع القارئ وهو بيقرا الآية # مرات، والآية مستخبية.": "Listen to the reciter read the ayah # times, with the ayah hidden.",
+    "اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.": "Read the ayah while you see it; when you are ready, hide it and recite it.",
+    "سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».": "Recite the ayah from memory. If you forget a word, tap it to show it; at the end tap «Done».",
+    "نسيت # من # كلمة": "Forgot # of # words", "ما شاء الله، صح كلها": "Masha'Allah, all right", "الآية اللي بعدها": "Next ayah", "عيد الآية": "Repeat the ayah",
+    "ختمت القرآن، ما شاء الله": "You reached the end of the Quran, masha'Allah", "سمّع بالصوت": "Recite by voice", "أنا قريت صح": "I read it right",
+    "الاستماع من غير إنترنت": "Listen offline", "الاستماع من غير إنترنت ومؤقت النوم": "Offline listening and sleep timer", "حمّل": "Download", "إلغاء التحميل": "Cancel download",
+    "# من #": "# of #", "فشل #": "# failed", "اتلغى": "cancelled", "خلص": "done", "فيه تحميل شغال": "A download is already running", "اتلغى التحميل": "Download cancelled",
+    "اتحفظت سورة @ للاستماع من غير إنترنت": "Surah @ saved for offline listening", "اتحفظت الجزء % للاستماع من غير إنترنت": "Juz % saved for offline listening",
+    "مؤقت النوم": "Sleep timer", "# دقيقة": "# min", "ساعة": "1 hour", "آخر السورة": "End of the surah", "إلغاء المؤقت": "Cancel the timer", "قفل": "Close",
+    "النوم بعد # د": "Sleep in # min", "النوم آخر السورة": "Sleep at surah end", "التلاوة هتقف بعد # دقيقة": "Recitation stops in # min",
+    "التلاوة هتقف في آخر السورة": "Recitation stops at the end of the surah", "اتلغى مؤقت النوم": "Sleep timer cancelled", "وقّفت التلاوة، تصبح على خير": "Recitation stopped, good night",
+    "@ · آية #": "@ · ayah #", "الآية": "Ayah" };
+  for (var c517 in D517) if (D[c517] === undefined) D[c517] = D517[c517];
   for (var c513 in D513) if (D[c513] === undefined) D[c513] = D513[c513];
   for (var c49 in D49) if (D[c49] === undefined) D[c49] = D49[c49];
   for (var c39 in D39) if (D[c39] === undefined) D[c39] = D39[c39];
