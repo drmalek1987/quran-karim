@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقرير 5.15 – Sprint A</title>
+<style>
+body{font-family:Tahoma,"Segoe UI",sans-serif;max-width:760px;margin:24px auto;padding:0 16px;line-height:1.8;color:#1d2a26;background:#f6f4ef}
+h1{color:#0f6b52;font-size:24px}h2{color:#0f6b52;font-size:18px;margin-top:28px;border-bottom:2px solid #d9e6e0;padding-bottom:4px}
+.card{background:#fff;border-radius:14px;padding:12px 16px;margin:10px 0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ok{color:#0f6b52;font-weight:bold}.wait{color:#a5761b;font-weight:bold}
+table{border-collapse:collapse;width:100%;background:#fff;border-radius:10px;overflow:hidden}td,th{padding:6px 10px;border-bottom:1px solid #eee;text-align:right}th{background:#e8f1ed}
+img{max-width:48%;border-radius:12px;border:1px solid #ddd}code{direction:ltr;unicode-bidi:embed;background:#eef;padding:0 4px;border-radius:4px}
+</style>
+<h1>نسخة 5.15: الحفظ بقى أذكى</h1>
+<p>ده Sprint A من Patch 3: «ركّز على أخطائي»، و«المراجعة الذكية»، وكارت «النهارده». وجهّزنا كمان بيانات تدريب G10 على الدوشة والسرعة.</p>
+
+<h2>الجديد</h2>
+<div class="card"><b>١. ركّز على أخطائي (S2)</b><br>في كارت «اختبرني» بقى فيه زرار «أخطائي بس (#)». الاختبار بيبقى على الآيات اللي غلطت فيها بس، ومع كل واحدة آية قبلها وآية بعدها. وفي «عشوائي»، المواضع بتقع على أخطائك في الغالب، تقريباً ٢ من كل ٣.</div>
+<div class="card"><b>٢. المراجعة الذكية (S1)</b><br>كل سورة ليها ميعاد مراجعة خاص بيها. أول مرة بعد ٧ أيام. لو جبت ٩٠٪ أو أكتر المدة بتتضاعف (لحد ٩٠ يوم)، ومن ٧٠ لـ ٨٩٪ بتفضل زي ما هي، وأقل من ٧٠٪ السورة بترجعلك تاني يوم.<br>
+وفيه كمان <b>ورد مراجعة يومي</b>: بتختار عدد صفحات في اليوم، والتطبيق بياخد السور اللي فات ميعادها الأقدم الأول. وزرار «اختبرني في ورد النهارده» بيفتح اختبار المصحف على الورد كله ورا بعض.<br>
+خريطة الحفظ وتنبيه المراجعة ماشيين على نفس القاعدة.</div>
+<div class="card"><b>٣. كارت «النهارده» (S7)</b><br>في الرئيسية تحت كارت الختمة. فيه ورد الختمة، وعدد سور المراجعة وصفحاتها، وزرار «اختبرني». وبيظهر بس لو عندك سورة محفوظة.</div>
+<p><img src="../tools/qa/s7-home-today.png" alt="كارت النهارده"> <img src="../tools/qa/s1-s2-review.png" alt="المراجعة"></p>
+
+<h2>التعرّف على التلاوة (G10)</h2>
+<div class="card">جهّزنا <b>١٣٣٠٢</b> مقطع تدريب على الـ CPU، من غير ما نصرف tokens. فيهم:
+<ul>
+<li>دوشة ناس بتتكلم، ودوشة عادية بمستويات مختلفة.</li>
+<li>صدى زي صدى الأوض.</li>
+<li>قراية سريعة (حدر) وقراية بطيئة.</li>
+</ul>
+ضوضاء الاختبار ما استخدمناهاش في التدريب، عشان المقارنة تفضل عادلة.<br>
+<span class="wait">التدريب نفسه مستني ليلة الجهاز يفضل فيها شغال.</span></div>
+
+<h2>الفحص</h2>
+<table>
+<tr><th>الفحص</th><th>النتيجة</th></tr>
+<tr><td>ui.js (كل الاختبارات)</td><td class="ok">236 · 0 FAIL (بعد تحديث check قديم كان مستني زرارين بدل ٣)</td></tr>
+<tr><td>اختبارات 5.15 الجديدة</td><td class="ok">7 / 7</td></tr>
+<tr><td>data.py · matrix · donate</td><td class="ok">28/0 · 40/0 · 0 FAIL</td></tr>
+<tr><td>i18n (الإنجليزي)</td><td class="ok">الترجمتين الناقصين في «المراجعة» اتصلّحوا</td></tr>
+<tr><td>Maestro على الـ 4 AVDs</td><td id="maestro">MAESTRO_RESULT</td></tr>
+<tr><td>التوقيع</td><td class="ok">7d8b31d2 · versionCode 58 · sw quran-v53</td></tr>
+</table>
+
+<h2>محتاج منك</h2>
+<div class="card">
+<ol>
+<li>جرّب قايمة <b>QA-checklist § 5.15</b> على الموبايل (من ١ لـ ٩).</li>
+<li>ملاحظاتك على 5.14 (§ 5.14) لسه ما وصلتش، فلما تجربها ابعتها.</li>
+<li>قولّي لو الجهاز هيفضل شغال الليلة، عشان أشغّل تدريب G10.</li>
+</ol>
+</div>
+<h2>اللي جاي (Sprint B)</h2>
+<p>gate بتاع G10 وتصدير النموذج، وبعده S6 «مش متأكد» بدل الأحمر. وفي الآخر تجربة الموبايل في الدوشة.</p>
+</html>

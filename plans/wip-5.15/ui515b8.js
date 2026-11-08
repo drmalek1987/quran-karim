@@ -1,0 +1,10 @@
+  await check(G515, '5.15b ٨: ✓ بنتيجة الاختبار: من «المراجعة» أي اختبار ٨٠٪ على السورة بيعلّمها، ومن «اختبار الحفظ» لازم السورة كلها', async () => { const k = await hzKeep();
+    await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); });
+    await go('#/', 150); await go('#/hifztest/2', 700); await p.click('#htDone'); await wait(300);
+    const part = await ev(() => [!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[2], (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[2] || {}).score]);
+    const P = [[await gq(2, 5), await gq(2, 8)]];
+    await go('#/', 200); await ev(P => hzTestStart({ k: 's', s: 2, w: 'r' }, 'm', P), P); await wait(1200);
+    for (let i = 0; i < 4; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1800);
+    const rv = await ev(() => [!!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[2], (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[2] || {}).score]);
+    await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await hzBack(k); await go('#/', 300);
+    return assert(part[0] && part[1] === 100 && rv[0] && rv[1] === 100, JSON.stringify([part, rv])); });
