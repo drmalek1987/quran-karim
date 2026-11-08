@@ -28,7 +28,8 @@ const ev = (f, ...a) => p.evaluate(f, ...a), wait = ms => p.waitForTimeout(ms);
   await check('sendDonations called at start (Wi-Fi only by default)', async () => { await wait(5200); const s = await ev(() => QA.sent); return s.length >= 1 && s[0] === false || JSON.stringify(s); });
 
   await ev(() => { location.hash = '#/hifztest/1'; }); await wait(800);
-  await check('hifz words carry data-a / data-w', () => ev(() => { const w = document.querySelectorAll('.ht-w'); return w.length > 20 && w[0].dataset.a === '1' && w[0].dataset.w === '0' && w[4].dataset.a === '2' && w[4].dataset.w === '0'; }));
+  await check('hifz words carry data-a / data-w', () => ev(() => { const w = document.querySelectorAll('.ht-w'); // 5.15b: the first words of ayah 1 are open at the start, so ayah 2 is the reference
+    const a2 = [...w].filter(x => x.dataset.a === '2'); return w.length > 20 && [...w].every(x => /^\d+$/.test(x.dataset.a) && /^\d+$/.test(x.dataset.w)) && a2.length > 3 && a2[0].dataset.w === '0' && a2[1].dataset.w === '1'; }));
   await p.click('#htMic'); await wait(100);
   await check('clean piece -> donate2 with v2 label and nvSeq', async () => {
     await ev(() => { window.nvSeq = 5; onRecite('بسم الله الرحمن الرحيم', 'final'); }); await wait(50);

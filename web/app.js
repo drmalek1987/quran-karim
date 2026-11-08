@@ -744,8 +744,10 @@
     } else html += hero("سورة الفاتحة", "ابدأ القراءة من أول المصحف");
     var hj = hijri(new Date()), fs = fastOf(new Date());
     if (hj) html += '<div class="hj-bar">' + ic("moon") + "<span>" + new Date().toLocaleDateString(window.LANG === "en" ? "en-GB" : "ar-EG", { weekday: "long" }) + " " + hj.text + "</span>" + (fs ? "<small>يُستحب صيامه: " + fs + "</small>" : "") + "</div>";
-    html += '<div class="home-row"><button class="mini" id="tPrayer">' + ic("clock") + "<span>" + prayerTileText() + "</span></button>" + goalCard() + "</div>";
-    html += khatmaCard() + todayCard();
+    // 5.16 U5: with a memorised surah, «هدف اليوم» lives inside the «النهارده» card (one card, no repeat)
+    var td = todayCard();
+    html += '<div class="home-row' + (td ? " one" : "") + '"><button class="mini" id="tPrayer">' + ic("clock") + "<span>" + prayerTileText() + "</span></button>" + (td ? "" : goalCard()) + "</div>";
+    html += khatmaCard() + td;
     // 5.13 P2.2: the mic is always on the home screen: it finds the ayah being recited anywhere in the Quran, opens its
     // page and follows the reading there (the same rdToggle / rdHear as the mic on the mushaf)
     rdPage = null;
@@ -754,7 +756,7 @@
     var tdG = document.getElementById("tdGo"); if (tdG) tdG.onclick = function (ev) { ev.stopPropagation(); hzWardTest(); };
     var tdC = document.getElementById("tdCard"); if (tdC) tdC.onclick = function () { location.hash = "#/hifzlog"; };
     document.getElementById("tPrayer").onclick = function () { location.hash = "#/prayer"; };
-    document.getElementById("tGoal").onclick = goalDialog;
+    document.getElementById("tGoal").onclick = function (ev) { ev.stopPropagation(); goalDialog(); };
     if (mode === "pages" && lastPage) document.getElementById("cont").onclick = function () { openPage(lastPage); };
     else if (last) document.getElementById("cont").onclick = function () { go(last[0], last[1]); };
     else document.getElementById("cont").onclick = function () { mode === "pages" ? openPage(pageOf(1, 1)) : go(1, 1); };
@@ -2916,8 +2918,12 @@
     if (!Object.keys(hzRevData()).length) return "";
     var P = plan(), W = hzWard(), kh = !P || P.finished ? "" : P.left ? "ورد الختمة: " + ar(P.left) + " صفحة" : "ورد الختمة خلص ✓";
     var rv = W.list.length ? "مراجعة: " + ar(W.list.length) + " سورة (" + ar(W.pages) + " صفحة)" : "مفيش مراجعة مستحقة ✓";
-    return '<div class="kcard td-card" id="tdCard" role="button" tabindex="0"><span class="tile-ic kh">' + ic("rep") + '</span><span class="kc-txt"><b>النهارده</b><small>' +
-      (kh ? kh + " · " : "") + rv + "</small></span>" + (W.list.length ? '<button class="td-go" id="tdGo">اختبرني</button>' : ic("left")) + "</div>";
+    // 5.16 U5: the reading goal is the card's ring (tap: set the goal); the lines: reading, khatma ward, review ward
+    var g = goalCfg(), n = todayPages(), pct = g.pages ? Math.min(100, Math.round(n / g.pages * 100)) : 0, ok = g.pages && n >= g.pages;
+    var ring = '<button class="td-goal g-ring' + (ok ? " done" : "") + '" id="tGoal" style="--p:' + pct + '" aria-label="هدف القراءة اليومي"><b>' + (!g.pages ? ic("target") : ok ? "✓" : ar(pct) + "٪") + "</b></button>";
+    var rd = g.pages ? "القراءة: " + ar(Math.min(n, g.pages)) + " من " + ar(g.pages) + " صفحة" : "حدد هدف يومي";
+    return '<div class="kcard td-card" id="tdCard" role="button" tabindex="0">' + ring + '<span class="kc-txt"><b>النهارده</b><small>' +
+      [rd, kh, rv].filter(Boolean).map(function (x) { return "<span>" + x + "</span>"; }).join(" · ") + "</small></span>" + (W.list.length ? '<button class="td-go" id="tdGo">اختبرني</button>' : ic("left")) + "</div>";
   }
   function khatmaCard() {
     var P = plan(), m = marks().length, sub;
@@ -3360,9 +3366,17 @@
   function hzWardTest() {
     var w = hzWard().list.map(function (x) { return x.s; }).sort(function (a, b) { return a - b; });
     if (!w.length) return toast("مفيش مراجعة مستحقة النهارده");
-    hzTestStart({ k: "s", s: w[0], w: "o" }, "m", w.map(function (s) { return [gIdx(s, 1), gIdx(s, Q.s[s - 1][3])]; }));
+    var way = load("hzWardWay", "o");
+    hzTestStart({ k: "s", s: w[0], w: way }, "m", hzWardPlan(w, way));
   }
-  window.hzWardTest = hzWardTest;   // QA
+  // 5.16 U2: «بالسرد» = each due surah whole; «عشوائي» = random parts (3–12 ayat) inside each due surah, in Quran order
+  function hzWardPlan(w, way) {
+    var P = [];
+    if (way === "r") w.forEach(function (s) { P = P.concat(hzParts({ k: "s", s: s, w: "r" })); });
+    else P = w.map(function (s) { return [gIdx(s, 1), gIdx(s, Q.s[s - 1][3])]; });
+    return P;
+  }
+  window.hzWardTest = hzWardTest; window.hzWardPlan = hzWardPlan;   // QA
   function hzPlace(i, n) { return "الموضع " + ar(i) + " من " + ar(n); }
   // the mushaf test reached the end of a place: the next place opens (its page), the score goes on adding up
   // 5.15b item 3: the phone buzzes when a random test moves to its next place
@@ -3379,7 +3393,7 @@
     if (location.hash === h) route(); else location.hash = h;
   }
   window.hzRange = hzRange;   // QA
-  var hzFoldOpen = false, hzMemoOpen = false, hzFrom = false;
+  var hzFoldOpen = false, hzMemoOpen = false, htBadOpen = false, hzFrom = false;
   window.addEventListener("hashchange", function () { if (hzFrom && !/^#\/(p|s|hifztest)\//.test(location.hash) && location.hash !== "#/hifzlog") hzFrom = false; });
   window.hzFromState = function () { return hzFrom; };   // QA
   var HZ_K = [["s", "سورة"], ["j", "جزء"], ["a", "آيات من سورة"], ["jq", "ربع جزء"], ["jh", "نصف جزء"], ["mq", "ربع المصحف"], ["mh", "نصف المصحف"], ["all", "القرآن كله"]];
@@ -3414,11 +3428,12 @@
     html += '<section class="hz-due" id="hzDue"><h3 class="hz-h">' + ic("rep") + "عليك مراجعة</h3>" +
       '<div class="hz-row hz-daily"><span>ورد المراجعة اليومي</span>' + sel("hzDaily", "ورد المراجعة اليومي", [[0, "كل المستحق"], [1, "صفحة واحدة"], [2, "صفحتين"], [3, "٣ صفحات"], [5, "٥ صفحات"], [10, "١٠ صفحات"], [20, "٢٠ صفحة"]], per) + "</div>" +
       (due.length ? '<p class="hint hz-wsum">ورد النهارده: ' + ar(due.length) + " سورة · " + ar(W.pages) + " صفحة" + (W.all > due.length ? " · وفيه " + ar(W.all - due.length) + " سورة تانية مستنية" : "") + "</p>" +
+        '<div class="z-sort hz-wway">' + [["o", "بالسرد"], ["r", "عشوائي"]].map(function (x) { return '<button data-ww="' + x[0] + '"' + (load("hzWardWay", "o") === x[0] ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div>" +
         '<button class="continue hz-wgo" id="hzWardGo">' + ic("book") + " اختبرني في ورد النهارده</button>" + due.map(function (x) {
       return '<div class="hl-due"><div><b>سورة ' + Q.s[x.s - 1][0] + "</b><small>آخر مراجعة من " + ar(x.age) + " يوم · كل " + ar(x.iv) + " يوم" + (x.sc != null && x.sc < 70 ? " · آخر نتيجة " + ar(x.sc) + "٪" : "") +
         '</small></div><button data-test="' + x.s + '">اختبرني</button></div>';
     }).join("") : '<p class="hint">مفيش مراجعة مستحقة النهارده. كل سورة ليها ميعاد: أول مرة بعد ٧ أيام. ولو جبت ٩٠٪ أو أكتر، المدة بتتضاعف لحد ٩٠ يوم. ولو جبت أقل من ٧٠٪، بترجعلك تاني يوم.</p>') + "</section>";
-    html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="hz-h">' + ic("check") + 'السور المراجعة</summary><p class="hint">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class="hl-list">';
+    html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="continue hl-sbtn">' + ic("check") + ' السور المراجعة</summary><p class="hint">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class="hl-list">';
     for (var s = 1; s <= 114; s++) {
       var e = L[s], pc = hifzPct(s, HA);
       html += '<li data-s="' + s + '" class="' + (e ? "on" : "") + '"><span class="hl-n">' + ar(s) + "</span><b>" + Q.s[s - 1][0] + "</b>" +
@@ -3439,7 +3454,9 @@
     document.getElementById("hzDaily").onchange = function () { save("hzDaily", +this.value); var y = window.scrollY; showHifzLog(); window.scrollTo(0, y); };
     var wg = document.getElementById("hzWardGo"); if (wg) wg.onclick = function () { hzWardTest(); };
     // a due surah's «اختبرني»: the card above gets that surah (the list of memorised surahs is only to look at, 5.15b)
-    view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { c.k = "s"; put("s", +b.dataset.test, true); }; });
+    // 5.16 U1: a due surah's «اختبرني» starts the mushaf test on that surah at once (the way of the ward above)
+    view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { var s1 = +b.dataset.test; hzTestStart({ k: "s", s: s1, w: load("hzWardWay", "o") }, "m"); }; });
+    view.querySelectorAll(".hz-wway button").forEach(function (b) { b.onclick = function () { save("hzWardWay", b.dataset.ww); var y = window.scrollY; showHifzLog(); window.scrollTo(0, y); }; });
   }
 
   // ---------- نسخة احتياطية ----------
@@ -3836,8 +3853,8 @@
       '<div class="hm-lg">' + lg.map(function (l) { return '<span><i class="hm-c ' + l[0] + '"></i>' + l[1] + " (" + ar(l[2]) + ")</span>"; }).join("") + "</div>" +
       '<div class="hm-grid">' + cells + "</div>" +
       '<p class="hint">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع عشان تختار الآية وتبدأ الاختبار. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
-      '<button class="continue" id="hmLog">' + ic("check") + " السور المحفوظة</button></div>";
-    document.getElementById("hmLog").onclick = function () { hzMemoOpen = true; location.hash = "#/hifztest"; };
+      hzMemoList(L) + "</div>";
+    document.getElementById("hmFold").ontoggle = function () { hzMemoOpen = this.open; };
     view.querySelectorAll(".hm-grid .hm-c").forEach(function (c) { c.onclick = function (e) { e.preventDefault(); hzPick(+c.dataset.s, +c.dataset.p); }; });
   }
   // a box of the map: choose the ayah to start from, then test on the mushaf (the main way), with hidden words, or just read
@@ -4068,7 +4085,7 @@
   // ---------- اختبار الحفظ: كلمات مخفية تكشفها لما تنساها ----------
   // 5.15c item 3: «السور المحفوظة» under the hifz test (q.hifzLog), fold-open, a list to look at
   function hzMemoList(L) {
-    var h = '<section class="hm-memo"><details class="hl-fold" id="hmFold"' + (hzMemoOpen ? " open" : "") + '><summary class="hz-h">' + ic("check") + "السور المحفوظة</summary>" +
+    var h = '<section class="hm-memo"><details class="hl-fold" id="hmFold"' + (hzMemoOpen ? " open" : "") + '><summary class="continue hl-sbtn">' + ic("check") + " السور المحفوظة</summary>" +
       '<p class="hint">السورة بتدخل القايمة دي لما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة ٨٠٪ أو أكتر. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class="hl-list">';
     for (var s = 1; s <= 114; s++) {
       var e = L[s];
@@ -4137,10 +4154,11 @@
       '<audio id="htAudio" controls hidden></audio>' +
       '<div class="ht-foot"><button class="continue" id="htDone">' + ic("check") + " خلصت</button>" +
       (nx ? '<button class="continue" id="htNext">' + (nx.place ? "الموضع اللي بعده" : "الآيات اللي بعدها") + "</button>" : "") + '</div><p class="ht-res" id="htRes"></p>' +
-      (bad.length ? '<div class="ht-bad"><b>آيات غلطت فيها قبل كده</b><div>' + bad.map(function (x) { return '<button data-a="' + x.a + '">الآية ' + ar(x.a) + "</button>"; }).join("") + "</div></div>" : "") +
+      (bad.length ? '<details class="ht-bad hl-fold" id="htBad"' + (htBadOpen ? " open" : "") + '><summary><b>آيات غلطت فيها قبل كده (' + ar(bad.length) + ')</b></summary><div>' + bad.map(function (x) { return '<button data-a="' + x.a + '">الآية ' + ar(x.a) + "</button>"; }).join("") + "</div></details>" : "") +
       reciteHistory() + hzMemoList(L) + "</div>";
     view.innerHTML = html;
     document.getElementById("hmFold").ontoggle = function () { hzMemoOpen = this.open; };
+    var hb = document.getElementById("htBad"); if (hb) hb.ontoggle = function () { htBadOpen = this.open; };
     var missed = 0, rec = null;
     document.getElementById("htQari").onclick = function () { player.playRange(s, from, to); };
     document.getElementById("htPages").onclick = function () { hifzTestPages(s, from); };

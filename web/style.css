@@ -1137,3 +1137,10 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 /* 5.15c: «قلب تلقائي» inside a test: always on, not a toggle */
 .hz-btns .hz-flip:disabled, .ht-ibs #htFlip:disabled { opacity: .5; cursor: default; }
 .hm-memo { margin-top: 14px; }
+
+/* 5.16 U5 / U6 / U8 */
+.home-row.one{grid-template-columns:1fr}
+.td-goal{border:0;padding:0;cursor:pointer;color:inherit;font:inherit}.td-goal.done b{color:var(--accent);font-size:16px}.td-goal b svg{width:18px;height:18px}
+.hl-fold>summary.hl-sbtn{display:flex;align-items:center;gap:8px;margin:10px 0 0}
+.ht-bad>summary{display:flex;align-items:center}
+.hz-wway{margin:8px 0}
