@@ -368,3 +368,4 @@ Resume: S11 teacher/student (QK2: code from the hifz test result + «طلابي�
   with «طلابي»; fixed, group re-run 9/0) · data.py 28/0 · matrix 40/0 · donate 14/0 · recite_sim ok · i18n new strings done ·
   Maestro Phone_API35 + Tablet_API35 PASS. bee81250 not on adb: APK left ready. Report plans/5.18-report.html.
 Resume: user phone test of 5.18 (QA-checklist 5.18) + 5.17b + pack v3; GitHub release v5.18 only on the user's word; next S12 spike / G10 rethink.
+- GitHub release v5.18 published with the user's OK (2026-11-08), asset quran-karim-v5.18.apk.
