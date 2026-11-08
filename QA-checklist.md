@@ -560,3 +560,4 @@
 1. U3: اختبر على المصحف بالصوت في آية سطورها طويلة (آية الكرسي مثلاً): كل سطر لازم يتكشف كلمة كلمة وانت بتقرا، مش لما تخلّص السطر كله. والكلمة الغلط بتبقى حمرا.
 2. U4: في «عشوائي» أو «أخطائي بس» على المصحف بالصوت، أول ما تقول آخر كلمة في الموضع صح، الموضع اللي بعده بيفتح على طول (أقل من ثانية)، من غير ما تستنى تسكت.
 - 5.16d (2026-11-08): «قلب تلقائي» works on/off in map tests (mushaf + words), stays faded/disabled in «المراجعة» tests (hifz.test.rv / range rg). ui.js 255/0 (new 5.16d check; G6, phone #12 checks follow the new rule).
+- 5.16b build QA (2026-11-08, quran-karim-v5.16b.apk, versionCode 60, sw quran-v55, signer 7d8b31d2; U3 + U4 + 5.16d auto-flip from the other session): ui.js kfgqpc 255/0 · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL · recite_sim.js all scenarios, no errors · Maestro smoke PASS on Small_API35, Fold_API35, Tablet_API35, Phone_API35 · installed on bee81250. S6 put off (weekly usage ~70%).
