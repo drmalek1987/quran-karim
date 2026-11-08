@@ -335,7 +335,7 @@
   // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
   // Only NVIDIA's model is left (NvAsr.java, its own runtime in the pack). The whisper models (asrbase, asrft) and the
   // web runtime they needed (asrrt) were dropped in 5.4: their files are removed from phones that still have them.
-  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 103, ver: 2 } };
+  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 93, ver: 3 } };   // v3 (5.16d): L2 fine-tune + Z1 pos-table trim
   function asrPacks(m) { return [m, m + "p"]; }
   // Model versions are separate files (asrnv2.zip …); v1 (asrnv.zip, the 5.7 model) stays on the server for rollback.
   // The pack carries asr/<m>/ver.txt; a phone without it has v1 and is offered «تحديث» in Settings › Downloads.
@@ -2119,7 +2119,7 @@
       if (id === prev) { own[i] = us.length - 1; continue; }
       us.push(u[0]); own[i] = us.length - 1; prev = id;
     }
-    // S6 (5.17): ctcM gives a skipped word's margin (best path - best path that reads it); a small one = the model
+    // S6 (5.16d): ctcM gives a skipped word's margin (best path - best path that reads it); a small one = the model
     // nearly read it, so the word shows «مش متأكد» (2, yellow) instead of red and is not counted wrong. Calibrated on the
     // L2 bench (s6_calib.py): m < 1 turns 10% of false reds, 1.9% of caught wrong words become yellow (not green).
     var M = !!NvBridge.ctcM, res, uns = 0;

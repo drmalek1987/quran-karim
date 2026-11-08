@@ -190,6 +190,8 @@ class NvAsr {
         if (!parts && !model.exists()) throw new Exception("model missing");
         // Parts on disk always mean a new download (or a cut join): join again even when the size matches (model v2 = same size).
         if (parts) {
+            // 5.16d (pack v3): the old joined model goes first, so an update never holds old + parts + new (~360 MB)
+            if (session == null) model.delete();
             File tmp = new File(dir, "nv.onnx.part");
             OutputStream out = new FileOutputStream(tmp);
             byte[] buf = new byte[1 << 16]; int n;

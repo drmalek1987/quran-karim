@@ -333,3 +333,6 @@ Resume: S6 «مش متأكد» (effort high: user switches first), then pack v3 
   Java/Python parity: flags 80/80, 95 margins max diff 1.2e-4. Calibration on gate_L2 (329 false reds, 1860 neg): m<0.5 5.5%/0.7%, m<1 10%/1.9%, m<2 21%/4.1% (false reds -> unsure / catches -> yellow). Chosen CTC_UNSURE = 1.0.
   JS: ctcJudge sets r.v=2 «مش متأكد» (yellow .rc-uns/.rc-unsw/.ht-w.uns), not counted wrong, never auto-donated; falls back to ctc() on old APKs.
 Resume: pack v3 (L2+Z1 = qtrain/gpu-train/z1/L2.int8.onnx, new pack name, app deletes old nv.onnx), then release + full QA.
+- Pack v3 built: quran-karim-data/pack-v3/asrnv3.zip (50.1 MB: a.bin, vocab, ver.txt=3, ORT libs) + asrnvp3.zip (42.7 MB); join md5 = z1/L2.int8.onnx. Uploaded to editions (6f62198) with the user's OK; raw URLs 200.
+- App 5.16d (versionCode 62, sw quran-v57): ASRM ver 3 / 93 MB; NvAsr deletes the old nv.onnx before joining new parts. APK signer 7d8b31d2, installed on bee81250 (then the phone dropped off adb).
+Resume: QA results in %TEMP%/qa516d (sum.log); user phone test: Settings › Downloads «تحديث» model, then recite (S6 yellow words); then QA-checklist + HTML report + commit/push.
