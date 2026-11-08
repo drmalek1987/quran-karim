@@ -283,9 +283,10 @@ async function fresh(ctx, vp) {
   await check(G13, 'ختمة رمضان بتظهر وبتعمل خطة على أيام رمضان', async () => { await ev(() => localStorage.removeItem(Object.keys(localStorage).find(k => /khatma/.test(k)) || 'x')); await go('#/khatma', 700);
     const card = await ev(() => !!document.getElementById('kRamadan')); await p.click('#kRamadan'); await wait(500);
     const k = await ev(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /khatma/.test(k))))); return assert(card && k.ramadan && k.days >= 29 && k.days <= 30, JSON.stringify(k)); });
-  await check(G13, 'المراجعة: كارت «اختبرني» والسور الـ ١١٤ وزرار الخريطة', async () => { await go('#/hifzmap', 700); await p.click('#hmLog'); await wait(600);
+  await check(G13, 'المراجعة: كارت «اختبرني» والسور الـ ١١٤، وزرار «السور المحفوظة» في الخريطة بيفتح قايمتها (5.15c)', async () => { await go('#/hifzmap', 700); await p.click('#hmLog'); await wait(600);
+    const m = await ev(() => [location.hash, document.querySelectorAll('#hmFold .hl-list li').length]); await go('#/hifzlog', 600);
     const r = await ev(() => [location.hash, document.querySelectorAll('.hl-list li').length, !!document.getElementById('hzCard'), !!document.getElementById('hzGoM') && !!document.getElementById('hzGoW'), document.querySelectorAll('.hz-way button').length]);
-    return assert(r[0] === '#/hifzlog' && r[1] === 114 && r[2] && r[3] && r[4] === 3, JSON.stringify(r)); });
+    return assert(m[0] === '#/hifztest' && m[1] === 114 && r[0] === '#/hifzlog' && r[1] === 114 && r[2] && r[3] && r[4] === 3, JSON.stringify([m, r])); });
   await check(G13, 'صوت مؤذن مختلف لكل صلاة وتذكير قبل الأذان', async () => { await go('#/prayer', 900);
     await p.click('[data-open=fajr]'); await p.selectOption('.pv-v[data-p=fajr]', 'basit'); await wait(400); await p.click('[data-open=dhuhr]'); await p.selectOption('.pv-v[data-p=dhuhr]', 'afasy'); await wait(400); await p.click('.pv-pre[data-p=dhuhr][data-m="15"]'); await wait(400);
     await p.click('.pv-play[data-p=dhuhr]'); const pv = await ev(() => AppBridge.preview); await p.click('.pv-play[data-p=dhuhr]'); await go('#/', 2500);
@@ -329,9 +330,9 @@ async function fresh(ctx, vp) {
   await check(G14, 'الإعدادات فيها أزرار للأقسام ومعاينة الخط', async () => { await p.click('#btnSettings'); const r = await ev(() => [document.querySelectorAll('.set-jump button').length, !!document.querySelector('.set-prev')]); await closeS(); return assert(r[0] >= 3 && r[1], JSON.stringify(r)); });
   await check(G14, 'بيانات ودجت الصلاة الجاية (3 أيام)', async () => { await go('#/', 2500); const w = await ev(() => AppBridge.widget); return assert(w && w.prayers.length === 15 && w.prayers[0].n && w.place === 'القاهرة', JSON.stringify(w && w.prayers.slice(0, 1))); });
   const G15 = 'مزايا نسخة 3.8';
-  await check(G15, 'خريطة الحفظ: كل صفحات الطبعة ملونة حسب السور المحفوظة', async () => { await ev(() => { const d = new Date(), t = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); localStorage.setItem('q.hifzLog', JSON.stringify(Object.assign({ 1: { m: '2026-1-1', r: '2025-1-1' } }, ...Array.from({ length: 25 }, (_, i) => ({ [90 + i]: { m: t, r: t } })))) ); });
+  await check(G15, 'خريطة الحفظ: كل صفحات الطبعة ملونة حسب السور المحفوظة', async () => { await ev(() => { const d = new Date(), t = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); localStorage.setItem('q.hifzLog', JSON.stringify(Object.assign({ 1: { m: '2026-1-1', r: '2025-1-1' } }, ...Array.from({ length: 25 }, (_, i) => ({ [90 + i]: { m: t, r: t } })))) ); localStorage.setItem('q.hzRev', localStorage.getItem('q.hifzLog')); });
     await go('#/hifzmap', 800); const r = await ev(() => [new Set([...document.querySelectorAll('.hm-grid a')].map(a => a.getAttribute('href'))).size, +document.querySelector('.hm-grid a:last-child').getAttribute('href').split('/')[2] - +document.querySelector('.hm-grid a').getAttribute('href').split('/')[2] + 1, document.querySelectorAll('.hm-grid .c3').length, document.querySelectorAll('.hm-grid .c2').length, document.querySelector('.hm-grid a').getAttribute('href')]);
-    await ev(() => localStorage.removeItem('q.hifzLog')); return assert(r[0] === r[1] && r[2] >= 1 && r[3] >= 1 && /^#\/p\/\d+$/.test(r[4]), JSON.stringify(r)); });
+    await ev(() => { localStorage.removeItem('q.hifzLog'); localStorage.removeItem('q.hzRev'); }); return assert(r[0] === r[1] && r[2] >= 1 && r[3] >= 1 && /^#\/p\/\d+$/.test(r[4]), JSON.stringify(r)); });
   await check(G15, 'الختمة الجماعية: إضافة وتوزيع وتعليم ومشاركة واستيراد', async () => { await ev(() => localStorage.removeItem('q.family')); await go('#/family', 600);
     for (const n of ['أ', 'ب', 'ج']) { await p.fill('#famNew', n); await p.click('#famAdd'); await wait(120); }
     await p.click('#famSplit'); await wait(200); const js = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.j.length));
@@ -407,7 +408,7 @@ async function fresh(ctx, vp) {
   await check(G17, 'الأذكار: الصوت للآيات بس', async () => { await go('#/azkar/m', 800); const r = await ev(() => [...document.querySelectorAll('.zikr')].every(z => !z.querySelector('.z-play') || /سورة/.test(z.querySelector('.z-src').textContent))); return assert(r, String(r)); });
   // ---------- نسخة 5.4/5.5 ----------
   const G18 = 'نسخة 5.4/5.5';
-  const LSK = ['q.turn', 'q.mode', 'q.edition', 'q.hifzAyat', 'q.hifzLog', 'q.hifzScores', 'q.asrStats', 'q.hifzTest'];
+  const LSK = ['q.turn', 'q.mode', 'q.edition', 'q.hifzAyat', 'q.hifzLog', 'q.hzRev', 'q.hifzScores', 'q.asrStats', 'q.hifzTest'];
   const lsSave = () => ev(k => Object.fromEntries(k.map(x => [x, localStorage.getItem(x)])), LSK);
   const lsRest = s => ev(s => { for (const k in s) s[k] === null ? localStorage.removeItem(k) : localStorage.setItem(k, s[k]); window.QA_NOFS = true; delete window.ReciteBridge; }, s);
   const mock = () => ev(() => { window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; });
@@ -635,9 +636,9 @@ async function fresh(ctx, vp) {
     await p.click('.hm-grid .hm-c[data-p="604"][data-s="113"]'); await wait(300);
     const ops = await ev(() => [...document.querySelectorAll('.hz-pick #hzA option')].map(o => o.value).join(','));
     await p.selectOption('#hzA', '3'); await p.click('#hzMus'); await wait(1200);
-    const t = await ev(() => { const h = window.__hz = window.__hz || {}; return [location.hash, document.body.classList.contains('has-hifz'), document.querySelectorAll('.hz-flip.on').length]; });
+    const t = await ev(() => { const h = window.__hz = window.__hz || {}; return [location.hash, document.body.classList.contains('has-hifz'), document.querySelectorAll('.hz-flip.on:disabled').length]; });
     const sh = await ev(() => [...document.querySelectorAll('#hifzBar .hz-info span')].map(x => x.textContent).join(''));
-    return assert(c[0] === '112,113,114' && c[1] === 1 && ops === '1,2,3,4,5' && t[0] === '#/p/604' && t[1] && t[2] === 0 && /٠/.test(sh), JSON.stringify([c, ops, t, sh])); });
+    return assert(c[0] === '112,113,114' && c[1] === 1 && ops === '1,2,3,4,5' && t[0] === '#/p/604' && t[1] && t[2] === 1 && /٠/.test(sh), JSON.stringify([c, ops, t, sh])); });
   await check(G511, 'G6: آخر آية في آخر صفحة في المصحف بتنهي الاختبار (5.15b: مفيش «قلب تلقائي» جوه الاختبار)', async () => {
     for (let i = 0; i < 40; i++) { const more = await ev(() => document.body.classList.contains('has-hifz') && document.querySelectorAll('.hifz-mask').length > 0); if (!more) break; await p.click('#hifzBar [data-c="nx"]'); await wait(60); }
     await wait(2500); const r = await ev(() => [location.hash, document.body.classList.contains('has-hifz')]);
@@ -734,7 +735,7 @@ async function fresh(ctx, vp) {
     const r = await q.evaluate(() => { const x = document.getElementById('pg').getBoundingClientRect(); return [Math.round(x.top), Math.round(innerHeight - x.bottom)]; }); await ctx.close();
     return assert(r[0] > 20 && Math.abs(r[0] - r[1]) < 20, JSON.stringify(r)); });
   // 5.13 P2.6 «المراجعة»: ✓ by itself at 80%, test ranges, random part, mushaf test ending at the range, words test across surahs
-  const hzKeep = async () => ev(() => ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores', 'q.hzScope', 'q.hifzTest'].map(k => [k, localStorage.getItem(k)]));
+  const hzKeep = async () => ev(() => ['q.hifzLog', 'q.hzRev', 'q.hifzAyat', 'q.hifzScores', 'q.hzScope', 'q.hifzTest'].map(k => [k, localStorage.getItem(k)]));
   const hzBack = async k => ev(k => k.forEach(([a, v]) => v === null ? localStorage.removeItem(a) : localStorage.setItem(a, v)), k);
   await check(G513, 'P2.6: ✓ السورة بيتحط لوحده عند ٨٠٪ من آياتها صح وبيتشال تحتها، والضغط على السورة ما بيعلّمش', async () => { const k = await hzKeep();
     await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); });
@@ -782,7 +783,7 @@ async function fresh(ctx, vp) {
     await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 112, n: 1, q: 1, a1: 1, a2: 4, w: 'o' })); });
     await go('#/hifzlog', 600); await p.click('#hzGoM'); await wait(1200);
     for (let i = 0; i < 4; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1500);
-    const r = await ev(() => [!document.getElementById('hifzBar'), !!JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112], !!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[112]]);
+    const r = await ev(() => [!document.getElementById('hifzBar'), !!JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112], !!JSON.parse(localStorage.getItem('q.hzRev') || '{}')[112]]);
     await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await hzBack(k); await go('#/', 300);
     return assert(r.every(Boolean), JSON.stringify(r)); });
   await check(G513, 'P2.6: اختبار الكلمات بمدى بيعدّي من الفلق للناس ويعرض نتيجة الاختبار كله في الآخر', async () => { const k = await hzKeep();
@@ -795,7 +796,7 @@ async function fresh(ctx, vp) {
     return assert(a[0] === 5 && a[1] && b2[0] === '#/hifztest/114' && b2[1] === 6 && !b2[2] && /٪/.test(t) && !/١٠٠٪/.test(t), JSON.stringify([a, b2, t])); });
   await check(G513, 'P2.6: «عليك مراجعة» بتعرض كل السور المستحقة، ومفيش «راجعتها» ولا «اقرأ» ولا الدايرة', async () => { const k = await hzKeep();
     await ev(() => { const d = new Date(Date.now() - 30 * 864e5), o = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(), n = new Date(), t = n.getFullYear() + '-' + (n.getMonth() + 1) + '-' + n.getDate();
-      localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzLog', JSON.stringify({ 1: { m: o, r: o }, 112: { m: o, r: o }, 113: { m: t, r: t }, 114: { m: t, r: t } }));
+      localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hzRev', JSON.stringify({ 1: { m: o, r: o }, 112: { m: o, r: o }, 113: { m: t, r: t }, 114: { m: t, r: t } }));
       localStorage.setItem('q.hifzScores', JSON.stringify({ 113: { d: t, score: 50 }, 114: { d: t, score: 95 } })); });
     await go('#/', 200); await go('#/hifzlog', 700);
     const r = await ev(() => [[...document.querySelectorAll('.hz-due .hl-due [data-test]')].map(b => b.dataset.test).sort().join(','), !!document.querySelector('[data-rev], .hl .hl-ring, .hl-top'),
@@ -812,19 +813,19 @@ async function fresh(ctx, vp) {
     return assert(JSON.stringify(r) === '[[14,14,14,1,90],[7,1,false,true]]', JSON.stringify(r)); });
   await check(G515, 'S1: ورد المراجعة اليومي بياخد الأقدم الأول لحد عدد الصفحات، و«كل المستحق» بياخدهم كلهم', async () => { const k = await hzKeep();
     const r = await ev(([a, b2, c3]) => { localStorage.setItem('q.hifzScores', '{}');
-      localStorage.setItem('q.hifzLog', JSON.stringify({ 112: { m: a, r: a, iv: 7 }, 2: { m: b2, r: b2, iv: 7 }, 114: { m: c3, r: c3, iv: 30 }, 113: { m: a, r: a, iv: 60 } }));
+      localStorage.setItem('q.hzRev', JSON.stringify({ 112: { m: a, r: a, iv: 7 }, 2: { m: b2, r: b2, iv: 7 }, 114: { m: c3, r: c3, iv: 30 }, 113: { m: a, r: a, iv: 60 } }));
       localStorage.setItem('q.hzDaily', '1'); const w1 = hzWard(); localStorage.setItem('q.hzDaily', '0'); const w0 = hzWard(); localStorage.removeItem('q.hzDaily');
       return [w1.list.map(x => x.s), w1.all, w0.list.map(x => x.s)]; }, [dAgo(40), dAgo(10), dAgo(31)]);
     await hzBack(k); return assert(JSON.stringify(r) === '[[112],3,[112,2,114]]', JSON.stringify(r)); });
   await check(G515, 'S1: «عليك مراجعة» فيها اختيار الورد وزرار «اختبرني في ورد النهارده» اللي بيفتح اختبار المصحف على السور المستحقة', async () => { const k = await hzKeep();
-    await ev(a => { localStorage.setItem('q.hifzScores', '{}'); localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzLog', JSON.stringify({ 113: { m: a, r: a, iv: 7 }, 114: { m: a, r: a, iv: 7 } })); }, dAgo(9));
+    await ev(a => { localStorage.setItem('q.hifzScores', '{}'); localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hzRev', JSON.stringify({ 113: { m: a, r: a, iv: 7 }, 114: { m: a, r: a, iv: 7 } })); }, dAgo(9));
     await go('#/', 200); await go('#/hifzlog', 700);
     const a = await ev(() => [!!document.getElementById('hzDaily'), (document.querySelector('.hz-wsum') || {}).textContent, (document.querySelector('.hz-due .hl-due small') || {}).textContent]);
     await p.click('#hzWardGo'); await wait(1200); const t = await ev(() => [!!document.getElementById('hifzBar'), location.hash]);
     await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await hzBack(k); await go('#/', 300);
     return assert(a[0] && /٢ سورة/.test(a[1]) && /كل ٧ يوم/.test(a[2]) && t[0] && /^#\/p\/604/.test(t[1]), JSON.stringify([a, t])); });
   await check(G515, 'S1: الخريطة: سورة فترتها ٣٠ يوم وراجعتها من ٢٠ يوم مش صفرا، وبفترة ٧ أيام صفرا', async () => { const k = await hzKeep();
-    const col = async iv => { await ev(([a, iv]) => { localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzScores', '{}'); localStorage.setItem('q.hifzLog', JSON.stringify({ 112: { m: a, r: a, iv: iv } })); }, [dAgo(20), iv]);
+    const col = async iv => { await ev(([a, iv]) => { localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzScores', '{}'); localStorage.setItem('q.hifzLog', JSON.stringify({ 112: { m: a } })); localStorage.setItem('q.hzRev', JSON.stringify({ 112: { m: a, r: a, iv: iv } })); }, [dAgo(20), iv]);
       await go('#/', 150); await go('#/hifzmap', 700); return ev(() => (document.querySelector('.hm-c[data-s="112"]') || {}).className || ''); };
     const c30 = await col(30), c7 = await col(7); await hzBack(k); return assert(/\bc3\b/.test(c30) && /\bc2\b/.test(c7), JSON.stringify([c30, c7])); });
   await check(G515, 'S2: «أخطائي بس» بيبني مواضع حوالين الآيات الغلط بس (آية قبل وآية بعد)، ومن غير أخطاء مفيش اختبار', async () => { const k = await hzKeep();
@@ -844,18 +845,18 @@ async function fresh(ctx, vp) {
       for (let i = 0; i < 40; i++) if (hzParts({ k: 'j', n: 30, w: 'r' }).some(x => x[0] <= w && w <= x[1])) hit++; return hit; });
     await hzBack(k); return assert(r >= 30, 'hits ' + r + '/40'); });
   await check(G515, 'S7: كارت «النهارده» في الرئيسية فيه ورد المراجعة، و«اختبرني» بيفتح الاختبار، ومن غير حفظ مفيش كارت', async () => { const k = await hzKeep();
-    await ev(() => localStorage.removeItem('q.hifzLog')); await go('#/hifzlog', 150); await go('#/', 500); const none = await ev(() => !document.getElementById('tdCard'));
-    await ev(a => { localStorage.setItem('q.hifzScores', '{}'); localStorage.setItem('q.hifzLog', JSON.stringify({ 114: { m: a, r: a, iv: 7 }, 1: { m: a, r: a, iv: 30 } })); }, dAgo(8));
+    await ev(() => { localStorage.removeItem('q.hifzLog'); localStorage.setItem('q.hzRev', '{}'); }); await go('#/hifzlog', 150); await go('#/', 500); const none = await ev(() => !document.getElementById('tdCard'));
+    await ev(a => { localStorage.setItem('q.hifzScores', '{}'); localStorage.setItem('q.hzRev', JSON.stringify({ 114: { m: a, r: a, iv: 7 }, 1: { m: a, r: a, iv: 30 } })); }, dAgo(8));
     await go('#/hifzlog', 150); await go('#/', 500); const txt = await ev(() => (document.querySelector('#tdCard small') || {}).textContent || '');
     await p.click('#tdGo'); await wait(1200); const t = await ev(() => [!!document.getElementById('hifzBar'), location.hash]);
     await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await go('#/', 150);
-    await ev(a => localStorage.setItem('q.hifzLog', JSON.stringify({ 1: { m: a, r: a, iv: 30 } })), dAgo(8)); await go('#/hifzlog', 150); await go('#/', 500);
+    await ev(a => localStorage.setItem('q.hzRev', JSON.stringify({ 1: { m: a, r: a, iv: 30 } })), dAgo(8)); await go('#/hifzlog', 150); await go('#/', 500);
     const ok = await ev(() => [(document.querySelector('#tdCard small') || {}).textContent || '', !document.getElementById('tdGo')]);
     await hzBack(k); await go('#/', 200);
     return assert(none && /مراجعة: ١ سورة/.test(txt) && t[0] && /^#\/p\/604/.test(t[1]) && /مفيش مراجعة مستحقة/.test(ok[0]) && ok[1], JSON.stringify([none, txt, t, ok])); });
   // 5.15b: the user's patch for «المراجعة»
   const gq = async (s, a) => ev(([s, a]) => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); return A[s - 1] + a - 1; }, [s, a]);
-  await check(G515, '5.15b ١: «السور اللي حفظتها» بتتفتح وتتقفل، واللمس على سورة ما بيعملش حاجة', async () => { const k = await hzKeep();
+  await check(G515, '5.15b ١: «السور المراجعة» بتتفتح وتتقفل، واللمس على سورة ما بيعملش حاجة', async () => { const k = await hzKeep();
     await ev(() => localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 1, n: 1, q: 1, a1: 1, a2: 7, w: 'o' }))); await go('#/', 150); await go('#/hifzlog', 600);
     await ev(() => { const f = document.getElementById('hlFold'); if (f.open) f.open = false; }); await wait(150); await go('#/', 150); await go('#/hifzlog', 600);
     const a = await ev(() => [!!document.getElementById('hlFold'), document.getElementById('hlFold').open, document.querySelectorAll('#hlFold .hl-list li').length]);
@@ -885,14 +886,14 @@ async function fresh(ctx, vp) {
     const ks = await ev(() => [...new Set([...document.querySelectorAll('.hifz-mask')].map(m => m.dataset.k))].sort().join(','));
     await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); }); await hzBack(k); await go('#/', 200);
     return assert(ks === '113:2,113:3', ks); });
-  await check(G515, '5.15b ٥: مفيش زرار «قلب تلقائي» جوه الاختبار (المصحف والكلمات)، والصفحة بتتقلب حتى لو كان مقفول برّه', async () => { const k = await hzKeep();
+  await check(G515, '5.15b ٥ + 5.15c ١: «قلب تلقائي» جوه الاختبار ظاهر وشغال ومش بيتضغط (المصحف والكلمات)، والصفحة بتتقلب حتى لو كان مقفول برّه', async () => { const k = await hzKeep();
     await ev(() => { localStorage.setItem('q.hifzFlip', 'false'); localStorage.setItem('q.mode', '"pages"'); }); await go('#/hifzmap', 700); await p.click('.hm-grid .hm-c[data-p="600"]'); await wait(300); await p.click('#hzMus'); await wait(1200);
-    const fb = await ev(() => document.querySelectorAll('#hifzBar .hz-flip').length);
+    const fb = await ev(() => document.querySelectorAll('#hifzBar .hz-flip.on:disabled').length);
     for (let i = 0; i < 80; i++) { const r = await ev(() => [document.querySelectorAll('.hifz-mask').length, location.hash]); if (!r[0] || r[1] !== '#/p/600') break; await p.click('#hifzBar [data-c="nx"]'); await wait(60); }
     await wait(2500); const h = await ev(() => location.hash); await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); });
-    await go('#/hifztest/112', 700); const wf = await ev(() => !!document.getElementById('htFlip'));
+    await go('#/hifztest/112', 700); const wf = await ev(() => { const f = document.getElementById('htFlip'); return !!f && f.disabled && f.classList.contains('on'); });
     await ev(() => localStorage.setItem('q.hifzFlip', 'true')); await hzBack(k); await go('#/', 200);
-    return assert(fb === 0 && h === '#/p/601' && !wf, JSON.stringify([fb, h, wf])); });
+    return assert(fb === 1 && h === '#/p/601' && wf, JSON.stringify([fb, h, wf])); });
   await check(G515, '5.15b ٦: «كل الكلمات»: أول ٣–٥ كلمات من أول آية مكشوفين في أول الاختبار وفي أول كل موضع، ومش في «الآيات اللي بعدها» ولا الربع', async () => { const k = await hzKeep();
     const open = () => ev(() => [...document.querySelectorAll('.ht-text .ht-open')].map(x => x.dataset.a + ':' + x.dataset.w).join(','));
     await ev(() => localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 2, from: 1 }))); await go('#/', 150); await go('#/hifztest/2', 700); const o1 = await open();
@@ -906,15 +907,40 @@ async function fresh(ctx, vp) {
     // 2:1 is «الم» (one word): the open words are the first 3-5 of the first ayah, so only 2:1:0 there
     return assert(n1.length >= 1 && n1.every(x => x.startsWith('1:')) && o2 === '' && o3 === '' && n4.length >= 3 && n4.length <= 5 && n4.every(x => x.startsWith('1:')), JSON.stringify([o1, o2, o3, o4])); });
   await check(G515, '5.15b ٨: ✓ بنتيجة الاختبار: من «المراجعة» أي اختبار ٨٠٪ على السورة بيعلّمها، ومن «اختبار الحفظ» لازم السورة كلها', async () => { const k = await hzKeep();
-    await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); });
+    await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzRev', '{}'); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); });
     await go('#/', 150); await go('#/hifztest/2', 700); await p.click('#htDone'); await wait(300);
     const part = await ev(() => [!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[2], (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[2] || {}).score]);
     const P = [[await gq(2, 7), await gq(2, 9)]];
     await go('#/', 200); await ev(P => hzTestStart({ k: 's', s: 2, w: 'r' }, 'm', P), P); await wait(1200);
     for (let i = 0; i < 3; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1800);
-    const rv = await ev(() => [!!JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[2], (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[2] || {}).score]);
+    const rv = await ev(() => [!!JSON.parse(localStorage.getItem('q.hzRev') || '{}')[2] && !JSON.parse(localStorage.getItem('q.hifzLog') || '{}')[2], (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[2] || {}).score]);
     await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await hzBack(k); await go('#/', 300);
     return assert(part[0] && part[1] === 100 && rv[0] && rv[1] === 100, JSON.stringify([part, rv])); });
+  // 5.15c: the user's patch on 5.15b
+  await check(G515, '5.15c ٢: الرجوع من «المراجعة» نفسها (زرار الشاشة وزرار الموبايل) بيروح للرئيسية مش للشاشة اللي قبلها', async () => {
+    await go('#/', 150); await go('#/s/2/5', 400); await go('#/hifzlog', 600); await ev(() => qBack()); await wait(500); const hw = await ev(() => location.hash);
+    await go('#/s/2/5', 400); await go('#/hifzlog', 600); await p.click('#btnBack'); await wait(500); const sc = await ev(() => location.hash);
+    await go('#/', 200); return assert(/^#\/?$/.test(hw) && /^#\/?$/.test(sc), JSON.stringify([hw, sc])); });
+  await check(G515, '5.15c ٣: «اختبار الحفظ» بيسجّل في «السور المحفوظة» بس، و«المراجعة» بتسجّل في «السور المراجعة» بس', async () => { const k = await hzKeep();
+    await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzRev', '{}'); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 112, from: 1 })); });
+    await go('#/', 150); await go('#/hifztest/112', 700); await p.click('#htDone'); await wait(300); await go('#/', 150); await go('#/hifztest/112', 700);
+    const a = await ev(() => [!!JSON.parse(localStorage.getItem('q.hifzLog'))[112], !JSON.parse(localStorage.getItem('q.hzRev'))[112], document.querySelector('#hmFold > summary').textContent, !!document.querySelector('#hmFold li[data-s="112"].on')]);
+    await go('#/', 150); await go('#/hifzlog', 600); const b2 = await ev(() => [document.querySelector('#hlFold > summary').textContent, !document.querySelector('#hlFold li[data-s="112"].on')]);
+    await ev(() => hzTestStart({ k: 's', s: 113, w: 'o' }, 'w')); await wait(700); await p.click('#htDone'); await wait(300);
+    const c = await ev(() => [!!JSON.parse(localStorage.getItem('q.hzRev'))[113], !JSON.parse(localStorage.getItem('q.hifzLog'))[113], JSON.parse(localStorage.getItem('q.hzRev'))[113].iv]);
+    await go('#/', 150); await go('#/hifzlog', 600); const d = await ev(() => !!document.querySelector('#hlFold li[data-s="113"].on'));
+    await hzBack(k); await go('#/', 200);
+    return assert(a[0] && a[1] && /السور المحفوظة/.test(a[2]) && a[3] && /السور المراجعة/.test(b2[0]) && b2[1] && c[0] && c[1] && c[2] === 7 && d, JSON.stringify([a, b2, c, d])); });
+  await check(G515, '5.15c ٣: المراجعة الذكية والورد شغالين على «السور المراجعة»، والخريطة: المحفوظ من «السور المحفوظة» والأصفر من المراجعة', async () => { const k = await hzKeep();
+    const r = await ev(a => { localStorage.setItem('q.hifzScores', '{}'); localStorage.setItem('q.hifzLog', JSON.stringify({ 1: { m: a } })); localStorage.setItem('q.hzRev', '{}');
+      const d0 = hzWard().list.length; localStorage.setItem('q.hzRev', JSON.stringify({ 1: { m: a, r: a, iv: 7 } })); return [d0, hzWard().list.map(x => x.s).join(',')]; }, dAgo(20));
+    const col = async rev => { await ev(([a, rev]) => { localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzLog', JSON.stringify({ 112: { m: a } })); localStorage.setItem('q.hzRev', JSON.stringify(rev ? { 112: { m: a, r: a, iv: 7 } } : {})); }, [dAgo(20), rev]);
+      await go('#/', 150); await go('#/hifzmap', 700); return ev(() => (document.querySelector('.hm-c[data-s="112"]') || {}).className || ''); };
+    const due = await col(true), fresh = await col(false);
+    await p.click('#hmLog'); await wait(700); const lg = await ev(() => [location.hash, document.getElementById('hmFold') && document.getElementById('hmFold').open, (document.getElementById('hmLog') || {}).textContent]);
+    const mig = await ev(() => { localStorage.removeItem('q.hzRev'); localStorage.setItem('q.hifzLog', JSON.stringify({ 5: { m: '2026-1-1', r: '2026-1-1', iv: 14 } })); return Object.keys(hzRevData()).join(',') + '/' + (hzRevData()[5] || {}).iv; });
+    await hzBack(k); await go('#/', 200);
+    return assert(r[0] === 0 && r[1] === '1' && /\bc2\b/.test(due) && /\bc3\b/.test(fresh) && lg[0] === '#/hifztest' && lg[1] && mig === '5/14', JSON.stringify([r, due, fresh, lg, mig])); });
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

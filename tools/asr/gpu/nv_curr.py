@@ -19,6 +19,7 @@ STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 
 EVAL = int(os.environ.get('EVAL', 200 if LEVEL == 'L1' else 400))
 LR, WARM = float(os.environ.get('LR', 1e-5)), 200
 BATCH_SEC, ACC = float(os.environ.get('BATCH_SEC', 60)), int(os.environ.get('ACC', 2))
+PADCAP = float(os.environ.get('PADCAP', 1.8))
 SEED = 11
 # fp16 autocast gives NaN in this encoder on the Turing GPU (checked 2026-11-06: fp32 decodes right) -> fp32 by default
 AMP = os.environ.get('AMP') == '1'
@@ -231,10 +232,13 @@ def main():
     scaler = torch.amp.GradScaler('cuda', enabled=AMP); rnd = random.Random(SEED)
     srcs, shares = list(MIX), [MIX[k] for k in MIX]
     def batch():
-        b, t = [], 0.0
+        # G10 (5.15): long slowed clips padded a batch past the VRAM (OOM at step 250): the padded seconds
+        # (clips x longest clip) stay under PADCAP x BATCH_SEC too
+        b, t, mx = [], 0.0, 0.0
         while t < BATCH_SEC:
             s = rnd.choices(srcs, shares)[0]; x = rnd.choices(tr[s], [c['pw'] for c in tr[s]])[0]
-            b.append(x); t += x['dur']
+            if b and (len(b) + 1) * max(mx, x['dur']) > PADCAP * BATCH_SEC: break
+            b.append(x); t += x['dur']; mx = max(mx, x['dur'])
         return b
     best = None; train_mode(m); t0 = time.time()
     for step in range(1, steps + 1):

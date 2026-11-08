@@ -1133,3 +1133,7 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .td-card{cursor:pointer}.td-go{border:0;border-radius:10px;padding:8px 14px;background:var(--accent);color:#fff;font:inherit;flex:none}
 .hl-fold>summary{cursor:pointer;list-style:none}.hl-fold>summary::-webkit-details-marker{display:none}.hl-fold>summary::after{content:'▾';margin-inline-start:auto;opacity:.6}.hl-fold[open]>summary::after{content:'▴'}
 .ht-v.ht-open{color:var(--accent)}
+
+/* 5.15c: «قلب تلقائي» inside a test: always on, not a toggle */
+.hz-btns .hz-flip:disabled, .ht-ibs #htFlip:disabled { opacity: .5; cursor: default; }
+.hm-memo { margin-top: 14px; }

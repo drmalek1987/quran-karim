@@ -714,6 +714,7 @@
     if (hzFrom && /^#\/(p|s|hifztest)\//.test(location.hash)) {
       hzFrom = false; qBackN = 0; location.hash = "#/hifzlog"; setTimeout(function () { window.scrollTo(0, 0); }, 0); return true;
     }
+    if (location.hash === "#/hifzlog") { qBackN = 0; location.replace("#/"); return true; }   // 5.15c item 2
     if (hw && now - qExitAt < 1500) return "exit";
     if (hw) qExitAt = now;
     if (home) { if (hw) toast(window.LANG === "en" ? "Press back again to exit" : "اضغط رجوع مرة تانية عشان تخرج"); return true; }
@@ -1860,8 +1861,8 @@
     var ts = {}; Object.keys(t.seen).forEach(function (k) { var x = k.split(":")[0], e = ts[x] = ts[x] || { n: 0, m: 0 }; e.n++; if (t.miss[k]) e.m++; });
     var res = load("hifzScores", {});
     Object.keys(ts).forEach(function (x) {
-      var e = ts[x], sp = Math.round((e.n - e.m) / e.n * 100), D = (t.end || e.n >= Q.s[+x - 1][3]) ? hzSetMemo(+x, sp) : hifzLogData();
-      if (D[x]) { hzReviewed(D[x], sp); save("hifzLog", D); }
+      var e = ts[x], sp = Math.round((e.n - e.m) / e.n * 100);
+      if (t.end) hzSetRev(+x, sp); else if (e.n >= Q.s[+x - 1][3]) hzSetMemo(+x, sp);
       res[x] = { d: todayStr(), score: sp };
     });
     save("hifzScores", res); syncAlarms();
@@ -1968,7 +1969,7 @@
     bar.innerHTML = (T ? '<div class="hz-info"><b>' + (recite.on ? "بسمع…" : "اختبار الحفظ") + "</b><span>" + (recite.words ? "كلمات صح " + ar(recite.words - recite.wrong.length) + " · غلط " + ar(recite.wrong.length) : "افتكرت " + ar(ts - tm) + " · نسيت " + ar(tm)) + "</span></div>" :
       '<div class="hz-info"><b>وضع الحفظ</b><span>' + ar(n) + " من " + ar(hifz.items.length) + " آية ظاهرة</span></div>") +
       '<div class="hz-btns"><button data-c="nx" class="hz-main">' + ic("eye") + (T ? "افتكرتها" : "اكشف التالية") + "</button>" + (T ? '<button data-c="mic"' + (recite.on ? ' class="rec"' : "") + ' aria-label="سمّع بصوتك">' + ic("mic") + '</button><button data-c="done">' + ic("check") + "خلصت</button>" : "") + (T ? "" : '<button data-c="pv" aria-label="أخفِ آخر آية">' + ic("eyeoff") + "</button>") +
-      (T ? "" : '<button data-c="all">الكل</button><button data-c="none">إخفاء</button>') + (hifz.pages && !T ? '<button data-c="flip" class="hz-flip' + (fl ? " on" : "") + '" aria-pressed="' + fl + '" aria-label="قلب الصفحة تلقائي">' + ic("book") + "<small>قلب تلقائي</small></button>" : "") + '<button data-c="x" aria-label="إنهاء وضع الحفظ">' + ic("x") + "</button></div>";
+      (T ? "" : '<button data-c="all">الكل</button><button data-c="none">إخفاء</button>') + (hifz.pages ? '<button data-c="flip" class="hz-flip' + (fl || T ? " on" : "") + '" aria-pressed="' + !!(fl || T) + '"' + (T ? " disabled" : "") + ' aria-label="قلب الصفحة تلقائي">' + ic("book") + "<small>قلب تلقائي</small></button>" : "") + '<button data-c="x" aria-label="إنهاء وضع الحفظ">' + ic("x") + "</button></div>";
   }
 
   // ---------- التسميع بالصوت ----------
@@ -2912,7 +2913,7 @@
   // 5.15 S7: «النهارده» on home: the khatma ward and the review ward in one place, the test one tap away.
   // Shown once there is a memorised surah (the khatma card above stays for readers who do not memorise).
   function todayCard() {
-    if (!Object.keys(hifzLogData()).length) return "";
+    if (!Object.keys(hzRevData()).length) return "";
     var P = plan(), W = hzWard(), kh = !P || P.finished ? "" : P.left ? "ورد الختمة: " + ar(P.left) + " صفحة" : "ورد الختمة خلص ✓";
     var rv = W.list.length ? "مراجعة: " + ar(W.list.length) + " سورة (" + ar(W.pages) + " صفحة)" : "مفيش مراجعة مستحقة ✓";
     return '<div class="kcard td-card" id="tdCard" role="button" tabindex="0"><span class="tile-ic kh">' + ic("rep") + '</span><span class="kc-txt"><b>النهارده</b><small>' +
@@ -3207,6 +3208,14 @@
   // ---------- المراجعة (5.13 P2.6, was متابعة الحفظ) ----------
   // q.hifzLog = {surah: {m: "Y-M-D" memorised, r: "Y-M-D" last revised}}. The one revised longest ago comes up for revision.
   function hifzLogData() { return load("hifzLog", {}); }
+  // 5.15c item 3: «السور المراجعة» q.hzRev {surah: {m, r, iv, score}}, apart from the memorised list q.hifzLog. The first
+  // time (no q.hzRev yet) it starts as a copy of q.hifzLog, so the review dates kept until 5.15b carry over.
+  function hzRevData() {
+    var R = load("hzRev", null);
+    if (!R) { R = hifzLogData(); save("hzRev", R); }
+    return R;
+  }
+  window.hzRevData = hzRevData;   // QA
   function hifzStats() {
     var L = hifzLogData(), ay = 0, n = 0;
     Object.keys(L).forEach(function (s) { n++; ay += Q.s[+s - 1][3]; });
@@ -3230,7 +3239,7 @@
   window.hzDueInfo = hzDueInfo; window.hzReviewed = hzReviewed;   // QA
   // the due surahs, most overdue first; d = days from today (for the alarms of the coming days)
   function hzDueList(d) {
-    var L = hifzLogData(), sc = load("hifzScores", {}), out = [];
+    var L = hzRevData(), sc = load("hifzScores", {}), out = [];
     Object.keys(L).forEach(function (s) { var x = hzDueInfo(L[s], hzScoreOf(sc, s)); x.age += d || 0; x.over += d || 0; if (x.over >= 0) out.push({ s: +s, age: x.age, over: x.over, iv: x.iv, sc: hzScoreOf(sc, s) }); });
     return out.sort(function (a, b) { return b.over - a.over || a.s - b.s; });
   }
@@ -3255,15 +3264,25 @@
     for (var a = 1; a <= n; a++) { var h = HA[s + ":" + a]; if (h) { any++; if (h.ok) ok++; } }
     return { p: Math.floor(ok * 100 / n), any: any };
   }
-  // 5.15b item 8: a test result p on surah s marks it memorised at 80% and takes the mark off below (q.hifzLog)
+  // 5.15b item 8 / 5.15c item 3: a whole-surah test p from «اختبار الحفظ» marks the surah memorised at 80% and takes
+  // the mark off below (q.hifzLog, «السور المحفوظة»)
   function hzSetMemo(s, p) {
     var D = hifzLogData();
-    if (p >= 80 && !D[s]) D[s] = { m: todayStr(), r: todayStr(), iv: 7 };
-    else if (p < 80 && D[s]) delete D[s];
+    if (p >= 80) D[s] = { m: (D[s] && D[s].m) || todayStr(), d: todayStr(), score: p };
+    else if (D[s]) delete D[s];
     else return D;
     save("hifzLog", D); return D;
   }
-  window.hzSetMemo = hzSetMemo;   // QA
+  // a test from «المراجعة» with p on surah s: at 80% the surah is on «السور المراجعة» (q.hzRev), below it is taken off;
+  // a surah on the list gets its next review date (hzReviewed)
+  function hzSetRev(s, p) {
+    var R = hzRevData();
+    if (p >= 80 && !R[s]) R[s] = { m: todayStr(), r: todayStr(), iv: 7 };
+    else if (p < 80 && R[s]) delete R[s];
+    if (R[s]) hzReviewed(R[s], p);
+    save("hzRev", R); return R;
+  }
+  window.hzSetMemo = hzSetMemo; window.hzSetRev = hzSetRev;   // QA
   function hifzAuto(ss) {
     var HA = load("hifzAyat", {}), D = hifzLogData(), ch = false, seen = {};
     ss.forEach(function (s) {
@@ -3360,14 +3379,14 @@
     if (location.hash === h) route(); else location.hash = h;
   }
   window.hzRange = hzRange;   // QA
-  var hzFoldOpen = false, hzFrom = false;
+  var hzFoldOpen = false, hzMemoOpen = false, hzFrom = false;
   window.addEventListener("hashchange", function () { if (hzFrom && !/^#\/(p|s|hifztest)\//.test(location.hash) && location.hash !== "#/hifzlog") hzFrom = false; });
   window.hzFromState = function () { return hzFrom; };   // QA
   var HZ_K = [["s", "سورة"], ["j", "جزء"], ["a", "آيات من سورة"], ["jq", "ربع جزء"], ["jh", "نصف جزء"], ["mq", "ربع المصحف"], ["mh", "نصف المصحف"], ["all", "القرآن كله"]];
   function showHifzLog() {
     titleEl.textContent = "المراجعة";
     btnBack.hidden = false;
-    var L = hifzLogData(), HA = load("hifzAyat", {}), sc = load("hifzScores", {}), today = dayNum(new Date());
+    var L = hzRevData(), HA = load("hifzAyat", {}), sc = load("hifzScores", {}), today = dayNum(new Date());
     var c = load("hzScope", { k: "s", s: 1, n: 1, q: 1, a1: 1, a2: 7, w: "o" });
     var sel = function (id, label, items, v) {
       return '<select class="input" id="' + id + '" aria-label="' + label + '">' + items.map(function (x) { return '<option value="' + x[0] + '"' + (String(x[0]) === String(v) ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select>";
@@ -3399,7 +3418,7 @@
       return '<div class="hl-due"><div><b>سورة ' + Q.s[x.s - 1][0] + "</b><small>آخر مراجعة من " + ar(x.age) + " يوم · كل " + ar(x.iv) + " يوم" + (x.sc != null && x.sc < 70 ? " · آخر نتيجة " + ar(x.sc) + "٪" : "") +
         '</small></div><button data-test="' + x.s + '">اختبرني</button></div>';
     }).join("") : '<p class="hint">مفيش مراجعة مستحقة النهارده. كل سورة ليها ميعاد: أول مرة بعد ٧ أيام. ولو جبت ٩٠٪ أو أكتر، المدة بتتضاعف لحد ٩٠ يوم. ولو جبت أقل من ٧٠٪، بترجعلك تاني يوم.</p>') + "</section>";
-    html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="hz-h">' + ic("check") + 'السور اللي حفظتها</summary><p class="hint">السورة بتتعلّم ✓ لوحدها لما تجيب ٨٠٪ أو أكتر في اختبار عليها هنا في «المراجعة»، أو لما تسمّعها كلها في «اختبار الحفظ» بنتيجة ٨٠٪ أو أكتر.</p><ul class="hl-list">';
+    html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="hz-h">' + ic("check") + 'السور المراجعة</summary><p class="hint">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class="hl-list">';
     for (var s = 1; s <= 114; s++) {
       var e = L[s], pc = hifzPct(s, HA);
       html += '<li data-s="' + s + '" class="' + (e ? "on" : "") + '"><span class="hl-n">' + ar(s) + "</span><b>" + Q.s[s - 1][0] + "</b>" +
@@ -3771,7 +3790,7 @@
   // Every page of the current edition as a square, coloured from hifzLog (memorised surahs and when they were last revised).
   // Colour 0..3 of every mushaf page (c[pageNo]) and how many pages have each; shared by the hifz map and the hifz test's mini map.
   function hifzPageColors() {
-    var L = hifzLogData(), sc = load("hifzScores", {}), today = dayNum(new Date()), cnt = [0, 0, 0, 0], col = [];
+    var L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), today = dayNum(new Date()), cnt = [0, 0, 0, 0], col = [];
     // ayat recited or tested one by one (hifzMark), per page: how many of the page's ayat, the oldest day, any wrong
     var HA = load("hifzAyat", {}), PA = {};
     for (var s0 = 1; s0 <= 114; s0++) Q.p[s0 - 1].forEach(function (pg, i) {
@@ -3781,7 +3800,7 @@
     for (var n = Q.first; n <= Q.last; n++) {
       var ss = [], on = 0, age = 0, weak = false;
       for (var s = 1; s <= 114; s++) { var ps = Q.p[s - 1]; if (ps[0] <= n && ps[ps.length - 1] >= n) ss.push(s); }
-      ss.forEach(function (s) { var e = L[s]; if (e) { on++; if (hzDueInfo(e, hzScoreOf(sc, s)).due) weak = true; } });
+      ss.forEach(function (s) { var e = L[s], r = RV[s]; if (e) { on++; if (r && hzDueInfo(r, hzScoreOf(sc, s)).due) weak = true; } });
       var c = !on ? 0 : on < ss.length ? 1 : weak ? 2 : 3, pa = PA[n];
       if (pa && pa.got) c = Math.max(c, pa.got < pa.n ? 1 : pa.age > 14 || pa.bad ? 2 : 3);
       cnt[c]++; col[n] = c;
@@ -3797,11 +3816,11 @@
   function showHifzMap() {
     titleEl.textContent = "خريطة الحفظ";
     btnBack.hidden = false;
-    var pc = hifzPageColors(), cnt = pc.cnt, cells = "", L = hifzLogData(), sc = load("hifzScores", {}), HA = load("hifzAyat", {}), today = dayNum(new Date());
+    var pc = hifzPageColors(), cnt = pc.cnt, cells = "", L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), HA = load("hifzAyat", {}), today = dayNum(new Date());
     // a page holding more than one surah gets one box per surah (5.11 G6): the colour rules of hifzPageColors, for that
     // surah's ayat on that page
     function segCol(s, n) {
-      var e = L[s], c = !e ? 0 : hzDueInfo(e, hzScoreOf(sc, s)).due ? 2 : 3, got = 0, tot = 0, age = 0, bad = false;
+      var e = L[s], c = !e ? 0 : RV[s] && hzDueInfo(RV[s], hzScoreOf(sc, s)).due ? 2 : 3, got = 0, tot = 0, age = 0, bad = false;
       Q.p[s - 1].forEach(function (pg, i) { if (pg !== n) return; tot++; var h = HA[s + ":" + (i + 1)]; if (h) { got++; age = Math.max(age, today - parseDay(h.d)); if (!h.ok) bad = true; } });
       if (got) c = Math.max(c, got < tot ? 1 : age > 14 || bad ? 2 : 3);
       return c;
@@ -3817,8 +3836,8 @@
       '<div class="hm-lg">' + lg.map(function (l) { return '<span><i class="hm-c ' + l[0] + '"></i>' + l[1] + " (" + ar(l[2]) + ")</span>"; }).join("") + "</div>" +
       '<div class="hm-grid">' + cells + "</div>" +
       '<p class="hint">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع عشان تختار الآية وتبدأ الاختبار. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
-      '<button class="continue" id="hmLog">' + ic("check") + " السور اللي حفظتها</button></div>";
-    document.getElementById("hmLog").onclick = function () { location.hash = "#/hifzlog"; };
+      '<button class="continue" id="hmLog">' + ic("check") + " السور المحفوظة</button></div>";
+    document.getElementById("hmLog").onclick = function () { hzMemoOpen = true; location.hash = "#/hifztest"; };
     view.querySelectorAll(".hm-grid .hm-c").forEach(function (c) { c.onclick = function (e) { e.preventDefault(); hzPick(+c.dataset.s, +c.dataset.p); }; });
   }
   // a box of the map: choose the ayah to start from, then test on the mushaf (the main way), with hidden words, or just read
@@ -4047,6 +4066,17 @@
   }
 
   // ---------- اختبار الحفظ: كلمات مخفية تكشفها لما تنساها ----------
+  // 5.15c item 3: «السور المحفوظة» under the hifz test (q.hifzLog), fold-open, a list to look at
+  function hzMemoList(L) {
+    var h = '<section class="hm-memo"><details class="hl-fold" id="hmFold"' + (hzMemoOpen ? " open" : "") + '><summary class="hz-h">' + ic("check") + "السور المحفوظة</summary>" +
+      '<p class="hint">السورة بتدخل القايمة دي لما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة ٨٠٪ أو أكتر. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class="hl-list">';
+    for (var s = 1; s <= 114; s++) {
+      var e = L[s];
+      h += '<li data-s="' + s + '" class="' + (e ? "on" : "") + '"><span class="hl-n">' + ar(s) + "</span><b>" + Q.s[s - 1][0] + "</b><small>" + ar(Q.s[s - 1][3]) + " آية" +
+        (e && e.score != null ? " · " + ar(e.score) + "٪" : "") + '</small><i class="hl-chk">' + (e ? "✓" : "") + "</i></li>";
+    }
+    return h + "</ul></details></section>";
+  }
   function showHifzTest(s) {
     // a voice test left running on an earlier render stops, unless it goes on into the next ayat (htv.more)
     var carry = htv.on && htv.carry ? { skip: htv.carrySkip || 0 } : null;
@@ -4101,14 +4131,16 @@
       '<button class="continue" id="htRec">' + ic("mic") + "<span>سجّل</span></button>" +
       '<button class="continue" id="htPeek">' + ic("eye") + "<span>اظهر</span></button>" +
       '<button class="continue" id="htPages">' + ic("book") + "<span>المصحف</span></button>" +
-      // reciting past the last ayah always opens the next ayat with the mic still on (5.15b: no «قلب تلقائي» toggle in a test)
-      "</div>" +
+      // reciting past the last ayah always opens the next ayat with the mic still on: «قلب تلقائي» is shown on and
+      // disabled (5.15c item 1)
+      '<button class="continue on" id="htFlip" disabled aria-pressed="true">' + ic("anext") + "<span>قلب تلقائي</span></button></div>" +
       '<audio id="htAudio" controls hidden></audio>' +
       '<div class="ht-foot"><button class="continue" id="htDone">' + ic("check") + " خلصت</button>" +
       (nx ? '<button class="continue" id="htNext">' + (nx.place ? "الموضع اللي بعده" : "الآيات اللي بعدها") + "</button>" : "") + '</div><p class="ht-res" id="htRes"></p>' +
       (bad.length ? '<div class="ht-bad"><b>آيات غلطت فيها قبل كده</b><div>' + bad.map(function (x) { return '<button data-a="' + x.a + '">الآية ' + ar(x.a) + "</button>"; }).join("") + "</div></div>" : "") +
-      reciteHistory() + "</div>";
+      reciteHistory() + hzMemoList(L) + "</div>";
     view.innerHTML = html;
+    document.getElementById("hmFold").ontoggle = function () { hzMemoOpen = this.open; };
     var missed = 0, rec = null;
     document.getElementById("htQari").onclick = function () { player.playRange(s, from, to); };
     document.getElementById("htPages").onclick = function () { hifzTestPages(s, from); };
@@ -4206,8 +4238,8 @@
       // 5.15b item 8: the surah's score so far in this test; from «المراجعة» it marks the surah, from «اختبار الحفظ» only once
       // the whole surah was tested
       var q1 = load("hifzTest", {}).ss || { h: hidden, m: missed, a1: from, to: to }, sp = q1.h ? Math.round((q1.h - q1.m) / q1.h * 100) : 100;
-      var D = rg || (q1.a1 === 1 && q1.to === cnt) ? hzSetMemo(s, sp) : hifzLogData();
-      if (D[s]) { hzReviewed(D[s], sp); save("hifzLog", D); } syncAlarms();
+      if (rg) hzSetRev(s, sp); else if (q1.a1 === 1 && q1.to === cnt) hzSetMemo(s, sp);
+      syncAlarms();
       var res = load("hifzScores", {}); res[s] = { d: todayStr(), score: sp }; save("hifzScores", res);
     };
     if (carry) {

@@ -105,7 +105,7 @@ async function run(b) {
     const W2 = (from, to) => ev(([f, t]) => { const o = []; for (let a = f; a <= t; a++) o.push(...window.QURAN.t[1][a - 1].split(' ').filter(w => /[ء-يٱ]/.test(w))); return o; }, [from, to]);
     const words = await W2(1, 10), nx = await W2(11, 11);
     await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 25, s: 2, from: 1 })); localStorage.setItem('q.hifzFlip', 'true'); }); await go('#/hifztest/2', 900);
-    const flipBtn = await ev(() => !document.getElementById('htFlip'));   // 5.15b: no toggle inside a test
+    const flipBtn = await ev(() => { const f = document.getElementById('htFlip'); return !!f && f.disabled; });   // 5.15c: on and disabled inside a test
     await p.click('#htMic'); await wait(200); await say('', 'state:listening');
     const top0 = await ev(() => Math.round(document.querySelector('.ht-text').getBoundingClientRect().top));
     await say(words.slice(0, Math.floor(words.length * 0.8)).join(' '), 'partial'); await wait(700);
