@@ -312,3 +312,4 @@ Resume: 5.16c on bee81250 (5.16b U3/U4 + 5.16d flip + 5.16e flip in «اختبا
 
 Checkpoint 2026-11-08 (Z-track plan): goal check — a smaller model saves phone space and RAM without touching accuracy (Z1/Z3) or only through the gate (Z2/Z4). Restore point tag v5.16c-restore + model zips backed up. Plan plans/asr-size-plan.md, merged into plans/5.16-schedule.md.
 Resume: Z1 — export_onnx.py --posmax from nv_out/P3_FINAL_L2.nemo, then Z1v parity (logits diff, nv_gate shipped, RTF).
+Resume: new session «Sprint B» from plans/sprintB-session-prompt.md (Z1 first). Usage stop is now 82%.
