@@ -664,7 +664,7 @@
     document.body.classList.toggle("sheet-open", !sheet.hidden);
     if (sheet.hidden) sheet.querySelectorAll("details[open]").forEach(function (d) { d.open = false; });
   }).observe(sheet, { attributes: true, attributeFilter: ["hidden"] });
-  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); };
+  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); paintBk(); };
   document.getElementById("closeSettings").onclick = function () { sheet.hidden = true; };
   sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.hidden = true; });
   document.getElementById("btnSearch").onclick = function () { location.hash = "#/search"; };
@@ -869,8 +869,23 @@
         }
       });
     });
-    view.querySelector(".quran").addEventListener("click", function (e) {
+    var lp = null, lpDone = 0, qv = view.querySelector(".quran");
+    qv.addEventListener("pointerdown", function (e) {
+      if (hifz.on || e.button) return; var x0 = e.clientX, y0 = e.clientY, sp = e.target.closest(".ayah"); if (!sp) return;
+      clearTimeout(lp); lp = setTimeout(function () {
+        lp = null; var n = rWords(s + ":" + sp.dataset.a).length, wi = wordAt(sp, x0, y0); if (wi < 0) return;
+        lpDone = Date.now(); if (navigator.vibrate) try { navigator.vibrate(15); } catch (er) {}
+        wi = Math.min(wi, n - 1); wordSheet(s, +sp.dataset.a, wi, rWords(s + ":" + sp.dataset.a)[wi]);
+      }, 480);
+      sp._lpMove = function (ev) { if (Math.abs(ev.clientX - x0) > 10 || Math.abs(ev.clientY - y0) > 10) { clearTimeout(lp); lp = null; } };
+      qv._lpSp = sp;
+    });
+    qv.addEventListener("pointermove", function (e) { if (lp && qv._lpSp && qv._lpSp._lpMove) qv._lpSp._lpMove(e); });
+    ["pointerup", "pointercancel"].forEach(function (t) { qv.addEventListener(t, function () { clearTimeout(lp); lp = null; }); });
+    qv.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    qv.addEventListener("click", function (e) {
       var sp = e.target.closest(".ayah"); if (!sp) return;
+      if (Date.now() - lpDone < 700) return;   // the click that ends a long press
       if (hifz.on) return hifzFlip(s + ":" + sp.dataset.a);
       view.querySelectorAll(".ayah.sel").forEach(function (x) { x.classList.remove("sel"); });
       sp.classList.add("sel");
@@ -1935,6 +1950,8 @@
       res[x] = { d: todayStr(), score: sp };
     });
     save("hifzScores", res); syncAlarms();
+    var sk = Object.keys(t.seen).sort(akCmp);
+    lastTestSave({ k: "m", r: [sk[0], sk[sk.length - 1]], sc: score, ay: seen, miss: Object.keys(t.miss).sort(akCmp), w: rw, bad: rb.length });
     hifzToggle();
     if (rw) reciteSummary({ ay: seen, w: rw, bad: rb.length, wrong: rb });
     else cheer(ar(score) + "٪: افتكرت " + ar(seen - miss) + " من " + ar(seen) + " آية");
@@ -3498,7 +3515,10 @@
     var parts = c.k === "jq" || c.k === "mq" ? [[1, "الربع الأول"], [2, "الربع الثاني"], [3, "الربع الثالث"], [4, "الربع الرابع"]] : [[1, "النصف الأول"], [2, "النصف الثاني"]];
     if (c.q > parts.length) c.q = 1;
     var R = hzRange(c), nW = hzWrong(R).length;
-    var html = hzNav("#/hifzlog") + '<section class="hz-card" id="hzCard"><h3>' + ic("eyeoff") + "اختبرني</h3>" +
+    var LT = load("lastTest", null);
+    var html = hzNav("#/hifzlog") + (LT ? '<div class="tc-last"><div><b>آخر اختبار: ' + ltRange(LT) + " · " + ar(LT.sc) + "٪</b><small>" + ltDay(LT.d) +
+      (LT.miss && LT.miss.length ? " · " + ar(LT.miss.length) + " آية نسيتها" : "") + '</small></div><button class="continue" id="tcSend">' + ic("share") + " ابعت للمحفّظ</button></div>" : "") +
+      '<section class="hz-card" id="hzCard"><h3>' + ic("eyeoff") + "اختبرني</h3>" +
       '<div class="hz-row">' + sel("hzK", "المدى", HZ_K, c.k) +
       (c.k === "s" || c.k === "a" ? sel("hzS", "السورة", surahs, c.s) : "") +
       (c.k === "j" || c.k === "jq" || c.k === "jh" ? sel("hzN", "الجزء", juz, c.n) : "") +
@@ -3539,6 +3559,7 @@
     document.getElementById("hzGoW").onclick = function () { hzTestStart(c, "w"); };
     document.getElementById("hzDaily").onchange = function () { save("hzDaily", +this.value); var y = window.scrollY; showHifzLog(); window.scrollTo(0, y); };
     var wg = document.getElementById("hzWardGo"); if (wg) wg.onclick = function () { hzWardTest(); };
+    var tcs = document.getElementById("tcSend"); if (tcs) tcs.onclick = function () { teacherSend(); };
     // a due surah's «اختبرني»: the card above gets that surah (the list of memorised surahs is only to look at, 5.15b)
     // 5.16 U1: a due surah's «اختبرني» starts the mushaf test on that surah at once (the way of the ward above)
     view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { var s1 = +b.dataset.test; hzTestStart({ k: "s", s: s1, w: load("hzWardWay", "o") }, "m"); }; });
@@ -3551,6 +3572,7 @@
     var data = { app: "quran-karim", v: 1, at: new Date().toISOString(), keys: {} };
     try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf("q.") === 0) data.keys[k] = localStorage.getItem(k); } } catch (e) {}
     var json = JSON.stringify(data), d = new Date(), name = "quran-backup-" + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + ".json";
+    save("lastBackup", todayStr()); paintBk(); syncAlarms();
     try { if (window.AppBridge && AppBridge.shareFile) return AppBridge.shareFile(json, name); } catch (e) {}
     var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([json], { type: "application/json" })); a.download = name; document.body.appendChild(a); a.click(); a.remove();
   }
@@ -3566,6 +3588,22 @@
     r.readAsText(file);
   }
 
+  // S10 (5.18): «آخر نسخة من # يوم» in Settings, and a reminder 30 days after the last backup (q.bkRem, on by default;
+  // the share sheet reaches Drive). No backup yet: the reminder counts from the first day the app was used.
+  function bkDays() { var l = load("lastBackup", ""); return l ? dayNum(new Date()) - parseDay(l) : -1; }
+  function paintBk() {
+    var e = document.getElementById("bkAge"), c = document.getElementById("bkRem"), n = bkDays(); if (!e) return;
+    e.textContent = n < 0 ? "لسه ما عملتش نسخة احتياطية" : n === 0 ? "آخر نسخة النهارده" : "آخر نسخة من " + ar(n) + " يوم";
+    e.classList.toggle("bk-old", n < 0 || n >= 30); if (c) c.checked = load("bkRem", true);
+  }
+  function bkDue() {   // the day (dayNum) the backup reminder falls on, or -1 when it is off
+    if (!load("bkRem", true)) return -1;
+    var l = load("lastBackup", ""), first = load("firstDay", ""); if (!first) { first = todayStr(); save("firstDay", first); }
+    return parseDay(l || first) + 30;
+  }
+  window.QA_bkDue = bkDue;
+  document.getElementById("bkRem").onchange = function () { save("bkRem", this.checked); syncAlarms(); };
+  paintBk();
   document.getElementById("bkOut").onclick = exportBackup;
   document.getElementById("bkIn").onclick = function () { document.getElementById("bkFile").click(); };
   document.getElementById("bkFile").onchange = function () { if (this.files[0]) importBackup(this.files[0]); this.value = ""; };
@@ -3710,6 +3748,11 @@
         });
       }
     }
+    // S10: one backup reminder, 20:00 on the day 30 days after the last backup (late: today, or tomorrow after 20:00)
+    var bd = bkDue();
+    if (bd >= 0) { bd = Math.max(bd, dayNum(base) + (base.getHours() >= 20 ? 1 : 0)); var bt = new Date(bd * 864e5);
+      ev.push({ at: new Date(bt.getUTCFullYear(), bt.getUTCMonth(), bt.getUTCDate(), 20, 0).getTime(), kind: "rem", title: "نسخة احتياطية",
+        text: "عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.", hash: "#/backup" }); }
     // «جرّب الأذان»: one adhan a minute from now, with the Fajr muezzin, to check the phone lets it through.
     if (testAlarmAt > Date.now()) ev.push({ at: testAlarmAt, kind: "adhan", v: cfg.voice.fajr || "makkah", title: "تجربة الأذان", text: "لو سامع ده، تنبيه الأذان شغال على موبايلك.", hash: "#/prayer" });
     try { AppBridge.setAlarms(JSON.stringify(ev.filter(function (e) { return e.at > Date.now(); }))); } catch (e) {}
@@ -4019,6 +4062,65 @@
     }; });
   }
 
+  // ---------- المحفّظ والطالب (S11, 5.18) ----------
+  // The student's last test (q.lastTest) goes to the teacher as text with a QK2: code (base64 JSON, like QK1 of the
+  // family khatma): name, day, kind (m = on the mushaf, w = by words), range, score, ayat forgotten. The teacher pastes
+  // codes into «طلابي» (q.students {name: [results]}). Nothing goes over the internet.
+  function akCmp(x, y) { var a = x.split(":"), b = y.split(":"); return a[0] - b[0] || a[1] - b[1]; }
+  function lastTestSave(r) { r.d = todayStr(); save("lastTest", r); }
+  function akName(k) { var sa = k.split(":"); return Q.s[sa[0] - 1][0] + " " + ar(+sa[1]); }
+  function ltRange(r) {
+    var a = r.r[0].split(":"), b = r.r[1].split(":");
+    return a[0] === b[0] ? "سورة " + Q.s[a[0] - 1][0] + (a[1] === "1" && +b[1] === Q.s[b[0] - 1][3] ? "" : " " + ar(+a[1]) + "–" + ar(+b[1])) : akName(r.r[0]) + " – " + akName(r.r[1]);
+  }
+  function ltDay(d) { return d.split("-").reverse().map(function (n) { return ar(+n); }).join("/"); }
+  function teacherCode(r) { return "QK2:" + btoa(unescape(encodeURIComponent(JSON.stringify(r)))); }
+  function teacherParse(t) {
+    var out = [], re = /QK2:([A-Za-z0-9+\/=]+)/g, m;
+    while ((m = re.exec(t || ""))) { try { var r = JSON.parse(decodeURIComponent(escape(atob(m[1])))); if (r && r.n && r.r && r.r.length === 2 && r.sc >= 0) out.push(r); } catch (e) {} }
+    return out;
+  }
+  window.QA_tc = { code: teacherCode, parse: teacherParse };
+  function teacherText(r) {
+    return "📖 نتيجة اختبار الحفظ: " + r.n + "\n" + ltRange(r) + " (" + (r.k === "w" ? "بالكلمات" : "على المصحف") + ") · " + ltDay(r.d) + "\nالنتيجة: " + ar(r.sc) + "٪" +
+      (r.ay ? " · " + ar(r.ay) + " آية" : "") + (r.miss && r.miss.length ? "\nنسيت: " + r.miss.map(akName).join("، ") : "") +
+      "\n\nللمحفّظ: افتح «طلابي» في تطبيق القرآن الكريم والصق الرسالة دي:\n" + teacherCode(r);
+  }
+  function teacherSend() {
+    var r = load("lastTest", null); if (!r) return;
+    var n = load("myName", ""); if (!n) { n = (prompt("اسمك (عشان المحفّظ يعرفك)") || "").trim(); if (!n) return; save("myName", n); }
+    r.n = n; shareText(teacherText(r));
+  }
+  function showStudents() {
+    titleEl.textContent = "طلابي";
+    btnBack.hidden = false;
+    var S = load("students", {}), names = Object.keys(S).sort();
+    var html = '<div class="tc"><p class="hint">الطالب بيعمل اختبار الحفظ، وبعدين من «المراجعة» يضغط «ابعت للمحفّظ». الصق رسالته هنا (ممكن أكتر من رسالة مرة واحدة).</p>' +
+      '<textarea class="input" id="tcIn" rows="3" placeholder="الصق رسالة الطالب أو الكود"></textarea><button class="continue" id="tcAdd">' + ic("plus") + " أضف النتيجة</button>";
+    if (!names.length) html += '<p class="hint">لسه مفيش طلاب.</p>';
+    names.forEach(function (n) {
+      var L = S[n], last = L[0], avg = Math.round(L.reduce(function (t, r) { return t + r.sc; }, 0) / L.length);
+      html += '<details class="tc-st"><summary><b>' + esc(n) + "</b><small>" + ar(L.length) + " اختبار · آخر نتيجة " + ar(last.sc) + "٪ · المتوسط " + ar(avg) + "٪</small></summary>" +
+        L.map(function (r) {
+          return '<div class="tc-r"><div><b>' + ltRange(r) + '</b><span class="tc-sc' + (r.sc < 70 ? " low" : "") + '">' + ar(r.sc) + "٪</span></div><small>" + ltDay(r.d) + " · " + (r.k === "w" ? "بالكلمات" : "على المصحف") + "</small>" +
+            (r.miss && r.miss.length ? '<div class="tc-miss">' + r.miss.map(function (k) { var sa = k.split(":"); return '<a href="#/a/' + sa[0] + "/" + sa[1] + '">' + akName(k) + "</a>"; }).join("") + "</div>" : "") + "</div>";
+        }).join("") + '<button class="tc-del" data-n="' + esc(n) + '">شيل الطالب</button></details>';
+    });
+    view.innerHTML = html + "</div>";
+    document.getElementById("tcAdd").onclick = function () {
+      var rs = teacherParse(document.getElementById("tcIn").value), added = 0;
+      if (!rs.length) return toast("مفيش كود QK2 في الرسالة دي");
+      rs.forEach(function (r) {
+        var L = S[r.n] = S[r.n] || [], id = JSON.stringify([r.d, r.k, r.r, r.sc]);
+        if (L.some(function (x) { return JSON.stringify([x.d, x.k, x.r, x.sc]) === id; })) return;
+        L.push(r); added++;
+      });
+      Object.keys(S).forEach(function (n) { S[n].sort(function (a, b) { return parseDay(b.d) - parseDay(a.d); }); S[n] = S[n].slice(0, 100); });
+      save("students", S); showStudents(); toast(added ? "اتضافت " + ar(added) + " نتيجة" : "النتيجة دي موجودة قبل كده");
+    };
+    view.querySelectorAll(".tc-del").forEach(function (b) { b.onclick = function () { if (!confirm("نشيل " + b.dataset.n + "؟")) return; delete S[b.dataset.n]; save("students", S); showStudents(); }; });
+  }
+
   // ---------- فهرس مواضيع القرآن ----------
   function showTopics(g, i) {
     titleEl.textContent = "مواضيع القرآن";
@@ -4042,7 +4144,7 @@
     btnBack.hidden = true;
     // 5.11 G4: the tools in titled groups (memorisation first: the hifz test is its main tool, G6), settings at the bottom
     var G = [["الحفظ", [["#/hifztest", "eyeoff", "اختبار الحفظ", "tjw"], ["#/hifzmap", "grid", "خريطة الحفظ", "tjw"], ["#/hifzlog", "check", "المراجعة", "qib"], ["#/mutash", "list", "اختبار المتشابهات", "qra"], ["#/talqin", "wave", "التلقين", "sun"]]],
-      ["القراءة والختمة", [["#/khatma", "target", "الختمة والعلامات", "kh"], ["#/family", "users", "ختمة العيلة", "kh"], ["#/topics", "list", "مواضيع القرآن", "qra"], ["#/stats", "chart", "الإحصائيات", "qib"]]],
+      ["القراءة والختمة", [["#/khatma", "target", "الختمة والعلامات", "kh"], ["#/family", "users", "ختمة العيلة", "kh"], ["#/students", "users", "طلابي", "tjw"], ["#/topics", "list", "مواضيع القرآن", "qra"], ["#/stats", "chart", "الإحصائيات", "qib"]]],
       ["التجويد والقراءات", [["#/tajweed", "wave", "أحكام التجويد", "tjw"], ["#/qiraat", "book", "القراءات العشر", "qra"]]],
       ["أدعية وعبادات", [["#/duas", "hands", "أدعية مختارة", "sun"], ["#/tasbih", "beads", "السبحة", "sun"], ["#/qibla", "compass", "اتجاه القبلة", "qib"], ["#/imsakia", "calendar", "إمساكية رمضان", "kh"]]]];
     view.innerHTML = G.map(function (g) {
@@ -4352,6 +4454,7 @@
       if (rg) hzSetRev(s, sp); else if (q1.a1 === 1 && q1.to === cnt) hzSetMemo(s, sp);
       syncAlarms();
       var res = load("hifzScores", {}); res[s] = { d: todayStr(), score: sp }; save("hifzScores", res);
+      lastTestSave({ k: "w", r: [s + ":" + (q1.a1 || from), s + ":" + (q1.to || to)], sc: sp, wh: q1.h, wm: q1.m });
     };
     if (carry) {
       if (!htMic) { htv.on = false; Mic.stop(); return; }
@@ -5120,12 +5223,17 @@
     });
   }
 
-  function wordsTab(body, s, a) {
+  function wordsTab(body, s, a, pick0, tok) {
     body.innerHTML = '<p class="hint">جارٍ التحميل…</p>';
     need("w/" + s, "books/words/" + s + ".js", function (d) {
       var words = d && d[a];
       if (!words) { body.innerHTML = '<p class="hint">تعذّر تحميل كلمات الآية.</p>'; return; }
-      var pick = -1;
+      var pick = pick0 >= 0 && pick0 < words.length ? pick0 : -1;
+      // the tapped word by its letters (a few ayat split their words differently from the text): the nearest same word
+      if (tok && pick >= 0 && norm(words[pick][0]) !== norm(tok)) {
+        var best = -1; words.forEach(function (w, i) { if (norm(w[0]) === norm(tok) && (best < 0 || Math.abs(i - pick0) < Math.abs(best - pick0))) best = i; });
+        if (best >= 0) pick = best;
+      }
       words.forEach(function (w, i) { if (pick < 0 && w[1] >= 0) pick = i; });
       var dict = load("dict", BK.lex.length ? BK.lex[0].id : "");
       function render() {
@@ -5154,6 +5262,30 @@
       render();
     });
   }
+
+  // S9 (5.18): a long press on a word in the text view opens its meaning (root + dictionaries, the words tab) in a
+  // dialog. A plain tap still opens the ayah bar, and in hifz mode the long press does nothing (it would show hidden words).
+  function wordSheet(s, a, wi, tok) {
+    var d = el('<div class="dlg-back"><div class="dlg wm-dlg"><b>معنى الكلمة · سورة ' + Q.s[s - 1][0] + " " + ar(a) + '</b><div class="wm-body"></div>' +
+      '<div class="dlg-btns"><button class="wm-ayah">التفسير والإعراب</button><button class="dlg-ok">تم</button></div></div></div>').firstChild;
+    document.body.appendChild(d);
+    d.querySelector(".dlg-ok").onclick = function () { d.remove(); };
+    d.querySelector(".wm-ayah").onclick = function () { d.remove(); location.hash = "#/a/" + s + "/" + a; };
+    d.onclick = function (e) { if (e.target === d) d.remove(); };
+    wordsTab(d.querySelector(".wm-body"), s, a, wi, tok);
+  }
+  // which word of the ayah span sp is under the point (x, y): its place among the ayah's words (rWords), or -1
+  function wordAt(sp, x, y) {
+    var r = document.caretRangeFromPoint ? document.caretRangeFromPoint(x, y) : null;
+    if (!r || !sp.contains(r.startContainer)) return -1;
+    var no = sp.querySelector(".ayah-no"); if (no && no.contains(r.startContainer)) return -1;
+    var pre = document.createRange(); pre.setStart(sp, 0); pre.setEnd(r.startContainer, r.startOffset);
+    var toks = pre.toString().split(" "), last = toks.pop();
+    var real = function (w) { return norm(w).replace(/\s/g, ""); };
+    var i = toks.filter(real).length; if (!real(last) && !toks.length) return 0;
+    return i;
+  }
+  window.QA_wordAt = wordAt;
 
   // ---------- ملء الشاشة على المصحف ----------
   // Going in or out of full screen, the page glides from its old place and size to the new one (FLIP) instead of
@@ -5259,6 +5391,9 @@
   }
   var wasPage = false;
   function route() {
+    // the backup reminder (S10): home, then Settings opened at the backup row
+    if (location.hash === "#/backup") { history.replaceState(null, "", "#/"); setTimeout(function () {
+      document.getElementById("btnSettings").click(); var b = document.getElementById("bkOut"); if (b) b.scrollIntoView({ block: "center" }); }, 50); }
     ayahBar(null);
     var isPage = /^#\/p\//.test(location.hash);
     if (!isPage) fsSet(false);
@@ -5325,6 +5460,8 @@
       showHifzTest(m[1] ? +m[1] : 0);
     } else if (h === "#/mutash") {
       showMutashTest();
+    } else if (h === "#/students") {
+      showStudents();
     } else if ((m = h.match(/^#\/talqin(?:\/(\d+))?/))) {
       showTalqin(m[1] ? +m[1] : 0);
     } else if (h === "#/welcome") {

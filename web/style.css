@@ -144,7 +144,9 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
   font-family: "Amiri Quran", serif; font-size: var(--quran-size); line-height: 2.25;
   text-align: justify; text-align-last: center; word-spacing: 2px;
 }
-.ayah { cursor: pointer; border-radius: 8px; padding: 0 2px; transition: background .2s; }
+.ayah { cursor: pointer; border-radius: 8px; padding: 0 2px; transition: background .2s; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.wm-dlg { max-height: 80vh; overflow-y: auto; }
+.wm-body .book-text { max-height: 40vh; overflow-y: auto; }
 .ayah.sel { background: var(--hl); }
 .ayah-no { color: var(--gold); white-space: nowrap; }
 .juz-mark {
@@ -1183,3 +1185,20 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .mt-ctx { font-size: 18px; color: var(--muted); margin-top: 6px; border-bottom: 1px dashed var(--gold); padding-bottom: 6px; }
 .mt-ch mark { background: rgba(255, 196, 0, .45); color: inherit; border-radius: 4px; }
 .mt-end { font-size: 14px; }
+.bk-old { color: var(--red, #c0392b); }
+/* S11 (5.18): teacher and student */
+.tc-last { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 10px 14px; margin: 0 0 12px; }
+.tc-last > div { display: flex; flex-direction: column; gap: 2px; }
+.tc-last small, .tc-r small { color: var(--muted); font-size: 12.5px; }
+.tc-last .continue { width: auto; margin: 0; padding: 8px 12px; white-space: nowrap; }
+.tc textarea { width: 100%; resize: vertical; font: inherit; }
+.tc-st { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 10px 14px; margin: 10px 0; }
+.tc-st summary { display: flex; flex-direction: column; gap: 2px; cursor: pointer; list-style: none; }
+.tc-st summary small { color: var(--muted); font-size: 12.5px; }
+.tc-r { border-top: 1px solid var(--line); padding: 8px 0; }
+.tc-r > div:first-child { display: flex; justify-content: space-between; gap: 8px; }
+.tc-sc { color: var(--accent); font-weight: 700; }
+.tc-sc.low { color: var(--red, #c0392b); }
+.tc-miss { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tc-miss a { font-size: 13px; padding: 2px 10px; border-radius: 10px; background: var(--gold-soft); color: inherit; text-decoration: none; }
+.tc-del { margin-top: 6px; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }

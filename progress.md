@@ -349,3 +349,22 @@ Resume: the user installs/tests 5.17 (QA-checklist 5.17 lines 1–7) and the pac
 - 5.17b (user notes on 5.17): talqin on a group (q.talqin.b, ≤20 ayat; next group same size); mutash: mic decides on partials + «إيقاف» uses the last heard (finals after stop were dropped), gold question box + the ayah before as context, «افتح الآية» = openAyahPage/#/s by mode; letter-exact choices (mutX = norm; و/ف no longer stripped), look-alikes need ≥40% shared words, same-surah ones only when their ayah before differs; word-for-word repeats ask for the next ayah (78 questions); telling words marked by position (order swaps too, «(آخر الآية)» for a prefix). 799 questions of 1550 keys. versionCode 64, sw quran-v59.
 Resume: user phone test of 5.17b (QA-checklist 5.17 + 5.17b) and pack v3; next sprint per plans/5.11-plan.md (S7 «النهارده»).
 Resume: new session «Sprint D» from plans/sprintD-session-prompt.md (S9, S10, S11 = 5.18).
+
+## Sprint D = 5.18 (2026-11-08)
+Goal check: S9–S11 make the app nearer to "near-complete" (study + teacher use); none touches the recogniser path, so no latency risk.
+- CP S9 done: long press (480 ms) on a word in the text view -> dialog «معنى الكلمة» (wordsTab with the word picked by place,
+  then by letters for the 9 ayat whose words file splits differently). Tap = ayah bar as before; hifz mode = no dialog.
+  Pages: no real word boxes (wordBoxes only estimates from line rects), so pages keep ayah bar -> tafsir -> words tab.
+  ui.js G518 S9 3/3. Usage stop raised to 85% by the user.
+Resume: S10 backup reminder (exportBackup + syncAlarms + «آخر نسخة من # يوم»).
+- CP S10 done: q.lastBackup set on «حفظ نسخة»; Settings «آخر نسخة من # يوم» (red at 30+ / none); «ذكّرني كل شهر» (q.bkRem,
+  default on); syncAlarms adds one reminder 20:00 on lastBackup+30 (or first use +30; late -> today/tomorrow), tap -> #/backup
+  opens Settings at the backup row. ui.js G518 6/6.
+Resume: S11 teacher/student (QK2: code from the hifz test result + «طلابي»).
+- CP S11 done: q.lastTest saved by both hifz tests (mushaf: range + forgotten ayat; words: range + score); «المراجعة» card
+  «آخر اختبار» + «ابعت للمحفّظ» (q.myName asked once) shares text with a QK2: code (base64 JSON); More › «طلابي» (#/students,
+  q.students {name: [results]}, dedupe by day/kind/range/score, max 100 each). i18n D518. ui.js G518 9/9.
+- 5.18 built (versionCode 65, sw quran-v60, signer 7d8b31d2). QA: ui.js 280 with 1 FAIL = the More tile count test (15 -> 16
+  with «طلابي»; fixed, group re-run 9/0) · data.py 28/0 · matrix 40/0 · donate 14/0 · recite_sim ok · i18n new strings done ·
+  Maestro Phone_API35 + Tablet_API35 PASS. bee81250 not on adb: APK left ready. Report plans/5.18-report.html.
+Resume: user phone test of 5.18 (QA-checklist 5.18) + 5.17b + pack v3; GitHub release v5.18 only on the user's word; next S12 spike / G10 rethink.

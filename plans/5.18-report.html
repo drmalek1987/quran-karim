@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقرير 5.18 — Sprint D</title>
+<style>
+body{font-family:system-ui,"Segoe UI",Tahoma,sans-serif;max-width:720px;margin:0 auto;padding:16px;background:#f6f4ee;color:#1d2a26;line-height:1.7}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:22px 0 8px;color:#0f5c4a}
+.card{background:#fff;border-radius:16px;padding:12px 16px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.ok{color:#137a43;font-weight:700}.warn{color:#b26a00;font-weight:700}
+table{border-collapse:collapse;width:100%}td{padding:6px 4px;border-bottom:1px solid #eee}td:last-child{text-align:left;direction:ltr}
+small{color:#667}code{background:#eef;padding:0 4px;border-radius:4px;direction:ltr;display:inline-block}
+</style></head><body>
+<h1>نسخة 5.18 — Sprint D</h1>
+<small>2026-11-08 · <code>quran-karim-v5.18.apk</code> · versionCode 65 · sw quran-v60 · signer 7d8b31d2 ✓</small>
+
+<h2>الجديد</h2>
+<div class="card"><b>S9: معنى الكلمة بلمسة</b><br>
+في عرض النص: <b>اضغط ضغطة طويلة</b> (نص ثانية) على أي كلمة، تطلع نافذة فيها الجذر ومعناه من المعاجم، وزرار «التفسير والإعراب».
+اللمسة العادية لسه بتفتح شريط الآية، ووضع الحفظ مش بيتأثر.<br>
+<small>في صفحات المصحف مفيش مكان دقيق لكل كلمة، فالمعنى من شريط الآية › التفسير › الكلمات زي ما هو.</small></div>
+<div class="card"><b>S10: تذكير النسخة الاحتياطية</b><br>
+الإعدادات بتكتب «آخر نسخة من # يوم» (بالأحمر لو عدّى شهر). وفيه تذكير الساعة ٨ بالليل بعد ٣٠ يوم من آخر نسخة، ولما تدوس عليه بيفتح الإعدادات عند «حفظ نسخة»، ومنها تحفظ على Drive.</div>
+<div class="card"><b>S11: المحفّظ والطالب</b><br>
+<b>الطالب:</b> بعد اختبار الحفظ، صفحة «المراجعة» بتعرض آخر اختبار وزرار «ابعت للمحفّظ». الرسالة فيها النتيجة والمدى والآيات المنسية وكود <code>QK2:</code>.<br>
+<b>المحفّظ:</b> المزيد › «طلابي»: يلزق الرسالة، فيطلع كل طالب بنتايجه والمتوسط والآيات اللي نسيها. كله من غير إنترنت ومن غير سيرفر.</div>
+
+<h2>الـ QA</h2>
+<div class="card"><table>
+<tr><td>Playwright ui.js (kfgqpc)</td><td class="ok">280 · 1 FAIL → fixed</td></tr>
+<tr><td colspan="2"><small>الـ FAIL كان التست بيعدّ ١٥ أيقونة في «المزيد» وبقوا ١٦ بـ«طلابي». اتصلح وإعادة المجموعة 9/0.</small></td></tr>
+<tr><td>جديد G518 (S9 ٣ + S10 ٣ + S11 ٣)</td><td class="ok">9/0</td></tr>
+<tr><td>data.py</td><td class="ok">28/0</td></tr>
+<tr><td>matrix.js</td><td class="ok">40/0</td></tr>
+<tr><td>donate.js</td><td class="ok">14/0</td></tr>
+<tr><td>recite_sim.js</td><td class="ok">no errors</td></tr>
+<tr><td>i18n (D518)</td><td class="ok">كل الجديد مترجم</td></tr>
+<tr><td>Maestro: Phone_API35 + Tablet_API35</td><td class="ok">PASS</td></tr>
+</table>
+<small>مفيش تغيير في مسار التعرّف على التلاوة، فالسرعة زي ما هي.</small></div>
+
+<h2>على موبايلك</h2>
+<div class="card"><span class="warn">bee81250 مش متوصل على adb</span>، فما اتسطبش من الـ PC. الـ APK جاهز: <code>quran-karim-v5.18.apk</code>.<br>
+جرّب سطور 5.18 في <code>QA-checklist.md</code> (٦ سطور)، ولسه مستني رأيك في 5.17b والـ pack v3.</div>
+</body></html>
