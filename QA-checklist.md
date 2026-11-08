@@ -555,3 +555,6 @@
 5. U7: في «اختبار الحفظ»، «آيات غلطت فيها قبل كده (العدد)» box مقفول في الأول، وبيفتح ويقفل باللمس.
 6. U8: «السور المراجعة» في «المراجعة» بقت زرار بنفس شكل «السور المحفوظة» في الخريطة، والقايمة بتفتح تحته.
 - 5.16 build QA (2026-11-08, quran-karim-v5.16.apk, versionCode 59, sw quran-v54, signer 7d8b31d2): ui.js kfgqpc 252/0 (new group «نسخة 5.16»: U1, U2, U5, U6, U7, U8; older checks follow U1/U5/U6) · data.py 28/0 · matrix.js 40/0 · donate.js 0 FAIL (data-a/data-w check moved to ayah 2) · i18n_scan: new strings added (عشوائي، القراءة: # من # صفحة، آيات غلطت فيها قبل كده (#)), English home card checked · Maestro smoke PASS on Small_API35, Fold_API35, Tablet_API35, Phone_API35. installed on bee81250 at 11:20 (5.16, data kept). G10 not shipped (gate failed).
+
+## 5.16b — سرعة الكشف على المصحف (phone tests)
+1. U3: اختبر على المصحف بالصوت في آية سطورها طويلة (آية الكرسي مثلاً): كل سطر لازم يتكشف كلمة كلمة وانت بتقرا، مش لما تخلّص السطر كله. والكلمة الغلط بتبقى حمرا.
