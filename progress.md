@@ -313,3 +313,11 @@ Resume: 5.16c on bee81250 (5.16b U3/U4 + 5.16d flip + 5.16e flip in «اختبا
 Checkpoint 2026-11-08 (Z-track plan): goal check — a smaller model saves phone space and RAM without touching accuracy (Z1/Z3) or only through the gate (Z2/Z4). Restore point tag v5.16c-restore + model zips backed up. Plan plans/asr-size-plan.md, merged into plans/5.16-schedule.md.
 Resume: Z1 — export_onnx.py --posmax from nv_out/P3_FINAL_L2.nemo, then Z1v parity (logits diff, nv_gate shipped, RTF).
 Resume: new session «Sprint B» from plans/sprintB-session-prompt.md (Z1 first). Usage stop is now 82%.
+
+## Sprint B (2026-11-08, session local_3bbb678c)
+Goal check: Z1/Z2 shrink the on-phone ASR model without hurting recognition (gate must stay equal).
+- FINDING: the shipped pack (restore-asr-5.16c a.bin+b.bin) = `qtrain/gpu-train/phone/model.int8.onnx` = stock NVIDIA base, NOT L2. Pack v3 must decide base vs L2 (L2 passed phone gate ALL 83.3->87.8) -> ask the user.
+- Z1 done: `tools/asr/gpu/nv_shrink.py` (ONNX surgery; NeMo bakes centre 5000, slice rows [C-T,C+T-1) -> keep K=1000 rows each side, rewrite both 5000 constants). pe (1,9999,512)->(1,1999,512); int8 131.65 -> 115.27 MB. Outputs: qtrain/gpu-train/z1/{base,L2}.int8.onnx (+ base.fp32.onnx).
+- Z1v done: `nv_shrink_parity.py` on 394 s of VAD pieces (ho_reciters/test_L1/ho_noisy): max |logit diff| 0.0, argmax diffs 0, RTF 0.0176 vs 0.0177 (base and L2). Full gate run tag Z1base (phone_Z1base) to confirm vs gate_base57.
+- Z2 in progress: ORT 1.22 Android .so contains MatMulNBits. `nv_int4.py` (int4 blk32 sym + int8 Conv) -> z1/base.int4.onnx 79.5 MB; argmax differs on 8.9% frames vs int8, PC RTF ~+20% -> needs full gate (tag Z2base) + phone load/RTF before any ship.
+Resume: check gate_Z1base summary == gate_base57; run `nv_gate.py Z2base x` (copy z1/base.int4.onnx into phone_Z2base/); ask user base vs L2 for pack v3; then S6.
