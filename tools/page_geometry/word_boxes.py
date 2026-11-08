@@ -23,10 +23,11 @@ ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 ARGS = [a for a in sys.argv[1:] if not a.startswith('--')]
 FONT, ED = ARGS[0], ARGS[1]
 REVIEW = int(sys.argv[sys.argv.index('--review') + 1]) if '--review' in sys.argv else 0
-PAGE = ROOT + '/web/editions/%s/%%03d.avif' % ED
+# harmain (the Haramain scans): pages in web/pages/, ayah boxes in quran-data.js
+PAGE = ROOT + ('/web/pages/%03d.avif' if ED == 'harmain' else '/web/editions/%s/%%03d.avif' % ED)
 OUT = ROOT + '/web/editions/%s-w' % ED
 Q = json.load(open(ROOT + '/data/quran-uthmani-quranenc.json', encoding='utf8'))
-src = open(ROOT + '/web/editions/%s.js' % ED, encoding='utf8').read()
+src = open(ROOT + ('/web/quran-data.js' if ED == 'harmain' else '/web/editions/%s.js' % ED), encoding='utf8').read()
 R = json.loads(src[src.index('=') + 1:].rstrip().rstrip(';'))['r']
 SIZE, TOP, BOT, GAP = 46, 50, 34, 14
 _hb = None
@@ -67,11 +68,13 @@ def render(text):
 
 
 @njit(cache=True)
-def dtw(A, B, band):
+def dtw(A, B, band, f0, f1):
+    # f0/f1: free start / end in the first / last columns of the scan strip (the rects can be a word off, 5.19)
     n, m = A.shape[0], B.shape[0]
-    D = np.full((n + 1, m + 1), 1e18); P = np.zeros((n + 1, m + 1), np.int8); D[0, 0] = 0
+    D = np.full((n + 1, m + 1), 1e18); P = np.zeros((n + 1, m + 1), np.int8)
+    for j in range(0, f0 + 1): D[0, j] = 0
     for i in range(1, n + 1):
-        c = i * m / n; lo = max(1, int(c - band)); hi = min(m, int(c + band))
+        c = i * (m - f0 - f1) / n + f0; lo = max(1, int(c - band - f0)); hi = min(m, int(c + band + f1))
         for j in range(lo, hi + 1):
             d = 0.0
             for k in range(A.shape[1]): d += abs(A[i - 1, k] - B[j - 1, k])
@@ -79,13 +82,16 @@ def dtw(A, B, band):
             if D[i - 1, j] + 0.05 < best: best = D[i - 1, j] + 0.05; p = 1
             if D[i, j - 1] + 0.05 < best: best = D[i, j - 1] + 0.05; p = 2
             D[i, j] = best + d; P[i, j] = p
-    mp = np.zeros(n, np.float64); cnt = np.zeros(n, np.float64); i, j = n, m
+    je = m
+    for j in range(max(1, m - f1), m + 1):
+        if D[n, j] / (n + j) < D[n, je] / (n + je): je = j
+    mp = np.zeros(n, np.float64); cnt = np.zeros(n, np.float64); i, j = n, je
     while i > 0 and j > 0:
         mp[i - 1] += j - 1; cnt[i - 1] += 1; p = P[i, j]
         if p == 0: i -= 1; j -= 1
         elif p == 1: i -= 1
         else: j -= 1
-    return mp / np.maximum(cnt, 1), D[n, m] / (n + m)
+    return mp / np.maximum(cnt, 1), D[n, je] / (n + je)
 
 
 def feat(band, nb=16):
@@ -108,21 +114,23 @@ def pb(p):
         b = cv2.adaptiveThreshold(wg, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 12)
         hl = cv2.dilate(cv2.morphologyEx(b, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))), np.ones((3, 3), np.uint8))
         ink = (255 - wg).astype(np.uint8); ink[hl > 0] = 0; b = b.copy(); b[hl > 0] = 0
-        # the ayah-end circles and their numbers are coloured, the text is black: left out, so no word is stretched over a
-        # circle onto the next ayah (the 3 misses of the first 60-word review)
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV); col = cv2.dilate(((hsv[:, :, 1] > 70) & (hsv[:, :, 2] > 60)).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
-        ink[col] = 0; b[col] = 0
         _pb[p] = dict(img=img, wg=wg, b=b, ink=ink)
     return _pb[p]
 
 
+CIRC = int(os.environ.get('CIRC', '0'))
+SLACK = float(os.environ.get('SLACK', '0'))   # line heights the first / last piece may really reach past its rect (page 586: a word off)
 def scan_strip(boxes):
-    pieces, meta, off = [], [], 0
+    pieces, meta, off, f0, f1 = [], [], 0, 0, 0
     for i, (p, x0, y0, x1, y1) in enumerate(boxes):
         P = pb(p); H, W = P['wg'].shape
+        lx0, lx1 = LINE[(p, y0)]
         xl, xr = x0 * W / 1000, x1 * W / 1000; t, bt = y0 * H / 1000, y1 * H / 1000
-        k = (bt - t) / 80; c = int((t + bt) / 2)
-        if i == len(boxes) - 1: xl += 0.62 * (bt - t)   # not the ayah-end circle
+        k = (bt - t) / 80; c = int((t + bt) / 2); sl = SLACK * (bt - t)
+        if i == len(boxes) - 1 and not CIRC: xl += 0.62 * (bt - t)   # not the ayah-end circle (the rects start at it, 5.19)
+        half = min(sl, (xr - xl) / 2)   # the true end may also be inside the rect
+        if i == 0: e = min((lx1 + 15) * W / 1000, xr + sl); f0 = int((e - xr + half) / k); xr = e
+        if i == len(boxes) - 1: e = max((lx0 - 15) * W / 1000, xl - sl); f1 = int((xl - e + half) / k); xl = e
         col = (P['b'][int(c - 26 * k):int(c + 20 * k), int(xl):int(xr)] > 0).sum(0); nz = np.nonzero(col)[0]
         if xr - xl < 4 or len(nz) == 0: continue
         a, z = int(xl) + nz[0], int(xl) + nz[-1] + 1
@@ -131,14 +139,14 @@ def scan_strip(boxes):
         w = int(round((z - a) / k))
         pc = cv2.resize(pc, (w, TOP + BOT), interpolation=cv2.INTER_CUBIC)
         pieces.append(pc); meta.append((p, z, off, off + w, k, y0, y1, W)); off += w + GAP
-    if not pieces: return None, None
+    if not pieces: return None, None, 0, 0
     S = np.zeros((TOP + BOT, off - GAP), np.uint8)
     for pc, mt in zip(pieces, meta): S[:, mt[2]:mt[3]] = pc[:, :mt[3] - mt[2]]
-    return S, meta
+    return S, meta, min(f0, S.shape[1] // 2), min(f1, S.shape[1] // 2)
 
 
 def align(text, boxes):
-    S, meta = scan_strip(boxes)
+    S, meta, f0, f1 = scan_strip(boxes)
     if S is None: return None
     ink, lab, rb = render(text)
     B = feat(S); best = None
@@ -147,16 +155,19 @@ def align(text, boxes):
         rp = rband(ink, rb, dy).astype(np.float32).sum(1); return float((rp / (rp.max() + 1e-6) * sp).sum())
     d0 = max(range(-8, 27), key=rowfit)
     for dy in (d0 - 3, d0, d0 + 3):
-        mp, cost = dtw(feat(rband(ink, rb, dy)), B, max(80, int(0.3 * max(ink.shape[1], S.shape[1]))))
+        mp, cost = dtw(feat(rband(ink, rb, dy)), B, max(80, int(0.3 * max(ink.shape[1], S.shape[1]))), f0, f1)
         if best is None or cost < best[1]: best = (mp, cost)
     return dict(meta=meta, lab=lab, mp=best[0], cost=best[1])
 
 
 def ayah_words(s, a, boxes):
     text = Q[s - 1]['verses'][a - 1]['text']
-    A = align(text, boxes)
+    # the ayah-end circles drawn too (the font draws Arabic digits in one), the one before as an anchor: a word is not
+    # stretched over a circle onto the next ayah, and no colour mask squeezes the words next to it
+    pre = (num(a - 1) + ' ') if a > 1 and CIRC else ''
+    A = align(pre + text + ((' ' + num(a)) if CIRC else ''), boxes)
     if A is None: return [], None
-    toks = text.split(' '); spans, at, wi = [], 0, 0
+    toks = text.split(' '); spans, at, wi = [], len(pre), 0
     for t in toks:
         if real(t): spans.append((wi, at, at + len(t))); wi += 1
         at += len(t) + 1
@@ -173,10 +184,28 @@ def ayah_words(s, a, boxes):
             if len(sel) < 2: continue
             xa, xb = z - 1 - (sel.max() - o0) * k, z - 1 - (sel.min() - o0) * k
             rows.append([s, a, w, int(round(xa / W * 1000)), y0, int(round(xb / W * 1000)) + 1, y1])
+    # a word squeezed to a sliver (the warp folded it onto a neighbour) shares its neighbour's span on that line, split by
+    # letter count (the earlier word is on the right)
+    ln = {w: ce - cs for w, cs, ce in spans}
+    for r in rows:
+        if r[5] - r[3] >= 6: continue
+        nb = [q for q in rows if q is not r and q[4] == r[4] and abs(q[2] - r[2]) == 1 and q[5] - q[3] >= 6]
+        if not nb: continue
+        q = max(nb, key=lambda q: q[5] - q[3]); x0, x1 = min(q[3], r[3]), max(q[5], r[5])
+        R_, L_ = (r, q) if r[2] < q[2] else (q, r)   # R_ = earlier word, right part
+        cut = int(round(x1 - (x1 - x0) * ln[R_[2]] / (ln[R_[2]] + ln[L_[2]])))
+        R_[3], R_[5], L_[3], L_[5] = cut, x1, x0, cut
     return rows, A['cost']
 
 
-BY = {}
+def num(n): return ''.join(chr(0x660 + int(d)) for d in str(n))
+
+
+BY, LINE = {}, {}
+for sur in R:
+    for bs in sur:
+        for p, x0, y0, x1, y1 in bs or []:
+            l = LINE.get((p, y0), (x0, x1)); LINE[(p, y0)] = (min(l[0], x0), max(l[1], x1))
 for s, sur in enumerate(R):
     for a, bs in enumerate(sur):
         for p in sorted({b[0] for b in bs or []}): BY.setdefault(p, []).append((s + 1, a + 1, bs))
@@ -201,7 +230,7 @@ def page(n):
 
 def review(k):
     """k random words cut from the scans, next to the word they should be."""
-    files = sorted(os.listdir(OUT)); random.seed(int(os.environ.get('SEED', '518'))); cells = []
+    files = sorted(os.listdir(OUT)); random.seed(int(os.environ.get('SEED', '518'))); cells, grid = [], []
     for _ in range(k):
         f = random.choice(files); n = int(f[:3])
         rows = json.loads(open(os.path.join(OUT, f), encoding='utf8').read().split(',', 2)[2].rsplit(')', 1)[0])
@@ -213,11 +242,18 @@ def review(k):
         cv2.rectangle(cut, (X0 - max(0, X0 - pad), 0), (X1 - max(0, X0 - pad), Y1 - Y0 - 1), (220, 30, 30), 2)
         ok, jp = cv2.imencode('.jpg', cv2.cvtColor(cut, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 85])
         word = [t for t in Q[s - 1]['verses'][a - 1]['text'].split(' ') if real(t)][w]
+        wi, _, _ = render(word); sc = 50 / cut.shape[0]; cc = cv2.resize(cut, (max(1, int(cut.shape[1] * sc)), 50))
+        wr = cv2.resize(255 - wi, (max(1, int(wi.shape[1] * 50 / wi.shape[0])), 50)); g = np.full((54, 400, 3), 255, np.uint8)
+        g[2:52, :min(240, cc.shape[1])] = cc[:, :240]; g[2:52, 250:250 + min(150, wr.shape[1])] = np.dstack([wr] * 3)[:, :150]
+        cv2.putText(g, str(len(cells) + 1), (380, 50), 0, 0.4, (0, 0, 255), 1); grid.append(g)
         cells.append('<div class="c"><img src="data:image/jpeg;base64,%s"><b>%s</b><small>%d · %d:%d · word %d</small></div>' % (base64.b64encode(jp).decode(), word, n, s, a, w + 1))
     html = ('<!DOCTYPE html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>word boxes %s</title><style>body{font-family:sans-serif;background:#f4f2ec}'
             '.c{display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#fff;margin:6px;padding:8px;border-radius:10px}'
             '.c img{max-height:70px}.c b{font-family:"Amiri Quran",serif;font-size:24px}.c small{color:#777;direction:ltr}</style>'
             '<h3>%s: %d random words (red box = what the app will take for the word below it)</h3>%s</html>') % (ED, ED, len(cells), ''.join(cells))
+    if os.environ.get('GRID'):
+        cols = [np.vstack(grid[i:i + 20]) for i in range(0, len(grid), 20)]; h = max(c.shape[0] for c in cols)
+        cv2.imwrite(os.environ['GRID'], cv2.cvtColor(np.hstack([np.pad(c, ((0, h - c.shape[0]), (0, 8), (0, 0)), constant_values=200) for c in cols]), cv2.COLOR_RGB2BGR))
     out = os.path.join(HERE, 'word-review-%s.html' % ED)
     open(out, 'w', encoding='utf8').write(html); print('review', out)
 

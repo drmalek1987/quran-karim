@@ -161,7 +161,7 @@
   var EDS = {
     harmain: { name: "طبعة الحرمين", dir: "pages/", tj: "tjpages/", p: Q.p, r: Q.r, first: Q.first, last: Q.last, count: Q.count, min: 0 }
   };
-  if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1 }   /* w: "editions/kfgqpc-w/" after the word-box gate passes (5.19 B) */, window.ED_KFGQPC);
+  if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1, w: "editions/kfgqpc-w/" }, window.ED_KFGQPC);   // w: measured word boxes (5.19)
   // طبعة الملك فهد القديمة = the scanned older Madinah print (HA's PDF, PDF page = page + 3). Its lines are the same as the
   // King Fahd edition's, so its ayah boxes are those boxes moved onto the scan's text frame (tools/kfold/make_edition.py).
   if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1 }, window.ED_KFOLD);
@@ -1447,6 +1447,8 @@
     });
   }
   window.QA_pageWordAt = pageWordAt;
+  window.QA_wb = function (p, cb) { wbNeed(p, function () { cb(wbRows(p)); }); };
+  window.QA_rect = function (s, a) { return Q.r[s - 1][a - 1]; };
   // Long press (480 ms, one finger, no move) on a mushaf page opens the word's meaning. Taps, swipes, the page curl,
   // pinch zoom, the hifz reveal and reciting are left as they are.
   var lpPageAt = 0;
@@ -5342,6 +5344,9 @@
     var d = el('<div class="dlg-back"><div class="dlg wm-dlg"><b>معنى الكلمة · سورة ' + Q.s[s - 1][0] + " " + ar(a) + '</b><div class="wm-body"></div>' +
       '<div class="dlg-btns"><button class="wm-ayah">التفسير والإعراب</button><button class="dlg-ok">تم</button></div></div></div>').firstChild;
     document.body.appendChild(d);
+    // the finger of the long press is still down when the sheet opens: Android would select the text under it (5.19)
+    var unsel = function () { try { var g = window.getSelection(); if (g && g.rangeCount) g.removeAllRanges(); } catch (er) {} };
+    unsel(); document.addEventListener("selectionchange", unsel); setTimeout(function () { document.removeEventListener("selectionchange", unsel); unsel(); }, 1200);
     d.querySelector(".dlg-ok").onclick = function () { d.remove(); };
     d.querySelector(".wm-ayah").onclick = function () { d.remove(); location.hash = "#/a/" + s + "/" + a; };
     d.onclick = function (e) { if (e.target === d) d.remove(); };

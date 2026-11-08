@@ -146,6 +146,7 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
 }
 .ayah { cursor: pointer; border-radius: 8px; padding: 0 2px; transition: background .2s; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .wm-dlg { max-height: 80vh; overflow-y: auto; }
+.wm-dlg > b, .wm-dlg .words { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .wm-body .book-text { max-height: 40vh; overflow-y: auto; }
 .ayah.sel { background: var(--hl); }
 .ayah-no { color: var(--gold); white-space: nowrap; }

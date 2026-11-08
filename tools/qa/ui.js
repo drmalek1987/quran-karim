@@ -806,7 +806,7 @@ async function fresh(ctx, vp) {
     await hzBack(k); await go('#/', 200); return assert(r[0] === '1,112' && !r[1] && !r[2] && r[3] === 4 && pick === '112', JSON.stringify([r, pick])); });   // 5.15 S1: 113 (50% today) is due tomorrow
   // ---------- 5.15 Sprint A: S2 focus on my mistakes, S1 spaced review + daily ward, S7 today card ----------
   const G515 = 'نسخة 5.15 (Sprint A)';
-  const dAgo = n => { const d = new Date(Date.now() - n * 864e5); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+  const dAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   await check(G515, 'S1: الفترة: أول مرة ٧، و٩٠٪ بتضاعف (أقصاها ٩٠ ومرة واحدة في اليوم)، و٧٠–٨٩٪ زي ما هي، وأقل من ٧٠٪ يوم واحد', async () => {
     const r = await ev(o => { const e = { m: o, r: o }, seq = []; hzReviewed(e, 95); seq.push(e.iv); hzReviewed(e, 95); seq.push(e.iv); e.r = o; hzReviewed(e, 80); seq.push(e.iv);
       hzReviewed(e, 50); seq.push(e.iv); const f = { m: o, r: o, iv: 60 }; hzReviewed(f, 99); seq.push(f.iv);
@@ -1233,6 +1233,49 @@ async function fresh(ctx, vp) {
     const r = await ev(() => { const x = { n: 'سارة', d: '2026-11-1', k: 'w', r: ['2:1', '2:20'], sc: 88 }; const back = QA_tc.parse('أهلا ' + QA_tc.code(x) + ' شكرا');
       return [JSON.stringify(back[0]) === JSON.stringify(x), QA_tc.parse('QK2:@@@').length, QA_tc.parse('QK2:' + btoa('{"n":"x"}')).length]; });
     return assert(r[0] && r[1] === 0 && r[2] === 0, JSON.stringify(r)); });
+  // ---------- 5.19: معنى الكلمة بضغطة طويلة على صفحة المصحف (مربعات الكلمات المقاسة لطبعة الملك فهد) ----------
+  const G519 = 'نسخة 5.19';
+  // the middle of word w of ayah s:a on page n, from the measured boxes (per mille -> screen)
+  const wbPt = (n, s, a, w) => ev(([n, s, a, w]) => new Promise(res => QA_wb(n, rows => { const r = (rows || []).find(r => r[0] === s && r[1] === a && r[2] === w);
+    const b = document.querySelector('.page-box[data-p="' + n + '"]'); if (!r || !b) return res(null); const g = b.getBoundingClientRect();
+    res([g.left + (r[3] + r[5]) / 2000 * g.width, g.top + (r[4] + r[6]) / 2000 * g.height]); })), [n, s, a, w]);
+  if (ED === 'kfgqpc') {
+    await check(G519, 'ضغطة طويلة على «ٱلْكِتَٰبُ» في صفحة ٢ بتفتح معنى الكلمة دي من غير شريط الآية', async () => {
+      await go('#/p/2', 1200); const xy = await wbPt(2, 2, 2, 1); if (!xy) throw new Error('no box');
+      await longPress(xy); const r = await ev(() => { const d = document.querySelector('.wm-dlg'); return d && [d.querySelector('.words button.on').textContent, !!document.querySelector('#ayahBar button[data-c="x"]')]; });
+      await ev(() => window.qBack()); await wait(300);
+      return assert(r && r[0] === 'ٱلْكِتَٰبُ' && !r[1], JSON.stringify(r)); });
+    await check(G519, 'صفحة ٥٨٦: كلمة «قُتِلَتْ» (٨١:٩) بتتعرف من مربعها، ومربع الآية متظبط على دايرتها', async () => {
+      await go('#/p/586', 1200); const xy = await wbPt(586, 81, 9, 2); if (!xy) throw new Error('no box');
+      await longPress(xy); const w = await ev(() => { const d = document.querySelector('.wm-dlg'); return d && d.querySelector('.words button.on').textContent; });
+      await ev(() => window.qBack()); await wait(300);
+      const r9 = await ev(() => QA_rect(81, 9)[0]);
+      return assert(w === 'قُتِلَتْ' && r9[1] > 480 && r9[1] < 530, JSON.stringify([w, r9])); });
+    await check(G519, 'اللمسة العادية على الصفحة لسه بتفتح شريط الآية، والسحب لسه بيقلب الصفحة', async () => {
+      await go('#/p/51', 1200); const r = await ev(() => { const b = document.querySelector('.page-box').getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; });
+      await p.mouse.click(r[0] + r[2] / 2, r[1] + r[3] / 2); await wait(400);
+      const bar = await ev(() => [!!document.getElementById('ayahBar'), !!document.querySelector('.wm-dlg')]);
+      await ev(() => { const x = document.querySelector('#ayahBar button[data-c="x"]'); if (x) x.click(); }); await wait(200);
+      await p.mouse.move(r[0] + r[2] * 0.2, r[1] + r[3] * 0.8); await p.mouse.down(); for (let i = 1; i <= 12; i++) { await p.mouse.move(r[0] + r[2] * 0.2 + i * 25, r[1] + r[3] * 0.8 - i * 2); await wait(16); } await p.mouse.up(); await wait(1200);
+      const h = await ev(() => location.hash);
+      return assert(bar[0] && !bar[1] && h === '#/p/52', JSON.stringify([bar, h])); });
+    await check(G519, 'نافذة معنى الكلمة بتمسح أي تحديد نص بيعمله الأندرويد تحت الصباع، وعنوانها مش قابل للتحديد', async () => {
+      await go('#/p/2', 1200); const xy = await wbPt(2, 2, 2, 1); if (!xy) throw new Error('no box'); await longPress(xy);
+      const r = await ev(() => new Promise(res => { const b = document.querySelector('.wm-dlg > b'), rg = document.createRange(); rg.selectNodeContents(b);
+        getSelection().removeAllRanges(); getSelection().addRange(rg); setTimeout(() => res([getSelection().toString(), getComputedStyle(b).userSelect]), 150); }));
+      await ev(() => window.qBack()); await wait(300);
+      return assert(r[0] === '' && r[1] === 'none', JSON.stringify(r)); });
+    await check(G519, 'وضع الحفظ: الضغطة الطويلة على الصفحة ما بتفتحش معنى الكلمة', async () => {
+      await go('#/p/2', 1200); await ev(() => hifzToggle()); await wait(500);
+      const on = await ev(() => !!document.querySelector('#hifzBar')); const xy = await wbPt(2, 2, 2, 1); if (xy) await longPress(xy);
+      const d = await ev(() => !!document.querySelector('.wm-dlg'));
+      await ev(() => { if (document.getElementById('hifzBar')) hifzToggle(); document.querySelectorAll('.dlg-back').forEach(e => e.remove()); }); await wait(300);
+      return assert(on && !d, JSON.stringify([on, d])); });
+    await check(G519, 'تظليل الكلمة (التسميع) بيستخدم المربع المقاس: جوه مربع الآية وبعرض الكلمة', async () => {
+      await go('#/p/2', 1200); const r = await ev(() => new Promise(res => QA_wb(2, rows => { const x = rows.filter(r => r[0] === 2 && r[1] === 2);
+        res([rows.length, x.length, x.every(r => r[5] - r[3] >= 6 && r[5] - r[3] < 300)]); })));
+      return assert(r[0] > 30 && r[1] === 7 && r[2], JSON.stringify(r)); });   // 2:2 = 7 words
+  }
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

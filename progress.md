@@ -381,3 +381,33 @@ Resume: wait for the user's go; A fits under 85% now, B after the weekly reset 2
   0 weak pages but 260 squeezed words; page 586 ayah rects offset from the scan (81:8/9 one word left). Details + Haramain
   route: plans/5.19-session-prompt.md. Stopped at weekly 82% / context 257k.
 Resume: new session from plans/5.19-session-prompt.md after the reset 2026-11-10 19:00 UTC (first: page 586 rect check).
+
+## 2026-11-08 (session 5.19 B, resumed at 82%)
+- Goal check: exact word boxes on pages = word meaning + recite colouring on the mushaf (near-complete app); no ASR latency impact.
+- Step 1 done: page 586 rects in web/editions/kfgqpc.js ARE off (81:8/81:9 a word left), so the app's own ayah highlight misses too.
+  New tools/page_geometry/ayah_circles.py (template match of the font's ayah circle, scale 0.54-0.66 of line height,
+  thr 0.38): 1691 ayah ends off a circle on 466 pages, 331 of them >60‰ (mostly pages 240-604). A book-wide data bug.
+- word_boxes.py: colour mask removed; render now = prev circle + text + own circle (font draws Arabic digits in a circle);
+  DTW with free start/end (f0/f1) inside SLACK=2.5 line heights past the first/last piece (LINE extents ±15‰). 586 81:8-10 right now.
+Resume: write ayah_circles.py --fix (move interior line boundaries to matched circles, ordered assignment, ≤150‰), re-check,
+  look at 2-3 fixed pages, then re-run word_boxes + reviews SEED 518/7 (gate 97%).
+- Steps 2-3 done: ayah_circles.py --fix moved the interior boundaries onto the circles (cost 0.25×move, ≤150‰): ends off a
+  circle by >30‰ 662 -> ~100 (the rest = circles the template misses at line ends). word_boxes: own circle NOT rendered,
+  last piece skips 0.62 lh (rects start at the circle now), SLACK 0, squeezed words split with their neighbour by letters:
+  squeezed <6‰ 0.063% (target <0.1% ✓). Reviews: SEED 518 59-60/60, SEED 7 59/60 (miss 23:115 w5 on p349, undetected
+  circle); 11:25 «مبين» box takes half its circle (word fully covered, counted OK). Gate ≥97% passed on both.
+- Step 4 in progress: EDS.kfgqpc.w on, QA_wb/QA_rect hooks, 5 G519 checks in ui.js, versionCode 66 / 5.19 / quran-v61.
+Resume: read ui.txt in scratchpad (ED=kfgqpc ui.js), fix fails, build APK (signer 7d8b31d2), install bee81250 if on adb,
+  HTML report, commit (incl. web/editions/kfgqpc-w/, kfgqpc.js, ayah_circles.py) + push; ask before GitHub release.
+- QA kfgqpc run 2: 285/284 (only 5.17 S3 = random-question flake, passed in run 1). dAgo fixed (calendar days; n*24h was a
+  day short across DST near midnight -> 5.15 S1 + 5.18 S10 fails). APK quran-karim-v5.19.apk signer 7d8b31d2, on Phone_API35.
+- User asked: fix the Android text selection that the long press left on the word sheet title: wordSheet clears any
+  selection for 1.2 s after opening + title/words user-select:none; new G519 check. Verified on the emulator (67:8 «فيها»).
+Resume: wait for ui-kfold/shamarly/harmain + donate/recite/i18n (scratchpad), re-run ED=kfgqpc ui.js for the new check,
+  then commit + push, HTML report, ask before GitHub release. Haramain word boxes (step 5) not started.
+- Haramain (user: «دقة اختيار الكلمات في طبعة الحرمين ضعيفة»): word_boxes.py now takes ED=harmain (web/pages + quran-data.js r).
+  Straight DTW on the photos: squeezed 0.009%, reviews 518 58/60, 7 ~57/60 (slivers at line ends = perspective);
+  SLACK=0.8 made it worse (0.3% squeezed, 5 slivers). Gate not passed -> Haramain stays on the estimate; harmain-w deleted.
+  Next for Haramain: the planned route (tajweed_pages align() in the warped frame + inverse warp; Windows port of /mnt paths).
+- QA: kfold 280/0.
+Resume: wait for shamarly/harmain/donate/recite/i18n, re-run ED=kfgqpc ui.js (new selection check), commit + push, report.
