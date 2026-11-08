@@ -345,3 +345,4 @@ Goal check: S3/S5 close the hifz loop (mutashabihat slips + talqin for new ayat)
 - ui.js 9 new 5.17 checks; i18n D517; QA-checklist 5.17 phone lines 1–7. Version 5.17 / 63 / quran-v58, signer 7d8b31d2.
 - Full QA passed (QA-checklist 5.17). bee81250 not on adb: APK quran-karim-v5.17.apk left ready.
 Resume: the user installs/tests 5.17 (QA-checklist 5.17 lines 1–7) and the pack v3 update; then next sprint per plans/5.11-plan.md (S7 «النهارده», G8 waits for the user).
+- GitHub release v5.17 published with the user's OK (2026-11-08).
