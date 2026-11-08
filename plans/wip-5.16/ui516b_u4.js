@@ -1,0 +1,10 @@
+  await check(G516b, 'U4: آخر كلمة في الموضع تتسمع صح وانت لسه بتقرا: الموضع اللي بعده بيفتح في أقل من ثانية (من غير ما يستنى الوقفة)', async () => { const k = await hzKeep();
+    await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; localStorage.setItem('q.mode', '"pages"'); }); await go('#/', 150);
+    const P = [[await gq(112, 1), await gq(112, 4)], [await gq(110, 1), await gq(110, 3)]];
+    await ev(P => hzTestStart({ k: 's', s: 112, w: 'r' }, 'm', P), P); await wait(1500); await p.click('#hifzBar [data-c=mic]'); await wait(200);
+    const t = await ev(() => new Promise(res => { onRecite('', 'state:listening'); const t0 = performance.now();
+      onRecite('قل هو الله احد الله الصمد لم يلد ولم يولد ولم يكن له كفوا احد', 'partial');
+      const iv = setInterval(() => { if (document.querySelector('.hifz-mask[data-k="110:1"]')) { clearInterval(iv); res(Math.round(performance.now() - t0)); } else if (performance.now() - t0 > 4000) { clearInterval(iv); res(-1); } }, 20); }));
+    const pn = await ev(() => document.querySelector('#hifzBar .hz-info') && document.querySelector('#hifzBar .hz-info').textContent);
+    await stopT(); await ev(() => { delete window.ReciteBridge; }); await hzBack(k); await go('#/', 200);
+    return assert(t > 0 && t < 1000, JSON.stringify([t, pn])); });
