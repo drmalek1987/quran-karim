@@ -1232,7 +1232,7 @@
           var x0 = acc, x1 = acc + b[3] - b[1]; acc = x1;
           var mine = []; mids.forEach(function (m, i) { if (m >= x0 && m < x1) mine.push(i); });
           if (mine.length && (mine.every(function (i) { return (k + ":" + i) in V; }) || (recite.on && past > mine[mine.length - 1]))) {
-            mine.forEach(function (i) { if (V[k + ":" + i] === 0) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, "rc-badw"); });
+            mine.forEach(function (i) { var x = V[k + ":" + i]; if (x === 0 || x === 2) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, x ? "rc-unsw" : "rc-badw"); });
             return;
           }
           var bx = boxOf(b[0]); if (!bx) return;
@@ -1241,7 +1241,7 @@
           var rev = 0; if (recite.on) while (rev < mine.length && mine[rev] <= past) rev++;
           var right = b[3];
           if (rev) {
-            mine.slice(0, rev).forEach(function (i) { if (V[k + ":" + i] === 0) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, "rc-badw"); });
+            mine.slice(0, rev).forEach(function (i) { var x = V[k + ":" + i]; if (x === 0 || x === 2) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, x ? "rc-unsw" : "rc-badw"); });
             var a0 = x0 / span * tot, a1 = x1 / span * tot, st = Math.min(a1, Math.max(a0, cs[mine[rev]]));
             right = b[3] - (st - a0) / (a1 - a0) * (b[3] - b[1]);
           }
@@ -2108,6 +2108,7 @@
   }
   // r = rLocal's result on a final piece; key(i) = "s:a:w" (w = place in rWords) of expected word i. Turns r.v's wrong
   // words right where CTC reads them. Returns the number of words turned.
+  var CTC_UNSURE = 1.0;
   function ctcJudge(r, key) {
     if (!r || Mic.cur !== "nv" || !window.NvBridge || !NvBridge.ctc || window.nvSeq == null || !ctcReady()) return 0;
     if (!Object.keys(r.v).some(function (i) { return r.v[i] === 0; })) return 0;
@@ -2118,10 +2119,19 @@
       if (id === prev) { own[i] = us.length - 1; continue; }
       us.push(u[0]); own[i] = us.length - 1; prev = id;
     }
-    var res; try { res = JSON.parse(NvBridge.ctc(window.nvSeq, JSON.stringify(us)) || "null"); } catch (e) { res = null; }
+    // S6 (5.17): ctcM gives a skipped word's margin (best path - best path that reads it); a small one = the model
+    // nearly read it, so the word shows «مش متأكد» (2, yellow) instead of red and is not counted wrong. Calibrated on the
+    // L2 bench (s6_calib.py): m < 1 turns 10% of false reds, 1.9% of caught wrong words become yellow (not green).
+    var M = !!NvBridge.ctcM, res, uns = 0;
+    try { res = JSON.parse((M ? NvBridge.ctcM : NvBridge.ctc).call(NvBridge, window.nvSeq, JSON.stringify(us)) || "null"); } catch (e) { res = null; }
     if (!res || res.length !== us.length) return 0;
-    for (i = r.a; i < r.b; i++) if (r.v[i] === 0 && res[own[i]] === 1) { r.v[i] = 1; turned++; }
+    for (i = r.a; i < r.b; i++) if (r.v[i] === 0) {
+      var x = res[own[i]];
+      if (M ? x < 0 : x === 1) { r.v[i] = 1; turned++; }
+      else if (M && x < CTC_UNSURE) { r.v[i] = 2; uns++; }
+    }
     if (turned) asrStat("ctc", turned);
+    if (uns) asrStat("unsure", uns);
     return turned;
   }
   function rWords(k) { var sa = k.split(":"); return Q.t[sa[0] - 1][sa[1] - 1].split(" ").filter(function (w) { return norm(w).replace(/\s/g, ""); }); }
@@ -2249,7 +2259,7 @@
     var c = document.querySelector(".rd-cap"); if (c && !rd.on) c.remove();
     if (!recite.on || !b || rd.on) return;
     var k = recite.k, h = '<div class="rd-cap"><small>' + (k ? "سورة " + Q.s[k.split(":")[0] - 1][0] + " · الآية " + ar(+k.split(":")[1]) : "سامعك… سمّع من حفظك") + "</small>";
-    if (k) h += "<div>" + rWords(k).slice(0, recite.pos).map(function (w, i) { return (recite.disp || {})[k + ":" + i] === 0 ? '<span class="rc-bad">' + w + "</span>" : w; }).join(" ") + "</div>";
+    if (k) h += "<div>" + rWords(k).slice(0, recite.pos).map(function (w, i) { var x = (recite.disp || {})[k + ":" + i]; return x === 0 ? '<span class="rc-bad">' + w + "</span>" : x === 2 ? '<span class="rc-uns">' + w + "</span>" : w; }).join(" ") + "</div>";
     b.insertAdjacentHTML("afterend", h + "</div>");
     capFollow(true);
   }
@@ -4233,8 +4243,10 @@
           var e = ws[i]; if (!e.classList.contains("ht-w") || e.dataset.tap) return;
           if (htv.force[i]) v = 1;
           var miss = e.classList.contains("miss");
+          e.classList.remove("uns");
           if (v === null) { if (miss) missed--; e.classList.remove("shown", "ok", "miss"); }
           else if (v === 1) { if (miss) missed--; e.classList.remove("miss"); e.classList.add("shown", "ok"); }
+          else if (v === 2) { if (miss) missed--; e.classList.remove("miss", "ok"); e.classList.add("shown", "uns"); }   // S6
           else if (!miss) { missed++; e.classList.remove("ok"); e.classList.add("shown", "miss"); }
         },
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
@@ -4335,7 +4347,7 @@
         // A piece with red words offers «أنا قريت صح»: it turns them green and, with consent, sends the piece as a
         // "corrected" clip (the model's hard cases; the relay still checks it is roughly those words).
         var piece = { a: r.a, b: r.b, seq: window.nvSeq, hyp: hyp }, clean = true;
-        for (var k = piece.a; k < piece.b; k++) if (r.v[k] === 0 && !htv.force[k]) clean = false;
+        for (var k = piece.a; k < piece.b; k++) if ((r.v[k] === 0 || r.v[k] === 2) && !htv.force[k]) clean = false;   // «مش متأكد» is not auto-donated
         if (clean) htvDonate(piece, "auto");
         else if (htv.ws.slice(piece.a, piece.b).some(function (e) { return e.classList.contains("miss"); })) {
           htv.fix.hidden = false;

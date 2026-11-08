@@ -30,6 +30,8 @@ for r in rows:
     out.write('%d %d\n' % lp.shape)
     for row in lp: out.write(' '.join('%.6g' % x for x in row) + '\n')
     out.write('|'.join(us) + '\n' + ''.join('0' if x is None else '1' for x in res) + '\n')
+    best = ctc.best_score(G, stay, mx, V.lex, us, 3.0, 4.0)                 # S6 margins (-1 = matched)
+    out.write(' '.join('-1' if x is not None else '%.4f' % (best - ctc.best_score(G, stay, mx, V.lex, us, 3.0, 4.0, no_skip=i)) for i, x in enumerate(res)) + '\n')
     cases.append(1)
     if len(cases) >= n: break
 print('cases', len(cases))

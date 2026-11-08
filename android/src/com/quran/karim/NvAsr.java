@@ -143,6 +143,26 @@ class NvAsr {
         } catch (Exception e) { return ""; }
     }
 
+    /** S6: like ctc(), but a skipped word gives its margin (>= 0, log-prob units) instead of 0; matched = -1.
+     *  The page shows a skipped word with a small margin as «مش متأكد» instead of red. */
+    @JavascriptInterface
+    public String ctcM(int seq, String wordsJson) {
+        try {
+            Ctc c = ctc; Ctc.Grp g; synchronized (grps) { g = grps.get(seq); }
+            if (c == null || g == null) return "";
+            org.json.JSONArray a = new org.json.JSONArray(wordsJson); String[] w = new String[a.length()];
+            for (int i = 0; i < w.length; i++) w[i] = a.getString(i);
+            boolean[] m = c.forced(g, w); float best = Float.NaN; StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < m.length; i++) {
+                sb.append(i > 0 ? "," : "");
+                if (m[i]) { sb.append(-1); continue; }
+                if (Float.isNaN(best)) best = c.score(g, w, -1);
+                sb.append(Math.round(Math.max(0f, best - c.score(g, w, i)) * 100) / 100f);
+            }
+            return sb.append("]").toString();
+        } catch (Exception e) { return ""; }
+    }
+
     @JavascriptInterface
     public void sendDonations(boolean mobile) { DonateJob.schedule(act.getApplicationContext(), mobile); }
 

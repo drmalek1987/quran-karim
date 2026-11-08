@@ -329,3 +329,7 @@ Resume: compare gate_Z2L2 vs gate_L2; if within noise -> phone load/RTF test; el
   int4 sym blk32: load 965, run12s 465 (+63%), 4s 158. int4 --acc 4: load 997, run12s 339 (+19%), 4s 115.
   -> Z2 REJECTED (user rule 2026-11-08: latency as important as accuracy). Pack v3 = qtrain/gpu-train/z1/L2.int8.onnx (115.27 MB, Z1 only).
 Resume: S6 «مش متأكد» (effort high: user switches first), then pack v3 (medium), release (low).
+- S6 implemented: Ctc.score(gr, words, noSkip) + NvAsr.ctcM (margin per skipped word; -1 = matched); ctc.best_score + s6_calib.py.
+  Java/Python parity: flags 80/80, 95 margins max diff 1.2e-4. Calibration on gate_L2 (329 false reds, 1860 neg): m<0.5 5.5%/0.7%, m<1 10%/1.9%, m<2 21%/4.1% (false reds -> unsure / catches -> yellow). Chosen CTC_UNSURE = 1.0.
+  JS: ctcJudge sets r.v=2 «مش متأكد» (yellow .rc-uns/.rc-unsw/.ht-w.uns), not counted wrong, never auto-donated; falls back to ctc() on old APKs.
+Resume: pack v3 (L2+Z1 = qtrain/gpu-train/z1/L2.int8.onnx, new pack name, app deletes old nv.onnx), then release + full QA.

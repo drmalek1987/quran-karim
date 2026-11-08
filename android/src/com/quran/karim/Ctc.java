@@ -103,6 +103,49 @@ public final class Ctc {
         return out;
     }
 
+    /** S6: score of the best path (forward only, same DP as forced()); noSkip = i forbids skipping word i (-1 = none).
+     *  margin(i) = score(-1) - score(i) >= 0; small = the model nearly read word i, so the app shows «مش متأكد». */
+    public float score(Grp gr, String[] words, int noSkip) {
+        int n = words.length; StringBuilder sb = new StringBuilder(); int[] bnd = new int[n + 1];
+        for (int i = 0; i < n; i++) { sb.append(words[i]); bnd[i + 1] = sb.length(); }
+        String s = sb.toString(); int L = s.length(), T = gr.g.length;
+        int[][] Fl = new int[maxlen + 1][L + 1]; ArrayList<Integer> ls = new ArrayList<Integer>();
+        for (int l = 1; l <= maxlen; l++) {
+            boolean any = false;
+            for (int p = 0; p <= L; p++) {
+                Integer f = p >= l ? forms.get(s.substring(p - l, p)) : null;
+                if (f != null && f != 0) { Fl[l][p] = f; any = true; } else Fl[l][p] = F;
+            }
+            if (any) ls.add(l);
+        }
+        boolean[] isb = new boolean[L + 1]; for (int b : bnd) isb[b] = true;
+        float[] A = new float[L + 1], nA = new float[L + 1], R = new float[L + 1];
+        java.util.Arrays.fill(A, NEG); A[0] = 0; epsOnly(A, bnd, noSkip);
+        for (int t = 0; t < T; t++) {
+            float[] Gt = gr.g[t];
+            for (int p = 0; p <= L; p++) { nA[p] = NEG; R[p] = NEG; }
+            for (int l : ls) {
+                int[] fl = Fl[l];
+                for (int p = 0; p <= L; p++) {
+                    float e = Gt[fl[p]]; if (e > R[p]) R[p] = e;
+                    if (p >= l) { float c = A[p - l] + e; if (c > nA[p]) nA[p] = c; }
+                }
+            }
+            float gm = gr.mx[t] - G;
+            for (int p = 0; p <= L; p++) {
+                float sc = A[p] + lae(gr.stay[t], R[p]); if (sc > nA[p]) nA[p] = sc;
+                if (isb[p]) { float gb = A[p] + gm; if (gb > nA[p]) nA[p] = gb; }
+            }
+            epsOnly(nA, bnd, noSkip);
+            float[] tmp = A; A = nA; nA = tmp;
+        }
+        return A[L];
+    }
+
+    private static void epsOnly(float[] A, int[] bnd, int noSkip) {
+        for (int i = 0; i + 1 < bnd.length; i++) { if (i == noSkip) continue; int a = bnd[i], b = bnd[i + 1]; if (A[a] - D > A[b]) A[b] = A[a] - D; }
+    }
+
     private static int[] eps(float[] A, int[] bnd, int L) {
         int[] src = new int[L + 1]; java.util.Arrays.fill(src, -1);
         for (int i = 0; i + 1 < bnd.length; i++) { int a = bnd[i], b = bnd[i + 1]; if (A[a] - D > A[b]) { A[b] = A[a] - D; src[b] = a; } }

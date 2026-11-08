@@ -146,3 +146,25 @@ def cand_text(Q, keys):
         if prev is not None and (i != prev + 1 or Q.keys[i][0] != Q.keys[prev][0]): parts.append('|'); own.append(-1)
         t = Q.text[Q.keys[i]]; parts.append(t); own += [i] * len(t); prev = i
     return ''.join(parts), np.array(own)
+
+def best_score(G, stay, mx, lex, words, g=3.0, d=4.0, no_skip=-1):
+    """S6: forward-only forced_words -> score of the best path. no_skip=i forbids skipping word i (it must be read).
+    margin(i) = best_score() - best_score(no_skip=i) >= 0: small = the model nearly read word i (show «مش متأكد»)."""
+    s = ''.join(words); L = len(s); tg = Target(lex, s); Fl = tg.Fl; T = len(G)
+    bnd = np.cumsum([0] + [len(w) for w in words]); isb = np.zeros(L + 1, bool); isb[bnd] = True
+    def eps(A):
+        for i in range(len(words)):
+            if i == no_skip: continue
+            a, b = bnd[i], bnd[i + 1]
+            if A[a] - d > A[b]: A[b] = A[a] - d
+        return A
+    A = np.full(L + 1, NEG, np.float32); A[0] = 0; A = eps(A)
+    for t in range(T):
+        Gt = G[t]; R = np.full(L + 1, NEG, np.float32); nA = np.full(L + 1, NEG, np.float32)
+        for l in tg.ls:
+            e = Gt[Fl[l]]; R = np.maximum(R, e)
+            c = np.full(L + 1, NEG, np.float32); c[l:] = A[:-l] + e[l:]; nA = np.maximum(nA, c)
+        nA = np.maximum(nA, A + np.logaddexp(stay[t], R))
+        nA = np.maximum(nA, np.where(isb, A + (mx[t] - g), NEG))
+        A = eps(nA)
+    return float(A[L])
