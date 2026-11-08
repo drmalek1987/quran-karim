@@ -369,3 +369,10 @@ Resume: S11 teacher/student (QK2: code from the hifz test result + «طلابي�
   Maestro Phone_API35 + Tablet_API35 PASS. bee81250 not on adb: APK left ready. Report plans/5.18-report.html.
 Resume: user phone test of 5.18 (QA-checklist 5.18) + 5.17b + pack v3; GitHub release v5.18 only on the user's word; next S12 spike / G10 rethink.
 - GitHub release v5.18 published with the user's OK (2026-11-08), asset quran-karim-v5.18.apk.
+
+## 5.19 plan: word meaning on mushaf pages (2026-11-08)
+Goal check: pages are how most people read; the same exact word boxes also fix recite following / wrong-word colouring
+(wordBoxes estimates today) = G7 gain, no ASR latency risk. Plan: plans/5.19-word-on-page-plan.md.
+A = long press on a page with the estimated word (inverse of wordBoxes) + word chips to correct, all editions.
+B = exact word boxes from tajweed_pages.align() (lab + mp + meta) -> web/editions/<id>-w/NNN.js, gate >=97% on a 60-word review.
+Resume: wait for the user's go; A fits under 85% now, B after the weekly reset 2026-11-10 19:00 UTC.
