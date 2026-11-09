@@ -488,6 +488,6 @@ Resume: DONE 5.19b — all four editions ui.js 0 FAIL (harmain 286, kfgqpc 286, 
 Goal check: yes, confirms the 5.19b fixes on a real device before release.
 - bee81250 connected; quran-karim-v5.19b.apk signer SHA-256 7D8B31D2 ✓, `adb install -r` Success.
 - User phone test: long-press word meaning on King Fahd + Haramain, hifz test stops at the last Quran page (Haramain), ayah circle tap — all pass.
-- ED=shamarly ui.js re-run: running.
+- ED=shamarly ui.js re-run: 280/0 PASS → all four editions 0 FAIL.
 - Usage: weekly 91% (resets 2026-11-10 19:00 UTC) → step 2 (G10, Opus+GPU) waits for the reset.
 Resume: shamarly re-run result -> ask the user about GitHub release v5.19b -> after the weekly reset start step 2 (G10 rethink).
