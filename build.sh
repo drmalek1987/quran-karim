@@ -17,7 +17,7 @@ python3 -I "$HERE/tools/make_data.py"
 cp -r "$HERE/web" "$OUT/assets/web" && rm -f "$OUT/assets/web/icons/icon.svg" "$OUT/assets/web/sw.js" "$OUT/assets/web/manifest.webmanifest"
 # PLAY=1: the Google Play build, without the scanned edition (no publishing licence) and its tajweed layer.
 if [ "${PLAY:-}" = 1 ]; then
-  rm -rf "$OUT/assets/web/pages" "$OUT/assets/web/tjpages"
+  rm -rf "$OUT/assets/web/pages" "$OUT/assets/web/tjpages" "$OUT/assets/web/editions/harmain-w"
   echo 'window.NO_HARMAIN = true;' > "$OUT/assets/web/flags.js"
 fi
 

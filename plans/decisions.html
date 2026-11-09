@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قرارات مستنيّاك: S12 وG8 وGoogle Play وiOS</title>
+<style>
+:root{--g:#0d5c46;--line:#ddd8cb;--bg:#fbfaf6}
+*{box-sizing:border-box}
+body{font-family:Tahoma,"Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:18px 16px 110px;line-height:1.9;color:#1d2b26;background:var(--bg);font-size:16px}
+h1{font-size:23px;color:var(--g);margin:6px 0}
+.intro,.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.card{margin:18px 0}
+.card h2{font-size:19px;color:var(--g);margin:4px 0}
+.meta{display:flex;flex-wrap:wrap;gap:8px;font-size:13.5px;margin:6px 0}
+.meta span{background:#f6f3ea;border-radius:10px;padding:1px 10px}
+.opt{display:block;border:1.5px solid var(--line);border-radius:10px;padding:6px 12px;margin:8px 0;cursor:pointer}
+.opt.on{border-color:var(--g);background:#eef4f0}
+.opt small{display:block;color:#5d6b64}
+.rec{color:#1e8a5a;font-weight:bold;font-size:13px}
+textarea{width:100%;font:inherit;font-size:14.5px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:6px;min-height:50px;background:#fdfcf9}
+.bar{position:fixed;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+.bar button{font:inherit;border:0;border-radius:10px;padding:8px 16px;cursor:pointer;background:#e9eee9}
+.bar .main{background:var(--g);color:#fff}
+</style>
+<h1>أربع قرارات مستنيّاك</h1>
+<div class="intro">لكل قرار: يعني إيه، الاختيارات، التكلفة بالـ sessions، الخطر، واقتراحي (اللي عليه علامة «اقتراحي»). اختار، واكتب ملاحظة لو عايز. اختياراتك بتتحفظ لوحدها. في الآخر اضغط <b>Export</b> ينزل <code>decisions.json</code> وابعته أو قولّي «خلصت».</div>
+<div id="list"></div>
+<div class="bar"><button class="main" id="exp">Export (decisions.json)</button><button id="rst">مسح الكل</button><small id="sum"></small></div>
+<script>
+const D=[
+{id:'s12',t:'1. S12: أحكام التجويد بالصوت',
+ what:'التطبيق ينبّهك وانت بتقرا لو المد أو الغنة أو القلقلة مش مظبوطة، مش الكلمات بس. ده أصعب من التعرّف على الكلام: محتاج نقيس زمن المد من الـ CTC frames وأصوات الغنة، وبيانات متعلّمة بأحكام التجويد، وحاليًا مفيش موديل جاهز دقيق.',
+ cost:'spike بحثي: 1–2 session (تقرير مش ميزة). الميزة نفسها لو نجح: 6+ sessions.',risk:'عالي: ممكن يدّي تنبيهات غلط على تلاوة صح، وده مضر في تطبيق قرآن. ومشغول بنفس الـ GPU بتاع G10.',
+ opts:[['now','ابدأ الـ spike دلوقتي','بيزاحم G10 على الوقت والـ GPU'],['after','spike بس بعد ما G10 يوصل 95٪','اقتراحي. الدقة الأساسية أهم'],['skip','مش دلوقتي خالص','نشيله من الـ roadmap'],],rec:'after'},
+{id:'g8',t:'2. G8: رفع التسجيلات وانت بتقرا (للتدريب)',
+ what:'دلوقتي التسجيلات بتتحفظ بس في اختبار الحفظ (التبرّع بالصوت). G8 يخلّي القراءة العادية كمان تطلّع مقاطع بتعدّي نفس الفلاتر (alignment confidence وSNR والطول)، وترفعها اختياري. ده بيزوّد بيانات حقيقية لـ G10.',
+ cost:'بالـ relay الموجود: 2 sessions. backend جديد: 4+ sessions.',risk:'خصوصية: صوتك بيتحط على سيرفر. لازم موافقة صريحة، ومقفول افتراضي، وإمكانية مسح. بدون ما حد يسجّل بالخطأ.',
+ opts:[['relay','نستخدم الـ HF Space relay الموجود (التبرّع v2)','اقتراحي. FLAC وHMAC وbatch جاهزين'],['new','backend جديد (غير HF)','أغلى ومحتاج صيانة'],['local','من غير رفع: نحفظ المقاطع على الموبايل وتصدّرها يدوي','أأمن، بس بيانات أقل'],['none','نلغي G8','نكتفي بتبرّع اختبار الحفظ']],rec:'relay',extra:'الموافقة: شاشة consent منفصلة عن welcome، مقفولة افتراضيًا، وفيها «امسح اللي اترفع»؟'},
+{id:'play',t:'3. نشر على Google Play',
+ what:'محتاج: حساب developer ($25 مرة واحدة، من عندك انت)، data safety form (جاهز في store/data-safety.md)، build بـ PLAY=1 من غير طبعة الحرمين (محتاجة إذن الناشر)، وAAB عن طريق build-aab.sh (لازم يتنقل لـ Windows لأنه bash)، ومفتاح upload منفصل عن مفتاح التسطيب 7d8b31d2.',
+ cost:'2–3 sessions للتجهيز + مراجعة جوجل (أيام).',risk:'متوسط: رفض مراجعة بسبب الأذونات أو المحتوى، وضياع مفتاح الرفع (نحفظه برا المشروع). الحجم تحت 200 MB لازم يتراجع.',
+ opts:[['go','ابدأ التجهيز دلوقتي','هعمل PLAY=1 وAAB وأجهّز الـ listing، وانت تعمل الحساب'],['later','بعد G10 والإصدار الجاي','اقتراحي لو الهدف الأول الدقة'],['no','نفضل APK مباشر بس','من غير Play']],rec:'later'},
+{id:'ios',t:'4. نسخة iOS',
+ what:'الكود موجود على branch claude/project-thread-jfulu4 (Capacitor 8 مع EdBridge). البناء على GitHub workflow على macOS cloud. للنشر على App Store محتاج Apple Developer ($99 في السنة).',
+ cost:'بناء simulator وتجربة: 2 sessions. App Store: 3–4 sessions إضافية (signing وTestFlight وreview).',risk:'عالي: مفيش جهاز iOS عندنا للتجربة، والـ ASR native (ONNX) على iOS مش متجرّب، وطبعة الحرمين نفس موضوع الإذن.',
+ opts:[['sim','نكمّل simulator build بس على GitHub (ببلاش)','اقتراحي. نتأكد إنه بيشتغل'],['store','Simulator ثم App Store ($99/سنة)','لما Play يخلص'],['no','نأجّل iOS','بعد كل حاجة']],rec:'sim'}];
+const KEY='qk-decisions-v1';let S={};try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}sum()};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function paint(){document.getElementById('list').innerHTML=D.map(d=>{const c=S[d.id]?.c;return `<div class="card"><h2>${d.t}</h2><p>${d.what}</p>${d.extra?`<p>${d.extra}</p>`:''}<div class="meta"><span>التكلفة: ${d.cost}</span><span>الخطر: ${d.risk}</span></div>`+d.opts.map(o=>`<label class="opt${c===o[0]?' on':''}"><input type="radio" name="${d.id}" value="${o[0]}" data-id="${d.id}" ${c===o[0]?'checked':''}> ${o[1]} ${o[0]===d.rec?'<span class="rec">(اقتراحي)</span>':''}<small>${o[2]}</small></label>`).join('')+`<textarea data-n="${d.id}" placeholder="ملاحظة (اختياري)">${esc(S[d.id]?.n||'')}</textarea></div>`}).join('');sum()}
+function sum(){const n=D.filter(d=>S[d.id]?.c).length;document.getElementById('sum').textContent=`اخترت ${n} من ${D.length}`}
+document.addEventListener('change',e=>{const id=e.target.dataset.id;if(id){(S[id]=S[id]||{}).c=e.target.value;save();paint()}});
+document.addEventListener('input',e=>{const id=e.target.dataset.n;if(id){(S[id]=S[id]||{}).n=e.target.value;save()}});
+document.getElementById('exp').onclick=()=>{const o={exported:new Date().toISOString(),decisions:D.map(d=>({id:d.id,title:d.t,choice:S[d.id]?.c||null,recommended:d.rec,notes:S[d.id]?.n||''}))};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.download='decisions.json';a.click()};
+document.getElementById('rst').onclick=()=>{if(confirm('تمسح كل اختياراتك؟')){S={};save();paint()}};
+paint();
+</script>
