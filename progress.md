@@ -483,3 +483,11 @@ Resume: go through these fails one by one in tools/qa/ui.js (ED=harmain first, U
 - TEST bugs fixed (tools/qa/ui.js): `'\b'` in RegExp strings was a backspace (5 checks: G6, 5.14, S1, S7, 5.15b); page 600/601 -> P6/P6n = PL-4/PL-3; vertical mic accepts either page 2:255 lies on (Haramain 35/36); hifz line-by-line uses 112:1-2 on the last page (2:255 ends Haramain pages so all lines revealed = right); U3 uses 3:7 when 2:255 spans pages. U4 passes alone on harmain (not an app bug).
 - data.py web: 28/0.
 Resume: DONE 5.19b — all four editions ui.js 0 FAIL (harmain 286, kfgqpc 286, kfold 280, shamarly 280 earlier + its only fail #251 de-flaked: mutash test uses the answer key). quran-karim-v5.19b.apk rebuilt (about text 5.19b), signer 7d8b31d2. Next: back to the roadmap.
+
+## 5.20 step 1 — phone (2026-11-09)
+Goal check: yes, confirms the 5.19b fixes on a real device before release.
+- bee81250 connected; quran-karim-v5.19b.apk signer SHA-256 7D8B31D2 ✓, `adb install -r` Success.
+- User phone test: long-press word meaning on King Fahd + Haramain, hifz test stops at the last Quran page (Haramain), ayah circle tap — all pass.
+- ED=shamarly ui.js re-run: running.
+- Usage: weekly 91% (resets 2026-11-10 19:00 UTC) → step 2 (G10, Opus+GPU) waits for the reset.
+Resume: shamarly re-run result -> ask the user about GitHub release v5.19b -> after the weekly reset start step 2 (G10 rethink).
