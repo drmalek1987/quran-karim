@@ -15,10 +15,14 @@ ROOT = os.environ.get('QROOT', r'D:\Quran App')
 QT = os.path.join(ROOT, 'qtrain')
 LEVEL = os.environ.get('LEVEL', 'L1'); DRY = os.environ.get('DRY') == '1'
 INIT = os.environ.get('INIT', '')
-STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000}[LEVEL]))
+STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000, 'G10b': 3000}[LEVEL]))
 EVAL = int(os.environ.get('EVAL', 200 if LEVEL == 'L1' else 400))
-LR, WARM = float(os.environ.get('LR', 1e-5)), 200
-BATCH_SEC, ACC = float(os.environ.get('BATCH_SEC', 60)), int(os.environ.get('ACC', 2))
+G10B = LEVEL == 'G10b'
+LR, WARM = float(os.environ.get('LR', 6e-5 if G10B else 1e-5)), int(os.environ.get('WARM', 200))
+# G10b: BATCH_SEC 40 / ACC 3 (P3 lesson 6: 60 s spills out of the 6 GB VRAM on long clips)
+BATCH_SEC, ACC = float(os.environ.get('BATCH_SEC', 40 if G10B else 60)), int(os.environ.get('ACC', 3 if G10B else 2))
+TAG = os.environ.get('TAG', '')        # run name suffix (sweep): nv_out/<LEVEL><TAG>, nv_curr.json key <LEVEL><TAG>
+SAVE = os.environ.get('SAVE', '1') == '1'   # SAVE=0: no .nemo files (LR sweep)
 PADCAP = float(os.environ.get('PADCAP', 1.8))
 SEED = 11
 # fp16 autocast gives NaN in this encoder on the Turing GPU (checked 2026-11-06: fp32 decodes right) -> fp32 by default
@@ -26,19 +30,24 @@ AMP = os.environ.get('AMP') == '1'
 MIX = {'L1': {'L1': .7, 'replay': .3}, 'L2': {'L2': .5, 'L1': .2, 'replay': .3},
        'L3': {'L3': .45, 'L2': .15, 'L1': .1, 'replay': .3},
        # G10 (Patch 3 S4): noisy / reverberant / fast / slow copies from g10_prep.py, with the clean levels and replay kept
-       'G10': {'G10': .35, 'L2': .2, 'L1': .15, 'replay': .3}}[LEVEL]
-FREEZE = 1 / 2 if LEVEL == 'L1' else 1 / 3
+       'G10': {'G10': .35, 'L2': .2, 'L1': .15, 'replay': .3},
+       # G10b (2026-11-09 rethink, progress.md "G10 rethink"): only clips with trusted labels, noise/reverb/speed/gain
+       # added on the fly (g10b_aug). replayT = tlog train clips whose whisper label check CER <= 5 (label_check_all.json);
+       # the unfiltered tlog replay had ~40% misaligned labels (neighbouring ayah in the audio).
+       'G10b': {'L2': .4, 'L1': .2, 'replayT': .4}}[LEVEL]
+FREEZE = float(os.environ.get('FREEZE', 1 / 2 if LEVEL in ('L1', 'G10b') else 1 / 3))
 # retry knob (plan D: one retry per failed level): REPLAY=0.4 scales the other shares down to fill 60%
 if os.environ.get('REPLAY'):
     r = float(os.environ['REPLAY']); o = {k: v for k, v in MIX.items() if k != 'replay'}; t = sum(o.values())
     MIX = {**{k: v / t * (1 - r) for k, v in o.items()}, 'replay': r}
 SAVE_ALL = os.environ.get('SAVE_ALL') == '1'   # keep a .nemo at every eval step (to gate several on the phone pipeline)
 BASE = ('nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0', 'stt_ar_fastconformer_hybrid_large_pcd_v1.0.nemo')
-OUT = os.path.join(D, 'nv_out', LEVEL); RES = os.path.join(D, 'nv_curr.json')
+OUT = os.path.join(D, 'nv_out', LEVEL + TAG); RES = os.path.join(D, 'nv_curr.json')
+LOGF = os.environ.get('LOG', 'nv_curr.log')
 
 def log(*a):
     s = time.strftime('%H:%M:%S ') + ' '.join(map(str, a)); print(s, flush=True)
-    open(os.path.join(D, 'nv_curr.log'), 'a', encoding='utf8').write(s + '\n')
+    open(os.path.join(D, LOGF), 'a', encoding='utf8').write(s + '\n')
 
 # ---- text ----
 # eval norm = the app's norm (bench.norm): no diacritics, alef/yaa/taa-marbuta folded
@@ -114,7 +123,17 @@ def data():
     tr['replay'] = rep
     g10 = os.path.join(QT, 'g10', 'aug.json')
     if os.path.exists(g10): tr['G10'] = [dict(x, path=x['wav'], pw=1.0) for x in J(g10)]
-    ev['train_' + LEVEL] = random.Random(SEED).sample(tr[LEVEL], min(150, len(tr[LEVEL])))   # B6 overfit gap
+    if G10B:
+        lc = {x['id']: x['cer'] for x in J(os.path.join(QT, 'gpu-train', 'data', 'label_check_all.json'))}
+        tr['replayT'] = [x for x in rep if lc.get(x['id'], 100) <= 5]
+        for k in ('L1', 'L2', 'replayT'):   # load() caps train audio at 16 s and the label would then be too long;
+            for x in tr[k]:                 # speed 0.9 makes 14.4 s into 16 s
+                if 'dur' not in x: x['dur'] = sf.info(x['path']).duration
+            tr[k] = [x for x in tr[k] if x['dur'] <= 14.4]
+        pool = tr['L1'] + tr['L2'] + tr['replayT']
+        ev['train_G10b'] = [dict(x, augseed=SEED * 1000 + i) for i, x in enumerate(random.Random(SEED).sample(pool, 150))]
+    else:
+        ev['train_' + LEVEL] = random.Random(SEED).sample(tr[LEVEL], min(150, len(tr[LEVEL])))   # B6 overfit gap
     return tr, ev
 
 sys.path.insert(0, os.path.join(ROOT, 'quran-karim', 'tools', 'asr', 'eval'))
@@ -131,6 +150,52 @@ def augment(y, rnd):
     pre = np.random.default_rng(rnd.randrange(1 << 30)).normal(0, fl, int(16000 * rnd.uniform(0.05, 0.5)))
     post = np.random.default_rng(rnd.randrange(1 << 30)).normal(0, fl, int(16000 * rnd.uniform(0.3, 1.6)))
     return np.concatenate([pre, y, post]).astype(np.float32)
+
+# G10b on-the-fly noise (2026-11-09). p=0.75 per clip (the rest get plain augment() = clean replay of the trusted clips):
+# speed 0.9-1.1 (p .5, resample), synthetic room reverb rt60 0.2-0.6 (p .3), lead/trail quiet as in augment(), then noise over
+# the WHOLE padded clip (the phone hears noise in the pauses too) at SNR 5-20 dB vs the speech: 50% real background from the
+# user's own recordings (qtrain/g10b/noise, g10b_noise.py; plus any wavs added there), 35% white/pink/brown, 15% babble of
+# 3 other train clips at SNR >= 10 only. Level -45..-20 dBFS (low voice). The held-out DEMAND noise is never used.
+NOISE = None; BABBLE = []
+def _noise_pool():
+    global NOISE
+    if NOISE is None:
+        import glob
+        NOISE = [load(p, 16000 * 600) for p in sorted(glob.glob(os.path.join(QT, 'g10b', 'noise', '*.wav')))]
+        NOISE = [z / max(1e-6, float(np.sqrt((z ** 2).mean()))) for z in NOISE if len(z) > 16000]
+    return NOISE
+def _coloured(n, kind, rng):
+    w = rng.standard_normal(n)
+    if kind == 'white': return w
+    f = np.fft.rfft(w); k = np.arange(len(f), dtype=np.float64); k[0] = 1
+    return np.fft.irfft(f / (np.sqrt(k) if kind == 'pink' else k), n)
+def _fit(z, n, rnd):
+    if len(z) < n: z = np.tile(z, n // len(z) + 1)
+    o = rnd.randrange(0, len(z) - n + 1); return z[o:o + n]
+def _rms(y): return float(np.sqrt((y ** 2).mean())) + 1e-9
+def g10b_aug(y, rnd, p=0.75):
+    if rnd.random() > p: return augment(y, rnd)
+    rng = np.random.default_rng(rnd.randrange(1 << 30))
+    if rnd.random() < 0.5:   # speed perturbation (tempo + pitch), 0.9-1.1
+        sp = rnd.uniform(0.9, 1.1); n = int(len(y) / sp)
+        y = np.interp(np.arange(n) * sp, np.arange(len(y)), y).astype(np.float32)
+    if rnd.random() < 0.3:
+        rt = rnd.uniform(0.2, 0.6); t = np.arange(int(16000 * rt)) / 16000
+        h = rng.standard_normal(len(t)) * np.exp(-6.9 * t / rt) * rnd.uniform(0.1, 0.4); h[0] = 1.0
+        L = 1 << (len(y) + len(h) - 2).bit_length()
+        y = np.fft.irfft(np.fft.rfft(y, L) * np.fft.rfft(h, L), L)[:len(y)].astype(np.float32)
+    sp_rms = _rms(y)
+    y = np.concatenate([np.zeros(int(16000 * rnd.uniform(0.05, 0.5))), y, np.zeros(int(16000 * rnd.uniform(0.3, 1.6)))])
+    snr = rnd.uniform(5, 20); r = rnd.random(); n = len(y)
+    if r < 0.5 and _noise_pool(): z = _fit(rnd.choice(NOISE), n, rnd)
+    elif r < 0.85 or not BABBLE: z = _coloured(n, rnd.choice(['white', 'pink', 'pink', 'brown']), rng)
+    else:
+        snr = max(snr, 10); z = np.zeros(n)
+        for q in rnd.sample(BABBLE, 3):
+            b = load(q); z += _fit(b / _rms(b), n, rnd)
+    y = y + z * (sp_rms / _rms(z)) * 10 ** (-snr / 20)
+    y = y * (10 ** (rnd.uniform(-45, -20) / 20) / sp_rms)
+    return y.astype(np.float32)
 
 def phone_pieces(y):
     # same as bench.py main with the 5.7 settings: speech to -31 dBFS, VAD pieces (pre-roll 3, quiet 1.0, vmin 0.0015, pgain -30)
@@ -175,7 +240,9 @@ def cer(m, items):
     m.eval(); E = N = 0
     with torch.no_grad(), torch.autocast('cuda', dtype=torch.float16, enabled=AMP):
         for x in items:   # eval through the phone pipeline: VAD pieces, each decoded alone, texts joined
-            ps = phone_pieces(load(x['path'], 16000 * 60)); hs = []
+            y = load(x['path'], 16000 * 60)
+            if x.get('augseed') is not None: y = g10b_aug(y, random.Random(x['augseed']), p=1.0)   # fixed noisy copy
+            ps = phone_pieces(y); hs = []
             for i in range(0, len(ps), 8):
                 lp, el = forward(m, ps[i:i + 8], False); hs += decode(m, lp.float(), el)
             r = norm(target(x['text'])); E += min(ed(norm(' '.join(hs)), r), len(r)); N += len(r)
@@ -194,6 +261,7 @@ def main():
     random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
     os.makedirs(OUT, exist_ok=True)
     tr, ev = data()
+    if G10B: BABBLE[:] = [x['path'] for x in random.Random(SEED + 1).sample(tr['L2'] + tr['replayT'], 600)]
     if DRY:
         tr = {k: v[:16] for k, v in tr.items()}; ev = {k: v[:4] for k, v in ev.items()}
     for k in tr:
@@ -201,7 +269,7 @@ def main():
             if 'dur' not in x:
                 try: x['dur'] = sf.info(x['path']).duration
                 except Exception: x['dur'] = 6
-    log('LEVEL %s init=%s steps=%d mix=%s freeze=%.2f | train %s | eval %s' % (LEVEL, INIT or 'base', STEPS, MIX, FREEZE,
+    log('LEVEL %s%s lr=%.1e warm=%d init=%s steps=%d mix=%s freeze=%.2f | train %s | eval %s' % (LEVEL, TAG, LR, WARM, INIT or 'base', STEPS, MIX, FREEZE,
         {k: '%d/%.2fh' % (len(v), sum(x['dur'] for x in v) / 3600) for k, v in tr.items()}, {k: len(v) for k, v in ev.items()}))
     json.dump({k: [x['id'] for x in v] for k, v in tr.items()}, open(os.path.join(OUT, 'train_ids.json'), 'w'), indent=0)  # B8
     if INIT: m = A.models.ASRModel.restore_from(INIT, map_location='cuda')
@@ -223,12 +291,13 @@ def main():
     if key not in res or DRY:
         res[key] = {k: cer(m, v) for k, v in ev.items()}; log('MEASURE %s %s' % (key, res[key]))
         if not DRY: json.dump(res, open(RES, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
-    ref = res[key]; R = res.setdefault(LEVEL, {}) if not DRY else {}
+    ref = res[key]; R = res.setdefault(LEVEL + TAG, {}) if not DRY else {}
+    if G10B: R['cfg'] = dict(lr=LR, warm=WARM, steps=STEPS, freeze=FREEZE, batch_sec=BATCH_SEC, acc=ACC, mix=MIX)
     params = [p for p in m.parameters() if p.requires_grad]
     log('trainable %.1fM of %.1fM' % (sum(p.numel() for p in params) / 1e6, sum(p.numel() for p in m.parameters()) / 1e6))
     opt = torch.optim.AdamW(params, lr=LR, weight_decay=1e-3)
     steps = 2 if DRY else STEPS
-    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / WARM) * max(0.0, 1 - max(0, s - WARM) / max(1, steps - WARM)))
+    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / WARM) * max(0.1 if G10B else 0.0, 1 - max(0, s - WARM) / max(1, steps - WARM)))
     scaler = torch.amp.GradScaler('cuda', enabled=AMP); rnd = random.Random(SEED)
     srcs, shares = list(MIX), [MIX[k] for k in MIX]
     def batch():
@@ -245,7 +314,7 @@ def main():
         for _ in range(ACC):
             b = batch(); tg = [m.tokenizer.text_to_ids(target(x['text'])) for x in b]
             with torch.autocast('cuda', dtype=torch.float16, enabled=AMP):
-                lp, el = forward(m, [augment(load(x['path']), rnd) for x in b], True)
+                lp, el = forward(m, [(g10b_aug if G10B else augment)(load(x['path']), rnd) for x in b], True)
             T = torch.tensor([len(t) for t in tg]); Y = torch.tensor([i for t in tg for i in t])
             loss = torch.nn.functional.ctc_loss(lp.float().transpose(0, 1), Y, el.cpu(), T,
                                                 blank=m.tokenizer.vocab_size, zero_infinity=True) / ACC
@@ -259,16 +328,21 @@ def main():
             own = 'noisy10' if LEVEL == 'G10' else 'test_' + LEVEL   # G10 aims at noise; clean must not get worse
             clean_ok = all(r[k] <= ref[k] + 0.3 for k in ('ho_reciters', 'ho_retasy', 'tlog') if r.get(k) is not None)
             noisy_ok = all(r[k] <= ref[k] for k in ('noisy20', 'noisy10', 'noisy5') if r.get(k) is not None)
+            if G10B:   # 2026-11-09: own = mean(noisy10, noisy5); test_L1/L2 (the phone gate's data) must not get worse either
+                own = 'noisy_10_5'; r[own] = round((r['noisy10'] + r['noisy5']) / 2, 2); ref[own] = round((ref['noisy10'] + ref['noisy5']) / 2, 2)
+                clean_ok = all(r[k] <= ref[k] + 0.3 for k in ('test_L1', 'test_L2', 'ho_reciters', 'ho_retasy', 'tlog'))
+                noisy_ok = r['noisy20'] <= ref['noisy20'] + 0.2
+                log('gate %s: clean_ok %s noisy_ok %s %s %.2f (ref %.2f)' % (step, clean_ok, noisy_ok, own, r[own], ref[own]))
             if clean_ok and noisy_ok and r[own] < ref[own] and (best is None or r[own] < best[1]):
                 best = (step, r[own])
-                if not DRY:
+                if not DRY and SAVE:
                     p = os.path.join(OUT, 'best.nemo'); m.save_to(p); R['best_sha'] = sha(p)
                 log('best = step %d (%s CER %.2f, ref %.2f)' % (step, own, r[own], ref[own]))
-            if SAVE_ALL and not DRY: m.save_to(os.path.join(OUT, 'step%d.nemo' % step))
+            if SAVE_ALL and SAVE and not DRY: m.save_to(os.path.join(OUT, 'step%d.nemo' % step))
             R['best'] = best
             if not DRY: json.dump(res, open(RES, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
-    if not DRY: m.save_to(os.path.join(OUT, 'last.nemo'))   # kept for diagnosis even when no step passed the proxy gate
-    log('DONE %s: %s' % (LEVEL, 'best step %d -> %s; next: nv_gate (export int8 + bench)' % (best[0], OUT + '\\best.nemo')
+    if not DRY and SAVE: m.save_to(os.path.join(OUT, 'last.nemo'))   # kept for diagnosis even when no step passed the proxy gate
+    log('DONE %s%s: %s' % (LEVEL, TAG, 'best step %d -> %s; next: nv_gate (export int8 + bench)' % (best[0], OUT + '\\best.nemo')
                           if best else 'no step passed the proxy gate'))
 
 if __name__ == '__main__':

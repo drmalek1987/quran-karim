@@ -656,4 +656,17 @@ Goal check: noise/low-voice robustness is the biggest gap left to the >95% recog
 - Proxy gate G10b: own = mean(noisy10, noisy5) < ref; test_L1, test_L2, ho_reciters, ho_retasy, tlog ≤ ref+0.3;
   noisy20 ≤ ref+0.2. train_G10b = 150 trusted clips with a fixed (seeded) noisy copy; init CER 15.0 (vs train_G10 39.8).
 - Steps 5-6 ✓ (W3+W4): hzWb/hzWbMask masks from word boxes; lastWordOnPages uses last measured box. geo_check: mask IoU 0.356→0.923 (kfgqpc), 0.307→0.944 (harmain), IoU>0.5 99.8/100%; harmain page end 73.3→100%. ui.js kfgqpc 287/0, harmain 287/0 (new G520). Note: ayah-number circles stay visible in hifz masks now (numbers only, no spoiler).
-Resume: step 7 W5 kfold + shamarly word boxes (Opus high), G10 rethink running in parallel.
+Resume: step 7 W5 kfold + shamarly word boxes (Opus high), G10 rethink running in parallel.### LR sweep (g10b_sweep.log, 300 steps, warm 50, from P3_FINAL_L2; ref = init_G10b)
+| LR | test_L1 | test_L2 | noisy20 | noisy10 | noisy5 | tlog | ho_retasy | mean(n10,n5) |
+|---|---|---|---|---|---|---|---|---|
+| ref | 4.17 | 8.23 | 8.61 | 17.20 | 24.42 | 6.84 | 6.81 | 20.81 |
+| 3e-5 @300 | 4.42 | 8.20 | 8.04 | 16.74 | 23.24 | 5.91 | 5.54 | 19.99 (19.81 @150) |
+| 6e-5 @300 | 3.90 | 8.07 | 8.01 | 16.77 | 23.51 | 5.89 | 5.68 | 20.14 (19.90 @150) |
+| 1e-4 @300 | 4.06 | 7.48 | 7.89 | 16.68 | 23.93 | 5.88 | 5.50 | 20.30 (@150 test_L1 4.53 → fail) |
+- All three move in 300 steps what run 2 never moved in 3000 (noisy5 −0.5..−1.2, noisy10 −0.4..−0.5, tlog/ho −1).
+  6e-5 = the only one better than ref on noisy10, noisy5, test_L1 AND test_L2 → long run.
+- 2026-11-09 18:10 long run STARTED: `nohup sh tools/asr/gpu/g10b_run.sh` (LR 6e-5, warm 200, 3000 steps, EVAL 300,
+  SAVE_ALL) → log tools/asr/gpu/g10b.log, checkpoints nv_out/G10b/step*.nemo + best.nemo + last.nemo. ~0.8 s/step, ETA ~19:15.
+Resume: read g10b.log → pick best step(s) → nv_gate.py G10b nv_out/G10b/best.nemo (int8 bench) → p1b_port_eval ctc_up
+  (must be ≥ ALL 93.0 of pack v3 and better on noise) + RTF on bee81250 → only then pack v4 (L2→G10b + Z1), rollback v3.
+  Not exported/shipped. Side finding: L1/L2/L3 replay also used the unfiltered tlog — a later L2 retrain on replayT may help clean too.
