@@ -1449,6 +1449,7 @@
   window.QA_pageWordAt = pageWordAt;
   window.QA_wb = function (p, cb) { wbNeed(p, function () { cb(wbRows(p)); }); };
   window.QA_rect = function (s, a) { return Q.r[s - 1][a - 1]; };
+  window.QA_pageOf = pageOf;
   // Long press (480 ms, one finger, no move) on a mushaf page opens the word's meaning. Taps, swipes, the page curl,
   // pinch zoom, the hifz reveal and reciting are left as they are.
   var lpPageAt = 0;

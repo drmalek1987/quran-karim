@@ -407,6 +407,7 @@ async function fresh(ctx, vp) {
     await ev(() => { window.QA_NOFS = true; }); return assert(on && b1 && off && b2 === true && !/^#\/p\/70/.test(b3), JSON.stringify([on, b1, off, b2, b3])); });
   await check(G17, 'الأذكار: الصوت للآيات بس', async () => { await go('#/azkar/m', 800); const r = await ev(() => [...document.querySelectorAll('.zikr')].every(z => !z.querySelector('.z-play') || /سورة/.test(z.querySelector('.z-src').textContent))); return assert(r, String(r)); });
   // ---------- نسخة 5.4/5.5 ----------
+  const P255 = String(await ev(() => QA_pageOf(2, 255))), PL = String(await ev(() => QA_pageOf(112, 1)));   // pages differ per edition (King Fahd 42 / 604)
   const G18 = 'نسخة 5.4/5.5';
   const LSK = ['q.turn', 'q.mode', 'q.edition', 'q.hifzAyat', 'q.hifzLog', 'q.hzRev', 'q.hifzScores', 'q.asrStats', 'q.hifzTest'];
   const lsSave = () => ev(k => Object.fromEntries(k.map(x => [x, localStorage.getItem(x)])), LSK);
@@ -419,21 +420,21 @@ async function fresh(ctx, vp) {
   await g18('مايك المصحف: قراءة 2:255 من صفحة 10 تفتح صفحة 42', async () => {
     await ev(() => localStorage.setItem('q.mode', '"pages"')); await mock(); await go('#/p/10', 900);
     await ev(() => document.getElementById('rdMic').click()); await wait(200); await fin(A255); await wait(1500);
-    const h = await ev(() => location.hash); await ev(() => document.getElementById('rdMic').click()); return assert(h === '#/p/42?a=2:255', h); });
+    const h = await ev(() => location.hash); await ev(() => document.getElementById('rdMic').click()); return assert(h === '#/p/' + P255 + '?a=2:255', h); });
   await g18('التمرير الرأسي: ملء الشاشة ما يغيرش الصفحة والمايك يوصّل لصفحة 42', async () => {
     await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"v"'); }); await p.reload(); await wait(800); await mock();
     const top = () => ev(() => { const v = [...document.querySelectorAll('.page-box.vp')].find(b => b.getBoundingClientRect().bottom > innerHeight / 2); return [location.hash, v && v.dataset.p, document.body.classList.contains('fs')]; });
     await ev(() => { window.QA_NOFS = false; }); await go('#/p/10', 1200); await wait(2500); const a = await top();
     await ev(() => document.getElementById('rdMic').click()); await wait(200); await fin(A255); await wait(3000); const b = await top();
-    return assert(a[1] === '10' && b[0] === '#/p/42?a=2:255' && b[1] === '42', JSON.stringify([a, b])); });
+    return assert(a[1] === '10' && b[0] === '#/p/' + P255 + '?a=2:255' && b[1] === P255, JSON.stringify([a, b])); });
   await g18('اختبار الحفظ بالصوت يخلص لوحده + خريطة الحفظ بتتلوّن', async () => {
     await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); localStorage.removeItem('q.hifzAyat'); localStorage.removeItem('q.hifzLog'); localStorage.setItem('q.mode', '"pages"'); }); await mock(); await go('#/hifztest/112', 900);
     await ev(() => document.getElementById('htMic').click()); await fin('قل هو الله احد الله الصمد', 'لم يلد ولم يولد ولم يكن له كفوا'); await wait(500);
     const r = await ev(() => [document.getElementById('htRes').textContent.trim(), JSON.parse(localStorage.getItem('q.hifzAyat') || '{}'), (JSON.parse(localStorage.getItem('q.hifzLog') || '{}'))[112], document.querySelectorAll('.ht-w:not(.shown)').length]);
     assert(r[0] && r[2], 'res/log ' + JSON.stringify(r).slice(0, 150)); assert(JSON.stringify(r[1]).includes('112'), 'hifzAyat ' + JSON.stringify(r[1]).slice(0, 100)); assert(r[3] === 0, 'hidden words ' + r[3]);
-    await go('#/hifzmap', 700); const c = await ev(() => document.querySelector('.hm-grid a[href="#/p/604"]').className); return assert(!/\bc0\b/.test(c), c); });
+    await go('#/hifzmap', 700); const c = await ev(() => document.querySelector('.hm-grid a[href="#/p/' + QA_pageOf(112, 1) + '"]').className); return assert(!/\bc0\b/.test(c), c); });
   await g18('وضع الحفظ على المصحف بيكشف سطر سطر', async () => {
-    await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); }); await p.reload(); await wait(800); await mock(); await go('#/p/42', 900);
+    await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"h"'); }); await p.reload(); await wait(800); await mock(); await go('#/p/' + P255, 900);
     await ev(() => hifzToggle()); await wait(500); const m0 = await ev(() => document.querySelectorAll('.hifz-mask').length);
     await ev(() => document.getElementById('rdMic').click()); await wait(200); await fin('الله لا اله الا هو الحي القيوم لا تاخذه سنه ولا نوم له ما في السماوات وما في الارض من ذا الذي يشفع عنده الا باذنه'); await wait(500);
     const m1 = await ev(() => document.querySelectorAll('.hifz-mask').length); await ev(() => { document.getElementById('rdMic').click(); hifzToggle(); });
@@ -632,18 +633,18 @@ async function fresh(ctx, vp) {
     return assert(r[0] === '#/hifztest* #/hifzmap #/hifzlog' && r[1] === '#/hifztest #/hifzmap* #/hifzlog' && r[2] === '#/hifztest #/hifzmap #/hifzlog*' && back.startsWith('#/hifztest'), JSON.stringify([r, back])); });
   await check(G511, 'G6: الخريطة: صفحة فيها كذا سورة ليها مربع لكل سورة، والمربع بيختار الآية ويبدأ اختبار على المصحف (اللي قبلها ظاهر)', async () => {
     await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.removeItem('q.turn'); localStorage.removeItem('q.hifzFlip'); }); await go('#/hifzmap', 700);
-    const c = await ev(() => [[...document.querySelectorAll('.hm-grid .hm-c[data-p="604"]')].map(c => c.dataset.s).join(','), document.querySelectorAll('.hm-grid .hm-c[data-p="3"]').length]);
-    await p.click('.hm-grid .hm-c[data-p="604"][data-s="113"]'); await wait(300);
+    const c = await ev(() => [[...document.querySelectorAll('.hm-grid .hm-c[data-p="' + QA_pageOf(112, 1) + '"]')].map(c => c.dataset.s).join(','), document.querySelectorAll('.hm-grid .hm-c[data-p="3"]').length]);
+    await p.click('.hm-grid .hm-c[data-p="' + PL + '"][data-s="113"]'); await wait(300);
     const ops = await ev(() => [...document.querySelectorAll('.hz-pick #hzA option')].map(o => o.value).join(','));
     await p.selectOption('#hzA', '3'); await p.click('#hzMus'); await wait(1200);
     const t = await ev(() => { const h = window.__hz = window.__hz || {}; return [location.hash, document.body.classList.contains('has-hifz'), document.querySelectorAll('.hz-flip.on:not(:disabled)').length]; });
     const sh = await ev(() => [...document.querySelectorAll('#hifzBar .hz-info span')].map(x => x.textContent).join(''));
-    return assert(c[0] === '112,113,114' && c[1] === 1 && ops === '1,2,3,4,5' && t[0] === '#/p/604' && t[1] && t[2] === 1 && /٠/.test(sh), JSON.stringify([c, ops, t, sh])); });
+    return assert(c[0] === '112,113,114' && c[1] === 1 && ops === '1,2,3,4,5' && t[0] === '#/p/' + PL && t[1] && t[2] === 1 && /٠/.test(sh), JSON.stringify([c, ops, t, sh])); });
   await check(G511, 'G6: آخر آية في آخر صفحة في المصحف بتنهي الاختبار (5.15b: مفيش «قلب تلقائي» جوه الاختبار)', async () => {
     for (let i = 0; i < 40; i++) { const more = await ev(() => document.body.classList.contains('has-hifz') && document.querySelectorAll('.hifz-mask').length > 0); if (!more) break; await p.click('#hifzBar [data-c="nx"]'); await wait(60); }
     await wait(2500); const r = await ev(() => [location.hash, document.body.classList.contains('has-hifz')]);
     await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); });
-    return assert(/^#\/p\/604/.test(r[0]), JSON.stringify(r)); });
+    return assert(RegExp('^#/p/' + PL + '\b').test(r[0]), JSON.stringify(r)); });
   await check(G511, 'G6: «قلب تلقائي» شغال: آخر آية بتقلب للصفحة اللي بعدها', async () => {
     await ev(() => localStorage.setItem('q.hifzFlip', 'true')); await go('#/hifzmap', 700); await p.click('.hm-grid .hm-c[data-p="600"]'); await wait(300); await p.click('#hzMus'); await wait(1200);
     for (let i = 0; i < 80; i++) { const r = await ev(() => [document.querySelectorAll('.hifz-mask').length, location.hash]); if (!r[0] || r[1] !== '#/p/600') break; await p.click('#hifzBar [data-c="nx"]'); await wait(60); }
@@ -662,7 +663,7 @@ async function fresh(ctx, vp) {
   await check(G511, 'phone #19: عمودي: الصفحة اللي بتوصلها بالتمرير بتتفتح بالأقنعة (مش فاضية)، واللي بعدها مخفية', async () => {
     await ev(() => { const b = document.querySelector('.page-box.vp[data-p="51"]'); window.scrollTo(0, b.getBoundingClientRect().top + scrollY - 100); }); await wait(500);
     const r = await ev(() => { const b = document.querySelector('.page-box.vp[data-p="51"]'), im = b.querySelector('img'), b2 = document.querySelector('.page-box.vp[data-p="52"] img');
-      return [getComputedStyle(im).visibility, b.querySelectorAll('.hifz-mask').length, getComputedStyle(b2).visibility, document.querySelectorAll('.page-box.vp[data-p="50"] .hifz-mask').length]; });
+      return [getComputedStyle(im).visibility, b.querySelectorAll('.hifz-mask').length, getComputedStyle(b2).visibility, [...document.querySelectorAll('.page-box.vp[data-p="50"] .hifz-mask')].filter(m => !b.querySelector('.hifz-mask[data-k="' + m.dataset.k + '"]')).length]; });   // an ayah running on from page 50 (Haramain/Shamarly) may keep its mask there
     await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); localStorage.removeItem('q.turn'); delete window.ReciteBridge; }); await p.reload(); await wait(800);
     return assert(r[0] === 'visible' && r[1] > 0 && r[2] === 'hidden' && r[3] === 0, JSON.stringify(r)); });
   // G7: recitation following, with pieces fed the way NvAsr sends them (tools/qa/recite_sim.js, own browser context)
@@ -778,7 +779,7 @@ async function fresh(ctx, vp) {
     for (let i = 0; i < 3; i++) { await p.click('#hifzBar [data-c=nx]'); await wait(250); } await wait(1800);
     const end = await ev(() => [!document.getElementById('hifzBar'), (JSON.parse(localStorage.getItem('q.hifzScores') || '{}')[112] || {}).score]);
     await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()));
-    await hzBack(k); await go('#/', 300); return assert(mid[0] && /^#\/p\/604/.test(mid[1]) && end[0] && end[1] === 100, JSON.stringify([mid, end])); });
+    await hzBack(k); await go('#/', 300); return assert(mid[0] && RegExp('^#/p/' + PL + '\b').test(mid[1]) && end[0] && end[1] === 100, JSON.stringify([mid, end])); });
   await check(G513, 'P2.6: اختبار المصحف بمدى (سورة الإخلاص بالسرد) بيخلص لوحده عند آخر آية ويحط ✓', async () => { const k = await hzKeep();
     await ev(() => { ['q.hifzLog', 'q.hifzAyat', 'q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 112, n: 1, q: 1, a1: 1, a2: 4, w: 'o' })); });
     await go('#/hifzlog', 600); await p.click('#hzGoM'); await wait(1200);
@@ -824,7 +825,7 @@ async function fresh(ctx, vp) {
     const a = await ev(() => [!!document.getElementById('hzDaily'), (document.querySelector('.hz-wsum') || {}).textContent, (document.querySelector('.hz-due .hl-due small') || {}).textContent]);
     await p.click('#hzWardGo'); await wait(1200); const t = await ev(() => [!!document.getElementById('hifzBar'), location.hash]);
     await ev(() => document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove())); await hzBack(k); await go('#/', 300);
-    return assert(a[0] && /٢ سورة/.test(a[1]) && /كل ٧ يوم/.test(a[2]) && t[0] && /^#\/p\/604/.test(t[1]), JSON.stringify([a, t])); });
+    return assert(a[0] && /٢ سورة/.test(a[1]) && /كل ٧ يوم/.test(a[2]) && t[0] && RegExp('^#/p/' + PL + '\b').test(t[1]), JSON.stringify([a, t])); });
   await check(G515, 'S1: الخريطة: سورة فترتها ٣٠ يوم وراجعتها من ٢٠ يوم مش صفرا، وبفترة ٧ أيام صفرا', async () => { const k = await hzKeep();
     const col = async iv => { await ev(([a, iv]) => { localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzScores', '{}'); localStorage.setItem('q.hifzLog', JSON.stringify({ 112: { m: a } })); localStorage.setItem('q.hzRev', JSON.stringify({ 112: { m: a, r: a, iv: iv } })); }, [dAgo(20), iv]);
       await go('#/', 150); await go('#/hifzmap', 700); return ev(() => (document.querySelector('.hm-c[data-s="112"]') || {}).className || ''); };
@@ -854,7 +855,7 @@ async function fresh(ctx, vp) {
     await ev(a => localStorage.setItem('q.hzRev', JSON.stringify({ 1: { m: a, r: a, iv: 30 } })), dAgo(8)); await go('#/hifzlog', 150); await go('#/', 500);
     const ok = await ev(() => [(document.querySelector('#tdCard small') || {}).textContent || '', !document.getElementById('tdGo')]);
     await hzBack(k); await go('#/', 200);
-    return assert(none && /مراجعة: ١ سورة/.test(txt) && t[0] && /^#\/p\/604/.test(t[1]) && /مفيش مراجعة مستحقة/.test(ok[0]) && ok[1], JSON.stringify([none, txt, t, ok])); });
+    return assert(none && /مراجعة: ١ سورة/.test(txt) && t[0] && RegExp('^#/p/' + PL + '\b').test(t[1]) && /مفيش مراجعة مستحقة/.test(ok[0]) && ok[1], JSON.stringify([none, txt, t, ok])); });
   // 5.15b: the user's patch for «المراجعة»
   const gq = async (s, a) => ev(([s, a]) => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); return A[s - 1] + a - 1; }, [s, a]);
   await check(G515, '5.15b ١: «السور المراجعة» بتتفتح وتتقفل، واللمس على سورة ما بيعملش حاجة', async () => { const k = await hzKeep();
@@ -872,7 +873,7 @@ async function fresh(ctx, vp) {
     await p.click('#hzGoW'); await wait(700); const inW = await ev(() => location.hash); await p.click('#btnBack'); await wait(700); const w = await ev(() => [location.hash, window.scrollY]);
     await go('#/', 200); await go('#/s/2/5', 400); await ev(() => qBack()); await wait(500); const other = await ev(() => location.hash);
     await hzBack(k); await go('#/', 200);
-    return assert(/^#\/p\/604/.test(inT) && m[0] === '#/hifzlog' && m[1] === 0 && m[2] && /^#\/hifztest\/112/.test(inW) && w[0] === '#/hifzlog' && w[1] === 0 && other !== '#/hifzlog', JSON.stringify([inT, m, inW, w, other])); });
+    return assert(RegExp('^#/p/' + PL + '\b').test(inT) && m[0] === '#/hifzlog' && m[1] === 0 && m[2] && /^#\/hifztest\/112/.test(inW) && w[0] === '#/hifzlog' && w[1] === 0 && other !== '#/hifzlog', JSON.stringify([inT, m, inW, w, other])); });
   await check(G515, '5.15b ٣: الموبايل بيهتز لما الاختبار العشوائي ينقل للموضع اللي بعده (المصحف والكلمات)', async () => { const k = await hzKeep();
     const P = [[await gq(112, 1), await gq(112, 2)], [await gq(114, 1), await gq(114, 3)]];
     await go('#/', 200); const b0 = await ev(() => window.__hzBuzz || 0); await ev(P => hzTestStart({ k: 's', s: 112, w: 'r' }, 'm', P), P); await wait(1200);
@@ -1139,7 +1140,7 @@ async function fresh(ctx, vp) {
     await ev(() => { const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
     return assert(a[0] === '1' && a[1] === '3' && a[2] === 3 && /الآيات/.test(a[3]) && /١–٣/.test(pl) && H[0] === 1 && H[1] === 0 && H[2] === 1 && /الآيات اللي بعدها/.test(H[3]) && n[0] === '4' && n[1] === '4', JSON.stringify([a, pl, H, n])); });
   await check(G517, 'S8: مؤقت النوم ١٥ دقيقة بيبان في المشغّل وبيتلغي', async () => {
-    await go('#/p/604', 900); await p.click('#pPlay'); await wait(300);
+    await go('#/p/' + PL, 900); await p.click('#pPlay'); await wait(300);
     await p.click('#player button[data-c=dl]'); await wait(150); const dlg = await ev(() => [!!document.querySelector('.ls-dlg .zz-opts'), !!document.getElementById('dlGo')]);
     await p.click('.ls-dlg [data-z="15"]'); await wait(150);
     const on = await ev(() => [document.querySelector('.pl-info span').textContent, document.querySelector('#player button[data-c=dl]').classList.contains('on')]);
@@ -1147,14 +1148,14 @@ async function fresh(ctx, vp) {
     const off = await ev(() => [document.querySelector('.pl-info span').textContent, document.querySelector('#player button[data-c=dl]').classList.contains('on')]);
     return assert(dlg[0] && /النوم بعد ١٥ د/.test(on[0]) && on[1] && !/النوم/.test(off[0]) && !off[1], JSON.stringify([dlg, on, off])); });
   await check(G517, 'S8: مؤقت «آخر السورة» بيوقّف القارئ في آخر الإخلاص ومبيكمّلش الفلق', async () => {
-    await ev(() => { const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); }); await go('#/p/604', 700); await p.click('#pPlay'); await wait(100);
+    await ev(() => { const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); }); await go('#/p/' + PL, 700); await p.click('#pPlay'); await wait(100);
     await p.click('#player button[data-c=dl]'); await wait(100); await p.click('.ls-dlg [data-z="s"]');
     // every surah the player shows from now until it stops: the one it started in only (sleep at its end)
     const seen = new Set(); let gone = false;
     for (let i = 0; i < 150 && !gone; i++) { await wait(60); const b = await ev(() => document.querySelector('.pl-info b') ? document.querySelector('.pl-info b').textContent.split(' · ')[0] : null); if (b) seen.add(b); else gone = true; }
     return assert(gone && seen.size === 1 && seen.has('الإخلاص'), JSON.stringify([gone, [...seen]])); });
   await check(G517, 'S8: تحميل السورة للاستماع من غير إنترنت بشريط تقدّم، والجزء بيتلغي', async () => {
-    await ev(() => { window.AppBridge = window.AppBridge || { fake517: 1 }; }); await go('#/p/604', 600); await p.click('#pPlay'); await wait(300);
+    await ev(() => { window.AppBridge = window.AppBridge || { fake517: 1 }; }); await go('#/p/' + PL, 600); await p.click('#pPlay'); await wait(300);
     await p.click('#player button[data-c=dl]'); await wait(150); await p.click('#dlGo');
     let s = ''; for (let i = 0; i < 40 && !/خلص$/.test(s); i++) { await wait(150); s = await ev(() => document.querySelector('#dlBox span').textContent); }
     const w = await ev(() => document.querySelector('#dlBox i').style.width);

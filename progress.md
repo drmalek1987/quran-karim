@@ -424,3 +424,11 @@ Resume: full QA (data.py + ui.js for kfgqpc/kfold/shamarly/harmain), build quran
   APK quran-karim-v5.19.apk 48.5 MB, signer 7d8b31d2 OK, 540 harmain-w files inside (dropped in PLAY=1).
 Resume: 5.19 done + pushed. Next: make the shamarly/harmain mic+hifz ui.js checks edition-aware (page per edition);
   ask the user before the GitHub release.
+- QA repair (user: «repair the QA list»), 2026-11-09: ui.js page refs made edition-aware (QA_pageOf in app.js; P255 = page of
+  2:255, PL = page of 112:1 instead of King Fahd 42/604); phone #19 lets an ayah running on from page 50 keep its mask.
+  Result: harmain 19 -> 12 fails, shamarly 12 -> 14 (5 new = prayer/imsakiya/backup timeouts, passed in earlier runs: flaky).
+  Still failing on shamarly/harmain (test logic written for King Fahd, not yet shown to be app bugs): vertical 2:255 lands
+  on the ayah's 2nd page (harmain 36 vs pageOf 35); hifz line reveal 21->0 (whole page recited); G6 last-ayah/auto-flip,
+  5.14, S1, S7, 5.15b 2/7, 5.15c ("#/p/undefined"), 5.16d; U3 [103,0,0] + U4 -1 on harmain (check: may be real).
+Resume: go through these fails one by one in tools/qa/ui.js (ED=harmain first, U3/U4 may be a real app bug), re-run
+  shamarly + harmain alone, then kfgqpc/kfold to be sure nothing regressed.
