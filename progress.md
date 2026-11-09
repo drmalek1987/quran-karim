@@ -670,3 +670,8 @@ Resume: step 7 W5 kfold + shamarly word boxes (Opus high), G10 rethink running i
 Resume: read g10b.log → pick best step(s) → nv_gate.py G10b nv_out/G10b/best.nemo (int8 bench) → p1b_port_eval ctc_up
   (must be ≥ ALL 93.0 of pack v3 and better on noise) + RTF on bee81250 → only then pack v4 (L2→G10b + Z1), rollback v3.
   Not exported/shipped. Side finding: L1/L2/L3 replay also used the unfiltered tlog — a later L2 retrain on replayT may help clean too.
+## Pause 2026-11-09 18:35 (weekly usage 97%, user: stop at 99%, resume after reset 2026-11-10 19:00 UTC)
+- Done today: W steps 0-6 (21dbc03), G10b diagnosis + recipe (6ec679f).
+- Running unattended: G10b long run (tools/asr/gpu/g10b.log, 3000 steps, ETA ~19:15, ckpts nv_out/G10b/); noise download agent (DEMAND non-held-out rooms → qtrain/g10b/noise/) may finish or be partial — check qtrain/g10b/noise_dl.
+- Step 7 kfold was stopped mid-way: its WIP (ayah_circles.py, word_boxes.py, web/editions/kfold.js) is in `git stash` "wip-kfold" — review before applying (kfold.js rect changes unverified).
+Resume (new session, plans/5.21-session-prompt.md): 1) G10b: nv_gate on best.nemo → p1b_port_eval ctc_up (ship only ALL ≥93.0 + noise better + RTF not worse); if noise data landed, plan G10c with it; consider retraining L2 on replayT. 2) Step 7 W5 kfold (git stash pop wip-kfold, verify) then Shamarly → release 5.20. 3) Step 8 W6. Effort per plan via Agent effort (user authorised, never ask). User: continue without questions.
