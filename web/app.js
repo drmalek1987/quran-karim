@@ -1092,7 +1092,7 @@
       hifzPagesMount([p], boxOf);
       vHide(p);
       hifz.next = function () {
-        var b = boxOf(p + 1); if (!b) return;
+        var b = p + 1 <= Q.last && boxOf(p + 1); if (!b) return;
         hifz.vgo = p + 1;
         window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight, behavior: "smooth" });
       };
@@ -1351,7 +1351,7 @@
     if (hifz.on) {
       hifzPagesMount(pages, boxOf);
       // Revealing the page's last ayah turns to the next page by itself.
-      hifz.next = function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); };
+      hifz.next = function () { if (n + (sp ? 2 : 1) <= Q.last) turn(1); };   // Q.last, not Q.count: no turning into the du'a/index pages after the Quran (Haramain, Shamarly)
     }
     document.getElementById("pMark").onclick = function () {
       var f = hl ? [hl.s, hl.a] : firstAyahOfPage(pages[0]) || firstAyahOfPage(n);

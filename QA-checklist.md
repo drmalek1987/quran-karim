@@ -596,3 +596,10 @@
 4. S10: «ذكّرني أعمل نسخة كل شهر» شغال من الأول؛ التذكير الساعة ٨ بالليل بعد ٣٠ يوم، والضغط عليه بيفتح الإعدادات عند النسخة الاحتياطية.
 5. S11 (الطالب): بعد اختبار الحفظ، «المراجعة» فوق بتعرض «آخر اختبار» و«ابعت للمحفّظ» (بيسأل عن اسمك مرة واحدة) وبيبعت رسالة فيها النتيجة والآيات المنسية وكود QK2.
 6. S11 (المحفّظ): المزيد › «طلابي»: الصق الرسالة → الطالب ونتيجته والآيات المنسية (روابط)، ونفس الرسالة مرتين ما بتتكررش.
+
+## 5.19b — ui.js على كل الطبعات (الحرمين والشمرلي)
+- 5.19b build QA (2026-11-09, quran-karim-v5.19b.apk, versionCode 67, sw quran-v62, signer 7d8b31d2): ui.js harmain 286/0 · shamarly 280 (1 flake) · kfgqpc 286 (1 flake) · kfold 280/0 · data.py 28/0.
+- App fix: hifz «اكشف التالية»/auto-turn stopped at Q.count (du'a/index pages) instead of Q.last — Haramain went 541->542 instead of ending the test.
+- Test fixes: '\b' backspace in 5 RegExp strings; pages 600/601 -> PL-4/PL-3; 2:255 spans Haramain 35/36 (vertical mic accepts either page; U3 uses 3:7 when 2:255 spans pages; hifz line reveal uses 112:1-2 on the last page).
+- Known flake (#251, 5.17b «إيقاف» في «سمّع التكملة»): random mutashabihat question where the test cannot find the right choice as a prefix of the ayah (`o` undefined). Text-only, edition-independent; ONLY=5.17 re-run 4/4 PASS on shamarly. Follow-up: make the test pick the choice by the question's answer key, not by prefix.
+- Phone test: in حفظ mode on الحرمين, open the last page (541), reveal everything — the test ends on 541, no turn to 542.

@@ -432,3 +432,10 @@ Resume: 5.19 done + pushed. Next: make the shamarly/harmain mic+hifz ui.js check
   5.14, S1, S7, 5.15b 2/7, 5.15c ("#/p/undefined"), 5.16d; U3 [103,0,0] + U4 -1 on harmain (check: may be real).
 Resume: go through these fails one by one in tools/qa/ui.js (ED=harmain first, U3/U4 may be a real app bug), re-run
   shamarly + harmain alone, then kfgqpc/kfold to be sure nothing regressed.
+
+## 2026-11-09 — edition-aware ui.js (harmain/shamarly)
+- Goal check: QA all four editions = the "near-complete app" goal; cheaper than new features at 87% usage.
+- APP bug fixed (web/app.js): hifz «اكشف التالية»/auto-turn turned past the last Quran page into the du'a/index pages (Q.count instead of Q.last) — Haramain went 541->542 instead of ending the test. King Fahd unaffected (last = count-1).
+- TEST bugs fixed (tools/qa/ui.js): `'\b'` in RegExp strings was a backspace (5 checks: G6, 5.14, S1, S7, 5.15b); page 600/601 -> P6/P6n = PL-4/PL-3; vertical mic accepts either page 2:255 lies on (Haramain 35/36); hifz line-by-line uses 112:1-2 on the last page (2:255 ends Haramain pages so all lines revealed = right); U3 uses 3:7 when 2:255 spans pages. U4 passes alone on harmain (not an app bug).
+- data.py web: 28/0.
+Resume: DONE 5.19b (harmain 286/0, kfold 280/0, shamarly + kfgqpc 1 random flake each in 5.17b «إيقاف» mutash test — see QA-checklist 5.19b). Next: de-flake that test (pick choice by answer key), then back to the roadmap.
