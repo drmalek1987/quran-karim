@@ -1076,8 +1076,14 @@ async function fresh(ctx, vp) {
   await check(G517, '5.17b: «إيقاف» في «سمّع التكملة» بيحكم باللي اتسمع لحد دلوقتي', async () => {
     await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/', 150); await go('#/mutash', 800);
     await p.click('#mtMic'); await wait(100);
-    const said = await ev(() => { const h = document.getElementById('mtOpen').dataset, t = QURAN.t[+h.s - 1][+h.a - 1], pre = document.querySelector('.mt-pre').textContent.replace(' …', '');
-      const o = [...document.querySelectorAll('.mt-ch .ay-text')].map(e => e.textContent.replace(' …', '')).find(x => t.indexOf(pre + ' ' + x) === 0);
+    const said = await ev(() => { const h = document.getElementById('mtOpen').dataset, arn = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+      // the answer key (mutQuestion): the right choice is the question's own ayah, or the ayah after it when the ayah is
+      // repeated word for word (27:71 = 10:48 …); found by the choices' hidden «سورة … · الآية …» source, not an ayah-prefix match
+      // (that mode shows the whole ayah as the opening; otherwise the opening is shorter than the ayah)
+      const s = +h.s, a = +h.a, nx = a < QURAN.s[s - 1][3] ? [s, a + 1] : [s + 1, 1], srcOf = v => 'سورة ' + QURAN.s[v[0] - 1][0] + ' · الآية ' + arn(v[1]);
+      const whole = document.querySelector('.mt-pre').textContent.replace(' …', '').trim().split(/\s+/).length >= QURAN.t[s - 1][a - 1].split(' ').length;
+      const ch = [...document.querySelectorAll('.mt-ch')].filter(b => b.querySelector('.mt-src').textContent.trim() === srcOf(whole ? nx : [s, a]));
+      if (ch.length !== 1) throw new Error('answer key ' + s + ':' + a + ' x' + ch.length); const o = ch[0].querySelector('.ay-text').textContent.replace(' …', '');
       const w = o.split(' '); onRecite(w.slice(0, Math.max(2, w.length - 1)).join(' '), 'partial'); return w; });
     await wait(100); const mid = await ev(() => document.querySelectorAll('.mt-ch.ok').length);
     await p.click('#mtMic'); await wait(150);

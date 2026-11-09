@@ -598,8 +598,9 @@
 6. S11 (المحفّظ): المزيد › «طلابي»: الصق الرسالة → الطالب ونتيجته والآيات المنسية (روابط)، ونفس الرسالة مرتين ما بتتكررش.
 
 ## 5.19b — ui.js على كل الطبعات (الحرمين والشمرلي)
-- 5.19b build QA (2026-11-09, quran-karim-v5.19b.apk, versionCode 67, sw quran-v62, signer 7d8b31d2): ui.js harmain 286/0 · shamarly 280 (1 flake) · kfgqpc 286 (1 flake) · kfold 280/0 · data.py 28/0.
+- 5.19b build QA (2026-11-09, quran-karim-v5.19b.apk, versionCode 67, sw quran-v62, signer 7d8b31d2): ui.js harmain 286/0 · shamarly 280 (1 flake, fixed below) · kfgqpc 286/0 · kfold 280/0 · data.py 28/0.
 - App fix: hifz «اكشف التالية»/auto-turn stopped at Q.count (du'a/index pages) instead of Q.last — Haramain went 541->542 instead of ending the test.
 - Test fixes: '\b' backspace in 5 RegExp strings; pages 600/601 -> PL-4/PL-3; 2:255 spans Haramain 35/36 (vertical mic accepts either page; U3 uses 3:7 when 2:255 spans pages; hifz line reveal uses 112:1-2 on the last page).
-- Known flake (#251, 5.17b «إيقاف» في «سمّع التكملة»): random mutashabihat question where the test cannot find the right choice as a prefix of the ayah (`o` undefined). Text-only, edition-independent; ONLY=5.17 re-run 4/4 PASS on shamarly. Follow-up: make the test pick the choice by the question's answer key, not by prefix.
+- De-flaked #251 (5.17b «إيقاف» في «سمّع التكملة»): the test picked the right choice by ayah-prefix match, which fails when the ayah is repeated word for word (27:71 = 10:48 …: the question is the whole ayah and the answer is the ayah after it). It now uses the answer key: the choice whose hidden «سورة … · الآية …» is the question's ayah, or the next ayah when the opening shown is the whole ayah; exactly one must match. Stress check: 400 random questions (316 different, 37 «الآية اللي بعدها») → key always unique and the app marks it .ok. ONLY=5.17 3x shamarly + 3x kfgqpc 15/0; full ui.js kfgqpc 286/0.
+- «حول التطبيق» now says 5.19b (index.html); APK rebuilt, signer 7d8b31d2, data.py 28/0.
 - Phone test: in حفظ mode on الحرمين, open the last page (541), reveal everything — the test ends on 541, no turn to 542.
