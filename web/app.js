@@ -1245,9 +1245,12 @@
         var lw = function (w) { return norm(w).length + 1; }, tot = wl.reduce(function (t, w) { return t + lw(w); }, 0);
         var span = rs0.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0, mids = [], cs = [], c0 = 0;
         wl.forEach(function (w) { cs.push(c0); mids.push((c0 + lw(w) / 2) / tot * span); c0 += lw(w); });
-        rs0.forEach(function (b) {
+        var wb = hzWb(k);   // W3: measured word boxes (null = the letter-count estimate below)
+        rs0.forEach(function (b, li) {
           var x0 = acc, x1 = acc + b[3] - b[1]; acc = x1;
-          var mine = []; mids.forEach(function (m, i) { if (m >= x0 && m < x1) mine.push(i); });
+          var mine = [];
+          if (wb) wb.forEach(function (ps, i) { if (ps.some(function (q) { return q[0] === li; })) mine.push(i); });
+          else mids.forEach(function (m, i) { if (m >= x0 && m < x1) mine.push(i); });
           if (mine.length && (mine.every(function (i) { return (k + ":" + i) in V; }) || (recite.on && past > mine[mine.length - 1]))) {
             mine.forEach(function (i) { var x = V[k + ":" + i]; if (x === 0 || x === 2) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, x ? "rc-unsw" : "rc-badw"); });
             return;
@@ -1262,12 +1265,46 @@
             var a0 = x0 / span * tot, a1 = x1 / span * tot, st = Math.min(a1, Math.max(a0, cs[mine[rev]]));
             right = b[3] - (st - a0) / (a1 - a0) * (b[3] - b[1]);
           }
+          var R = [b[1], b[2] + 5, right, b[4] - 4];
+          if (wb && mine.length) { R = hzWbMask(wb, li, mine.slice(rev), mine.slice(0, rev)); if (!R) return; }
           var d = document.createElement("div"); d.className = "hifz-mask"; d.dataset.k = k;
-          d.style.cssText = "left:" + b[1] / 10 + "%;top:" + (b[2] + 5) / 10 + "%;width:" + (right - b[1]) / 10 + "%;height:" + (b[4] - b[2] - 9) / 10 + "%";
+          d.style.cssText = "left:" + R[0] / 10 + "%;top:" + R[1] / 10 + "%;width:" + (R[2] - R[0]) / 10 + "%;height:" + (R[3] - R[1]) / 10 + "%";
           bx.appendChild(d);
         });
       });
     });
+  }
+  // W3: ayah k's measured word boxes by word (rWords numbering): per word its pieces [li, x0, y0, x1, y1], li = the ayah's
+  // line rect (Q.r) nearest the piece's centre. Null (the estimate is used) when the edition has no boxes, a page's boxes
+  // are not loaded yet (asked for; QWB repaints) or a word has no box.
+  function hzWb(k) {
+    if (!EDS[edition] || !EDS[edition].w) return null;
+    var sa = k.split(":"), s = +sa[0], a = +sa[1], rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], out = [], ok = true, pgs = [];
+    rWords(k).forEach(function () { out.push([]); });
+    rs.forEach(function (r) { if (pgs.indexOf(r[0]) < 0) pgs.push(r[0]); });
+    pgs.forEach(function (p) {
+      var rows = wbRows(p); if (!rows) { ok = false; wbNeed(p, function () {}); return; }
+      rows.forEach(function (r) {
+        if (r[0] !== s || r[1] !== a || !out[r[2]]) return;
+        var cx = (r[3] + r[5]) / 2, cy = (r[4] + r[6]) / 2, li = -1, bd = 1e9;
+        rs.forEach(function (q, j) {
+          if (q[0] !== p) return;
+          var dx = cx < q[1] ? q[1] - cx : cx > q[3] ? cx - q[3] : 0, dy = cy < q[2] ? q[2] - cy : cy > q[4] ? cy - q[4] : 0, d = dx + 3 * dy;
+          if (d < bd) { bd = d; li = j; }
+        });
+        out[r[2]].push([li, r[3], r[4], r[5], r[6]]);
+      });
+    });
+    return ok && out.length && out.every(function (x) { return x.length; }) ? out : null;
+  }
+  // W3: the mask over the hidden words `hid` on line li: their boxes' union, 2‰ wider each side so the ink is covered, but
+  // not past halfway to the nearest shown word `shw` on its right. Null when none of them is on the line.
+  function hzWbMask(wb, li, hid, shw) {
+    var u = null, rv = 1e9, P = 2;
+    hid.forEach(function (i) { wb[i].forEach(function (q) { if (q[0] === li) u = u ? [Math.min(u[0], q[1]), Math.min(u[1], q[2]), Math.max(u[2], q[3]), Math.max(u[3], q[4])] : q.slice(1); }); });
+    if (!u) return null;
+    shw.forEach(function (i) { wb[i].forEach(function (q) { if (q[0] === li && q[1] >= u[2]) rv = Math.min(rv, q[1]); }); });
+    return [Math.max(0, u[0] - P), u[1], Math.min(1000, u[2] + P, Math.max(u[2], (u[2] + rv) / 2)), u[3]];
   }
   // vertical hifz: the pages after the one being recited show nothing until they are reached (5.11 G7)
   function vHide(p) {
@@ -2033,6 +2070,12 @@
   // The index of the last word of ayah k that is printed on the given pages (an ayah can run onto the next page).
   function lastWordOnPages(k, pages) {
     var sa = k.split(":"), rs = (Q.r && Q.r[sa[0] - 1] && Q.r[sa[0] - 1][sa[1] - 1]) || [], wl = rWords(k);
+    // W4: the last measured word box of the ayah on these pages, when every one of them has its boxes loaded
+    if (EDS[edition] && EDS[edition].w) {
+      var ok = true, lb = -1;
+      pages.forEach(function (p) { var rows = wbRows(p); if (!rows) { ok = false; return; } rows.forEach(function (r) { if (r[0] === +sa[0] && r[1] === +sa[1] && r[2] > lb) lb = r[2]; }); });
+      if (ok && (lb >= 0 || !rs.some(function (r) { return pages.indexOf(r[0]) >= 0; }))) return Math.min(lb, wl.length - 1);
+    }
     var lw = function (w) { return norm(w).length + 1; }, tot = wl.reduce(function (t, w) { return t + lw(w); }, 0);
     var span = rs.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), c0 = 0, last = -1, ends = [], acc = 0;
     rs.forEach(function (b) { acc += b[3] - b[1]; ends.push([acc, b[0]]); });

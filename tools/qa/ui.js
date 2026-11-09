@@ -1303,6 +1303,35 @@ async function fresh(ctx, vp) {
         res([rows.length, k.size, rows.every(r => r[5] - r[3] >= 6 && r[5] - r[3] < 300 && r[6] - r[4] < 90)]); })));
       return assert(r[0] > 100 && r[0] === r[1] && r[2], JSON.stringify(r)); });
   }
+  // ---------- W3/W4 (plans/W-track-plan.md 5-6): hifz masks and the page-end turn from the measured word boxes ----------
+  const G520 = 'W-track (W3/W4)';
+  if (ED === 'kfgqpc') {
+    await check(G520, 'W3: أقنعة الحفظ في صفحة ٥٠ على مربعات الكلمات بالظبط (كل آية في كل سطر = اتحاد مربعات كلماتها ± ٢‰)', async () => {
+      await go('#/p/50', 1200); await ev(() => new Promise(r => QA_wb(50, r))); await ev(() => hifzToggle()); await wait(600);
+      const r = await ev(() => new Promise(res => QA_wb(50, rows => {
+        const want = {}; rows.forEach(q => { const k = q[0] + ':' + q[1] + '@' + q[4], u = want[k];
+          want[k] = u ? [Math.min(u[0], q[3]), Math.min(u[1], q[4]), Math.max(u[2], q[5]), Math.max(u[3], q[6])] : q.slice(3); });
+        const got = [...document.querySelectorAll('.page-box[data-p="50"] .hifz-mask')].map(m => { const s = m.style, f = x => parseFloat(x) * 10;
+          return [m.dataset.k, f(s.left), f(s.top), f(s.left) + f(s.width), f(s.top) + f(s.height)]; });
+        const bad = got.filter(g => !Object.keys(want).some(k => k.split('@')[0] === g[0] && Math.abs(want[k][0] - 2 - g[1]) < 1 && Math.abs(want[k][1] - g[2]) < 1 && Math.abs(want[k][2] + 2 - g[3]) < 1 && Math.abs(want[k][3] - g[4]) < 1));
+        res([got.length, Object.keys(want).length, bad.slice(0, 3)]); })));
+      await ev(() => { if (document.getElementById('hifzBar')) hifzToggle(); }); await wait(300);
+      return assert(r[0] > 10 && r[0] === r[1] && !r[2].length, JSON.stringify(r)); });
+  }
+  if (ED === 'harmain') {
+    await check(G520, 'W4: الحرمين صفحة ٤٥ (٣:٣٣ مكمّلة على ٤٦): القراءة بالصوت بتقلب عند آخر كلمة مقاسة (١٠) مش قبلها (التقدير كان ٩)', async () => {
+      const W33 = await ev(() => window.QURAN.t[2][32].split(' ')), W32 = await ev(() => window.QURAN.t[2][31].split(' ').slice(-4));
+      await ev(() => { window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; });
+      await go('#/p/45', 1200); await ev(() => new Promise(r => QA_wb(45, r))); await p.click('#rdMic'); await wait(200);
+      const say = (t, k) => ev(([t, k]) => window.onRecite(t, k), [t, k]);
+      await say('', 'state:listening'); await say(W32.concat(W33.slice(0, 3)).join(' '), 'partial'); await wait(200);
+      await say(W32.concat(W33.slice(0, 9)).join(' '), 'partial'); await wait(500); const mid = await ev(() => location.hash);
+      await say(W32.concat(W33.slice(0, 10)).join(' '), 'partial'); let h = '';
+      for (let i = 0; i < 40; i++) { h = await ev(() => location.hash); if (h.startsWith('#/p/46')) break; await wait(25); }
+      await say(W32.concat(W33.slice(0, 10)).join(' '), 'final'); await wait(200);
+      await ev(() => { const m = document.getElementById('rdMic'); if (m && m.classList.contains('on')) m.click(); delete window.ReciteBridge; }); await wait(200);
+      return assert(mid.startsWith('#/p/45') && h.startsWith('#/p/46'), JSON.stringify([mid, h])); });
+  }
   // 5c/5d: the page moves one way only into and out of full screen, with the WebView resize of immersive() simulated
   // (fake AppBridge, 411x866 -> 411x914 like Phone_API35; tools/qa/fs-motion/measure.js, same check on the emulator over CDP)
   { let fm = null; try { const fp = await require('./fs-motion/measure.js').headlessPage(b); fp.on('pageerror', e => errs.push(e.message)); fm = (await require('./fs-motion/measure.js').measureAll(fp)).res; await fp.close2(); } catch (e) { fm = { err: e.message }; }

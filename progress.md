@@ -623,3 +623,37 @@ Resume: step 2 G10 rethink (high effort, Opus, GPU).
   · page end exact 100(no mid-ayah page in sample)/73.3 · ayah tap 100/100.
   Weakest: hifz mask/reveal (x-split estimate) → step 5; harmain page end off by 1 word on 8/30 → step 6.
 Resume: step 5 W3 masks from word boxes (Opus, medium) after ui.js kfgqpc confirms step 3.
+## G10 rethink (2026-11-09)
+Goal check: noise/low-voice robustness is the biggest gap left to the >95% recognition goal (W-track step 9).
+### Diagnosis (run 2 = nv_curr.log 02:39–06:44, init P3_FINAL_L2)
+- Nothing moved. init_G10 → step 3000: test_L1 4.17→3.85, test_L2 8.23→7.77, test_L3 17.64→16.42, noisy20 8.61→8.64,
+  noisy10 17.20→17.32, noisy5 24.42→24.33, train_G10 39.84→39.60. Only the clean L1/L2 share helped a little; noise 0.
+- train_G10 CER 40 is mostly LABELS, not noise. 150 train_G10 clips with the L2 model (pieces CER): noisy copy 39.8,
+  whole-clip 36.9, the SAME clips before augmentation 24.9. By source (noisy / clean): L1 31.5/3.5, L2 32.6/6.0,
+  L3 39.1/13.5, tlog replay 44.0/37.0. 23 of 66 replay clips have clean CER >50%: the audio holds a neighbouring ayah
+  (misaligned tlog segments). qtrain/gpu-train/data/label_check_all.json (2026-11-03, whisper) already found 52% of tlog
+  train >20% CER (39% >50%) and filtered_ids.json kept 10717 — but nv_curr.py and g10_prep.py read the unfiltered
+  train.json. So 45% of the G10 variants and the 30% replay share of EVERY level (L1/L2/L3/G10) trained on ~40% wrong targets.
+- The noise recipe was also too hard/odd: babble = 3–6 other Quran readers summed (competing words, label ambiguous) 51.1 vs
+  33.4 clean; synthetic reverb rt60 0.3–1.0 (full wet) 56.1 vs 32.9; SNR 0–5 51.2; speed 0.7/1.5 atempo extremes; 2 fixed
+  pre-baked copies per clip (no variety); 8.5% of variants >16 s are cut by load() (16 s cap) while the label stays full.
+- Optimiser: LR peak 1e-5 (200 warm-up) then linear decay → <5e-6 by step 1450, freeze lower 1/3, BATCH_SEC 60 × ACC 2,
+  fp32, BN eval (ok). With the bad targets the gradient was mostly noise; a tiny LR kept it flat.
+- Proxy gate (G10): own = noisy10 < ref, every noisy ≤ ref (no tolerance on 100-clip sets), ho/tlog ≤ ref+0.3, and
+  test_L1/test_L2 NOT checked — but the phone gate (p1b_port_eval ctc_up, ALL 93.0 for L2) is exactly the user's long
+  recordings (test_L*). Run 2 failed it anyway (noisy10 never < 17.2).
+### New recipe = level G10b in nv_curr.py (+ g10b_noise.py, g10b_sweep.sh)
+- Data: only trusted labels — L1 + L2 train + replayT = tlog train with label_check CER ≤ 5 (4048 clips/9.0 h); L3 and the
+  unfiltered replay out; clips ≤ 14.4 s (no 16 s truncation). Mix L2 .4 / L1 .2 / replayT .4.
+- On-the-fly noise (g10b_aug, p .75; the other 25% = clean replay with the P3 lead/trail-quiet augment): speed 0.9–1.1
+  (p .5), room reverb rt60 0.2–0.6 with a strong direct path (p .3), lead/trail quiet, then noise over the whole padded clip
+  at SNR 5–20: 50% real background from the user's own recordings (qtrain/g10b/noise, 32 files / 12.9 min, gaps 18 dB under
+  speech, from g10b_noise.py), 35% white/pink/brown, 15% babble (3 clips) at SNR ≥ 10; level −45..−20 dBFS (low voice).
+  DEMAND (held-out noisy sets) never used. More real noise (other DEMAND rooms / MUSAN noise) can be dropped into
+  qtrain/g10b/noise later — needs a download, waits for the user's OK.
+- Optimiser: freeze lower 1/2 (upper half + CTC decoder train, 57.3M params), warm-up then linear decay to 10% of peak,
+  BATCH_SEC 40 × ACC 3 (lesson 6), fp32 (lesson 1), BN eval (lesson 2), PLAIN targets (lesson 4).
+- Proxy gate G10b: own = mean(noisy10, noisy5) < ref; test_L1, test_L2, ho_reciters, ho_retasy, tlog ≤ ref+0.3;
+  noisy20 ≤ ref+0.2. train_G10b = 150 trusted clips with a fixed (seeded) noisy copy; init CER 15.0 (vs train_G10 39.8).
+- Steps 5-6 ✓ (W3+W4): hzWb/hzWbMask masks from word boxes; lastWordOnPages uses last measured box. geo_check: mask IoU 0.356→0.923 (kfgqpc), 0.307→0.944 (harmain), IoU>0.5 99.8/100%; harmain page end 73.3→100%. ui.js kfgqpc 287/0, harmain 287/0 (new G520). Note: ayah-number circles stay visible in hifz masks now (numbers only, no spoiler).
+Resume: step 7 W5 kfold + shamarly word boxes (Opus high), G10 rethink running in parallel.

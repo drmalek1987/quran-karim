@@ -32,7 +32,7 @@ function fnSrc(name) {
   return SRC.slice(i, j + 1);
 }
 const lineOf = name => SRC.slice(0, SRC.indexOf('  function ' + name + '(')).split('\n').length;
-const LIB = ['norm', 'rWords', 'ayahAt', 'lastWordOnPages', 'pageWordAt'].map(fnSrc).join('\n');
+const LIB = ['norm', 'rWords', 'ayahAt', 'lastWordOnPages', 'pageWordAt', 'hzWb', 'hzWbMask'].map(fnSrc).join('\n');
 
 // seeded page sample among pages that have a word-box file
 function rng(s) { return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; }
@@ -51,11 +51,13 @@ pages.sort((a, b) => a - b);
   await p.evaluate(h => { location.hash = h; }, '#/p/' + pages[0]); await p.waitForTimeout(800);
   const res = await p.evaluate(async ({ LIB, pages }) => {
     const Q = window.QURAN, WB = {};
-    for (const n of pages) WB[n] = await new Promise(r => window.QA_wb(n, r));
+    for (const n of pages) for (const m of [n - 1, n, n + 1]) if (!(m in WB)) WB[m] = await new Promise(r => window.QA_wb(m, r));   // neighbours: ayahs running across pages
     // app.js functions, run against the live edition data; wbNeed/wbRows feed the measured rows (or none, for the estimate path)
     let useWb = true, byPage = null;
     const wbRows = n => (useWb ? WB[n] : null), wbNeed = (n, done) => done(wbRows(n));
-    const F = new Function('Q', 'wbRows', 'wbNeed', 'getBy', 'setBy', LIB.replace(/\bbyPage\b/g, 'BP') + '\nvar BP = null; return { norm, rWords, ayahAt, lastWordOnPages, pageWordAt };')(Q, wbRows, wbNeed);
+    // EDS[edition].w follows useWb, so lastWordOnPages / hzWb take their word-box path only when useWb is on
+    const EDS = { get e() { return useWb ? { w: 1 } : {}; } };
+    const F = new Function('Q', 'wbRows', 'wbNeed', 'EDS', LIB.replace(/\bbyPage\b/g, 'BP') + '\nvar BP = null, edition = "e"; return { norm, rWords, ayahAt, lastWordOnPages, pageWordAt, hzWb, hzWbMask };')(Q, wbRows, wbNeed, EDS);
     const pwa = (n, x, y) => new Promise(r => F.pageWordAt(n, x, y, r));
     const iou = (A, B) => { const ix = Math.max(0, Math.min(A[2], B[2]) - Math.max(A[0], B[0])), iy = Math.max(0, Math.min(A[3], B[3]) - Math.max(A[1], B[1])), I = ix * iy; return I / ((A[2] - A[0]) * (A[3] - A[1]) + (B[2] - B[0]) * (B[3] - B[1]) - I || 1); };
     // hifz estimate of word i of ayah s:a (app.js hifzPagesMount): [page, lineIdx, box x0,y0,x1,y1]
@@ -77,7 +79,9 @@ pages.sort((a, b) => a - b);
       });
       return (est[k] = out);
     }
-    const A = { a: [0, 0], a2: [0, 0], b: [], bx: [], by: [], dSplit: 0, c: [0, 0], d: [], e: [0, 0], e2: [0, 0], worstB: [], badD: [] };
+    const A = { a: [0, 0], a2: [0, 0], b: [], bx: [], by: [], dSplit: 0, c: [0, 0], d: [], e: [0, 0], e2: [0, 0], worstB: [], badD: [],
+      nb: [], nbCov: [], nbNull: 0, nc: [0, 0], nd: [], badND: [] };
+    const wbA = {}; const hzWbOf = (s, a) => { const k = s + ':' + a; if (!(k in wbA)) { useWb = true; wbA[k] = F.hzWb(k); } return wbA[k]; };
     for (const n of pages) {
       const rows = WB[n] || [];
       for (const r of rows) {
@@ -91,6 +95,14 @@ pages.sort((a, b) => a - b);
         const rs0 = Q.r[r[0] - 1][r[1] - 1]; let ml = -1, md = 1e9;
         rs0.forEach((q, li) => { if (q[0] !== n) return; const dx = cx < q[1] ? q[1] - cx : cx > q[3] ? cx - q[3] : 0, dy = cy < q[2] ? q[2] - cy : cy > q[4] ? cy - q[4] : 0, d = dx + 3 * dy; if (d < md) { md = d; ml = li; } });
         A.c[1]++; if (e && e[1] === ml) A.c[0]++;
+        // (b), (c) NEW path (W3, app.js hzWb/hzWbMask): this word masked alone on its line; the line its box centre gives
+        const wb = hzWbOf(r[0], r[1]);
+        if (!wb) { A.nbNull++; A.nb.push(0); A.nbCov.push(0); } else {
+          const q = wb[r[2]].find(q => q[1] === r[3] && q[2] === r[4]) || wb[r[2]][0], m = F.hzWbMask(wb, q[0], [r[2]], []);
+          A.nb.push(m ? iou(m, M) : 0);
+          const cov = m ? Math.max(0, Math.min(m[2], M[2]) - Math.max(m[0], M[0])) * Math.max(0, Math.min(m[3], M[3]) - Math.max(m[1], M[1])) / ((M[2] - M[0]) * (M[3] - M[1]) || 1) : 0; A.nbCov.push(cov);
+          A.nc[1]++; if (q[0] === ml) A.nc[0]++;
+        }
         // (e) ayah tap at the centre and four inner points, word-box path and the old rect-only path
         for (const [fx, fy] of [[.5, .5], [.25, .25], [.75, .25], [.25, .75], [.75, .75]]) {
           const x = r[3] + fx * (r[5] - r[3]), y = r[4] + fy * (r[6] - r[4]);
@@ -101,7 +113,8 @@ pages.sort((a, b) => a - b);
       // (d) page end: the measured last word on the page vs lastWordOnPages
       if (rows.length) {
         const last = rows.reduce((m, r) => (r[0] * 1e6 + r[1] * 1e3 + r[2] > m[0] * 1e6 + m[1] * 1e3 + m[2] ? r : m));
-        if (last[2] < F.rWords(last[0] + ':' + last[1]).length - 1) A.dSplit++; const got = F.lastWordOnPages(last[0] + ':' + last[1], [n]); A.d.push(got - last[2]);
+        if (last[2] < F.rWords(last[0] + ':' + last[1]).length - 1) A.dSplit++; useWb = false; const got = F.lastWordOnPages(last[0] + ':' + last[1], [n]); A.d.push(got - last[2]);
+        useWb = true; const got2 = F.lastWordOnPages(last[0] + ':' + last[1], [n]); A.nd.push(got2 - last[2]); if (got2 !== last[2]) A.badND.push([n, last[0] + ':' + last[1], 'measured ' + last[2], 'new ' + got2]);
         if (got !== last[2]) A.badD.push([n, last[0] + ':' + last[1], 'measured ' + last[2], 'est ' + got, 'of ' + F.rWords(last[0] + ':' + last[1]).length]);
       }
     }
@@ -117,14 +130,19 @@ pages.sort((a, b) => a - b);
     b_hifz_xOverlap: +mean(res.bx).toFixed(3), b_hifz_yOverlap: +mean(res.by).toFixed(3), d_splitPages: res.dSplit, c_line_pct: +pc(res.c),
     d_pageEnd_exact_pct: +(100 * res.d.filter(v => v === 0).length / (res.d.length || 1)).toFixed(1), d_meanAbsOffset: +mean(res.d.map(Math.abs)).toFixed(2), d_meanOffset: +mean(res.d).toFixed(2),
     e_ayahTap_wb_pct: +pc(res.e), e_ayahTap_rects_pct: +pc(res.e2),
+    nb_hifz_meanIoU: +mean(res.nb).toFixed(3), nb_hifz_iouGt05_pct: +(100 * res.nb.filter(v => v > 0.5).length / (res.nb.length || 1)).toFixed(1), nb_cover_pct: +(100 * mean(res.nbCov)).toFixed(1), nb_noBoxAyahWords: res.nbNull,
+    nc_line_pct: +pc(res.nc), nd_pageEnd_exact_pct: +(100 * res.nd.filter(v => v === 0).length / (res.nd.length || 1)).toFixed(1), nd_misses: res.badND,
     d_misses: res.badD, b_worst: res.worstB.slice(0, 40), b_worst_count: res.worstB.length
   };
   const T = [['(a) long-press word (word boxes)', out.a_longpress_pct + '%'], ['(a\') long-press word (estimate only)', out.a_estimateOnly_pct + '%'],
     ['(b) hifz mask mean IoU', out.b_hifz_meanIoU], ['(b) hifz mask IoU>0.5', out.b_hifz_iouGt05_pct + '%'], ['(b) mean 1-D overlap x / y', out.b_hifz_xOverlap + ' / ' + out.b_hifz_yOverlap], ['(d) pages ending mid-ayah', out.d_splitPages], ['(c) line assignment', out.c_line_pct + '%'],
     ['(d) page end exact', out.d_pageEnd_exact_pct + '%'], ['(d) page end mean |offset| / mean offset (words)', out.d_meanAbsOffset + ' / ' + out.d_meanOffset],
+    ['NEW (b) hifz mask mean IoU (word boxes)', out.nb_hifz_meanIoU], ['NEW (b) hifz mask IoU>0.5', out.nb_hifz_iouGt05_pct + '%'], ['NEW (b) word box covered by its mask', out.nb_cover_pct + '%'],
+    ['NEW (b) words whose ayah fell back to estimate', out.nb_noBoxAyahWords], ['NEW (c) line assignment (box centre)', out.nc_line_pct + '%'], ['NEW (d) page end exact (last box)', out.nd_pageEnd_exact_pct + '%'],
     ['(e) ayah tap (word boxes)', out.e_ayahTap_wb_pct + '%'], ['(e) ayah tap (rects only)', out.e_ayahTap_rects_pct + '%']];
   console.log(`geo_check ED=${ED} SEED=${SEED} pages=${pages.length} words=${out.words}`);
   for (const [k, v] of T) console.log(k.padEnd(50) + v);
   if (res.badD.length) console.log('(d) misses:', JSON.stringify(res.badD));
+  if (res.badND.length) console.log('NEW (d) misses:', JSON.stringify(res.badND));
   fs.writeFileSync(__dirname + '/geo-' + ED + '.json', JSON.stringify(out, null, 1));
 })().catch(e => { console.error(e); process.exit(1); });

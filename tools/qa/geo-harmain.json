@@ -35,9 +35,9 @@
  ],
  "words": 4461,
  "src": {
-  "pageWordAt": 1436,
-  "ayahAt": 1486,
-  "lastWordOnPages": 2034,
+  "pageWordAt": 1473,
+  "ayahAt": 1523,
+  "lastWordOnPages": 2071,
   "hifzPagesMount": 1226
  },
  "a_longpress_pct": 100,
@@ -53,6 +53,13 @@
  "d_meanOffset": -0.2,
  "e_ayahTap_wb_pct": 100,
  "e_ayahTap_rects_pct": 100,
+ "nb_hifz_meanIoU": 0.944,
+ "nb_hifz_iouGt05_pct": 100,
+ "nb_cover_pct": 100,
+ "nb_noBoxAyahWords": 0,
+ "nc_line_pct": 100,
+ "nd_pageEnd_exact_pct": 100,
+ "nd_misses": [],
  "d_misses": [
   [
    45,
