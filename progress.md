@@ -611,3 +611,5 @@ Goal check: yes, confirms the 5.19b fixes on a real device before release.
 - ED=shamarly ui.js re-run: 280/0 PASS → all four editions 0 FAIL.
 - Usage: weekly 91% (resets 2026-11-10 19:00 UTC) → step 2 (G10, Opus+GPU) waits for the reset.
 Resume: shamarly re-run result -> ask the user about GitHub release v5.19b -> after the weekly reset start step 2 (G10 rethink).
+- GitHub release v5.19b published (2026-11-09, user approved): https://github.com/drmalek1987/quran-karim/releases/tag/v5.19b — signer 7d8b31d2 ✓.
+Resume: step 2 G10 rethink (high effort, Opus, GPU).
