@@ -614,3 +614,12 @@ Goal check: yes, confirms the 5.19b fixes on a real device before release.
 Resume: shamarly re-run result -> ask the user about GitHub release v5.19b -> after the weekly reset start step 2 (G10 rethink).
 - GitHub release v5.19b published (2026-11-09, user approved): https://github.com/drmalek1987/quran-karim/releases/tag/v5.19b — signer 7d8b31d2 ✓.
 Resume: step 2 G10 rethink (high effort, Opus, GPU).
+
+## W-track (2026-11-09)
+- Step 1-2 ✓ (c808980): plans/decisions.html, plans/harmain-permission-letter.md, build.sh PLAY=1 drops harmain-w.
+- Step 3 ✓ (W1+W2): QWB repaints hifz/rd overlays when boxes land; showPage preloads n,n+1 boxes; ayahAt uses nearest word box. README updated.
+- Step 4 W0 baseline (tools/qa/geo_check.js, 30 pages SEED 518) kfgqpc / harmain:
+  long-press boxes 99.8/100, estimate-only 63.1/53.0 · hifz mask IoU 0.356/0.307 (IoU>0.5 35/27%) · line assign 95.4/95.4
+  · page end exact 100(no mid-ayah page in sample)/73.3 · ayah tap 100/100.
+  Weakest: hifz mask/reveal (x-split estimate) → step 5; harmain page end off by 1 word on 8/30 → step 6.
+Resume: step 5 W3 masks from word boxes (Opus, medium) after ui.js kfgqpc confirms step 3.

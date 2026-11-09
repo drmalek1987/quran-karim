@@ -1287,6 +1287,7 @@
   function showPage(n, hl) {
     if (turnMode === "v") return showPagesV(n, hl);
     shownPage = n;
+    if (EDS[edition].w) [n, n + 1].forEach(function (p) { if (p >= Q.min && p < Q.count) wbNeed(p, function () {}); });
     // Two pages open like the printed book: the Fatiha page on the right (2-3 in the scans, 1-2 in the King Fahd print).
     var sur = surahOfPage(n), sp = lastSpread = spreadOn(), base = n - (((n - Q.first) % 2) + 2) % 2;
     var pages = sp ? [base, base + 1].filter(function (p) { return p >= Q.min && p < Q.count; }) : [n];
@@ -1422,7 +1423,12 @@
   // ---------- معنى الكلمة على صفحات المصحف (5.19) ----------
   // Word boxes measured on the scan (tools/page_geometry/word_boxes.py): editions/<id>-w/NNN.js calls QWB(id, page, rows),
   // rows [s, a, w, x0, y0, x1, y1] per mille, w = the word's place in rWords(). Loaded per page when needed.
-  window.QWB = function (ed, n, rows) { store["wb/" + ed + "/" + n] = rows; };
+  window.QWB = function (ed, n, rows) {
+    store["wb/" + ed + "/" + n] = rows;
+    // bug #14: boxes that arrive late repaint the overlays drawn from the letter-count estimate (rows are stored now, so no loop)
+    if (ed !== edition) return;
+    try { if (hifz.on && hifz.paint) hifz.paint(); if (rd.on) rdPaint(); } catch (e) {}
+  };
   function wbNeed(p, done) { var ed = EDS[edition]; if (!ed || !ed.w) return done(null); need("wb/" + edition + "/" + p, ed.w + pad(p) + ".js", done); }
   function wbRows(p) { return EDS[edition] && EDS[edition].w ? store["wb/" + edition + "/" + p] || null : null; }
   // The word under (x, y) per mille of page p: [s, a, w] from the measured boxes, else estimated from the ayah's line
@@ -1434,7 +1440,7 @@
         rows.forEach(function (r) { var dx = x < r[3] ? r[3] - x : x > r[5] ? x - r[5] : 0, dy = y < r[4] ? r[4] - y : y > r[6] ? y - r[6] : 0, d = dx + 3 * dy; if (d < bd) { bd = d; best = r; } });
         if (best && bd < 20) return done([best[0], best[1], best[2]]);
       }
-      var hit = ayahAt(p, x, y); if (!hit) return done(null);
+      var hit = ayahAt(p, x, y, true); if (!hit) return done(null);
       var s = hit[0], a = hit[1], ws = rWords(s + ":" + a), rs = Q.r[s - 1][a - 1], len = function (w) { return norm(w).length + 1; };
       var total = ws.reduce(function (t, w) { return t + len(w); }, 0), span = rs.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0, pos = -1;
       rs.forEach(function (r) {
@@ -1477,8 +1483,14 @@
 
   // Ayah boxes grouped by page, built on first use: byPage[n] = [[s, a, x0, y0, x1, y1], ...].
   var byPage = null;
-  function ayahAt(n, x, y) {
+  function ayahAt(n, x, y, lines) {
     if (!Q.r) return null;
+    var wr = !lines && wbRows(n);   // measured word boxes: nearest word's ayah
+    if (wr && wr.length) {
+      var wb = null, wd = 1e9;
+      wr.forEach(function (r) { var dx = x < r[3] ? r[3] - x : x > r[5] ? x - r[5] : 0, dy = y < r[4] ? r[4] - y : y > r[6] ? y - r[6] : 0, d = dx + 3 * dy; if (d < wd) { wd = d; wb = r; } });
+      if (wb && wd < 25) return [wb[0], wb[1], wb[3], wb[4], wb[5], wb[6]];
+    }
     if (!byPage) {
       byPage = {};
       Q.r.forEach(function (sur, si) { sur.forEach(function (rs, ai) { rs.forEach(function (b) {

@@ -15,4 +15,4 @@ Needs `pip install opencv-python-headless scipy numpy`. Run from this folder, in
 
 7. `tajweed_pages.py SRC` writes the tajweed colour layer of every page to `../../web/tjpages/` (needs `uharfbuzz freetype-py numba` and the font from `tools/fetch_books.sh`). `quads.json`, `scan2.json` and `seq.json` are kept in this folder so this step can run on its own.
 
-Then `bash build.sh` packs the boxes into `web/quran-data.js`. Word-level boxes were tried in `words.py` but were only right about two times in three at this scan resolution, so the app highlights the whole ayah on the page and the search word in the caption above it.
+Then `bash build.sh` packs the boxes into `web/quran-data.js`. Word-level boxes from `words.py` were only right two times in three, so they were replaced: kfgqpc and harmain now have measured word boxes (`word_boxes.py` / `word_boxes_harmain.py`, gate 59-60/60 on the check pages), loaded per page as `editions/<id>-w/NNN.js`; kfold and shamarly still use the letter-count estimate.
