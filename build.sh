@@ -6,7 +6,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 BT=/usr/lib/android-sdk/build-tools/debian
-ANDROID_JAR="${1:-${ANDROID_JAR:-/usr/lib/android-sdk/platforms/android-23/android.jar}}"
+ANDROID_JAR="${1:-${ANDROID_JAR:-/usr/lib/android-sdk/platforms/android-34/android.jar}}"
 OUT="${OUT:-$HERE/build}"
 KEYSTORE="${KEYSTORE:-$HERE/debug.keystore}"
 
@@ -28,7 +28,7 @@ for ED in kfgqpc kfold shamarly harmain; do
   W="$OUT/assets/web"
   if [ "$ED" = harmain ]; then SUB="pages tjpages"; else SUB="editions/$ED editions/$ED-tj"; fi
   HAVE=""; for d in $SUB; do [ -d "$W/$d" ] && HAVE="$HAVE $d"; done
-  [ -n "$HAVE" ] || continue
+  [ -n "$HAVE" ] || { echo "WARNING: no page images for $ED under web/ - no $ED.zip is made in this build"; continue; }
   (cd "$W" && zip -q -0 -r "$OUT/editions-zips/$ED.zip" $HAVE && rm -rf $HAVE)
 done
 # The thematic mushaf's page margins (tools/thematic_notes.py) are downloaded the same way, on first use.
@@ -44,7 +44,7 @@ python3 -I "$HERE/tools/brotli_books.py" "$OUT/assets/web/books"
   -A "$OUT/assets" --java "$OUT/gen" "$OUT/res.zip"
 
 # Donation relay key + address (DONATE_KEY/DONATE_URL, or keys/donate-key.txt); never in git. No key: no uploads.
-KEY="${DONATE_KEY:-$( [ -f "$HERE/keys/donate-key.txt" ] && tr -d '\r\n' < "$HERE/keys/donate-key.txt" )}"
+KEY="${DONATE_KEY:-$( [ -f "$HERE/keys/donate-key.txt" ] && tr -d '\r\n' < "$HERE/keys/donate-key.txt" || true )}"
 URL="${DONATE_URL:-https://drabdelraman-quran-voice-relay.hf.space}"
 [ -z "$KEY" ] && echo "WARNING: no donation key, voice donation uploads are off in this build"
 mkdir -p "$OUT/gen/com/quran/karim"
@@ -68,5 +68,6 @@ VER=$(sed -n 's/.*android:versionName="\([^"]*\)".*/\1/p' "$HERE/android/Android
 APK="$HERE/quran-karim-v$VER.apk"
 "$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:android --key-pass pass:android \
   --out "$APK" "$OUT/aligned.apk"
-"$BT/apksigner" verify --print-certs "$APK" | head -3
+CERTS=$("$BT/apksigner" verify --print-certs "$APK")   # not piped into head: under pipefail that can fail the script
+echo "$CERTS" | sed -n 1,3p
 ls -la "$APK"

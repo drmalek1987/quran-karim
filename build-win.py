@@ -16,7 +16,10 @@ def android_jar():
     if len(sys.argv) > 1: return sys.argv[1]
     if os.environ.get("ANDROID_JAR"): return os.environ["ANDROID_JAR"]
     # android-34 is what build.sh uses; a newer platform jar works too.
-    for p in ["android-34"] + sorted(os.listdir(os.path.join(SDK, "platforms")), reverse=True):
+    def num(p):   # android-9 must not sort above android-36
+        t = p.split("-")[-1].split(".")[0]
+        return int(t) if t.isdigit() else -1
+    for p in ["android-34"] + sorted(os.listdir(os.path.join(SDK, "platforms")), key=num, reverse=True):
         j = os.path.join(SDK, "platforms", p, "android.jar")
         if os.path.exists(j): return j
     sys.exit("no android.jar found under " + SDK)
@@ -58,7 +61,9 @@ def main():
     for ed in ("kfgqpc", "kfold", "shamarly", "harmain"):
         subs = ["pages", "tjpages"] if ed == "harmain" else ["editions/" + ed, "editions/" + ed + "-tj"]
         have = [s for s in subs if os.path.isdir(os.path.join(W, s))]
-        if not have: continue
+        if not have:
+            print("WARNING: no page images for " + ed + " under web/ - no " + ed + ".zip is made in this build")
+            continue
         zip_dir(os.path.join(ZD, ed + ".zip"), W, have)
         for s in have: shutil.rmtree(os.path.join(W, s))
     if os.path.isdir(os.path.join(W, "thmnotes")):
