@@ -338,7 +338,7 @@ async function fresh(ctx, vp) {
     await p.click('#famSplit'); await wait(200); const js = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.j.length));
     await p.click('.fam-j button[data-j="1"]'); await wait(150); await p.click('.fam-j button[data-j="30"]'); await wait(150); await p.click('#famShare'); const sh = await ev(() => AppBridge.shares[AppBridge.shares.length - 1][1]);
     await ev(() => { const F = JSON.parse(localStorage.getItem('q.family')); F.members[0].d = []; F.members[1].d = [15]; localStorage.setItem('q.family', JSON.stringify(F)); }); await go('#/', 200); await go('#/family', 400);
-    p.once('dialog', d => d.accept(sh).catch(() => {})); await p.click('#famImp'); await wait(400); const d = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.d.join(',')));
+    await p.click('#famImp'); await p.fill('.dlg input', sh); await p.press('.dlg input', 'Enter'); await wait(400); const d = await ev(() => JSON.parse(localStorage.getItem('q.family')).members.map(m => m.d.join(',')));
     await ev(() => localStorage.removeItem('q.family'));
     return assert(js.join() === '10,10,10' && /QK1:/.test(sh) && /١✓/.test(sh) && d.join('|') === '1|15|30', JSON.stringify([js, d])); });
   await check(G15, 'اختبار الحفظ على صفحات الطبعة: إخفاء الآيات والدرجة', async () => { await ev(() => localStorage.removeItem('q.hifzScores')); await go('#/hifztest/67', 800); await p.click('#htPages'); await wait(1500);
@@ -396,7 +396,7 @@ async function fresh(ctx, vp) {
   await check(G17, 'الإحصائيات: الصفحة بتتحسب مرة واحدة حتى لو اتفتحت تاني', async () => { await ev(() => localStorage.removeItem('q.stats')); await go('#/p/60', 500); await go('#/p/61', 500); await go('#/p/60', 500);
     const r = await ev(() => { const a = JSON.parse(localStorage.getItem('q.stats'))[Object.keys(JSON.parse(localStorage.getItem('q.stats')))[0]]; return [a.length, new Set(a).size, a.every(x => x > 1000)]; }); return assert(r[0] === r[1] && r[2] && r[0] > 0, JSON.stringify(r)); });
   await check(G17, 'السبحة: ذكر من عندك وعدد من اختيارك', async () => { await ev(() => localStorage.removeItem('q.tasbih')); await go('#/tasbih', 600);
-    p.once('dialog', d => d.accept('يا حي يا قيوم').catch(() => {})); await p.click('#tsbAdd'); await wait(300); p.once('dialog', d => d.accept('٢٥').catch(() => {})); await p.click('#tsbGoal'); await wait(300);
+    await p.click('#tsbAdd'); await p.fill('.dlg input', 'يا حي يا قيوم'); await p.press('.dlg input', 'Enter'); await wait(300); await p.click('#tsbGoal'); await p.fill('.dlg input', '٢٥'); await p.press('.dlg input', 'Enter'); await wait(300);
     const r = await ev(() => [document.getElementById('tsbTxt').textContent, document.getElementById('tsbOf').textContent, JSON.parse(localStorage.getItem('q.tasbih')).goal]); return assert(r[0] === 'يا حي يا قيوم' && r[2] === 25, JSON.stringify(r)); });
   await check(G17, 'اختبار الحفظ بالصوت: الكلمة المخفية تظهر لو اتقرت صح وتحمرّ لو غلط', async () => { await ev(() => { localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1, cont: 1 })); window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/hifztest/112', 800);
     await p.click('#htMic'); await ev(() => { onRecite('', 'state:listening'); onRecite('قل هو الله احد', 'final'); onRecite('الله الصمد', 'final'); onRecite('لم يكتب', 'partial'); onRecite('لم يكتب ولم يقرا', 'final'); });
@@ -1243,6 +1243,25 @@ async function fresh(ctx, vp) {
     const r = await ev(() => { const x = { n: 'سارة', d: '2026-11-1', k: 'w', r: ['2:1', '2:20'], sc: 88 }; const back = QA_tc.parse('أهلا ' + QA_tc.code(x) + ' شكرا');
       return [JSON.stringify(back[0]) === JSON.stringify(x), QA_tc.parse('QK2:@@@').length, QA_tc.parse('QK2:' + btoa('{"n":"x"}')).length]; });
     return assert(r[0] && r[1] === 0 && r[2] === 0, JSON.stringify(r)); });
+  // ---------- code review: pasted codes and backups are untrusted ----------
+  const CR1 = 'مراجعة الكود (CR1)';
+  await check(CR1, 'كود QK1 فيه HTML في الأجزاء بيترفض أو بيتنضّف: مفيش <img> ولا تنفيذ', async () => {
+    await ev(() => localStorage.removeItem('q.family')); await go('#/family', 500);
+    const code = await ev(() => 'QK1:' + btoa(unescape(encodeURIComponent(JSON.stringify({ name: 'x', members: [{ n: 'سارة', j: ['"><img src=x onerror=window.__x=1>', 3], d: [3] }] })))));
+    await p.click('#famImp'); await p.fill('.dlg input', code); await p.press('.dlg input', 'Enter'); await wait(400);
+    const r = await ev(() => [window.__x, document.querySelector('#view, main, body').innerHTML.indexOf('<img') >= 0, document.querySelectorAll('.fam-j button').length]);
+    return assert(r[0] === undefined && !r[1] && r[2] <= 1, JSON.stringify(r)); });
+  await check(CR1, 'كود QK2: miss فيه HTML أو مدى برّه المصحف بيتشال', async () => {
+    const r = await ev(() => { const mk = o => QA_tc.code(Object.assign({ n: 'س', d: '2026-11-1', k: 'm', r: ['2:1', '2:5'], sc: 80 }, o));
+      return [QA_tc.parse(mk({ miss: ['1:1"><b>'] })).length, QA_tc.parse(mk({ r: ['2:1', '200:5'] })).length, QA_tc.parse(mk({ miss: ['2:2'] })).length]; });
+    return assert(r[0] === 0 && r[1] === 0 && r[2] === 1, JSON.stringify(r)); });
+  await check(CR1, 'النسخة الاحتياطية: q.donate و q.donateId و q.modelConsent ما بتتصدّرش ولا بتتستورد', async () => {
+    const r = await ev(() => { ['donate', 'donateId', 'modelConsent'].forEach(k => localStorage.setItem('q.' + k, '"a"'));
+      const keys = QA_bk.collect(), out = ['q.donate', 'q.donateId', 'q.modelConsent'].map(k => k in keys);
+      ['donate', 'donateId', 'modelConsent'].forEach(k => localStorage.removeItem('q.' + k));
+      QA_bk.restore({ 'q.donate': '"b"', 'q.donateId': '"b"', 'q.modelConsent': '"b"', 'q.qaKeep': '"1"' });
+      const back = ['donate', 'donateId', 'modelConsent'].map(k => localStorage.getItem('q.' + k)); localStorage.removeItem('q.qaKeep'); return [out, back]; });
+    return assert(r[0].every(x => !x) && r[1].every(x => x === null), JSON.stringify(r)); });
   // ---------- 5.19: معنى الكلمة بضغطة طويلة على صفحة المصحف (مربعات الكلمات المقاسة لطبعة الملك فهد) ----------
   const G519 = 'نسخة 5.19';
   // the middle of word w of ayah s:a on page n, from the measured boxes (per mille -> screen)

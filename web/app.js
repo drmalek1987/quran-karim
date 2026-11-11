@@ -455,6 +455,7 @@
   }
   // Paused downloads (Settings › Downloads) stay paused across restarts until «استئناف».
   function edPaused() { return load("edPaused", []); }
+  window.onEdSpace = function (id) { toast("مفيش مساحة كفاية على الموبايل لتحميل " + ((EDS[id] && EDS[id].name) || "الملف")); };
   window.onEdDl = function (e, v) {
     if (v === "paused") { edQ = edQ.filter(function (k) { return k !== e; }); paintEdDl(); edNext(); return; }
     if (v === "done" || v === "error") {
@@ -542,7 +543,8 @@
     ev.stopPropagation(); ev.preventDefault();
     var mb = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46 }[b.dataset.v], st = window.EdBridge && EdBridge.state(b.dataset.v);
     if (st !== "busy" && edQ.indexOf(b.dataset.v) < 0 && !confirm(window.LANG === "en" ? T(EDS[b.dataset.v].name) + " is not on the phone yet. Download it (about " + mb + " MB)?" : EDS[b.dataset.v].name + " مش متنزّلة على الموبايل. تنزّلها؟ (حوالي " + mb + " ميجا)")) return;
-    needEd(b.dataset.v, function () { b.click(); });
+    var ev0 = b.dataset.v;
+    needEd(ev0, function () { if (!sheet.hidden) b.click(); });   // Settings closed meanwhile: onEdDl's "download done" toast is enough, no switch behind the reader's back
   }, true);
   document.querySelectorAll("#mode button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -1046,10 +1048,11 @@
   function spreadOn() { return mode === "pages" && spreadPref && window.innerWidth > window.innerHeight && window.innerWidth >= 900 && window.innerHeight >= 500; }
   var lastSpread = null;
   window.addEventListener("resize", function () {
+    if (turnMode === "v") return;
     if (/^#\/p\//.test(location.hash) && lastSpread !== null && spreadOn() !== lastSpread) route();
   });
   // ---------- vertical reading: every page of the edition in one scroll ----------
-  var vCur = 0, vHold = false, vHz = null;
+  var vCur = 0, vHold = false, vHz = null, vGen = 0;
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   function showPagesV(n, hl) {
     var ed = EDS[edition], ratio = edition === "harmain" ? 160.6 : edition === "kfgqpc" ? 143.7 : edition === "kfold" ? 143.5 : 141.4, html = '<div class="vpages">';
@@ -1149,7 +1152,9 @@
     // Right after the app opens the first scroll can be ignored, which used to reopen the vertical reading at page 1.
     // Keep placing the page until it holds, and let the scroll watcher wait meanwhile.
     vHold = true;
+    var g = ++vGen;
     (function place(k) {
+      if (g !== vGen) return;   // a newer render owns the hold
       if (!document.body.contains(start)) { vHold = false; return; }
       // An ayah opened from search or a link goes to the top of the screen, just under the bar.
       var f = hl && list.querySelector(".ayah-box"), y = (f || start).getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight - (f ? 8 : 0);
@@ -2777,7 +2782,7 @@
   }
   function voiceListen(cb) {
     if (!window.ReciteBridge) return toast("الأوامر الصوتية شغالة في التطبيق على الموبايل بس");
-    if (voice.on) { voice.on = false; Mic.stop(); return; }
+    if (voice.on) { voice.on = false; Mic.stop(); var im = document.getElementById("idxMic"); if (im) im.classList.remove("on"); return; }
     if (!micGate(function () { voiceListen(cb); })) return;
     reciteStop(); voice.on = true; voice.cb = cb; Mic.start();
   }
@@ -2948,11 +2953,11 @@
     if (document.fonts && document.fonts.load) Promise.all([document.fonts.load("58px " + font, Q.t[s - 1][a - 1]), document.fonts.load("600 34px Cairo")]).then(go, go); else go();
   }
 
-  function askText(title, value, done) {
+  function askText(title, value, done, max) {
     var d = el('<div class="dlg-back"><form class="dlg"><b>' + title + '</b><input class="input" maxlength="60"><div class="dlg-btns">' +
       '<button type="submit" class="dlg-ok">حفظ</button><button type="button" class="dlg-no">إلغاء</button></div></form></div>').firstChild;
     document.body.appendChild(d);
-    var inp = d.querySelector("input"); inp.value = value; inp.focus(); inp.select();
+    var inp = d.querySelector("input"); if (max) inp.maxLength = max; inp.value = value; inp.focus(); inp.select();
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     d.querySelector("form").onsubmit = function (e) { e.preventDefault(); var v = inp.value.trim(); d.remove(); if (v) done(v); };
@@ -3694,9 +3699,19 @@
 
   // ---------- نسخة احتياطية ----------
   // Everything the app keeps (bookmarks, khatma, notes, sebha, settings...) as one JSON file to share / save, and back.
+  var BK_SKIP = { "q.donate": 1, "q.donateId": 1, "q.modelConsent": 1 };   // consent / donation state never travels in a backup file
+  function bkCollect() {
+    var keys = {};
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf("q.") === 0 && !BK_SKIP[k]) keys[k] = localStorage.getItem(k); } } catch (e) {}
+    return keys;
+  }
+  function bkRestore(keys) {
+    var n = 0; Object.keys(keys).forEach(function (k) { if (k.indexOf("q.") === 0 && !BK_SKIP[k]) { try { localStorage.setItem(k, keys[k]); n++; } catch (e) {} } });
+    return n;
+  }
+  window.QA_bk = { collect: bkCollect, restore: bkRestore };
   function exportBackup() {
-    var data = { app: "quran-karim", v: 1, at: new Date().toISOString(), keys: {} };
-    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf("q.") === 0) data.keys[k] = localStorage.getItem(k); } } catch (e) {}
+    var data = { app: "quran-karim", v: 1, at: new Date().toISOString(), keys: bkCollect() };
     var json = JSON.stringify(data), d = new Date(), name = "quran-backup-" + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + ".json";
     save("lastBackup", todayStr()); paintBk(); syncAlarms();
     try { if (window.AppBridge && AppBridge.shareFile) return AppBridge.shareFile(json, name); } catch (e) {}
@@ -3707,7 +3722,7 @@
     r.onload = function () {
       var data; try { data = JSON.parse(r.result); } catch (e) { data = null; }
       if (!data || data.app !== "quran-karim" || !data.keys) return toast("الملف ده مش نسخة احتياطية من التطبيق");
-      var n = 0; Object.keys(data.keys).forEach(function (k) { if (k.indexOf("q.") === 0) { try { localStorage.setItem(k, data.keys[k]); n++; } catch (e) {} } });
+      var n = bkRestore(data.keys);
       toast("رجعت " + ar(n) + " إعداد وبيان، التطبيق هيفتح من جديد");
       setTimeout(function () { location.hash = "#/"; location.reload(); }, 1200);
     };
@@ -3906,7 +3921,9 @@
     try { AppBridge.setWidget(JSON.stringify({ ayat: ayat, cont: cont, contHash: contHash, prayers: pr, place: loc ? loc[2] || "" : "" })); } catch (e) {}
   }
 
+  var prTimer = 0;
   function showPrayer() {
+    clearInterval(prTimer);
     titleEl.textContent = "مواقيت الصلاة";
     btnBack.hidden = false;
     var loc = load("qiblaLoc", null), cfg = prayerCfg(), rc = remCfg(), opts = '<option value="">اختر مدينة…</option>';
@@ -3986,7 +4003,7 @@
     };
     if (loc) {
       // Keep the countdown fresh while the screen is open.
-      var tm = setInterval(function () { if (!document.body.contains(view.querySelector(".pr-next")) || location.hash !== "#/prayer") return clearInterval(tm);
+      var tm = prTimer = setInterval(function () { if (!document.body.contains(view.querySelector(".pr-next")) || location.hash !== "#/prayer") return clearInterval(tm);
         var n = nextPrayer(loc, cfg); view.querySelector(".pr-next span").textContent = hm(n.at) + " · " + untilText(n.at - new Date()); }, 30000);
     }
   }
@@ -4131,7 +4148,17 @@
 
   // ---------- الختمة الجماعية للعيلة ----------
   // q.family = {name, members: [{n, j: [juz], d: [juz done]}]}. Offline: progress is shared as text with a code the others paste back.
-  function familyData() { return load("family", { name: "ختمة العيلة", members: [] }); }
+  function famClean(G) {
+    if (!G || typeof G !== "object" || !Array.isArray(G.members)) return null;
+    function juz(a) { var o = []; (Array.isArray(a) ? a : []).forEach(function (x) { if (typeof x === "number" && x % 1 === 0 && x >= 1 && x <= 30 && o.indexOf(x) < 0) o.push(x); }); return o; }
+    var ms = [];
+    G.members.slice(0, 60).forEach(function (m) {
+      if (!m || typeof m.n !== "string" || !m.n.trim()) return;
+      var j = juz(m.j); ms.push({ n: m.n.trim().slice(0, 40), j: j, d: juz(m.d).filter(function (x) { return j.indexOf(x) >= 0; }) });
+    });
+    return { name: typeof G.name === "string" && G.name.trim() ? G.name.trim().slice(0, 60) : "ختمة العيلة", members: ms };
+  }
+  function familyData() { return famClean(load("family", null)) || { name: "ختمة العيلة", members: [] }; }
   function familyCode(F) { return "QK1:" + btoa(unescape(encodeURIComponent(JSON.stringify(F)))); }
   function familyText(F) {
     var done = 0; F.members.forEach(function (m) { done += m.d.length; });
@@ -4169,14 +4196,15 @@
     };
     document.getElementById("famShare").onclick = function () { shareText(familyText(F)); };
     document.getElementById("famImp").onclick = function () {
-      var t = prompt("الصق رسالة التحديث أو الكود هنا"); if (!t) return;
-      var m = t.match(/QK1:([A-Za-z0-9+\/=]+)/);
-      try { var G = JSON.parse(decodeURIComponent(escape(atob(m[1])))); if (!G.members) throw 0;
-        // merge: a juz marked done anywhere stays done
-        G.members.forEach(function (g) { var o = F.members.filter(function (x) { return x.n === g.n; })[0]; if (o) g.d.forEach(function (j) { if (o.d.indexOf(j) < 0) o.d.push(j); }); });
-        F.members.forEach(function (o) { var g = G.members.filter(function (x) { return x.n === o.n; })[0]; if (g) o.d.forEach(function (j) { if (g.d.indexOf(j) < 0) g.d.push(j); }); });
-        F = G; put(); toast("اتحدثت الختمة");
-      } catch (e) { toast("الكود ده مش مفهوم"); }
+      askText("الصق رسالة التحديث أو الكود هنا", "", function (t) {
+        var m = t.match(/QK1:([A-Za-z0-9+\/=]+)/);
+        try { var G = famClean(JSON.parse(decodeURIComponent(escape(atob(m[1]))))); if (!G) throw 0;
+          // merge: a juz marked done anywhere stays done
+          G.members.forEach(function (g) { var o = F.members.filter(function (x) { return x.n === g.n; })[0]; if (o) g.d.forEach(function (j) { if (o.d.indexOf(j) < 0) o.d.push(j); }); });
+          F.members.forEach(function (o) { var g = G.members.filter(function (x) { return x.n === o.n; })[0]; if (g) o.d.forEach(function (j) { if (g.d.indexOf(j) < 0 && g.j.indexOf(j) >= 0) g.d.push(j); }); });
+          F = G; put(); toast("اتحدثت الختمة");
+        } catch (e) { toast("الكود ده مش مفهوم"); }
+      }, 20000);
     };
     document.getElementById("famReset").onclick = function () { if (!confirm("نبدأ ختمة جديدة بنفس الأفراد؟")) return; F.members.forEach(function (m) { m.d = []; }); put(); };
     view.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = function () { if (confirm("نشيل " + F.members[+b.dataset.x].n + "؟")) { F.members.splice(+b.dataset.x, 1); put(); } }; });
@@ -4201,9 +4229,24 @@
   }
   function ltDay(d) { return d.split("-").reverse().map(function (n) { return ar(+n); }).join("/"); }
   function teacherCode(r) { return "QK2:" + btoa(unescape(encodeURIComponent(JSON.stringify(r)))); }
+  // A result record as the app writes it: n name, r ["s:a","s:a"], d "Y-M-D", k "m"|"w", sc 0..100, ay count, miss ["s:a"]. Anything else is dropped.
+  function akOk(k) { var m = typeof k === "string" && /^(\d{1,3}):(\d{1,3})$/.exec(k); return !!m && +m[1] >= 1 && +m[1] <= 114 && +m[2] >= 1 && +m[2] <= Q.s[m[1] - 1][3]; }
+  function ltClean(r) {
+    if (!r || typeof r !== "object" || typeof r.n !== "string") return null;
+    var n = r.n.trim().slice(0, 40);
+    if (!n || n === "__proto__" || n === "constructor" || n === "prototype") return null;
+    if (!Array.isArray(r.r) || r.r.length !== 2 || !akOk(r.r[0]) || !akOk(r.r[1])) return null;
+    if (typeof r.d !== "string" || !/^\d{4}-\d{1,2}-\d{1,2}$/.test(r.d)) return null;
+    if (r.k !== "m" && r.k !== "w") return null;
+    if (typeof r.sc !== "number" || !(r.sc >= 0 && r.sc <= 100)) return null;
+    var o = { n: n, d: r.d, k: r.k, r: [r.r[0], r.r[1]], sc: r.sc };
+    if (typeof r.ay === "number" && r.ay >= 0 && r.ay <= 6236) o.ay = r.ay;
+    if (r.miss !== undefined) { if (!Array.isArray(r.miss) || r.miss.length > 300 || !r.miss.every(akOk)) return null; o.miss = r.miss.slice(); }
+    return o;
+  }
   function teacherParse(t) {
     var out = [], re = /QK2:([A-Za-z0-9+\/=]+)/g, m;
-    while ((m = re.exec(t || ""))) { try { var r = JSON.parse(decodeURIComponent(escape(atob(m[1])))); if (r && r.n && r.r && r.r.length === 2 && r.sc >= 0) out.push(r); } catch (e) {} }
+    while ((m = re.exec(t || ""))) { try { var r = ltClean(JSON.parse(decodeURIComponent(escape(atob(m[1]))))); if (r) out.push(r); } catch (e) {} }
     return out;
   }
   window.QA_tc = { code: teacherCode, parse: teacherParse };
@@ -4214,13 +4257,16 @@
   }
   function teacherSend() {
     var r = load("lastTest", null); if (!r) return;
-    var n = load("myName", ""); if (!n) { n = (prompt("اسمك (عشان المحفّظ يعرفك)") || "").trim(); if (!n) return; save("myName", n); }
+    var n = load("myName", "");
+    if (!n) { askText("اسمك (عشان المحفّظ يعرفك)", "", function (v) { save("myName", v); r.n = v; shareText(teacherText(r)); }, 40); return; }
     r.n = n; shareText(teacherText(r));
   }
   function showStudents() {
     titleEl.textContent = "طلابي";
     btnBack.hidden = false;
-    var S = load("students", {}), names = Object.keys(S).sort();
+    var S0 = load("students", {}), S = {};
+    if (S0 && typeof S0 === "object") Object.keys(S0).forEach(function (n) { var L = Array.isArray(S0[n]) ? S0[n].map(ltClean).filter(Boolean) : []; if (L.length) S[n] = L; });
+    var names = Object.keys(S).sort();
     var html = '<div class="tc"><p class="hint">الطالب بيعمل اختبار الحفظ، وبعدين من «المراجعة» يضغط «ابعت للمحفّظ». الصق رسالته هنا (ممكن أكتر من رسالة مرة واحدة).</p>' +
       '<textarea class="input" id="tcIn" rows="3" placeholder="الصق رسالة الطالب أو الكود"></textarea><button class="continue" id="tcAdd">' + ic("plus") + " أضف النتيجة</button>";
     if (!names.length) html += '<p class="hint">لسه مفيش طلاب.</p>';
@@ -4491,10 +4537,10 @@
       if (rec) { rec.stop(); return; }
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast("التسجيل مش متاح على الجهاز ده");
       navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
-        var parts = []; rec = new MediaRecorder(stream);
+        var parts = []; rec = htRecNow = new MediaRecorder(stream);
         rec.ondataavailable = function (e) { parts.push(e.data); };
         rec.onstop = function () {
-          stream.getTracks().forEach(function (t) { t.stop(); }); rec = null;
+          stream.getTracks().forEach(function (t) { t.stop(); }); rec = htRecNow = null;
           if (au.src && au.src.indexOf("blob:") === 0) URL.revokeObjectURL(au.src);
           au.src = URL.createObjectURL(new Blob(parts, { type: parts[0] ? parts[0].type : "audio/webm" })); au.hidden = false;
           b.innerHTML = ic("mic") + "<span>سجّل</span>"; b.classList.remove("rec");
@@ -4963,14 +5009,16 @@
       }
       st.i = +b.dataset.i; paint(); }; });
     document.getElementById("tsbAdd").onclick = function () {
-      var t = (prompt("اكتب الذكر") || "").trim(); if (!t) return;
-      st.mine.push(t.slice(0, 120)); st.i = TASBIH.length + st.mine.length - 1; save("tasbih", st); showTasbih();
+      askText("اكتب الذكر", "", function (t) {
+        st.mine.push(t.slice(0, 120)); st.i = TASBIH.length + st.mine.length - 1; save("tasbih", st); showTasbih();
+      }, 120);
     };
     document.getElementById("tsbGoal").onclick = function () {
-      var v = prompt("العدد اللي عايز توصله", st.goal || ""); if (v === null) return;
-      v = parseInt(String(v).replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); }), 10);
-      if (!(v > 0 && v <= 100000)) return toast("اكتب رقم من ١ لـ ١٠٠٠٠٠");
-      st.goal = v; save("tasbih", st); showTasbih();
+      askText("العدد اللي عايز توصله", String(st.goal || ""), function (v) {
+        v = parseInt(String(v).replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); }), 10);
+        if (!(v > 0 && v <= 100000)) return toast("اكتب رقم من ١ لـ ١٠٠٠٠٠");
+        st.goal = v; save("tasbih", st); showTasbih();
+      }, 8);
     };
     view.querySelectorAll(".tsb-goal button[data-g]").forEach(function (b) { b.onclick = function () { st.goal = +b.dataset.g; paint(); }; });
     btn.onclick = function () {
@@ -5104,7 +5152,7 @@
 
     var saved = load("qiblaLoc", null);
     if (saved) setLocation(saved[0], saved[1], saved[2]);
-    requestGps();
+    if (!(saved && saved[2])) requestGps();   // a city chosen by name stays (the GPS button still works)
   }
 
   // ---------- الآية: تفسير، إعراب، معاني الكلمات ----------
@@ -5520,8 +5568,15 @@
   function fsLater(ms) {
     clearTimeout(fsT); fsT = setTimeout(function () { if (/^#\/p\//.test(location.hash) && !window.QA_NOFS && !hifz.on && !document.getElementById("ayahBar") && !rd.on) fsSet(true); }, ms);
   }
-  var wasPage = false;
+  var wasPage = false, htRecNow = null;   // htRecNow: the hifz test's MediaRecorder while it records
+  // The mic sessions of the hifz / mutashabihat tests and the test recorder end when the view goes (a carried hifz test keeps its session)
+  function testMicOff() {
+    if (htv && htv.on && !htv.carry) { htv.on = false; Mic.stop(); }
+    if (mtv && mtv.on) mtvOff();
+    if (htRecNow) { try { htRecNow.stop(); } catch (e) {} }
+  }
   function route() {
+    testMicOff();
     // the backup reminder (S10): home, then Settings opened at the backup row
     if (location.hash === "#/backup") { history.replaceState(null, "", "#/"); setTimeout(function () {
       document.getElementById("btnSettings").click(); var b = document.getElementById("bkOut"); if (b) b.scrollIntoView({ block: "center" }); }, 50); }
@@ -5620,6 +5675,12 @@
   function syncSoon() { clearTimeout(syncT); syncT = setTimeout(function () { syncAlarms(); syncWidget(); }, 1500); }
   window.addEventListener("hashchange", syncSoon);
   document.addEventListener("visibilitychange", function () { if (document.hidden) { syncAlarms(); syncWidget(); } });
+  // The app goes to the background: the test's own recorder stops here. The recognisers (NvBridge / ReciteBridge) are
+  // stopped natively in MainActivity.onStop and the page hears "state:stopped"; not here, because the page is also
+  // "hidden" while Android shows the microphone permission dialog, right after a session was started.
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden && htRecNow) { try { htRecNow.stop(); } catch (e) {} }
+  });
   syncSoon();
 
   // The mushaf pages are AVIF (under half the size of WebP). Very old WebView versions (before 85) cannot show them.

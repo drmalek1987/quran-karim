@@ -604,3 +604,8 @@
 - De-flaked #251 (5.17b «إيقاف» في «سمّع التكملة»): the test picked the right choice by ayah-prefix match, which fails when the ayah is repeated word for word (27:71 = 10:48 …: the question is the whole ayah and the answer is the ayah after it). It now uses the answer key: the choice whose hidden «سورة … · الآية …» is the question's ayah, or the next ayah when the opening shown is the whole ayah; exactly one must match. Stress check: 400 random questions (316 different, 37 «الآية اللي بعدها») → key always unique and the app marks it .ok. ONLY=5.17 3x shamarly + 3x kfgqpc 15/0; full ui.js kfgqpc 286/0.
 - «حول التطبيق» now says 5.19b (index.html); APK rebuilt, signer 7d8b31d2, data.py 28/0.
 - Phone test: in حفظ mode on الحرمين, open the last page (541), reveal everything — the test ends on 541, no turn to 542.
+
+## Code review fixes (2026-11-11, after G1-G7, unreleased)
+- ui.js: kfgqpc 290, harmain 290, kfold 283, shamarly 283, all 0 FAIL (3 new CR1 cases). data.py 28 PASS.
+- harmain showed 6 FAIL once (prayer-times group, then cascade) in a 4-edition run; not reproduced on the re-run alone. Cause not identified.
+- build-win.py builds and signs. NOT tested yet: emulator smoke (alarms, widgets, qibla, download resume), phone mic test (NvAsr stop/start, background stop).
