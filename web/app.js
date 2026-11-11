@@ -247,7 +247,6 @@
       history.replaceState(null, "", "#/p/" + np + (hm[2] && /a=/.test(hm[2]) ? hm[2] : ""));
     }
   }
-  function isDark() { return themeDark(theme); }
   function applySettings() {
     root.style.setProperty("--quran-size", fontSize + "px");
     if (theme === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", theme === "sun" ? (sunDark() ? "dark" : "light") : theme);
@@ -258,13 +257,7 @@
     document.querySelectorAll("#tjSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === tjOn); });
     document.querySelectorAll("#thmSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === thmOn); });
     document.querySelectorAll("#trSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === trOn); });
-    document.querySelectorAll("#langSet button").forEach(function (b) {
-    b.classList.toggle("on", b.dataset.v === (window.LANG || "ar"));
-    b.addEventListener("click", function () {
-      if (b.dataset.v === (window.LANG || "ar")) return;
-      save("lang", b.dataset.v); location.reload();
-    });
-  });
+    document.querySelectorAll("#langSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (window.LANG || "ar")); });
   document.querySelectorAll("#hapticSet button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === hapticLevel()); });
     document.querySelectorAll("#spreadSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spreadPref); });
     root.classList.toggle("tjpg", tjPg);
@@ -278,6 +271,12 @@
     pick.parentNode.classList.toggle("on", !preset);
     if (!preset) { pick.parentNode.style.background = pageBg; pick.value = pageBg; }
   }
+  document.querySelectorAll("#langSet button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.dataset.v === (window.LANG || "ar")) return;
+      save("lang", b.dataset.v); location.reload();
+    });
+  });
   (function () {
     var body = document.querySelector("#settings .sheet-body"), h2 = body.querySelector("h2"), groups = body.querySelectorAll(".set-group");
     var j = document.createElement("div"); j.className = "set-jump";
@@ -727,6 +726,7 @@
   if (EDS.harmain && load("edition", null) === null && edition !== "harmain" && (load("lastPage", null) !== null || load("khatma", null))) {
     var to = edition; useEdition("harmain"); switchEdition(to);
   }
+  var thmOn = load("thematic", false);
   applySettings();
 
   // ---------- views ----------
@@ -1028,7 +1028,7 @@
     return (EDS[edition].tj && n >= Q.first && n <= Q.last ? '<img class="tjo" alt="" loading="lazy" src="' + EDS[edition].tj + pad(n) + '.webp" onerror="this.remove()">' : "") + thmLayer(n);
   }
   // «التفصيل الموضوعي» colours (thematic.js, Dar al-Fajr al-Islami): each ayah's boxes tinted by its topic colour.
-  var thmOn = load("thematic", false), thmPages = null, thmEd = null;
+  var thmPages = null, thmEd = null;
   var THM_COL = [["#e6f6fa", "#c9ebf2"], ["#e9f5e6", "#cfeac6"], ["#f8dde0", "#efbfc3"], ["#fdf8dc", "#fbefaa"], ["#ece3f0", "#d8c9e8"], ["#fee4d4", "#fdcdb0"], ["#fde3ef", "#f9cadf"]];
   var THM_NAMES = ["آيات الله في الكون والأنفس، وفضله على عباده", "النبي ﷺ والمؤمنون وجزاؤهم والجنة", "آيات الأحكام", "قصص الرسل والأنبياء والأمم السابقة", "القرآن الكريم، وصفات الإنسان، والرد على المشركين، وسنة الله في خلقه", "يوم القيامة وعلاماته، والموت والقبر والحساب والحشر والبعث", "جهنم وأوصافها، وعذاب المشركين والكافرين فيها"];
   function thmLayer(n) {
@@ -1986,7 +1986,7 @@
       // onDone: called when the passage has finished by itself (not when it is stopped).
       // onRep: after each time through the passage.
       playRange: function (s, a, b, times, onDone, onRep) { range = { s: s, from: a, to: b, times: times === undefined ? 1 : times, done: 0, onDone: onDone, onRep: onRep }; start(s, a); }, paint: function () { paint(false); }, stop: stop,
-      listenDlg: listenDlg, sleepSet: sleepSet, dlList: dlList, dlState: function () { return dl; }, sleepState: function () { return sleep; },
+      listenDlg: listenDlg, sleepSet: sleepSet, dlList: dlList,
       reciterChanged: function () { if (cur) start(cur.s, cur.a, "a"); } };
   })();
 
@@ -2047,7 +2047,7 @@
     var t = hifz.test, seen = Object.keys(t.seen).length, miss = Object.keys(t.miss).length;
     if (!seen) return toast("اكشف آية واحدة على الأقل الأول");
     var score = Math.round((seen - miss) / seen * 100), s = t.s, rw = recite.words, rb = recite.wrong.slice();
-    Object.keys(t.seen).forEach(function (k) { hifzMark(k, !t.miss[k]); });
+    var mk = {}; Object.keys(t.seen).forEach(function (k) { mk[k] = !t.miss[k]; }); hifzMarks(mk);
     if (rw) { asrStat("ok", recite.ok); asrStat("bad", rw - recite.ok); }
     if (rw) { var log = load("reciteLog", []); log.unshift({ d: todayStr(), s: s, ay: seen, w: rw, bad: rb.length, wrong: rb.slice(0, 40) }); save("reciteLog", log.slice(0, 60)); }
     // the surahs tested get today as their review date (they are marked memorised only by hifzAuto, at 80%)
@@ -2497,7 +2497,7 @@
   function rdMicHtml() { return '<button id="rdMic" class="rd-mic' + (rd.on ? " on" : "") + '" aria-label="القراءة بالصوت">' + ic("mic") + "</button>" + (rd.on ? rdCapHtml() : ""); }
   function rdWords(s, a) { return Q.t[s - 1][a - 1].split(" "); }
   function rdCapHtml() {
-    if (!rd.s) return '<div class="rd-cap"><small>سامعك… ابدأ القراءة من أي آية' + (rd.heard.length ? " · بدوّر على الآية" : "") + "</small>" + (rd.heard.length ? "<div>" + rd.heard.join(" ") + "</div>" : "") + "</div>";
+    if (!rd.s) return '<div class="rd-cap"><small>سامعك… ابدأ القراءة من أي آية' + (rd.heard.length ? " · بدوّر على الآية" : "") + "</small>" + (rd.heard.length ? "<div>" + esc(rd.heard.join(" ")) + "</div>" : "") + "</div>";
     return '<div class="rd-cap"><small>سورة ' + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a) + "</small><div>" + rdWords(rd.s, rd.a).map(function (w, i) {
       return i === rd.w ? "<mark>" + w + "</mark>" : w; }).join(" ") + "</div></div>";
   }
@@ -3456,11 +3456,6 @@
     return R;
   }
   window.hzRevData = hzRevData;   // QA
-  function hifzStats() {
-    var L = hifzLogData(), ay = 0, n = 0;
-    Object.keys(L).forEach(function (s) { n++; ay += Q.s[+s - 1][3]; });
-    return { n: n, ay: ay, pct: Math.round(ay / 6236 * 1000) / 10 };
-  }
   function hifzSummary() { return "المراجعة واختبار الحفظ"; }   // 5.13 P2.10: no numbers outside More › Stats
   // 5.15 S1: spaced review. Each memorised surah keeps its own interval q.hifzLog[s].iv (days): 7 at first; after a test
   // >= 90% doubles it (at most 90), 70-89% keeps it, < 70% sets 1 day. The surah is due when its last review is iv days old.
@@ -3705,7 +3700,7 @@
     var json = JSON.stringify(data), d = new Date(), name = "quran-backup-" + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + ".json";
     save("lastBackup", todayStr()); paintBk(); syncAlarms();
     try { if (window.AppBridge && AppBridge.shareFile) return AppBridge.shareFile(json, name); } catch (e) {}
-    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([json], { type: "application/json" })); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    var a = document.createElement("a"); var u = URL.createObjectURL(new Blob([json], { type: "application/json" })); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 10000);
   }
   function importBackup(file) {
     var r = new FileReader();
@@ -3808,7 +3803,6 @@
   var ADHAN_VOICES = [["makkah", "الحرم المكي (السعودية)"], ["malki", "حمدان المالكي (السعودية)"], ["zahrani", "منصور الزهراني (السعودية)"], ["qatami", "ناصر القطامي (السعودية)"],
     ["basit", "عبد الباسط عبد الصمد (مصر)"], ["menshawy", "محمد صديق المنشاوي (مصر)"], ["refaat", "محمد رفعت (مصر)"], ["afasy", "مشاري العفاسي (الكويت)"],
     ["chebae", "أذان الفجر، مالك شيبة (المغرب)"], ["alarm", "نغمة المنبّه في الموبايل"], ["silent", "إشعار بدون صوت"]];
-  var PRE_MIN = [0, 5, 10, 15, 20, 30, 45, 60];
   function nextPrayer(loc, cfg) {
     var now = new Date(), t = prayerTimes(now, loc[0], loc[1], cfg.method, cfg.hanafi);
     for (var i = 0; i < PRAYERS.length; i++) if (PRAYERS[i][0] !== "sunrise" && t[PRAYERS[i][0]] > now) return { k: PRAYERS[i][1], at: t[PRAYERS[i][0]] };
@@ -4012,6 +4006,7 @@
       t.imsak = new Date(t.fajr - 10 * 60000);
       rows.push({ d: d, h: h, t: t });
     }
+    if (!rows.length) { view.innerHTML = '<p class="hint">التقويم الهجري غير متاح على هذا الجهاز</p>'; return; }
     var head = ["اليوم", "رمضان", "الإمساك", "الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
     var short = function (dt) { var x = hm(dt); return x.replace(/ [صم]$/, ""); };
     view.innerHTML = '<p class="pr-loc">' + ic("pin") + (loc[2] || "موقعك") + " · " + PR_METHODS[cfg.method].n + " · رمضان " + ar(rows[0].h.year) + " هـ" + (ri.now ? "" : " (بعد " + ar(ri.inDays) + " يوم)") + "</p>" +
@@ -4500,6 +4495,7 @@
         rec.ondataavailable = function (e) { parts.push(e.data); };
         rec.onstop = function () {
           stream.getTracks().forEach(function (t) { t.stop(); }); rec = null;
+          if (au.src && au.src.indexOf("blob:") === 0) URL.revokeObjectURL(au.src);
           au.src = URL.createObjectURL(new Blob(parts, { type: parts[0] ? parts[0].type : "audio/webm" })); au.hidden = false;
           b.innerHTML = ic("mic") + "<span>سجّل</span>"; b.classList.remove("rec");
         };
@@ -5375,6 +5371,7 @@
         if (!w) { body.innerHTML = html + '<p class="hint">لا توجد في هذه الآية كلمات لها جذر.</p>'; return; }
         if (w[1] < 0) { body.innerHTML = html + '<p class="hint">«' + w[0] + "» حرف أو ضمير، وليس لها جذر في المعاجم.</p>"; bind(); return; }
         var root = BK.roots[w[1]];
+        if (BK.lex.length && !BK.lex.some(function (l) { return l.id === dict; })) dict = BK.lex[0].id;
         html += '<p class="root">الجذر: <b>' + root.split("").join(" ") + "</b></p>" +
           chips(BK.lex.map(function (l) { return [l.id, l.title + (l.has.indexOf(w[1]) < 0 ? " ·" : "")]; }), dict, "data-d") +
           '<div class="book"><p class="hint">' + (BK.lex.filter(function (l) { return l.id === dict; })[0] || {}).author + '</p><div class="book-text lex"><p class="hint">جارٍ التحميل…</p></div></div>';

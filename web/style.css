@@ -789,14 +789,10 @@ body.has-player .vbar { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84
 .ims th{position:sticky;top:0;background:var(--accent);color:#fff;padding:7px 5px}.ims td{padding:6px 5px;border-bottom:1px solid rgba(127,127,127,.15)}
 .ims tr.today td{background:rgba(201,151,40,.2);font-weight:700}.ims tr.fri td{color:var(--accent)}
 /* 3.6 batch 2: adhan voices, pre-prayer reminders, words/letters */
-.pv-list{display:grid;gap:8px;margin:6px 0 12px}
-.pv-row{display:grid;grid-template-columns:62px 1fr 42px;gap:6px;align-items:center;padding:10px;border-radius:14px;background:var(--card,rgba(127,127,127,.06))}
-.pv-row .pv-pre{grid-column:2/4}.pv-row select{margin:0;min-width:0}
 .pv-play{width:42px;height:42px;border-radius:50%;border:0;background:rgba(15,107,79,.12);color:var(--accent);display:grid;place-items:center}
 .pv-play.on{background:var(--accent);color:#fff}
 .st-wl{display:grid;gap:4px;font-size:13px;margin:6px 0;padding:10px;border-radius:12px;background:rgba(15,107,79,.07)}
 .st-wl b{color:var(--accent)}.st-wl .ic{width:16px;height:16px;vertical-align:-3px;margin-inline-end:4px}
-.pv-row select{font-size:13px;padding-inline:8px}
 .ims{font-size:12px}.ims th,.ims td{padding:6px 3px}
 /* prayer screen, simpler layout */
 .pr-next{position:relative;overflow:hidden;padding:22px 18px 16px}
@@ -892,8 +888,6 @@ body.has-tabs .player { bottom: 70px; }
 .sr-chips a { text-decoration: none; color: inherit; background: var(--card); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; font-size: 13px; }
 .sr-zk { display: grid; gap: 2px; text-decoration: none; color: inherit; background: var(--card); border-radius: 14px; padding: 10px 12px; font-size: 14px; line-height: 1.8; box-shadow: var(--shadow); }
 .sr-zk small { color: var(--accent); font-size: 11px; }
-.ht-rec { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-.ht-rec .rec { background: #d64541; color: #fff; }
 #htAudio { width: 100%; margin-top: 10px; }
 .g-chips button { min-width: 0; flex: 1 0 11%; } .dlg .rem-row { padding-inline: 0; }
 /* 3.8: hifz map, family khatma, topics */
@@ -920,7 +914,6 @@ body.has-tabs .player { bottom: 70px; }
 .tp-list a, .tp-a { display: block; text-decoration: none; color: inherit; background: var(--card, rgba(127,127,127,.08)); border-radius: 12px; padding: 10px 12px; }
 .tp-list small, .tp-a small { display: block; opacity: .65; font-size: 12px; margin-top: 2px; }
 .tp-a { margin-bottom: 8px; } .tp-a p { margin: 0; font-family: var(--qfont, inherit); font-size: 19px; line-height: 1.9; }
-.ht-pg { width: 100%; margin-top: 10px; }
 
 .hifz-bar .rec { background: #d64541; color: #fff; }
 .rc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; text-align: center; }
@@ -1040,9 +1033,8 @@ body.sheet-open .rd-mic { display: none; }
 .rc-unsw { position: absolute; border: 2px dashed #d4a017; border-radius: 6px; background: #f4c43033; pointer-events: none; z-index: 3; }
 .rc-badw { position: absolute; border: 2px solid #d64541; border-radius: 6px; background: #d6454133; pointer-events: none; z-index: 3; }
 .ht-text.peek .ht-w:not(.shown) { color: var(--muted); }
-.ht-pg.on { background: var(--accent); color: #fff; }
 .tap-ok { box-shadow: 0 0 0 3px #2ecc71 !important; transition: box-shadow .1s; }
-.rd-mic.on, .ht-rec .rec, .hifz-bar .rec { background: #d64541 !important; color: #fff !important; }
+.rd-mic.on, .hifz-bar .rec { background: #d64541 !important; color: #fff !important; }
 /* 5.13 P2.2: the home screen's mic sits above the tab bar (and the player, when it shows) */
 body.has-tabs .rd-mic, body.has-tabs .rd-cap { bottom: calc(80px + env(safe-area-inset-bottom)); }
 body.has-tabs.has-player .rd-mic, body.has-tabs.has-player .rd-cap { bottom: calc(154px + env(safe-area-inset-bottom)); }
