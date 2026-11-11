@@ -29,7 +29,8 @@ class AudioCache {
         if (!rel.matches("[A-Za-z0-9_.-]+/[0-9]{6}\\.mp3")) return null;
         File f = new File(dir, rel);
         try {
-            synchronized (rel.intern()) { if (!f.exists()) download(url, f); }   // playback and read-ahead may ask together
+            // playback and read-ahead may ask together; an empty file (a download cut at its start) is fetched again
+            synchronized (rel.intern()) { if (!f.exists() || f.length() == 0) download(url, f); }
             return response(200, "OK", new FileInputStream(f));
         } catch (Exception e) {
             return response(404, "Not Found", null);
@@ -45,8 +46,11 @@ class AudioCache {
             File tmp = new File(f.getPath() + ".part");
             InputStream in = c.getInputStream();
             OutputStream out = new FileOutputStream(tmp);
-            byte[] buf = new byte[16384]; int n;
-            try { while ((n = in.read(buf)) > 0) out.write(buf, 0, n); } finally { out.close(); in.close(); }
+            byte[] buf = new byte[16384]; int n; long got = 0, want = c.getContentLength();
+            try { while ((n = in.read(buf)) > 0) { out.write(buf, 0, n); got += n; } } finally { out.close(); in.close(); }
+            // A connection that ended early must not be kept as the ayah's recording for ever.
+            if (got == 0 || (want > 0 && got != want)) { tmp.delete(); throw new Exception("short"); }
+            if (f.exists()) f.delete();
             if (!tmp.renameTo(f)) throw new Exception("rename");
         } finally { c.disconnect(); }
     }

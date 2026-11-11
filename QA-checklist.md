@@ -609,3 +609,21 @@
 - ui.js: kfgqpc 290, harmain 290, kfold 283, shamarly 283, all 0 FAIL (3 new CR1 cases). data.py 28 PASS.
 - harmain showed 6 FAIL once (prayer-times group, then cascade) in a 4-edition run; not reproduced on the re-run alone. Cause not identified.
 - build-win.py builds and signs. NOT tested yet: emulator smoke (alarms, widgets, qibla, download resume), phone mic test (NvAsr stop/start, background stop).
+
+## Code review: emulator smoke + late callbacks (2026-11-11, Phone_API35, quran-karim-v5.19b.apk rebuilt, unreleased)
+Driven by adb + WebView devtools (no phone). All PASS, logcat without FATAL / System.err from the app:
+- Cold start `--es hash '#/prayer'` opens «مواقيت الصلاة»; a bad extra (`/../x.html`) opens the home screen.
+- Back on Home: 1st press = toast «اضغط رجوع مرة تانية», 2nd = activity destroyed (`web.destroy()`); relaunch loads normally. The only trace is chromium's "Renderer process crash detected (code -1)" line when the WebView is destroyed (same app process, no crash).
+- Reminder (أذكار المساء set 100 s ahead in `q.reminders`, app closed with Back): exact alarm 22:02:00 → notification on channel `reminders` → tap cold-starts the app on `#/azkar/e`.
+- Widgets: «الصلاة القادمة» (next prayer + countdown) and «آية اليوم» (ayah + «كمّل القراءة · صفحة ٥٠») added from the launcher, both show data.
+- Qibla/prayer location with only "approximate" granted (FINE revoked): `QiblaBridge.locate()` → `qiblaLocation(lat, lon)`, no "denied".
+- Edition download (kfold) → Back → reopen: `EdBridge.state` = `busy` (no second thread), ends `ready` once, page 50 shows 26 images, 0 broken.
+- `setAllowFileAccess(false)` kept: page images of the 4 editions, tajweed layers, books (`books/kathir/1-0.js`, Brotli) and everyayah audio all load.
+Found and fixed in this run:
+- `DonateJob.schedule` threw `SecurityException: ACCESS_NETWORK_STATE required for jobs with a connectivity constraint` (Android 14+) – the donation upload job was never scheduled. Manifest now asks for `ACCESS_NETWORK_STATE` (normal permission, no prompt). **Store note: new permission in the next release.**
+- `AudioCache`: a 0-byte cached mp3 (`Alafasy_128kbps/001001.mp3` on the emulator) was served for ever (MEDIA_ERR 4). Empty files are fetched again; a download shorter than `Content-Length` is dropped. After the fix the same ayah is 146830 bytes.
+- `EdStore`: progress of a running download was posted to the destroyed WebView (9 "Application attempted to call on a destroyed WebView" warnings). `EdStore.closed()` in `onDestroy`; 0 warnings after.
+- G3-9 (web/app.js, 6 one-line `isConnected` guards): search `run` + voice callback, vertical-mode `go()` timeouts, `prGps` location callbacks in `showPrayer`, azkar `said()`.
+NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths, airplane-mode toggle mid-download, donation upload itself (no key).
+- ui.js after all of the above (one run each): kfgqpc 290/0 · harmain 290/0 (the earlier prayer-times failures did not come back) · shamarly 283/0 · kfold 283 with 1 FAIL (#250 «سمّع التكملة» بالمايك), re-run alone 283/0. data.py 28 PASS.
+- #250 is a random-question case, not a regression: the drawn question had one choice that is a word-for-word prefix of the other, so both score 1 in `mutHit` and the voice answer stays a tie (app.js ~4855). Left for the user's decision with G8.

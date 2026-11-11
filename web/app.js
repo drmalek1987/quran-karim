@@ -964,6 +964,7 @@
     input.value = q || lastQuery;
     var timer, hq = "";
     function run() {
+      if (!input.isConnected) return;
       hq = "";
       var raw = input.value.trim(); lastQuery = raw;
       history.replaceState(null, "", "#/search?q=" + encodeURIComponent(raw));
@@ -1000,6 +1001,7 @@
     var mic = document.getElementById("qMic"), mh = view.querySelector(".q-mic-hint");
     mic.onclick = function () {
       voiceListen(function (text, kind) {
+        if (!input.isConnected) return;
         if (kind === "listening") { mic.classList.add("on"); mh.hidden = false; mh.textContent = "سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية."; return; }
         if (kind === "end") { mic.classList.remove("on"); return; }
         input.value = text; mic.classList.toggle("on", kind !== "final");
@@ -1114,7 +1116,7 @@
     rdPage = { pages: null, mark: function (s, a) { mark(s, a); ayahBar(null); var b = Q.r[s - 1][a - 1][0], bx = b && boxOf(b[0]);
       // a far ayah (found anywhere in the Quran) is jumped to at once and put in place again once the pages around it
       // have loaded; a near one scrolls smoothly
-      function go(smooth) { var r = bx.getBoundingClientRect(), y = r.top + r.height * b[2] / 1000; if (y < 80 || y > innerHeight * 0.7) window.scrollBy({ top: y - innerHeight * 0.3, behavior: smooth ? "smooth" : "auto" }); }
+      function go(smooth) { if (!bx.isConnected) return; var r = bx.getBoundingClientRect(), y = r.top + r.height * b[2] / 1000; if (y < 80 || y > innerHeight * 0.7) window.scrollBy({ top: y - innerHeight * 0.3, behavior: smooth ? "smooth" : "auto" }); }
       if (bx) { var far = Math.abs(bx.getBoundingClientRect().top) > innerHeight * 2; go(!far); if (far) { setTimeout(go, 400); setTimeout(go, 1200); } setCur(+bx.dataset.p); history.replaceState(null, "", "#/p/" + bx.dataset.p + "?a=" + s + ":" + a); } }, box: boxOf, turn: null };
     function mark(s, a) {
       list.querySelectorAll(".ayah-box").forEach(function (x) { x.remove(); });
@@ -3408,7 +3410,7 @@
       if (pos >= order.length) return allSet(false);
       // Each zikr as many times as it is still to be said (or its full number if already done), counting down as it goes.
       var i = order[pos], z = items[i], c = cards[i], reps = left[i] > 0 ? left[i] : N(z), nx = function () { playAt(pos + 1); };
-      function said(k) { if (left[i] > 0) { left[i] = Math.max(0, left[i] - k); paint(i); progress(); } }
+      function said(k) { if (!cards[0] || !cards[0].isConnected) return; if (left[i] > 0) { left[i] = Math.max(0, left[i] - k); paint(i); progress(); } }
       c.scrollIntoView({ behavior: "smooth", block: "center" });
       if (z.q) { zikrSpeech.stop(); c.classList.add("speaking"); player.playRange(z.q[0], z.q[1], z.q[2], reps, nx, function () { said(1); }); return; }
       nx();   // no audio for adhkar that are not ayahs
@@ -3995,9 +3997,9 @@
     };
     document.getElementById("prGps").onclick = function () {
       var st = this; st.textContent = "جارٍ تحديد موقعك…";
-      function got(lat, lon) { save("qiblaLoc", [lat, lon, ""]); askNotif(); changed(); }
+      function got(lat, lon) { save("qiblaLoc", [lat, lon, ""]); if (!st.isConnected) return; askNotif(); changed(); }
       window.qiblaLocation = got;
-      window.qiblaLocationError = function () { st.textContent = "تعذّر تحديد الموقع، اختر مدينتك"; };
+      window.qiblaLocationError = function () { if (!st.isConnected) return; st.textContent = "تعذّر تحديد الموقع، اختر مدينتك"; };
       if (window.QiblaBridge) return window.QiblaBridge.locate();
       if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (p) { got(p.coords.latitude, p.coords.longitude); }, function () { window.qiblaLocationError(); }, { timeout: 20000, maximumAge: 600000 });
     };

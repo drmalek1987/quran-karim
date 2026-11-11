@@ -53,6 +53,8 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setTextZoom(100);
+        // The page lives in the APK assets and everything else comes through shouldInterceptRequest: no raw file:// reads.
+        s.setAllowFileAccess(false);
         // Pinch to zoom into a mushaf page.
         s.setSupportZoom(true);
         s.setBuiltInZoomControls(true);
@@ -198,6 +200,7 @@ public class MainActivity extends Activity {
         recite.shutdown();
         nv.shutdown();
         app.stopAdhan();
+        eds.closed();
         // The WebView goes with the activity (it kept the page, its timers and the bridges alive after a Back exit).
         try {
             if (web.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) web.getParent()).removeView(web);

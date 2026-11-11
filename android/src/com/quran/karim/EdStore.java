@@ -268,9 +268,12 @@ class EdStore {
     }
 
     private static void tell(String id, String v) { say("window.onEdDl&&onEdDl(" + "\"" + id + "\"," + v + ")"); }
+    /** The screen is going away (onDestroy): a download that is still running has no page to tell until the next one opens. */
+    void closed() { if (cur == this) cur = null; }
     private static void say(final String js) {
         final EdStore s = cur; if (s == null) return;
         s.act.runOnUiThread(new Runnable() { public void run() {
+            if (cur != s) return;
             try { s.web.evaluateJavascript(js, null); } catch (Exception e) { }   // the screen was closed meanwhile
         } });
     }
