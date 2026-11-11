@@ -97,13 +97,19 @@ class AppBridge {
     public void previewAdhan(final String voice) {
         activity.runOnUiThread(new Runnable() {
             public void run() {
-                if (adhanPlayer != null) { try { adhanPlayer.release(); } catch (Exception e) { } adhanPlayer = null; }
-                int raw = voice.length() == 0 ? 0 : activity.getResources().getIdentifier("adhan_" + voice, "raw", activity.getPackageName());
+                stopAdhan();
+                if (voice == null || !voice.matches("[a-z0-9_]+")) return;
+                int raw = activity.getResources().getIdentifier("adhan_" + voice, "raw", activity.getPackageName());
                 if (raw == 0) return;
                 adhanPlayer = android.media.MediaPlayer.create(activity, raw);
                 if (adhanPlayer != null) adhanPlayer.start();
             }
         });
+    }
+
+    /** UI thread: ends the adhan being tried (also when the app is left). */
+    void stopAdhan() {
+        if (adhanPlayer != null) { try { adhanPlayer.release(); } catch (Exception e) { } adhanPlayer = null; }
     }
 
     /** A light tap felt on a page turn or an ayah tap; needs no permission. */
@@ -139,8 +145,7 @@ class AppBridge {
                     dir.mkdirs();
                     File f = new File(dir, safe.length() > 0 ? safe : "ayah.png");
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(Base64.decode(base64, Base64.DEFAULT));
-                    out.close();
+                    try { out.write(Base64.decode(base64, Base64.DEFAULT)); } finally { out.close(); }
                     Uri uri = Uri.parse("content://" + ShareProvider.AUTHORITY + "/" + f.getName());
                     Intent i = new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -161,8 +166,7 @@ class AppBridge {
                     dir.mkdirs();
                     File f = new File(dir, safe.length() > 0 ? safe : "backup.json");
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(text.getBytes("UTF-8"));
-                    out.close();
+                    try { out.write(text.getBytes("UTF-8")); } finally { out.close(); }
                     Uri uri = Uri.parse("content://" + ShareProvider.AUTHORITY + "/" + f.getName());
                     Intent i = new Intent(Intent.ACTION_SEND).setType("application/json").putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

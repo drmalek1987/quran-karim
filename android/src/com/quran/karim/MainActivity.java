@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private PermissionRequest micReq;
     private ReciteBridge recite;
     private NvAsr nv;
+    private AppBridge app;
 
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
@@ -113,7 +114,8 @@ public class MainActivity extends Activity {
         });
         qibla = new QiblaBridge(this, web);
         web.addJavascriptInterface(qibla, "QiblaBridge");
-        web.addJavascriptInterface(new AppBridge(this), "AppBridge");
+        app = new AppBridge(this);
+        web.addJavascriptInterface(app, "AppBridge");
         eds = new EdStore(this, web);
         web.addJavascriptInterface(eds, "EdBridge");
         speech = new SpeechBridge(this, web);
@@ -146,7 +148,8 @@ public class MainActivity extends Activity {
             });
         }
         String hash = getIntent().getStringExtra("hash");
-        if (hash != null && hash.length() > 0) web.loadUrl(START + hash);
+        // Only an in-app route: the extra comes from outside (the activity is exported), so nothing else is glued to the URL.
+        if (hash != null && hash.startsWith("#/")) web.loadUrl(START + hash);
         else if (state != null) web.restoreState(state);
         else web.loadUrl(START);
     }
@@ -175,8 +178,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         qibla.pause();
+        app.stopAdhan();   // an adhan being tried in the prayer settings does not go on outside the app
         web.onPause();   // stops page animations (auto scroll) while the app is away; audio and JS go on
         super.onPause();
+    }
+
+    // Out of sight (Home, another app, the screen off): recitation recognition stops listening. The page hears
+    // "state:stopped" like after its own stop.
+    @Override
+    protected void onStop() {
+        nv.background();
+        recite.background();
+        super.onStop();
     }
 
     @Override
@@ -184,6 +197,12 @@ public class MainActivity extends Activity {
         speech.shutdown();
         recite.shutdown();
         nv.shutdown();
+        app.stopAdhan();
+        // The WebView goes with the activity (it kept the page, its timers and the bridges alive after a Back exit).
+        try {
+            if (web.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) web.getParent()).removeView(web);
+            web.destroy();
+        } catch (Exception ignored) { }
         super.onDestroy();
     }
 

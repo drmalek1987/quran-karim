@@ -30,7 +30,7 @@ class SpeechBridge {
         });
     }
 
-    private static String quote(String s) { return "\"" + (s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"")) + "\""; }
+    private static String quote(String s) { return org.json.JSONObject.quote(s == null ? "" : s); }
 
     private void start() {
         tts = new TextToSpeech(activity, new TextToSpeech.OnInitListener() {
@@ -51,7 +51,8 @@ class SpeechBridge {
 
     private void say(String text, float rate, String id) {
         tts.setSpeechRate(rate);
-        if (Build.VERSION.SDK_INT >= 21) tts.speak(text, TextToSpeech.QUEUE_FLUSH, new Bundle(), id);
+        // A text the engine refuses (too long, engine gone) gets no progress callback: tell the page here.
+        if (tts.speak(text, TextToSpeech.QUEUE_FLUSH, new Bundle(), id) != TextToSpeech.SUCCESS) tell(id, "error");
     }
 
     @JavascriptInterface

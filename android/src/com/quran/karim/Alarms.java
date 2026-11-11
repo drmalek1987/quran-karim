@@ -43,9 +43,12 @@ final class Alarms {
             PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0));
         am.cancel(pi);
         long now = System.currentTimeMillis(), next = Long.MAX_VALUE, last = prefs(c).getLong("last", 0);
+        // The clock was set back (a wrong date corrected, a trip): "last" from the old clock must not hide what is ahead.
+        if (last > now) { last = now; prefs(c).edit().putLong("last", now).apply(); }
         JSONArray ev = events(c);
         for (int i = 0; i < ev.length(); i++) {
-            long at = ev.optJSONObject(i).optLong("at");
+            JSONObject o = ev.optJSONObject(i); if (o == null) continue;
+            long at = o.optLong("at");
             if (at > now && at > last && at < next) next = at;
         }
         if (next == Long.MAX_VALUE) return;
@@ -60,10 +63,11 @@ final class Alarms {
     /** Shows what is due now (only the latest time, if the phone slept through several), then sets the next alarm. */
     static void fire(Context c) {
         try {
-            long now = System.currentTimeMillis(), last = prefs(c).getLong("last", 0), dueAt = 0;
+            long now = System.currentTimeMillis(), last = Math.min(prefs(c).getLong("last", 0), now), dueAt = 0;
             JSONArray ev = events(c);
             for (int i = 0; i < ev.length(); i++) {
-                long at = ev.optJSONObject(i).optLong("at");
+                JSONObject o = ev.optJSONObject(i); if (o == null) continue;
+                long at = o.optLong("at");
                 // Within the last two hours: an event missed for longer is old news.
                 if (at <= now + 30000 && at > last && at > now - 7200000L && at > dueAt) dueAt = at;
             }
@@ -71,7 +75,7 @@ final class Alarms {
             // Every event at that time (an adhan and a reminder can fall on the same minute); each kind has its own notification.
             if (dueAt != 0) for (int i = 0; i < ev.length(); i++) {
                 JSONObject e = ev.optJSONObject(i);
-                if (e.optLong("at") == dueAt) try { notify(c, e); } catch (RuntimeException ignored) { }
+                if (e != null && e.optLong("at") == dueAt) try { notify(c, e); } catch (RuntimeException ignored) { }
             }
         } finally {
             schedule(c);   // whatever happened above, the chain of alarms goes on

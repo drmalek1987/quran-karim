@@ -65,12 +65,16 @@ class QiblaBridge implements SensorEventListener {
         }
         if (locations == null) { js("qiblaLocationError('')"); return; }
         Location best = null;
-        try {
-            for (String p : locations.getProviders(true)) {
+        // Each provider on its own: with "approximate" location only, asking the gps provider throws while the
+        // network and passive ones still answer.
+        java.util.List<String> provs;
+        try { provs = locations.getProviders(true); } catch (Exception e) { provs = new java.util.ArrayList<String>(); }
+        for (String p : provs) {
+            try {
                 Location l = locations.getLastKnownLocation(p);
                 if (l != null && (best == null || l.getTime() > best.getTime())) best = l;
-            }
-        } catch (SecurityException e) { js("qiblaLocationError('denied')"); return; }
+            } catch (Exception ignored) { }
+        }
         if (best != null) send(best);
         // Ask for a fresh fix too; the qibla barely changes within a city, so a cached one is shown meanwhile.
         boolean asked = false;

@@ -41,7 +41,7 @@ class NvAsr {
     // kept. The FINAL piece is decoded whole as before (same verdicts). tools/asr/eval/stream_cut.py, 52 continuous
     // streams: mean partial decode 5.3 -> 3.7 s of audio (p90 10 -> 6 s), finals unchanged (89.5% words right).
     private static final int BLK = SR / 10; private static final double FREEZE = 6.0;
-    private String frozen = "";                                       // the frozen text of the piece being heard (worker thread)
+    private volatile String frozen = "";                                       // the frozen text of the piece being heard (worker thread)
     private final Activity act;
     private final WebView web;
     private final File dir;
@@ -54,7 +54,10 @@ class NvAsr {
     private OrtEnvironment env;
     private OrtSession session;
     private String[] vocab;
-    private Thread rec;
+    private volatile Thread rec;
+    // One number per mic session: a stop() then a quick start() must not let the old recording thread (or a decode
+    // queued for it) carry on beside the new one. start/stop bump it; the thread and emit() check theirs.
+    private final java.util.concurrent.atomic.AtomicInteger gen = new java.util.concurrent.atomic.AtomicInteger();
     // The last few whole pieces of speech by number: the page names the piece it matched (window.nvSeq is set just
     // before each final onRecite), so a donated clip is the audio of exactly those words even if the reader went on.
     private final java.util.LinkedHashMap<Integer, float[]> finals = new java.util.LinkedHashMap<Integer, float[]>();
@@ -81,21 +84,28 @@ class NvAsr {
     @JavascriptInterface
     public void start() {
         act.runOnUiThread(new Runnable() { public void run() {
-            if (act.checkSelfPermission("android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+            // Android 5.x has no runtime permissions (granted at install) and no checkSelfPermission.
+            if (android.os.Build.VERSION.SDK_INT >= 23 && act.checkSelfPermission("android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
                 act.requestPermissions(new String[] { "android.permission.RECORD_AUDIO" }, PERMISSION_REQUEST); return;
             }
             if (on) return;
             on = true;
+            final int g = gen.incrementAndGet();
             tell("", "state:busy");
-            work.execute(new Runnable() { public void run() {
-                try { load(); } catch (Throwable e) { on = false; tell("", "state:error:load " + e.getMessage()); return; }
-                if (on) listen();
-            } });
+            try {
+                work.execute(new Runnable() { public void run() {
+                    try { load(); } catch (Throwable e) { if (gen.get() == g) { on = false; tell("", "state:error:load " + e.getMessage()); } return; }
+                    if (on && gen.get() == g) listen(g);
+                } });
+            } catch (java.util.concurrent.RejectedExecutionException e) { on = false; }   // the activity is closing
         } });
     }
 
     @JavascriptInterface
-    public void stop() { on = false; tell("", "state:stopped"); }
+    public void stop() { on = false; gen.incrementAndGet(); tell("", "state:stopped"); }
+
+    /** The app left the screen: the microphone never stays open behind it. */
+    void background() { if (on) stop(); }
 
     // After a model update (Settings › Downloads) the next start() loads the new files instead of the open session.
     @JavascriptInterface
@@ -178,7 +188,14 @@ class NvAsr {
         } }).start();
     }
 
-    void shutdown() { on = false; work.shutdownNow(); try { if (session != null) session.close(); } catch (Exception e) { } }
+    // The session is closed on the worker, after any decode still running (closing it under a running decode can crash natively).
+    void shutdown() {
+        on = false; gen.incrementAndGet();
+        try {
+            work.execute(new Runnable() { public void run() { try { if (session != null) session.close(); } catch (Exception e) { } session = null; } });
+        } catch (java.util.concurrent.RejectedExecutionException e) { }
+        work.shutdown();
+    }
 
     // The two halves are joined into one file the first time (ONNX Runtime maps it from there), then kept.
     private void load() throws Exception {
@@ -195,10 +212,12 @@ class NvAsr {
             File tmp = new File(dir, "nv.onnx.part");
             OutputStream out = new FileOutputStream(tmp);
             byte[] buf = new byte[1 << 16]; int n;
+            boolean joined = false;
             try {
                 for (File f : new File[] { a, b }) { InputStream in = new FileInputStream(f); try { while ((n = in.read(buf)) > 0) out.write(buf, 0, n); } finally { in.close(); } }
-            } finally { out.close(); }
-            if (!tmp.renameTo(model)) throw new Exception("join");
+                joined = true;
+            } finally { out.close(); if (!joined) tmp.delete(); }   // a full disk: no half model left behind (the parts stay)
+            if (!tmp.renameTo(model)) { tmp.delete(); throw new Exception("join"); }
         }
         if (parts && model.length() == a.length() + b.length()) { a.delete(); b.delete(); }
         org.json.JSONArray v = new org.json.JSONArray(read(new File(dir, "asrnv/vocab.json")));
@@ -228,12 +247,16 @@ class NvAsr {
     // letter of a word after a pause is not cut) and ends after 1.0 s of quiet (or at 12 s), so a reciter's pauses and
     // long madd do not split a word; while it goes on, it is decoded about every half second for the words so far, unless the
     // last decode is still running. (Both tuned with tools/asr/eval/bench.py: word verdicts 86.8% -> 94.3% with rAlign.)
-    private void listen() {
+    private void listen(final int g) {
+        // the last session's thread lets go of the microphone first (it ends within one 100 ms block)
+        Thread old = rec;
+        if (old != null && old.isAlive()) { try { old.join(2000); } catch (InterruptedException e) { return; } }
+        if (!on || gen.get() != g) return;
         int min = AudioRecord.getMinBufferSize(SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
         AudioRecord ar;
         try { ar = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, Math.max(min, SR)); }
-        catch (Exception e) { on = false; tell("", "state:error:mic"); return; }
-        if (ar.getState() != AudioRecord.STATE_INITIALIZED) { on = false; tell("", "state:error:mic"); ar.release(); return; }
+        catch (Exception e) { micError(g); return; }
+        if (ar.getState() != AudioRecord.STATE_INITIALIZED) { ar.release(); micError(g); return; }
         final AudioRecord mic = ar;
         rec = new Thread(new Runnable() { public void run() {
             short[] blk = new short[SR / 10];
@@ -241,13 +264,15 @@ class NvAsr {
             float[] be = new float[121];                                     // each 100 ms block's level in the piece
             float[] pre = new float[PRE]; int preN = 0;                       // the last 0.3 s before speech
             double floor = 0.004, quiet = 0, voiced = 0;
-            mic.startRecording();
-            frozen = "";
-            tell("", "state:listening");
+            boolean bad = false;
             try {
-                while (on) {
+                mic.startRecording();   // throws when the microphone cannot be taken (inside the try: this is a bare thread)
+                frozen = "";
+                tell("", "state:listening");
+                while (on && gen.get() == g) {
                     int n = mic.read(blk, 0, blk.length);
-                    if (n <= 0) continue;
+                    if (n < 0) { bad = true; break; }   // the recorder died (ERROR_DEAD_OBJECT...): end, do not spin
+                    if (n == 0) continue;
                     double e = 0; for (int i = 0; i < n; i++) { double x = blk[i] / 32768.0; e += x * x; }
                     e = Math.sqrt(e / n);
                     floor = e < floor ? e : floor * 0.995 + e * 0.005;   // the room's own level
@@ -261,20 +286,24 @@ class NvAsr {
                     if (speech) { voiced += dt; quiet = 0; } else if (len > 0) quiet += dt;
                     boolean end = len > 0 && (quiet > QUIET_END || len >= seg.length);
                     if (end) {
-                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final"); } }); }
+                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final", g); } }); }
                         len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0;
                     } else if (len - lastPartial >= Math.max(SR / 2, partMs * 2 * SR / 1000) && voiced > 0.5 && !decoding) {
                         lastPartial = len; decoding = true;
                         final int cut = freezeAt(be, frz, len);
                         final float[] y = java.util.Arrays.copyOfRange(seg, frz, cut > 0 ? cut : len);
                         if (cut > 0) frz = cut;
-                        work.execute(new Runnable() { public void run() { emit(y, cut > 0 ? "freeze" : "partial"); } });
+                        work.execute(new Runnable() { public void run() { emit(y, cut > 0 ? "freeze" : "partial", g); } });
                     }
                 }
+            } catch (Throwable t) { bad = !(t instanceof java.util.concurrent.RejectedExecutionException);   // rejected = the activity is closing
             } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); }
+            if (bad) micError(g);
         } });
         rec.start();
     }
+
+    private void micError(int g) { if (gen.get() == g) { on = false; decoding = false; tell("", "state:error:mic"); } }
 
     // Where to freeze the piece for partials (a sample index), or -1: see FREEZE.
     private static int freezeAt(float[] be, int frz, int len) {
@@ -286,9 +315,9 @@ class NvAsr {
         return be[best] < 0.6f * m[m.length / 2] ? (best + 1) * BLK : -1;
     }
 
-    private void emit(float[] y, String kind) {
+    private void emit(float[] y, String kind, int g) {
         try {
-            if (!on) return;
+            if (!on || gen.get() != g) return;
             long t0 = android.os.SystemClock.elapsedRealtime();
             String t = decode(louder(y));
             // how long the decode took and how much audio it read: the page keeps the average (Stats, 5.11 G7)
@@ -306,14 +335,14 @@ class NvAsr {
                 }
                 Ctc c = ctc;
                 if (c != null && lastLp != null) {
-                    Ctc.Grp g = c.group(lastLp);
-                    synchronized (grps) { grps.put(n, g); java.util.Iterator<Integer> it = grps.keySet().iterator(); while (grps.size() > 4) { it.next(); it.remove(); } }
+                    Ctc.Grp gr = c.group(lastLp);
+                    synchronized (grps) { grps.put(n, gr); java.util.Iterator<Integer> it = grps.keySet().iterator(); while (grps.size() > 4) { it.next(); it.remove(); } }
                 }
                 before += "window.nvSeq=" + n + ";";
             }
-            if (on && t.length() > 0) tell(t, kind, before);
+            if (on && gen.get() == g && t.length() > 0) tell(t, kind, before);
         } catch (Throwable e) {
-            if (on) tell("", "state:error:run " + e.getMessage());
+            if (on && gen.get() == g) tell("", "state:error:run " + e.getMessage());
         } finally { if (!kind.equals("final")) decoding = false; }
     }
 
@@ -334,12 +363,13 @@ class NvAsr {
         int T = y.length / HOP + 1;
         float[] x = feats(y, T);
         OnnxTensor f = OnnxTensor.createTensor(env, FloatBuffer.wrap(x), new long[] { 1, NM, T });
-        OnnxTensor l = OnnxTensor.createTensor(env, LongBuffer.wrap(new long[] { T }), new long[] { 1 });
-        java.util.Iterator<String> names = session.getInputNames().iterator();
-        java.util.Map<String, OnnxTensor> in = new java.util.HashMap<String, OnnxTensor>();
-        in.put(names.next(), f); in.put(names.next(), l);
-        OrtSession.Result r = session.run(in);
+        OnnxTensor l = null; OrtSession.Result r = null;
         try {
+            l = OnnxTensor.createTensor(env, LongBuffer.wrap(new long[] { T }), new long[] { 1 });
+            java.util.Iterator<String> names = session.getInputNames().iterator();
+            java.util.Map<String, OnnxTensor> in = new java.util.HashMap<String, OnnxTensor>();
+            in.put(names.next(), f); in.put(names.next(), l);
+            r = session.run(in);
             float[][][] lp = (float[][][]) r.get(0).getValue();
             lastLp = lp[0];
             StringBuilder sb = new StringBuilder(); int prev = -1;
@@ -349,7 +379,7 @@ class NvAsr {
                 prev = best;
             }
             return sb.toString().replace('▁', ' ').replaceAll("\\s+", " ").trim();
-        } finally { r.close(); f.close(); l.close(); }
+        } finally { if (r != null) r.close(); f.close(); if (l != null) l.close(); }
     }
 
     private float[] win, mel, fcos, fsin; private int[] rev;

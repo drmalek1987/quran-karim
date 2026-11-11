@@ -23,7 +23,7 @@ class ReciteBridge {
     private final WebView web;
     private SpeechRecognizer rec;
     private boolean on = false;
-    private ArrayList<String> hints = new ArrayList<String>();
+    private volatile ArrayList<String> hints = new ArrayList<String>();
 
     ReciteBridge(Activity activity, WebView web) { this.activity = activity; this.web = web; }
 
@@ -41,7 +41,7 @@ class ReciteBridge {
         activity.runOnUiThread(new Runnable() {
             public void run() {
                 if (!SpeechRecognizer.isRecognitionAvailable(activity)) { tell("", "state:none"); return; }
-                if (activity.checkSelfPermission("android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+                if (android.os.Build.VERSION.SDK_INT >= 23 && activity.checkSelfPermission("android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
                     activity.requestPermissions(new String[] { "android.permission.RECORD_AUDIO" }, PERMISSION_REQUEST); return;
                 }
                 on = true; listen();
@@ -60,7 +60,7 @@ class ReciteBridge {
     @JavascriptInterface
     public void stop() {
         activity.runOnUiThread(new Runnable() {
-            public void run() { on = false; if (rec != null) { rec.cancel(); rec.destroy(); rec = null; } tell("", "state:stopped"); }
+            public void run() { on = false; h.removeCallbacksAndMessages(null); if (rec != null) { rec.cancel(); rec.destroy(); rec = null; } tell("", "state:stopped"); }
         });
     }
 
@@ -70,7 +70,12 @@ class ReciteBridge {
 
     private int fails = 0;
     // Restart a moment later: starting again inside the recogniser's own callback makes some phones answer "busy".
-    private void later() { new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() { public void run() { listen(); } }, 300); }
+    private final android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+    // One restart waiting at most; stop() drops it, so a stop then a quick start never listens twice.
+    private void later() { h.removeCallbacksAndMessages(null); h.postDelayed(new Runnable() { public void run() { listen(); } }, 300); }
+
+    /** UI thread. The app left the screen: the microphone never stays open behind it. */
+    void background() { if (on) stop(); }
 
     private void listen() {
         if (!on) return;
@@ -113,5 +118,5 @@ class ReciteBridge {
         tell(all.toString(), kind);
     }
 
-    void shutdown() { on = false; if (rec != null) { rec.destroy(); rec = null; } }
+    void shutdown() { on = false; h.removeCallbacksAndMessages(null); if (rec != null) { rec.destroy(); rec = null; } }
 }

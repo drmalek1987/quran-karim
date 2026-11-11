@@ -26,10 +26,13 @@ class EdStore {
     private final Activity act;
     private final WebView web;
     private final File dir;
-    private volatile String busy;
-    private volatile boolean pausing;
+    // One download in the whole process, not per screen: after a Back exit the download thread goes on, and the
+    // reopened app (a new EdStore) must see it as busy instead of starting a second writer on the same .part file.
+    private static volatile String busy;
+    private static volatile boolean pausing;
+    private static volatile EdStore cur;     // the open screen: progress is told to its page
 
-    EdStore(Activity a, WebView w) { act = a; web = w; dir = new File(a.getFilesDir(), "ed"); }
+    EdStore(Activity a, WebView w) { act = a; web = w; dir = new File(a.getFilesDir(), "ed"); cur = this; }
 
     // Page images asked under the asset folder are answered from the downloaded copy.
     WebResourceResponse serve(String url) {
@@ -93,6 +96,9 @@ class EdStore {
                 } catch (Paused e) {
                     busy = null; pausing = false; tell(id, "\"paused\"");   // what arrived stays in .part for the resume
                     return;
+                } catch (NoSpace e) {
+                    busy = null; say("window.onEdSpace&&onEdSpace(\"" + id + "\")"); tell(id, "\"error\"");
+                    return;
                 } catch (BadZip e) {
                     zip.delete();   // a broken file is fetched again from the start
                     if (attempt >= 3) break;
@@ -108,6 +114,11 @@ class EdStore {
 
     private static class BadZip extends Exception {}
     private static class Paused extends Exception {}
+    private static class NoSpace extends Exception {}
+    // The zip, then its files unpacked beside it (stored, so the same size again), plus a margin.
+    private void needSpace(long zipBytes, long have) throws NoSpace {
+        if (dir.getUsableSpace() < (zipBytes - have) + zipBytes + (20L << 20)) throw new NoSpace();
+    }
 
     // Settings › Downloads «إيقاف مؤقت»: the running download stops after its current block; download() resumes it.
     @JavascriptInterface
@@ -131,6 +142,7 @@ class EdStore {
             if (code != 206 || cr == null || cr.indexOf('/') < 0 || cr.endsWith("*")) { map.delete(); zip.delete(); fetch1(id, url, zip); return; }
             total = Long.parseLong(cr.substring(cr.indexOf('/') + 1).trim());
             done = new long[NP];
+            needSpace(total, 0);   // a full phone is not a lost connection: say so at once instead of 40 tries
             java.io.RandomAccessFile r = new java.io.RandomAccessFile(zip, "rw"); r.setLength(total); r.close();
         }
         final long T = total; final long[] D = done; final long step = (T + NP - 1) / NP;
@@ -206,6 +218,7 @@ class EdStore {
         if (code == 200) have = 0;                             // the server sent it all again
         else if (code != 206) throw new Exception("HTTP " + code);
         long len = c.getContentLength(), total = len > 0 ? have + len : -1, got = have; int last = -1;
+        if (total > 0) { try { needSpace(total, have); } catch (NoSpace e) { c.disconnect(); throw e; } }
         InputStream in = c.getInputStream(); OutputStream out = new FileOutputStream(zip, have > 0);
         byte[] buf = new byte[65536]; int n;
         try {
@@ -254,9 +267,11 @@ class EdStore {
         f.delete();
     }
 
-    private void tell(final String id, final String v) {
-        act.runOnUiThread(new Runnable() { public void run() {
-            web.evaluateJavascript("window.onEdDl&&onEdDl(" + "\"" + id + "\"," + v + ")", null);
+    private static void tell(String id, String v) { say("window.onEdDl&&onEdDl(" + "\"" + id + "\"," + v + ")"); }
+    private static void say(final String js) {
+        final EdStore s = cur; if (s == null) return;
+        s.act.runOnUiThread(new Runnable() { public void run() {
+            try { s.web.evaluateJavascript(js, null); } catch (Exception e) { }   // the screen was closed meanwhile
         } });
     }
 }

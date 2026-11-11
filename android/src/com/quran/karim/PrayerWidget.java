@@ -46,6 +46,13 @@ public class PrayerWidget extends AppWidgetProvider {
             v.setChronometer(R.id.wp_left, SystemClock.elapsedRealtime() + left, null, true);
             if (Build.VERSION.SDK_INT >= 24) v.setChronometerCountDown(R.id.wp_left, true);
             v.setTextViewText(R.id.wp_place, w.optString("place", ""));
+            // Drawn again just after that prayer, so the countdown moves on to the next one even with the adhan alerts off.
+            try {
+                android.app.AlarmManager am = (android.app.AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                PendingIntent pi = PendingIntent.getBroadcast(c, 2, new Intent(c, AlarmReceiver.class).setAction("com.quran.karim.WIDGET"),
+                    PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0));
+                if (am != null) am.set(android.app.AlarmManager.RTC, next.optLong("at") + 2000, pi);
+            } catch (RuntimeException ignored) { }
         } else {
             v.setTextViewText(R.id.wp_name, "مواقيت الصلاة");
             v.setTextViewText(R.id.wp_time, "افتح التطبيق وحدد مدينتك");

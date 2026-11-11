@@ -8,9 +8,12 @@ import android.content.Intent;
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context c, Intent i) {
-        if ("com.quran.karim.ALARM".equals(i.getAction())) Alarms.fire(c);
-        else Alarms.schedule(c);
-        QuranWidget.refresh(c);
-        PrayerWidget.refresh(c);
+        // Each step on its own: an exception here would kill the process, and a widget must not stop the alarms.
+        try {
+            if ("com.quran.karim.ALARM".equals(i.getAction())) Alarms.fire(c);
+            else Alarms.schedule(c);
+        } catch (RuntimeException ignored) { }
+        try { QuranWidget.refresh(c); } catch (RuntimeException ignored) { }
+        try { PrayerWidget.refresh(c); } catch (RuntimeException ignored) { }
     }
 }

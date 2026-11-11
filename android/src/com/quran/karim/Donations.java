@@ -78,8 +78,10 @@ final class Donations {
                 File d = dir(c);
                 if (count(d) >= MAX_CLIPS) return reject(c, "full");
                 String id = String.valueOf(System.currentTimeMillis());
-                write(new File(d, id + ".flac"), FlacEncoder.encode(pcm));
+                while (new File(d, id + ".flac").exists()) id = String.valueOf(Long.parseLong(id) + 1);   // two clips in one millisecond
+                // the label first: upload() lists the .flac files, so a clip is never seen without it
                 write(new File(d, id + ".json"), m.toString().getBytes("UTF-8"));
+                write(new File(d, id + ".flac"), FlacEncoder.encode(pcm));
             }
             return "";
         } catch (Exception ex) { return "error"; }
@@ -115,7 +117,11 @@ final class Donations {
      * Sends everything waiting, BATCH clips per request. Returns false when it should be tried again later
      * (no key, network, 401/429/5xx); true when the queue is empty.
      */
-    static boolean upload(Context c) {
+    // One upload at a time: a job scheduled again while one runs would send the same clips twice.
+    private static final Object UPLOADING = new Object();
+    static boolean upload(Context c) { synchronized (UPLOADING) { return upload0(c); } }
+
+    private static boolean upload0(Context c) {
         if (DonateKey.KEY.length() == 0) return true;
         String device = deviceId(c);
         while (true) {
@@ -154,15 +160,25 @@ final class Donations {
                 h.setFixedLengthStreamingMode(o.size());
                 OutputStream out = h.getOutputStream(); o.writeTo(out); out.close();
                 int code = h.getResponseCode();
+                if (code == 400 || code == 413) {
+                    // the relay refuses this batch as it is: keeping it would block every later clip behind it
+                    h.disconnect();
+                    for (File w : audio) { String nm = w.getName(); w.delete(); new File(d, nm.substring(0, nm.lastIndexOf('.')) + ".json").delete(); }
+                    reject(c, "srv:http" + code);
+                    continue;
+                }
                 if (code != 200) { h.disconnect(); return false; }
                 JSONArray res = new JSONObject(new String(readStream(h.getInputStream()), "UTF-8")).getJSONArray("results"); h.disconnect();
+                int gone = 0;
                 for (int k = 0; k < res.length(); k++) {
                     JSONObject r = res.getJSONObject(k); int i = r.getInt("i");
                     if (i < 0 || i >= audio.size()) continue;
+                    gone++;
                     if (!r.optBoolean("ok")) reject(c, "srv:" + r.optString("reason", "?"));
                     File w = audio.get(i); String nm = w.getName();
                     w.delete(); new File(d, nm.substring(0, nm.lastIndexOf('.')) + ".json").delete();
                 }
+                if (gone == 0) return false;   // an answer naming no clip: try later, never the same batch in a loop
             } catch (Exception e) { return false; }
         }
     }

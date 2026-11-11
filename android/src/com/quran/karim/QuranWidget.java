@@ -50,7 +50,7 @@ public class QuranWidget extends AppWidgetProvider {
         JSONObject pick = null;
         if (ay != null) for (int i = 0; i < ay.length(); i++) {
             JSONObject a = ay.optJSONObject(i);
-            if (a.optString("d").compareTo(today) <= 0) pick = a;
+            if (a != null && a.optString("d").compareTo(today) <= 0) pick = a;
         }
         if (pick == null && ay != null && ay.length() > 0) pick = ay.optJSONObject(0);
         if (pick != null) {
