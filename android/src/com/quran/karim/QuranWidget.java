@@ -56,7 +56,11 @@ public class QuranWidget extends AppWidgetProvider {
         if (pick != null) {
             v.setTextViewText(R.id.w_ayah, pick.optString("t"));
             v.setTextViewText(R.id.w_ref, pick.optString("r"));
-            v.setOnClickPendingIntent(R.id.w_ayah, open(c, 11, pick.optString("h")));
+            // the title and the «سورة · الآية» line open the shown ayah too (only «كمّل القراءة» goes to the last page read)
+            PendingIntent toAyah = open(c, 11, pick.optString("h"));
+            v.setOnClickPendingIntent(R.id.w_ayah, toAyah);
+            v.setOnClickPendingIntent(R.id.w_ref, toAyah);
+            v.setOnClickPendingIntent(R.id.w_title, toAyah);
         } else {
             v.setTextViewText(R.id.w_ayah, "افتح التطبيق مرة لتظهر آية اليوم هنا");
             v.setTextViewText(R.id.w_ref, "");

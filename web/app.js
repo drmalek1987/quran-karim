@@ -433,7 +433,7 @@
     }
     if (!window.EdBridge || (window.NvBridge && NvBridge.ready())) { if (!load("micTips", 0)) { micTips(again); return false; } return true; }
     if (asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; })) { toast("نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات"); return false; }
-    if (confirm(window.LANG === "en" ? "This feature needs the recitation recognition model (" + ASRM.asrnv.mb + " MB). Download it now?" : "الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟")) needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); });
+    askYes(window.LANG === "en" ? "This feature needs the recitation recognition model (" + ASRM.asrnv.mb + " MB). Download it now?" : "الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟", function () { needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); }); }, "تنزيل");
     return false;
   }
   function asrReady(m) { return !!window.EdBridge && asrPacks(m).every(function (k) { return EdBridge.state(k) === "ready"; }); }
@@ -493,7 +493,7 @@
     document.getElementById("dlAll").hidden = !any;
     box.querySelectorAll("[data-dl]").forEach(function (b) { b.onclick = function () {
       var k = b.dataset.dl, st = EdBridge.state(k);
-      if (st === "ready") { if (confirm(window.LANG === "en" ? "Delete the " + T(nm(k)) + " from the phone?" : "تحذف " + (EDS[k] ? "صفحات " : "") + nm(k) + " من الموبايل؟")) { EdBridge.remove(k); edGone(k); } }
+      if (st === "ready") { askYes(window.LANG === "en" ? "Delete the " + T(nm(k)) + " from the phone?" : "تحذف " + (EDS[k] ? "صفحات " : "") + nm(k) + " من الموبايل؟", function () { EdBridge.remove(k); edGone(k); }, "حذف", true); }
       else if (st !== "busy") { delete edPct[k]; save("edPaused", edPaused().filter(function (x) { return x !== k; })); needEd(k, function () {}); }
     }; });
     box.querySelectorAll("[data-pause]").forEach(function (b) { b.onclick = function () {
@@ -506,8 +506,10 @@
     paintEdDl();
   }
   document.getElementById("dlAll").onclick = function () {
-    if (!window.EdBridge || !confirm((window.T || String)("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا."))) return;
-    ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
+    if (!window.EdBridge) return;
+    askYes((window.T || String)("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا."), function () {
+      ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
+    }, "حذف", true);
   };
   var ED_MB = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46 };
   // 5.13: the thematic-margin images are gone from the app; free them on phones that fetched them.
@@ -529,9 +531,10 @@
     box.querySelectorAll("[data-asrdl]").forEach(function (b) { b.onclick = function () {
       var m = b.dataset.asrdl;
       if (asrReady(m)) {
-        if (!confirm(window.LANG === "en" ? "Delete the " + T(ASRM[m].name) + " from the phone?" : "تحذف " + ASRM[m].name + " من الموبايل؟")) return;
-        EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
-        paintEdDl();
+        askYes(window.LANG === "en" ? "Delete the " + T(ASRM[m].name) + " from the phone?" : "تحذف " + ASRM[m].name + " من الموبايل؟", function () {
+          EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
+          paintEdDl();
+        }, "حذف", true);
       } else { var go = function () { needAsr(m, function () { asrPick(m); paintEdDl(); }); }; if (modelOk()) go(); else consentDlg(go); }
     }; });
   }
@@ -542,9 +545,10 @@
     var b = ev.target.closest("button"); if (!b || edReady(b.dataset.v) || b.dataset.v === "text") return;
     ev.stopPropagation(); ev.preventDefault();
     var mb = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46 }[b.dataset.v], st = window.EdBridge && EdBridge.state(b.dataset.v);
-    if (st !== "busy" && edQ.indexOf(b.dataset.v) < 0 && !confirm(window.LANG === "en" ? T(EDS[b.dataset.v].name) + " is not on the phone yet. Download it (about " + mb + " MB)?" : EDS[b.dataset.v].name + " مش متنزّلة على الموبايل. تنزّلها؟ (حوالي " + mb + " ميجا)")) return;
     var ev0 = b.dataset.v;
-    needEd(ev0, function () { if (!sheet.hidden) b.click(); });   // Settings closed meanwhile: onEdDl's "download done" toast is enough, no switch behind the reader's back
+    function fetchEd() { needEd(ev0, function () { if (!sheet.hidden) b.click(); }); }   // Settings closed meanwhile: onEdDl's "download done" toast is enough, no switch behind the reader's back
+    if (st !== "busy" && edQ.indexOf(b.dataset.v) < 0) return askYes(window.LANG === "en" ? T(EDS[b.dataset.v].name) + " is not on the phone yet. Download it (about " + mb + " MB)?" : EDS[b.dataset.v].name + " مش متنزّلة على الموبايل. تنزّلها؟ (حوالي " + mb + " ميجا)", fetchEd, "تنزيل");
+    fetchEd();
   }, true);
   document.querySelectorAll("#mode button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -619,8 +623,9 @@
   }
   document.querySelectorAll("#donateSet button").forEach(function (b) {
     b.addEventListener("click", function () {
-      if (b.dataset.v === "1" && !confirm((window.T || String)("توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟"))) return;
-      save("donate", +b.dataset.v); donatePaint(); donateSend();
+      function setDonate() { save("donate", +b.dataset.v); donatePaint(); donateSend(); }
+      if (b.dataset.v === "1") return askYes((window.T || String)("توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟"), setDonate, "أوافق");
+      setDonate();
     });
   });
   document.querySelectorAll("#donateMob button").forEach(function (b) {
@@ -630,9 +635,10 @@
   document.querySelectorAll("[data-donatedel]").forEach(function (b) { b.onclick = donateDelete; });
   function donateDelete() {
     if (!window.NvBridge || !NvBridge.forget) return toast("المسح متاح في التطبيق على الموبايل بس");
-    if (!confirm((window.T || String)("تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع."))) return;
-    save("donate", 0); donatePaint(); toast("بيمسح…");
-    try { NvBridge.forget(load("donateId", "")); } catch (e) { toast("المسح ما نجحش، جرّب تاني"); }
+    askYes((window.T || String)("تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع."), function () {
+      save("donate", 0); donatePaint(); toast("بيمسح…");
+      try { NvBridge.forget(load("donateId", "")); } catch (e) { toast("المسح ما نجحش، جرّب تاني"); }
+    }, "حذف", true);
   }
   window.onDonateForget = function (ok) {
     if (ok) save("donateId", "");
@@ -697,7 +703,7 @@
   document.querySelectorAll(".sheet-body").forEach(function (el) { elastic(el, true); });
   elastic(document.getElementById("index"), true, document.getElementById("indexBody"));
   window.qBack = function () {
-    var d = document.querySelector(".dlg-back");
+    var ds = document.querySelectorAll(".dlg-back"), d = ds[ds.length - 1];   // the topmost one (a confirm can sit over the note dialog)
     if (d) { d.remove(); return true; }
     if (!sheet.hidden) { sheet.hidden = true; return true; }
     if (!indexSheet.hidden) { indexSheet.hidden = true; return true; }
@@ -2903,7 +2909,7 @@
     var inp = d.querySelector("textarea"); inp.value = notes[k] || ""; inp.focus();
     function put(v) { notes = load("notes", {}); if (v) notes[k] = v; else delete notes[k]; save("notes", notes); d.remove(); toast(v ? "حُفظت الملاحظة" : "حُذفت الملاحظة"); if (done) done(); }
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
-    if (d.querySelector(".dlg-del")) d.querySelector(".dlg-del").onclick = function () { if (confirm((window.T || String)("تحذف الملاحظة؟"))) put(""); };
+    if (d.querySelector(".dlg-del")) d.querySelector(".dlg-del").onclick = function () { askYes((window.T || String)("تحذف الملاحظة؟"), function () { put(""); }, "حذف", true); };
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     d.querySelector("form").onsubmit = function (e) { e.preventDefault(); put(inp.value.trim()); };
   }
@@ -2963,6 +2969,18 @@
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     d.querySelector("form").onsubmit = function (e) { e.preventDefault(); var v = inp.value.trim(); d.remove(); if (v) done(v); };
+  }
+  function askYes(text, done, okLabel, danger, cancel) {
+    var d = el('<div class="dlg-back"><div class="dlg"><p class="dlg-msg"></p><div class="dlg-btns">' +
+      '<button type="button" class="' + (danger ? "dlg-del" : "dlg-ok") + ' dlg-yes"></button><button type="button" class="dlg-no">إلغاء</button></div></div></div>').firstChild;
+    d.querySelector(".dlg-msg").textContent = text;
+    d.querySelector(".dlg-yes").textContent = okLabel || "تمام";
+    document.body.appendChild(d);
+    function no() { d.remove(); if (cancel) cancel(); }
+    d.querySelector(".dlg-yes").onclick = function () { d.remove(); done(); };
+    d.querySelector(".dlg-no").onclick = no;
+    d.onclick = function (e) { if (e.target === d) no(); };
+    d.querySelector(".dlg-no").focus();
   }
   function plan() {
     var k = load(edKey("khatma"), null); if (!k) return null;
@@ -3253,7 +3271,7 @@
       var li = e.target.closest("li"); if (!li) return; var i = +li.dataset.i, M = marks(), m = M[i];
       if (e.target.closest(".mk-go")) { if (mode === "pages") openAyahPage(m.s, m.a); else go(m.s, m.a); }
       else if (e.target.closest(".mk-ed")) askText("اسم العلامة", m.n, function (v) { M[i].n = v; save("marks", M); showKhatma(); });
-      else if (e.target.closest(".mk-del")) { if (!confirm((window.T || String)("تحذف العلامة؟"))) return; M.splice(i, 1); save("marks", M); showKhatma(); toast("حُذفت العلامة"); }
+      else if (e.target.closest(".mk-del")) { askYes((window.T || String)("تحذف العلامة؟"), function () { M.splice(i, 1); save("marks", M); showKhatma(); toast("حُذفت العلامة"); }, "حذف", true); }
     };
   }
 
@@ -4208,8 +4226,8 @@
         } catch (e) { toast("الكود ده مش مفهوم"); }
       }, 20000);
     };
-    document.getElementById("famReset").onclick = function () { if (!confirm((window.T || String)("نبدأ ختمة جديدة بنفس الأفراد؟"))) return; F.members.forEach(function (m) { m.d = []; }); put(); };
-    view.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = function () { if (confirm(window.LANG === "en" ? "Remove " + F.members[+b.dataset.x].n + "?" : "نشيل " + F.members[+b.dataset.x].n + "؟")) { F.members.splice(+b.dataset.x, 1); put(); } }; });
+    document.getElementById("famReset").onclick = function () { askYes((window.T || String)("نبدأ ختمة جديدة بنفس الأفراد؟"), function () { F.members.forEach(function (m) { m.d = []; }); put(); }); };
+    view.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = function () { askYes(window.LANG === "en" ? "Remove " + F.members[+b.dataset.x].n + "?" : "نشيل " + F.members[+b.dataset.x].n + "؟", function () { F.members.splice(+b.dataset.x, 1); put(); }, "حذف", true); }; });
     view.querySelectorAll(".fam-j button").forEach(function (b) { b.onclick = function () {
       var m = F.members[+b.dataset.m], j = +b.dataset.j, k = m.d.indexOf(j);
       if (k >= 0) m.d.splice(k, 1); else m.d.push(j);
@@ -4292,7 +4310,7 @@
       Object.keys(S).forEach(function (n) { S[n].sort(function (a, b) { return parseDay(b.d) - parseDay(a.d); }); S[n] = S[n].slice(0, 100); });
       save("students", S); showStudents(); toast(added ? "اتضافت " + ar(added) + " نتيجة" : "النتيجة دي موجودة قبل كده");
     };
-    view.querySelectorAll(".tc-del").forEach(function (b) { b.onclick = function () { if (!confirm(window.LANG === "en" ? "Remove " + b.dataset.n + "?" : "نشيل " + b.dataset.n + "؟")) return; delete S[b.dataset.n]; save("students", S); showStudents(); }; });
+    view.querySelectorAll(".tc-del").forEach(function (b) { b.onclick = function () { askYes(window.LANG === "en" ? "Remove " + b.dataset.n + "?" : "نشيل " + b.dataset.n + "؟", function () { delete S[b.dataset.n]; save("students", S); showStudents(); }, "حذف", true); }; });
   }
 
   // ---------- فهرس مواضيع القرآن ----------
@@ -5007,10 +5025,13 @@
     view.querySelectorAll(".tsb-ph button[data-i]").forEach(function (b) { b.onclick = function (e) {
       var x = e.target.closest(".tsb-x");
       if (x) {
-        var k = +x.dataset.x; if (!confirm(window.LANG === "en" ? "Delete «" + ALL[k] + "»?" : "تحذف «" + ALL[k] + "»؟")) return;
-        st.mine.splice(k - TASBIH.length, 1);
-        var c = {}; Object.keys(st.c).forEach(function (j) { j = +j; if (j < k) c[j] = st.c[j]; else if (j > k) c[j - 1] = st.c[j]; }); st.c = c;   // counts follow their phrases
-        st.i = st.i === k ? 0 : st.i > k ? st.i - 1 : st.i; save("tasbih", st); showTasbih(); return;
+        var k = +x.dataset.x;
+        askYes(window.LANG === "en" ? "Delete «" + ALL[k] + "»?" : "تحذف «" + ALL[k] + "»؟", function () {
+          st.mine.splice(k - TASBIH.length, 1);
+          var c = {}; Object.keys(st.c).forEach(function (j) { j = +j; if (j < k) c[j] = st.c[j]; else if (j > k) c[j - 1] = st.c[j]; }); st.c = c;   // counts follow their phrases
+          st.i = st.i === k ? 0 : st.i > k ? st.i - 1 : st.i; save("tasbih", st); showTasbih();
+        }, "حذف", true);
+        return;
       }
       st.i = +b.dataset.i; paint(); }; });
     document.getElementById("tsbAdd").onclick = function () {

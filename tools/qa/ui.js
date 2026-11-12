@@ -29,6 +29,8 @@ const assert = (c, m) => { if (!c) throw new Error(m || 'assert'); return true; 
 async function go(h, ms = 700) { await ev(h => { location.hash = h; }, h); await wait(ms); }
 async function fresh(ctx, vp) {
   p = await ctx.newPage(); await p.setViewportSize(vp || { width: 390, height: 844 }); await p.addInitScript(() => { window.QA_NOFS = true; try { if (!localStorage.getItem('q.micTips') && !window.QA_TIPS) localStorage.setItem('q.micTips', '1'); } catch (e) {} });
+  // app-styled confirm (askYes): accepted as soon as it opens, unless a check sets window.QA_KEEP_DLG
+  await p.addInitScript(() => { new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) { if (n.nodeType === 1 && n.querySelector) { const y = n.matches('.dlg-back') ? n.querySelector('.dlg-yes') : null; if (y) setTimeout(() => { if (!window.QA_KEEP_DLG && y.isConnected) y.click(); }, 0); } } }).observe(document, { childList: true, subtree: true }); });   // document: <html> is not there yet when an init script runs
   p.on('pageerror', e => errs.push(e.message));
   // confirm() before deleting: accepted, unless a check answers the dialog itself first
   p.on('dialog', d => setTimeout(() => d.accept().catch(() => {}), 0));
@@ -262,7 +264,11 @@ async function fresh(ctx, vp) {
   await check(G12, 'السبحة بتعد وبتحفظ وبتهتز بشكل مختلف عند الهدف', async () => { await go('#/tasbih', 600); await ev(() => AppBridge.buzzes = []); for (let i = 0; i < 33; i++) await p.click('#tsbBtn');
     const r = await ev(() => [document.getElementById('tsbN').textContent, AppBridge.buzzes[AppBridge.buzzes.length - 1]]); await p.click('#tsbReset'); return assert(r[0] === '٣٣' && r[1] === 'p:700', JSON.stringify(r)); });
   await check(G12, 'مواقيت الصلاة للقاهرة (6 مواعيد بالترتيب)', async () => { await go('#/prayer', 800);
-    return ev(() => { const t = [...document.querySelectorAll('.pr-row b')].map(x => x.textContent); return t.length === 6 && !!document.querySelector('.pr-next b').textContent && !document.querySelector('.pr-note'); }); });
+    // on a failure the state goes to the report: this check failed twice in a 4-edition run (harmain 11-11, shamarly 12-11) and passes alone
+    const r = await ev(() => { const t = [...document.querySelectorAll('.pr-row b')].map(x => x.textContent), nx = document.querySelector('.pr-next b'), nt = document.querySelector('.pr-note');
+      return { ok: t.length === 6 && !!(nx && nx.textContent) && !nt, rows: t.length, next: nx && nx.textContent, note: nt && nt.textContent.slice(0, 60), hash: location.hash, loc: localStorage.getItem('q.qiblaLoc'),
+        prayer: (localStorage.getItem('q.prayer') || '').slice(0, 80), dlg: document.querySelectorAll('.dlg-back').length, view: document.getElementById('view').innerText.slice(0, 80) }; });
+    return assert(r.ok, JSON.stringify(r)); });
   await check(G12, 'تنبيهات الأذان والتذكيرات بتتجهّز للموبايل', async () => { await p.click('.rem-sw input[data-r=m] + span'); await wait(2500);
     const al = await ev(() => AppBridge.alarms || []); await p.click('.rem-sw input[data-r=m] + span'); await wait(300);
     return assert(al.filter(e => e.kind === 'adhan').length >= 140 && al.some(e => e.title === 'أذكار الصباح'), al.length); });
@@ -392,7 +398,7 @@ async function fresh(ctx, vp) {
     return assert(order && closed && hint, JSON.stringify([order, closed, hint])); });
   await check(G17, 'أقسام الإعدادات ليها شريط ملوّن يميّزها', async () => { await p.click('#btnSettings'); const r = await ev(() => { const g = document.querySelector('#settings .set-group'); const c = getComputedStyle(g); return [c.backgroundColor, c.borderInlineStartWidth]; }); await closeS(); return assert(r[0] !== 'rgba(0, 0, 0, 0)' && parseFloat(r[1]) >= 3, JSON.stringify(r)); });
   await check(G17, 'مايك الصفحة بيستخبى والإعدادات مفتوحة', async () => { await go('#/p/50', 900); await p.click('#btnSettings'); await wait(150); const h = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); await closeS(); await wait(150); const v = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); return assert(h === 'none' && v !== 'none', h + ',' + v); });
-  await check(G17, 'حذف علامة بيسأل الأول', async () => { await ev(() => localStorage.setItem('q.marks', JSON.stringify([{ s: 2, a: 5, n: 'أ' }]))); await go('#/khatma', 600); let asked = false; p.once('dialog', d => { asked = true; d.dismiss().catch(() => {}); }); await p.click('.marks li:first-child .mk-del'); await wait(200); const n = await ev(() => document.querySelectorAll('.marks li').length); return assert(asked && n === 1, asked + ',' + n); });
+  await check(G17, 'حذف علامة بيسأل الأول', async () => { await ev(() => localStorage.setItem('q.marks', JSON.stringify([{ s: 2, a: 5, n: 'أ' }]))); await go('#/khatma', 600); await ev(() => { window.QA_KEEP_DLG = true; }); await p.click('.marks li:first-child .mk-del'); await wait(200); const msg = await ev(() => { const m = document.querySelector('.dlg-msg'); return m ? m.textContent : ''; }); const n1 = await ev(() => document.querySelectorAll('.marks li').length); await p.click('.dlg-yes'); await wait(200); const n2 = await ev(() => document.querySelectorAll('.marks li').length); await ev(() => { window.QA_KEEP_DLG = false; }); return assert(msg.includes('تحذف العلامة') && n1 === 1 && n2 === 0, msg + ',' + n1 + ',' + n2); });
   await check(G17, 'الإحصائيات: الصفحة بتتحسب مرة واحدة حتى لو اتفتحت تاني', async () => { await ev(() => localStorage.removeItem('q.stats')); await go('#/p/60', 500); await go('#/p/61', 500); await go('#/p/60', 500);
     const r = await ev(() => { const a = JSON.parse(localStorage.getItem('q.stats'))[Object.keys(JSON.parse(localStorage.getItem('q.stats')))[0]]; return [a.length, new Set(a).size, a.every(x => x > 1000)]; }); return assert(r[0] === r[1] && r[2] && r[0] > 0, JSON.stringify(r)); });
   await check(G17, 'السبحة: ذكر من عندك وعدد من اختيارك', async () => { await ev(() => localStorage.removeItem('q.tasbih')); await go('#/tasbih', 600);
@@ -498,11 +504,12 @@ async function fresh(ctx, vp) {
   const G511 = 'نسخة 5.11';
   await check(G511, 'الإعدادات: «wifi فقط» بدل «واي فاي بس»', () => ev(() => { const t = document.getElementById('donateMob').textContent + document.getElementById('donateHint').textContent; return t.includes('wifi فقط') && !t.includes('واي فاي'); }));
   await check(G511, 'مفيش اختيار موديل: NVIDIA بس، والمايك من غير النموذج بيعرض التحميل', async () => { await go('#/p/2', 900);
-    const r = await ev(() => { const eb = window.EdBridge, nb = window.NvBridge, rb = window.ReciteBridge, cf = window.confirm; let asked = '', started = false;
+    const r = await ev(() => { const eb = window.EdBridge, nb = window.NvBridge, rb = window.ReciteBridge; let asked = '', started = false; window.QA_KEEP_DLG = true;
       window.EdBridge = { state: () => 'none', remove() {}, get() {} }; window.NvBridge = { ready: () => false, start() { started = true; }, stop() {} };
-      window.ReciteBridge = { start() { started = true; }, stop() {}, setHints() {} }; window.confirm = m => { asked = m; return false; };
+      window.ReciteBridge = { start() { started = true; }, stop() {}, setHints() {} }; 
       localStorage.setItem('q.modelConsent', '{"v":1,"t":1}'); document.getElementById('rdMic').click(); localStorage.removeItem('q.modelConsent');
-      window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; window.confirm = cf; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge;
+      const dm = document.querySelector('.dlg-msg'); asked = dm ? dm.textContent : ''; document.querySelectorAll('.dlg-back').forEach(x => x.remove()); window.QA_KEEP_DLG = false;
+      window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge;
       return [!!document.getElementById('asrSet'), /نموذج التعرّف على التلاوة/.test(asked), started]; });
     return assert(!r[0] && r[1] && !r[2], JSON.stringify(r)); });
   await check(G511, 'زر «امسح تسجيلاتي» في مكان واحد بس: جوه «الخصوصية وتسجيلات الصوت» تحت التبرّع، وخطه صغير', async () => { const r = await ev(() => { const b = [...document.querySelectorAll('[data-donatedel]')], d = document.getElementById('donateDel'); const fs = parseFloat(getComputedStyle(d).fontSize), base = parseFloat(getComputedStyle(d.parentNode).fontSize);

@@ -166,7 +166,7 @@
     "بدون تكرار": "No repeat", "تكرار كل آية # مرات": "Repeat each verse # times", "تكرار الآية بلا توقف": "Repeat the verse non-stop", "تكرار الآية": "Repeat verse",
     "البسملة": "Basmala", "إيقاف مؤقت": "Pause", "جارٍ الحفظ…": "Saving…", "كُشفت كل الآيات": "All verses shown", "اكشف التالية": "Show next", "الكل": "All", "إخفاء": "Hide",
     // bookmarks and khatma
-    "اسم العلامة": "Bookmark name", "حفظ": "Save", "إلغاء": "Cancel", "حُذفت العلامة": "Bookmark deleted", "اضغط مرة أخرى للتأكيد": "Tap again to confirm",
+    "تمام": "OK", "أوافق": "I agree", "اسم العلامة": "Bookmark name", "حفظ": "Save", "إلغاء": "Cancel", "حُذفت العلامة": "Bookmark deleted", "اضغط مرة أخرى للتأكيد": "Tap again to confirm",
     "الختمة": "Khatma", "خطة الختمة": "Khatma plan", "العلامات": "Bookmarks", "ابدأ الختمة": "Start the khatma", "# يومًا": "# days",
     "اختر في كم يوم تريد أن تختم القرآن، ويحسب لك التطبيق ورد كل يوم ويتابع تقدمك وأنت تقلب الصفحات.": "Choose how many days you want to complete the Quran in. The app works out each day's portion and follows your progress as you turn the pages.",
     "أو عدد آخر من الأيام:": "Or another number of days:", "من أول المصحف": "From the beginning", "من آخر صفحة قرأتها (#)": "From the last page you read (#)",

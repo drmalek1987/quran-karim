@@ -29,6 +29,9 @@ public class MainActivity extends Activity {
     private ReciteBridge recite;
     private NvAsr nv;
     private AppBridge app;
+    /** A screen asked for (widget, notification) while the page was still loading; opened once it has loaded. */
+    private String pendingHash;
+    private boolean loaded;
 
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
@@ -86,6 +89,11 @@ public class MainActivity extends Activity {
             }
         });
         web.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                loaded = true;
+                if (pendingHash != null) { String h = pendingHash; pendingHash = null; openHash(h); }
+            }
             // Recitation audio: served from the copy on the phone, downloaded and kept the first time.
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
@@ -160,8 +168,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent i) {
         super.onNewIntent(i);
+        setIntent(i);
         String hash = i.getStringExtra("hash");
-        if (hash != null && hash.startsWith("#/")) web.evaluateJavascript("location.hash=" + org.json.JSONObject.quote(hash), null);
+        if (hash == null || !hash.startsWith("#/")) return;
+        // The system closed the app in the background and is bringing the old screen back: the page is not there yet,
+        // and a hash set now is lost (the widget's «كمّل القراءة» opened the last screen instead of its page).
+        if (loaded) openHash(hash); else pendingHash = hash;
+    }
+
+    // The same hash again still goes there (the vertical mushaf may have been scrolled away from that page).
+    private void openHash(String hash) {
+        String h = org.json.JSONObject.quote(hash);
+        web.evaluateJavascript("if(location.hash===" + h + ")window.dispatchEvent(new HashChangeEvent('hashchange'));else location.hash=" + h, null);
     }
 
     @Override
