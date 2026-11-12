@@ -649,3 +649,11 @@ NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths,
 - A first run after the `askYes` change gave 23 FAIL on kfgqpc: the QA's auto-accept observer was attached to `document.documentElement`, which does not exist yet when an init script runs, so the first confirm dialog stayed open over the page. Observer now on `document`; the three editions above passed with it. Not an app fault.
 - shamarly's 6 FAIL = the intermittent prayer-times group again (first seen on harmain 11-11): «مواقيت الصلاة للقاهرة» found no rows, then 30 alarms and no adhan, no hijri line, three follow-ups. It looks like the stored location is missing for that stretch (it comes back at the «مع المغرب» check that sets it again), but app.js never removes a key and no earlier check touches it; no JS error was recorded. Alone the screen renders (6 rows, next = الظهر) and it works on the phone. Cause NOT found. The check now writes rows/next/note/hash/q.qiblaLoc/q.prayer/open dialogs to the report when it fails, for the next time.
 - APK installed on the user's phone (M2007J3SY) before the QA ended, at the user's request to unplug; the app code did not change after that build.
+
+## Google Play build QA (2026-11-12, 5.20 PLAY=1, quran-karim-v5.20-play.aab, unsigned: upload key not created yet)
+- Changes under test: ONNX Runtime .so packaged (NvAsr `System.loadLibrary`), PLAY build drops Haramain / adhan recordings / Darwish / tanwir (`NO_BOOKS`, `NO_ADHAN_AUDIO`).
+- data.py 28 PASS 0 FAIL. ui.js (flags at defaults): kfgqpc 290/0 · shamarly 283/0 · kfold 283 with 1 FAIL (S3 «سمّع التكملة» voice tie, mutashabihat, untouched code) → re-run below.
+- `bundletool validate` OK (1.18.3); universal APK from the AAB installed on Phone_API35 and launched, no crash in logcat; prayer rows show «نغمة المنبّه»; ayah tabs without «البلاغة», tafsir list without التحرير والتنوير.
+- Play APK listing: lib/arm64-v8a/{libonnxruntime,libonnxruntime4j_jni}.so present, no res/raw/adhan_*, no books/darwish|tanwir, no harmain pages; ELF p_align 0x4000 (16 KB OK).
+- Not testable on the x86_64 emulator: the recogniser with the packaged arm64 libs → needs the user's phone (internal test track).
+- kfold re-run alone: 283/0 → the S3 FAIL was the known intermittent voice-tie flake. Total: 0 FAIL on kfgqpc, kfold, shamarly + data.py.

@@ -15,8 +15,8 @@ wrapped by a tiny native Android shell in `android/` (WebView + Java bridges). N
   `MainActivity` (WebView, back handling, edge-to-edge), `EdStore` (downloads + serves edition zips), `AudioCache`
   (caches everyayah.com audio), `QiblaBridge`, `AppBridge` (clipboard, haptics, share), `NvAsr` (native NVIDIA FastConformer
   via ONNX Runtime), `ReciteBridge`/`SpeechBridge` (mic), `Alarms`/`AlarmReceiver` (adhan), `QuranWidget`/`PrayerWidget`.
-  `res/raw/adhan_*.ogg` are the adhan sounds; `libs/` holds onnxruntime + brotli jars; `jniLibs/` is empty in the APK
-  (the ORT `.so` files ship inside the `asrnv.zip` model download).
+  `res/raw/adhan_*.ogg` are the adhan sounds; `libs/` holds onnxruntime + brotli jars; `jniLibs/arm64-v8a` holds the ONNX
+  Runtime `.so` files, packaged in the APK/AAB since 5.21 (Google Play forbids downloaded native code; the model packs are data only).
 - `data/` – source texts (Uthmani text, search text, page maps, ayah rects). `tools/make_data.py` builds `web/quran-data.js`.
 - `tools/` – generators and QA: `kfgqpc/` (King Fahd pages from QPC V2 fonts), `shamarly/`, `kfold/`, `page_geometry/`
   (ayah boxes on scans, tajweed layers), `make_books.py`, `make_tajweed*.py`, `asr/` (model training/export kit for a GPU PC,
@@ -54,7 +54,11 @@ uv venv .venv --python 3.11 && uv pip install --python .venv\Scripts\python.exe 
 ```
 - Finds `ANDROID_HOME` (default `%LOCALAPPDATA%\Android\Sdk`), build-tools 36.0.0 (`BUILD_TOOLS=`), and android-34 or the
   newest installed platform jar (android-37 works). Creates `debug.keystore` on first run.
-- The `W zip: WARNING: header mismatch` lines while aligning are harmless (the APK verifies); `build-aab.sh` is not ported yet.
+- The `W zip: WARNING: header mismatch` lines while aligning are harmless (the APK verifies).
+- Play bundle: `$env:PLAY="1"` then `build-win.py` then `build-aab-win.py` → `quran-karim-v<ver>-play.aab` (bundletool pinned + SHA-256
+  checked into `tools/bin/`, signed with `keys/upload.jks`, alias `upload`, password from `QK_UPLOAD_PASS` or `keys/upload-key.txt`).
+  `PLAY=1` drops content without a licence (Haramain, adhan recordings, Darwish, tanwir; `PLAY_KEEP=` keeps some). Upload steps:
+  `store/PLAY-UPLOAD-GUIDE.md`, policy audit: `plans/play-store-plan.md`.
 - Emulator: use the `Phone_API35` AVD (API 35 google_apis x86_64, 4 GB RAM, swiftshader GPU):
   `emulator -avd Phone_API35 -no-snapshot`, then `adb install -r --no-incremental quran-karim-vX.Y.apk`. The API 37 AVDs on
   this PC are unstable (surfaceflinger aborts in GoldfishMapper and restarts system_server; installs fail with "Broken pipe").

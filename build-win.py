@@ -51,10 +51,24 @@ def main():
     for f in ("icons/icon.svg", "sw.js", "manifest.webmanifest"):
         p = os.path.join(W, f)
         if os.path.exists(p): os.remove(p)
-    # PLAY=1: the Google Play build, without the scanned edition (no publishing licence) and its tajweed layer.
+    # PLAY=1: the Google Play build, without content that has no publishing licence (store/licences-status.md):
+    # the scanned Haramain edition + its tajweed layer, Darwish i'rab/balagha, Ibn Ashur's tanwir, the adhan recordings.
+    # PLAY_KEEP=harmain,darwish,tanwir,adhan keeps the ones whose written permission has arrived.
+    keep = set(filter(None, os.environ.get("PLAY_KEEP", "").split(",")))
+    drop_books = [b for b in ("darwish", "tanwir") if b not in keep]
+    no_adhan = PLAY and "adhan" not in keep
+    res_dir = os.path.join(HERE, "android", "res")
     if PLAY:
-        for d in ("pages", "tjpages", "editions/harmain-w"): shutil.rmtree(os.path.join(W, d), ignore_errors=True)
-        with open(os.path.join(W, "flags.js"), "w", newline="\n") as f: f.write("window.NO_HARMAIN = true;\n")
+        if "harmain" not in keep:
+            for d in ("pages", "tjpages", "editions/harmain-w"): shutil.rmtree(os.path.join(W, d), ignore_errors=True)
+        for b in drop_books: shutil.rmtree(os.path.join(W, "books", b), ignore_errors=True)
+        # books/index.js stays complete; web/app.js hides the books named in NO_BOOKS
+        if no_adhan:
+            res_dir = os.path.join(OUT, "res-play"); shutil.copytree(os.path.join(HERE, "android", "res"), res_dir)
+            for f in glob.glob(os.path.join(res_dir, "raw", "adhan_*")): os.remove(f)
+        with open(os.path.join(W, "flags.js"), "w", newline="\n") as f:
+            f.write("window.NO_HARMAIN = %s;\nwindow.NO_BOOKS = %s;\nwindow.NO_ADHAN_AUDIO = %s;\n" % (
+                "true" if "harmain" not in keep else "false", json.dumps(drop_books), "true" if no_adhan else "false"))
 
     # Page images are not in the APK: one zip per edition for the release the app downloads from (EdStore.java).
     ZD = os.path.join(OUT, "editions-zips"); os.makedirs(ZD)
@@ -72,7 +86,7 @@ def main():
 
     run(sys.executable, "-I", os.path.join(HERE, "tools", "brotli_books.py"), os.path.join(W, "books"))
 
-    run(bt("aapt2"), "compile", "--dir", os.path.join(HERE, "android", "res"), "-o", os.path.join(OUT, "res.zip"))
+    run(bt("aapt2"), "compile", "--dir", res_dir, "-o", os.path.join(OUT, "res.zip"))
     unsigned = os.path.join(OUT, "unsigned.apk")
     run(bt("aapt2"), "link", "-o", unsigned, "-I", ajar,
         "--manifest", os.path.join(HERE, "android", "AndroidManifest.xml"),
@@ -100,10 +114,14 @@ def main():
     run(bt("d8"), "--release", "--min-api", "21", "--lib", ajar, "--output", OUT, "@" + cls_args)
     with zipfile.ZipFile(unsigned, "a", zipfile.ZIP_DEFLATED) as z:
         for dex in sorted(glob.glob(os.path.join(OUT, "classes*.dex"))): z.write(dex, os.path.basename(dex))
-    # ONNX Runtime native libraries (NvAsr.java) are not in the APK: they ship inside the asrnv model pack.
+    # ONNX Runtime native libraries (NvAsr.java): packaged in the app (Google Play forbids downloaded native code),
+    # arm64-v8a only, stored uncompressed and 16 KB aligned (the ELF segments are already 16 KB aligned).
+    with zipfile.ZipFile(unsigned, "a", zipfile.ZIP_STORED) as z:
+        for so in sorted(glob.glob(os.path.join(HERE, "android", "jniLibs", "arm64-v8a", "*.so"))):
+            z.write(so, "lib/arm64-v8a/" + os.path.basename(so))
 
     aligned = os.path.join(OUT, "aligned.apk")
-    run(bt("zipalign"), "-f", "-p", "4", unsigned, aligned)
+    run(bt("zipalign"), "-f", "-P", "16", "4", unsigned, aligned, stdout=subprocess.DEVNULL)
 
     if not os.path.exists(KEYSTORE):
         run(jdk("keytool"), "-genkeypair", "-keystore", KEYSTORE, "-storepass", "android", "-keypass", "android",

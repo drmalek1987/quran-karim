@@ -3835,9 +3835,15 @@
     return c;
   }
   // Muezzin recordings shipped in android/res/raw/adhan_<id>.ogg; "alarm" = the phone's alarm tone, "silent" = notification only.
-  var ADHAN_VOICES = [["makkah", "الحرم المكي (السعودية)"], ["malki", "حمدان المالكي (السعودية)"], ["zahrani", "منصور الزهراني (السعودية)"], ["qatami", "ناصر القطامي (السعودية)"],
+  var ADHAN_VOICES0 = [["makkah", "الحرم المكي (السعودية)"], ["malki", "حمدان المالكي (السعودية)"], ["zahrani", "منصور الزهراني (السعودية)"], ["qatami", "ناصر القطامي (السعودية)"],
     ["basit", "عبد الباسط عبد الصمد (مصر)"], ["menshawy", "محمد صديق المنشاوي (مصر)"], ["refaat", "محمد رفعت (مصر)"], ["afasy", "مشاري العفاسي (الكويت)"],
     ["chebae", "أذان الفجر، مالك شيبة (المغرب)"], ["alarm", "نغمة المنبّه في الموبايل"], ["silent", "إشعار بدون صوت"]];
+  // Play build (NO_ADHAN_AUDIO): no recordings shipped, so only the phone alarm tone and silent remain.
+  var ADHAN_VOICES = window.NO_ADHAN_AUDIO ? ADHAN_VOICES0.filter(function (x) { return x[0] === "alarm" || x[0] === "silent"; }) : ADHAN_VOICES0;
+  function voiceOf(cfg, k) {
+    var v = cfg.voice[k] || "makkah";
+    return ADHAN_VOICES.some(function (x) { return x[0] === v; }) ? v : window.NO_ADHAN_AUDIO ? "alarm" : v;
+  }
   function nextPrayer(loc, cfg) {
     var now = new Date(), t = prayerTimes(now, loc[0], loc[1], cfg.method, cfg.hanafi);
     for (var i = 0; i < PRAYERS.length; i++) if (PRAYERS[i][0] !== "sunrise" && t[PRAYERS[i][0]] > now) return { k: PRAYERS[i][1], at: t[PRAYERS[i][0]] };
@@ -3903,7 +3909,7 @@
         var t = prayerTimes(day, loc[0], loc[1], cfg.method, cfg.hanafi);
         PRAYERS.forEach(function (p) {
           if (p[0] === "sunrise") return;
-          if (cfg.adhan[p[0]]) ev.push({ at: t[p[0]].getTime(), kind: "adhan", v: cfg.voice[p[0]] || "makkah", title: "صلاة " + p[1], text: "حان الآن موعد أذان " + p[1] + (loc[2] ? " حسب توقيت " + loc[2] : "") + ".", hash: "#/prayer" });
+          if (cfg.adhan[p[0]]) ev.push({ at: t[p[0]].getTime(), kind: "adhan", v: voiceOf(cfg, p[0]), title: "صلاة " + p[1], text: "حان الآن موعد أذان " + p[1] + (loc[2] ? " حسب توقيت " + loc[2] : "") + ".", hash: "#/prayer" });
           var pm = cfg.pre[p[0]]; if (pm) ev.push({ at: t[p[0]].getTime() - pm * 60000, kind: "rem", title: "باقي " + ar(pm) + " دقيقة على " + p[1], text: "أذان " + p[1] + " الساعة " + hm(t[p[0]]) + "، استعد للصلاة.", hash: "#/prayer" });
         });
       }
@@ -3914,7 +3920,7 @@
       ev.push({ at: new Date(bt.getUTCFullYear(), bt.getUTCMonth(), bt.getUTCDate(), 20, 0).getTime(), kind: "rem", title: "نسخة احتياطية",
         text: "عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.", hash: "#/backup" }); }
     // «جرّب الأذان»: one adhan a minute from now, with the Fajr muezzin, to check the phone lets it through.
-    if (testAlarmAt > Date.now()) ev.push({ at: testAlarmAt, kind: "adhan", v: cfg.voice.fajr || "makkah", title: "تجربة الأذان", text: "لو سامع ده، تنبيه الأذان شغال على موبايلك.", hash: "#/prayer" });
+    if (testAlarmAt > Date.now()) ev.push({ at: testAlarmAt, kind: "adhan", v: voiceOf(cfg, "fajr"), title: "تجربة الأذان", text: "لو سامع ده، تنبيه الأذان شغال على موبايلك.", hash: "#/prayer" });
     try { AppBridge.setAlarms(JSON.stringify(ev.filter(function (e) { return e.at > Date.now(); }))); } catch (e) {}
   }
   var testAlarmAt = 0;
@@ -3961,7 +3967,7 @@
       html += '<div class="pr-list">' + PRAYERS.map(function (p) {
         var k = p[0], isNext = p[1] === nx.k && nx.at - t[k] === 0;
         if (k === "sunrise") return '<div class="pr-row sun"><span>' + p[1] + "</span><b>" + hm(t[k]) + "</b><i></i></div>";
-        var on = cfg.adhan[k], v = cfg.voice[k] || "makkah", pm = cfg.pre[k] || 0, vn = (ADHAN_VOICES.filter(function (x) { return x[0] === v; })[0] || ADHAN_VOICES[0])[1].split(" (")[0].split("،")[0];
+        var on = cfg.adhan[k], v = voiceOf(cfg, k), pm = cfg.pre[k] || 0, vn = (ADHAN_VOICES.filter(function (x) { return x[0] === v; })[0] || ADHAN_VOICES[0])[1].split(" (")[0].split("،")[0];
         return '<div class="pr-item' + (open === k ? " open" : "") + '" data-k="' + k + '"><div class="pr-row' + (isNext ? " next" : "") + '" data-open="' + k + '"><span>' + p[1] +
           '<small>' + (on ? vn : "الأذان مقفول") + (pm ? " · تذكير قبله " + ar(pm) + " د" : "") + "</small></span><b>" + hm(t[k]) + "</b>" +
           '<button class="pr-bell' + (on ? " on" : "") + '" data-p="' + k + '" aria-label="تنبيه ' + p[1] + '">' + ic("bell") + "</button></div>" +
@@ -3997,7 +4003,7 @@
       view.querySelectorAll(".pr-item.open").forEach(function (x) { x.classList.remove("open"); }); if (!was) it.classList.add("open"); showPrayer.open = was ? "" : k; }; });
     var playing = "";
     view.querySelectorAll(".pv-play").forEach(function (b) { b.onclick = function () {
-      var v = cfg.voice[b.dataset.p] || "makkah", stop = playing === b.dataset.p;
+      var v = voiceOf(cfg, b.dataset.p), stop = playing === b.dataset.p;
       view.querySelectorAll(".pv-play").forEach(function (x) { x.classList.remove("on"); });
       playing = stop ? "" : b.dataset.p; if (!stop) b.classList.add("on");
       try { if (window.AppBridge && AppBridge.previewAdhan) AppBridge.previewAdhan(stop ? "" : v); else toast("صوت الأذان بيشتغل على الموبايل"); } catch (e) {}
@@ -5184,6 +5190,10 @@
   // ---------- الآية: تفسير، إعراب، معاني الكلمات ----------
   // Book files (web/books, built by tools/make_books.py) are plain scripts that call QB / QW / QL, loaded on demand.
   var BK = window.BOOKS || { books: [], lex: [] }, store = {}, loading = {};
+  // Play build: books without a publishing licence are dropped (flags.js NO_BOOKS) and their tabs/credits disappear.
+  if (window.NO_BOOKS && NO_BOOKS.length) BK.books = BK.books.filter(function (b) { return NO_BOOKS.indexOf(b.id) < 0; });
+  document.querySelectorAll("[data-nobook]").forEach(function (x) { if (window.NO_BOOKS && NO_BOOKS.indexOf(x.dataset.nobook) >= 0) x.remove(); });
+  if (window.NO_ADHAN_AUDIO) document.querySelectorAll("[data-noadhan]").forEach(function (x) { x.remove(); });
   // ---------- tajweed colours (web/tajweed-data.js, built by tools/make_tajweed.py) ----------
   // TAJWEED.q[s-1][a-1] = flat [start, end, rule, ...] offsets into Q.t; TAJWEED.rules names the rules.
   var TJ_NAMES = ["همزة الوصل", "لام شمسية", "حرف لا يُنطق", "مد عارض أو لين (٢ أو ٤ أو ٦)", "مد منفصل (٤ أو ٥)", "مد متصل (٤ أو ٥)",
@@ -5265,7 +5275,8 @@
     btnBack.hidden = false;
     tab = tab || load("ayahTab", "tafsir");
     save("ayahTab", tab);
-    var tabs = [["tafsir", "التفسير"], ["tajweed", "التجويد"], ["qiraat", "القراءات"], ["asbab", "أسباب النزول"], ["irab", "الإعراب"], ["balagha", "البلاغة"], ["mutash", "المتشابهات"], ["words", "معاني الكلمات"]];
+    var tabs = [["tafsir", "التفسير"], ["tajweed", "التجويد"], ["qiraat", "القراءات"], ["asbab", "أسباب النزول"], ["irab", "الإعراب"], ["balagha", "البلاغة"], ["mutash", "المتشابهات"], ["words", "معاني الكلمات"]].filter(function (t) { return (t[0] !== "irab" && t[0] !== "balagha") || BK.books.some(function (b) { return t[0] === "balagha" ? b.id === "darwish" : b.kind === "irab"; }); });
+    if (!tabs.some(function (t) { return t[0] === tab; })) tab = "tafsir";
     if ((tjOn || tab === "tajweed") && !window.TAJWEED) { withTajweed(function () { if (location.hash.indexOf("#/a/" + s + "/" + a) === 0) route(); }); }
     // The English translation of the ayah under it (its own switch here, kept between visits).
     var ayTr = load("ayahTr", false), notes = load("notes", {}), note = notes[s + ":" + a] || "";

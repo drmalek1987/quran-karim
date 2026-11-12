@@ -78,8 +78,17 @@ class NvAsr {
     }
 
     @JavascriptInterface
-    public boolean ready() { return new File(dir, "asrnv/lib/libonnxruntime.so").exists() && new File(dir, "asrnv/vocab.json").exists()
+    public boolean ready() { return nativeOk() && new File(dir, "asrnv/vocab.json").exists()
         && (new File(dir, "nv.onnx").exists() || (new File(dir, "asrnv/a.bin").exists() && new File(dir, "asrnvp/b.bin").exists())); }
+    private static Boolean nativeFlag;
+    /** True when this device can load the packaged ONNX Runtime libraries (arm64 only), checked once. */
+    private static synchronized boolean nativeOk() {
+        if (nativeFlag == null) {
+            try { System.loadLibrary("onnxruntime"); System.loadLibrary("onnxruntime4j_jni"); nativeFlag = Boolean.TRUE; }
+            catch (Throwable t) { nativeFlag = Boolean.FALSE; }
+        }
+        return nativeFlag;
+    }
 
     @JavascriptInterface
     public void start() {
@@ -223,11 +232,10 @@ class NvAsr {
         org.json.JSONArray v = new org.json.JSONArray(read(new File(dir, "asrnv/vocab.json")));
         vocab = new String[v.length()];
         for (int i = 0; i < vocab.length; i++) vocab[i] = v.getString(i);
-        // ONNX Runtime's native libraries come with the model download (asr/asrnv/lib), keeping the APK under 50 MB.
-        System.setProperty("onnxruntime.native.path", new File(dir, "asrnv/lib").getAbsolutePath());
-        // Loaded first by full path: the JNI library needs libonnxruntime.so, which the app's linker namespace finds
-        // only once it is already loaded (it does not search asrnv/lib).
-        System.load(new File(dir, "asrnv/lib/libonnxruntime.so").getAbsolutePath());
+        // 5.21 (Google Play): the ONNX Runtime native libraries are packaged in the app (lib/arm64-v8a), never downloaded:
+        // Play forbids loading native code that does not come from Play. Only the model data is downloaded.
+        System.loadLibrary("onnxruntime");
+        System.loadLibrary("onnxruntime4j_jni");
         env = OrtEnvironment.getEnvironment();
         OrtSession.SessionOptions o = new OrtSession.SessionOptions();
         o.setIntraOpNumThreads(Math.max(1, Math.min(4, Runtime.getRuntime().availableProcessors())));

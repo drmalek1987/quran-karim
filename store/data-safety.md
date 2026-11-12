@@ -25,3 +25,16 @@ calendar, web history, app interactions, crash logs, diagnostics.
 - Uploads go to `https://drabdelraman-quran-voice-relay.hf.space` (the developer's relay), stored in the private dataset
   `DrAbdelraman/quran-voice-donations`.
 - The microphone is only used in the memorisation test; see `store/PLAY-REVIEW.md`.
+
+## Field by field in Play Console (checked 2026-11-12, Play build 5.20)
+Play Console › Policy and programs › **App content** › **Data safety** › Start:
+1. *Data collection and security*: Does your app collect or share any of the required user data types? → **Yes**.
+   Is all of the user data collected by your app encrypted in transit? → **Yes**.
+   Which of the following methods of account creation does your app support? → **My app does not allow users to create an account**.
+   Do you provide a way for users to request that their data is deleted? → **Yes** (in-app button; optional URL: the privacy policy page).
+2. *Data types*: tick only **Audio › Voice or sound recordings**, **App activity › Other user-generated content** and **Device or other IDs**.
+   Nothing else (location is processed on the device only = not collected).
+3. For each ticked type: Collected **Yes** · Shared **No** · Processed ephemerally **No** · Required or optional → **Users can choose
+   whether this data is collected** · Purpose → **App functionality** only.
+4. Preview → Save. The public card will read: "No data shared with third parties", "Data is encrypted in transit",
+   "You can request that data be deleted", collected: Audio, App activity, Device or other IDs (optional).
