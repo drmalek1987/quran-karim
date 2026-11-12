@@ -627,3 +627,12 @@ Found and fixed in this run:
 NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths, airplane-mode toggle mid-download, donation upload itself (no key).
 - ui.js after all of the above (one run each): kfgqpc 290/0 · harmain 290/0 (the earlier prayer-times failures did not come back) · shamarly 283/0 · kfold 283 with 1 FAIL (#250 «سمّع التكملة» بالمايك), re-run alone 283/0. data.py 28 PASS.
 - #250 is a random-question case, not a regression: the drawn question had one choice that is a word-for-word prefix of the other, so both score 1 in `mutHit` and the voice answer stays a tie (app.js ~4855). Left for the user's decision with G8.
+
+## Code review, second pass (2026-11-12, unreleased; APK rebuilt and installed on the user's phone, signer 7d8b31d2)
+- Mutashabihat voice test («سمّع التكملة»): one choice that opens another word for word no longer ties – equal scores go to the longer choice; a best choice that opens a longer one waits for the final (app.js `window.onRecite` of `mtv`).
+- i18n: ~35 toasts, 11 confirms and 2 askText titles had no English (table entries in i18n.js; `(window.T || String)(…)` or the inline `LANG === "en"` form for native `confirm()` and concatenated texts). Arabic texts unchanged.
+- `web/asr.js` kept on purpose: unreachable in the app, but `tools/qa/ui.js` uses `Asr.transcribe` for the optional NVIDIA model check (`ASR_SRV`).
+- Emulator: download across an airplane-mode toggle → page hears "wait" while offline, resumes by itself, "done" once, state `ready`.
+- ui.js #250 de-flaked: it found the right choice by an ayah-prefix match (nothing found when the ayah is repeated word for word → `said` null); now uses the answer key like #251, and sends a final when the partial alone must not decide.
+- ui.js: harmain 290/0 · kfold 283/0 · shamarly 283/0 · kfgqpc 290 with 1 FAIL (#250, the test's own lookup) → 290/0 after the test fix. data.py 28 PASS.
+- Phone test list for the user: `phone-checklist.md` (mic first).

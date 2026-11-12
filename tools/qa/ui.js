@@ -1057,10 +1057,16 @@ async function fresh(ctx, vp) {
   await check(G517, 'S3: «سمّع التكملة» بالمايك بيختار التكملة الصح من الكلام المسموع', async () => {
     await ev(() => { window.ReciteBridge = { start() {}, stop() {} }; }); await go('#/', 150); await go('#/mutash', 900);
     await p.click('#mtMic'); await wait(200);
-    const said = await ev(() => { const h = document.getElementById('mtOpen').dataset, t = QURAN.t[+h.s - 1][+h.a - 1];
-      const c = [...document.querySelectorAll('.mt-ch .ay-text')].map(e => e.textContent.replace(' …', '')).find(x => t.indexOf(document.querySelector('.mt-pre').textContent.replace(' …', '') + ' ' + x) === 0);
+    const said = await ev(() => { const h = document.getElementById('mtOpen').dataset, arn = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+      // the answer key, as in the 5.17b «إيقاف» case below (an ayah-prefix match finds nothing when the ayah is repeated word for word)
+      const s = +h.s, a = +h.a, nx = a < QURAN.s[s - 1][3] ? [s, a + 1] : [s + 1, 1], srcOf = v => 'سورة ' + QURAN.s[v[0] - 1][0] + ' · الآية ' + arn(v[1]);
+      const whole = document.querySelector('.mt-pre').textContent.replace(' …', '').trim().split(/\s+/).length >= QURAN.t[s - 1][a - 1].split(' ').length;
+      const ch = [...document.querySelectorAll('.mt-ch')].filter(b => b.querySelector('.mt-src').textContent.trim() === srcOf(whole ? nx : [s, a]));
+      if (ch.length !== 1) throw new Error('answer key ' + s + ':' + a + ' x' + ch.length); const c = ch[0].querySelector('.ay-text').textContent.replace(' …', '');
       onRecite(c, 'partial'); return c; });
     await wait(200);
+    // a choice that opens a longer one word for word is decided by the final only (the reader may be going on)
+    await ev(c => { if (!document.querySelector('.mt-ch.ok, .mt-ch.miss')) onRecite(c, 'final'); }, said); await wait(200);
     const r = await ev(() => [document.querySelectorAll('.mt-ch.ok').length, document.querySelectorAll('.mt-ch.miss').length, document.getElementById('mtMic').classList.contains('rec')]);
     await ev(() => { delete window.ReciteBridge; });
     return assert(said && r[0] === 1 && r[1] === 0 && !r[2], JSON.stringify([said, r])); });

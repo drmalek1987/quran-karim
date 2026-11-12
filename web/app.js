@@ -348,8 +348,8 @@
   // Update in place: the packs are fetched over the old ones (the old model keeps working until both have arrived).
   function asrUpdate(m) {
     asrPacks(m).forEach(function (k) { if (edQ.indexOf(k) < 0) edQ.push(k); });
-    edThen[m + "p"] = function () { asrPick(m); asrVerCheck(m, paintEdDl); if (window.NvBridge && NvBridge.reload) NvBridge.reload(); toast("خلص تحديث " + ASRM[m].name); };
-    toast("بدأ تحديث " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
+    edThen[m + "p"] = function () { asrPick(m); asrVerCheck(m, paintEdDl); if (window.NvBridge && NvBridge.reload) NvBridge.reload(); toast(window.LANG === "en" ? "Finished updating the " + T(ASRM[m].name) : "خلص تحديث " + ASRM[m].name); };
+    toast(window.LANG === "en" ? "Updating the " + T(ASRM[m].name) + ". Follow it in Settings › Downloads." : "بدأ تحديث " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
     edNext(); paintEdDl();
   }
   if (window.EdBridge) {
@@ -433,13 +433,13 @@
     }
     if (!window.EdBridge || (window.NvBridge && NvBridge.ready())) { if (!load("micTips", 0)) { micTips(again); return false; } return true; }
     if (asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; })) { toast("نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات"); return false; }
-    if (confirm("الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟")) needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); });
+    if (confirm(window.LANG === "en" ? "This feature needs the recitation recognition model (" + ASRM.asrnv.mb + " MB). Download it now?" : "الميزة دي محتاجة نموذج التعرّف على التلاوة (" + ASRM.asrnv.mb + " ميجا). تنزّله دلوقتي؟")) needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); });
     return false;
   }
   function asrReady(m) { return !!window.EdBridge && asrPacks(m).every(function (k) { return EdBridge.state(k) === "ready"; }); }
   function needAsr(m, then) {
     var ps = asrPacks(m), i = 0;
-    toast("بدأ تنزيل " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
+    toast(window.LANG === "en" ? "Downloading the " + T(ASRM[m].name) + ". Follow it in Settings › Downloads." : "بدأ تنزيل " + ASRM[m].name + "، تقدر تتابعه من الإعدادات › التحميلات");
     (function go() { if (i >= ps.length) return then(); needEd(ps[i++], go, true); })();
   }
   function needEd(id, then, quiet) {
@@ -455,7 +455,7 @@
   }
   // Paused downloads (Settings › Downloads) stay paused across restarts until «استئناف».
   function edPaused() { return load("edPaused", []); }
-  window.onEdSpace = function (id) { toast("مفيش مساحة كفاية على الموبايل لتحميل " + ((EDS[id] && EDS[id].name) || "الملف")); };
+  window.onEdSpace = function (id) { toast(window.LANG === "en" ? "Not enough space on the phone to download " + (EDS[id] ? T(EDS[id].name) : "the file") : "مفيش مساحة كفاية على الموبايل لتحميل " + ((EDS[id] && EDS[id].name) || "الملف")); };
   window.onEdDl = function (e, v) {
     if (v === "paused") { edQ = edQ.filter(function (k) { return k !== e; }); paintEdDl(); edNext(); return; }
     if (v === "done" || v === "error") {
@@ -506,7 +506,7 @@
     paintEdDl();
   }
   document.getElementById("dlAll").onclick = function () {
-    if (!window.EdBridge || !confirm("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.")) return;
+    if (!window.EdBridge || !confirm((window.T || String)("تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا."))) return;
     ["kfgqpc", "kfold", "shamarly", "harmain"].forEach(function (k) { if (EDS[k] && EdBridge.state(k) === "ready") { EdBridge.remove(k); edGone(k); } });
   };
   var ED_MB = { kfgqpc: 52, kfold: 46, shamarly: 39, harmain: 46 };
@@ -529,7 +529,7 @@
     box.querySelectorAll("[data-asrdl]").forEach(function (b) { b.onclick = function () {
       var m = b.dataset.asrdl;
       if (asrReady(m)) {
-        if (!confirm("تحذف " + ASRM[m].name + " من الموبايل؟")) return;
+        if (!confirm(window.LANG === "en" ? "Delete the " + T(ASRM[m].name) + " from the phone?" : "تحذف " + ASRM[m].name + " من الموبايل؟")) return;
         EdBridge.remove(m); EdBridge.remove(m + "p"); delete asrHave[m];
         paintEdDl();
       } else { var go = function () { needAsr(m, function () { asrPick(m); paintEdDl(); }); }; if (modelOk()) go(); else consentDlg(go); }
@@ -2480,7 +2480,7 @@
       if (st === "busy") { toast("بيجهّز الموديل…"); return; }
       if (st === "noperm") toast("محتاج إذن الميكروفون عشان التسميع");
       else if (st === "none") toast("الموبايل مفيهوش خدمة التعرّف على الكلام");
-      else if (st.indexOf("error") === 0) toast("التسميع وقف (" + st.slice(6) + ")، دوس على المايك تاني");
+      else if (st.indexOf("error") === 0) toast(window.LANG === "en" ? "Recitation stopped (" + st.slice(6) + "), tap the mic again" : "التسميع وقف (" + st.slice(6) + ")، دوس على المايك تاني");
       if (st === "listening" && Mic.cur === "nv") ctcReady();
       if (st !== "listening") { recite.on = false; recite.base = null; } hifzBar(); reciteCap(); return;
     }
@@ -2684,7 +2684,7 @@
         if (k === "state:busy") toast("بيجهّز الموديل…");
         else if (k === "state:listening") toast("ابدأ القراءة");
         else if (k === "state:noperm") { toast("محتاج إذن الميكروفون"); rdStop(); }
-        else if (k.indexOf("state:error") === 0) { toast("الموديل وقف: " + k.slice(12)); rdStop(); }
+        else if (k.indexOf("state:error") === 0) { toast((window.LANG === "en" ? "Model stopped: " : "الموديل وقف: ") + k.slice(12)); rdStop(); }
       });
     } else { rdHints(); Mic.start(); }
     rdPaint();
@@ -2737,7 +2737,7 @@
     if (has(/(الصفحه )?(التاليه|اللي بعدها|بعدها|الجايه)$/) && document.getElementById("pNext")) { document.getElementById("pNext").click(); return true; }
     if (has(/(الصفحه )?(السابقه|اللي قبلها|قبلها)$/) && document.getElementById("pPrev")) { document.getElementById("pPrev").click(); return true; }
     if (has(/ايه الكرسي/)) return go("#/p/" + pageOf(2, 255) + "?a=2:255", "آية الكرسي");
-    if (has(/صفح/) && num) { if (num >= Q.min && num < Q.count) return go("#/p/" + num, "صفحة " + ar(num)); toast("الطبعة دي صفحاتها لحد " + ar(Q.count - 1)); return true; }
+    if (has(/صفح/) && num) { if (num >= Q.min && num < Q.count) return go("#/p/" + num, "صفحة " + ar(num)); toast(window.LANG === "en" ? "This edition has pages up to " + (Q.count - 1) : "الطبعة دي صفحاتها لحد " + ar(Q.count - 1)); return true; }
     if (has(/(جزء|الجزء)/) && num >= 1 && num <= 30) {
       for (var p = Q.min; p < Q.count; p++) if (juzOfPage(p) === num) return go("#/p/" + p, "الجزء " + ar(num));
     }
@@ -2837,7 +2837,7 @@
         if (st0 === "busy") { toast("بيجهّز الموديل…"); return; }
         if (st0 === "listening" && Mic.cur === "nv") { toast("ابدأ القراءة"); return; }
         if (st0 === "noperm") toast("محتاج إذن الميكروفون للقراءة بالصوت");
-        if (st0.indexOf("error") === 0 && Mic.cur === "nv") { toast("الموديل وقف: " + st0.slice(6)); Mic.stop(); }
+        if (st0.indexOf("error") === 0 && Mic.cur === "nv") { toast((window.LANG === "en" ? "Model stopped: " : "الموديل وقف: ") + st0.slice(6)); Mic.stop(); }
         if (st0 !== "listening" && (st0.indexOf("error") !== 0 || Mic.cur === null)) { rd.on = false; rdPaint(); }
         return;
       }
@@ -2866,7 +2866,7 @@
   function addBookmark(s, a) {
     askText("اسم العلامة", "سورة " + Q.s[s - 1][0] + " · الآية " + ar(a), function (name) {
       var m = marks(); m.unshift({ n: name, s: s, a: a, t: Date.now() }); save("marks", m);
-      toast("حُفظت العلامة «" + name + "»");
+      toast(window.LANG === "en" ? "Bookmark «" + name + "» saved" : "حُفظت العلامة «" + name + "»");
     });
   }
   // A small sheet with one text field (prompt() does nothing inside the Android WebView).
@@ -2903,7 +2903,7 @@
     var inp = d.querySelector("textarea"); inp.value = notes[k] || ""; inp.focus();
     function put(v) { notes = load("notes", {}); if (v) notes[k] = v; else delete notes[k]; save("notes", notes); d.remove(); toast(v ? "حُفظت الملاحظة" : "حُذفت الملاحظة"); if (done) done(); }
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
-    if (d.querySelector(".dlg-del")) d.querySelector(".dlg-del").onclick = function () { if (confirm("تحذف الملاحظة؟")) put(""); };
+    if (d.querySelector(".dlg-del")) d.querySelector(".dlg-del").onclick = function () { if (confirm((window.T || String)("تحذف الملاحظة؟"))) put(""); };
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     d.querySelector("form").onsubmit = function (e) { e.preventDefault(); put(inp.value.trim()); };
   }
@@ -3253,7 +3253,7 @@
       var li = e.target.closest("li"); if (!li) return; var i = +li.dataset.i, M = marks(), m = M[i];
       if (e.target.closest(".mk-go")) { if (mode === "pages") openAyahPage(m.s, m.a); else go(m.s, m.a); }
       else if (e.target.closest(".mk-ed")) askText("اسم العلامة", m.n, function (v) { M[i].n = v; save("marks", M); showKhatma(); });
-      else if (e.target.closest(".mk-del")) { if (!confirm("تحذف العلامة؟")) return; M.splice(i, 1); save("marks", M); showKhatma(); toast("حُذفت العلامة"); }
+      else if (e.target.closest(".mk-del")) { if (!confirm((window.T || String)("تحذف العلامة؟"))) return; M.splice(i, 1); save("marks", M); showKhatma(); toast("حُذفت العلامة"); }
     };
   }
 
@@ -3725,7 +3725,7 @@
       var data; try { data = JSON.parse(r.result); } catch (e) { data = null; }
       if (!data || data.app !== "quran-karim" || !data.keys) return toast("الملف ده مش نسخة احتياطية من التطبيق");
       var n = bkRestore(data.keys);
-      toast("رجعت " + ar(n) + " إعداد وبيان، التطبيق هيفتح من جديد");
+      toast(window.LANG === "en" ? "Restored " + n + " settings and data entries, the app will reopen" : "رجعت " + ar(n) + " إعداد وبيان، التطبيق هيفتح من جديد");
       setTimeout(function () { location.hash = "#/"; location.reload(); }, 1200);
     };
     r.readAsText(file);
@@ -4208,8 +4208,8 @@
         } catch (e) { toast("الكود ده مش مفهوم"); }
       }, 20000);
     };
-    document.getElementById("famReset").onclick = function () { if (!confirm("نبدأ ختمة جديدة بنفس الأفراد؟")) return; F.members.forEach(function (m) { m.d = []; }); put(); };
-    view.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = function () { if (confirm("نشيل " + F.members[+b.dataset.x].n + "؟")) { F.members.splice(+b.dataset.x, 1); put(); } }; });
+    document.getElementById("famReset").onclick = function () { if (!confirm((window.T || String)("نبدأ ختمة جديدة بنفس الأفراد؟"))) return; F.members.forEach(function (m) { m.d = []; }); put(); };
+    view.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = function () { if (confirm(window.LANG === "en" ? "Remove " + F.members[+b.dataset.x].n + "?" : "نشيل " + F.members[+b.dataset.x].n + "؟")) { F.members.splice(+b.dataset.x, 1); put(); } }; });
     view.querySelectorAll(".fam-j button").forEach(function (b) { b.onclick = function () {
       var m = F.members[+b.dataset.m], j = +b.dataset.j, k = m.d.indexOf(j);
       if (k >= 0) m.d.splice(k, 1); else m.d.push(j);
@@ -4292,7 +4292,7 @@
       Object.keys(S).forEach(function (n) { S[n].sort(function (a, b) { return parseDay(b.d) - parseDay(a.d); }); S[n] = S[n].slice(0, 100); });
       save("students", S); showStudents(); toast(added ? "اتضافت " + ar(added) + " نتيجة" : "النتيجة دي موجودة قبل كده");
     };
-    view.querySelectorAll(".tc-del").forEach(function (b) { b.onclick = function () { if (!confirm("نشيل " + b.dataset.n + "؟")) return; delete S[b.dataset.n]; save("students", S); showStudents(); }; });
+    view.querySelectorAll(".tc-del").forEach(function (b) { b.onclick = function () { if (!confirm(window.LANG === "en" ? "Remove " + b.dataset.n + "?" : "نشيل " + b.dataset.n + "؟")) return; delete S[b.dataset.n]; save("students", S); showStudents(); }; });
   }
 
   // ---------- فهرس مواضيع القرآن ----------
@@ -4653,7 +4653,7 @@
       var st = kind.slice(6);
       if (st === "busy") toast("بيجهّز الموديل…");
       else if (st === "listening") { toast("سمّع من حفظك"); if (Mic.cur === "nv") ctcReady(); }
-      else { if (st === "noperm") toast("محتاج إذن الميكروفون"); else if (st.indexOf("error") === 0) toast("المايك وقف (" + st.slice(6) + ")، دوس عليه تاني"); htv.on = false; htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; }
+      else { if (st === "noperm") toast("محتاج إذن الميكروفون"); else if (st.indexOf("error") === 0) toast(window.LANG === "en" ? "The mic stopped (" + st.slice(6) + "), tap it again" : "المايك وقف (" + st.slice(6) + ")، دوس عليه تاني"); htv.on = false; htv.btn.classList.remove("rec"); htv.btn.innerHTML = ic("mic") + " سمّع بالصوت"; }
       return;
     }
     // Each piece of speech is placed anywhere in the test's words (rLocal): on from where the last one ended, or where
@@ -4850,12 +4850,15 @@
     if (kind !== "final" && kind !== "partial") return;
     var hw = norm((text || "").split("\n")[0]).split(/\s+/).filter(Boolean).map(rSkel);
     if (!hw.length) return;
-    var sc = mtv.q.opts.map(function (o) { return mutHit(hw, o.cmp); }), best = 0;
-    sc.forEach(function (x, i) { if (x > sc[best]) best = i; });
-    var tie = sc.filter(function (x) { return x === sc[best]; }).length > 1, ok = sc[best] >= 0.5 && !tie;
+    var ops = mtv.q.opts, sc = ops.map(function (o) { return mutHit(hw, o.cmp); }), best = 0;
+    // equal scores: the longer choice wins (one choice can be the other's opening word for word, and then both are "all heard")
+    sc.forEach(function (x, i) { if (x > sc[best] || (x === sc[best] && ops[i].cmp.length > ops[best].cmp.length)) best = i; });
+    var tie = sc.filter(function (x, i) { return x === sc[best] && ops[i].cmp.length === ops[best].cmp.length; }).length > 1, ok = sc[best] >= 0.5 && !tie;
+    // the best choice opens a longer one: the reader may still be going on, so only a final (or more words) decides
+    var bc = ops[best].cmp, opens = ops.some(function (o, i) { return i !== best && o.cmp.length > bc.length && bc.every(function (w, k) { return o.cmp[k] === w; }); });
     mtv.last = { best: best, ok: ok };
     // a partial decides as soon as one whole choice was heard (fast); a final once one choice is clearly ahead
-    if (kind === "partial") { if (sc[best] === 1 && !tie) mtv.pick(best); return; }
+    if (kind === "partial") { if (sc[best] === 1 && !tie && !opens) mtv.pick(best); return; }
     if (!ok) return toast("مش واضح، كمّل التكملة");   // the opening only, or too little heard: keep listening
     mtv.pick(best);
   };
@@ -5004,7 +5007,7 @@
     view.querySelectorAll(".tsb-ph button[data-i]").forEach(function (b) { b.onclick = function (e) {
       var x = e.target.closest(".tsb-x");
       if (x) {
-        var k = +x.dataset.x; if (!confirm("تحذف «" + ALL[k] + "»؟")) return;
+        var k = +x.dataset.x; if (!confirm(window.LANG === "en" ? "Delete «" + ALL[k] + "»?" : "تحذف «" + ALL[k] + "»؟")) return;
         st.mine.splice(k - TASBIH.length, 1);
         var c = {}; Object.keys(st.c).forEach(function (j) { j = +j; if (j < k) c[j] = st.c[j]; else if (j > k) c[j - 1] = st.c[j]; }); st.c = c;   // counts follow their phrases
         st.i = st.i === k ? 0 : st.i > k ? st.i - 1 : st.i; save("tasbih", st); showTasbih(); return;

@@ -16,7 +16,21 @@
 
   var WD = { "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri", "السبت": "Sat" };
   var D = {
-    // 5.11 G1.8: strings the English scan (tools/qa/i18n_scan.js) found untranslated, and the G3.9 mic tips / mic test
+    // 5.19: toasts, confirm and text-field dialogs that had no English line
+    "كمّلنا التمرير التلقائي": "Auto-scroll resumed", "بيجهّز الموديل…": "Getting the model ready…", "صدق الله العظيم": "Sadaqa Allahu al-'Azim",
+    "القراءة بالصوت شغالة في التطبيق على الموبايل بس": "Voice reading works in the phone app only", "ابدأ القراءة": "Start reading",
+    "محتاج إذن الميكروفون": "Microphone permission is needed", "محتاج إذن الميكروفون للقراءة بالصوت": "Microphone permission is needed to read by voice",
+    "اقرأ آية…": "Recite an ayah…", "ماعرفتش الآية، اقرأ كام كلمة كمان": "Couldn't tell the ayah, recite a few more words", "كمّل القراءة…": "Keep reading…",
+    "الملف ده مش نسخة احتياطية من التطبيق": "This file is not a backup of the app", "صوت الأذان بيشتغل على الموبايل": "The adhan sound plays on the phone",
+    "اقفل التطبيق واستنى دقيقة. لو الأذان ماجاش، شوف الملاحظة اللي تحت الزرار.": "Close the app and wait a minute. If the adhan does not come, see the note under the button.",
+    "تعذّر تحديد الموقع، اختار مدينتك": "Couldn't find your location, choose your city", "التنزيل متاح في التطبيق على الموبايل بس": "Downloads work in the phone app only",
+    "التسجيل مش متاح على الجهاز ده": "Recording is not available on this device", "محتاج إذن الميكروفون عشان تسجّل": "Microphone permission is needed to record",
+    "سمّع من حفظك": "Recite from memory", "اكتب رقم من # لـ #": "Enter a number from # to #", "اكتب الذكر": "Write the dhikr", "العدد اللي عايز توصله": "The count you want to reach",
+    "بدأت ختمة رمضان، ورد كل يوم حوالي # صفحة": "Ramadan khatma started, about # pages a day", "الخطة هتبدأ أول رمضان": "The plan will start at the beginning of Ramadan",
+    "اتحفظت سورة @ للاستماع من غير إنترنت": "Surah @ saved for listening offline", "اتحفظت الجزء % للاستماع من غير إنترنت": "Juz % saved for listening offline",
+    "الآيات اللي بعدها هتفتح لوحدها وانت بتسمّع": "The next ayahs open by themselves while you recite", "الاختبار هيخلص في آخر الآيات دي": "The test ends at the last of these ayahs",
+    "تحذف الملاحظة؟": "Delete the note?", "تحذف العلامة؟": "Delete the bookmark?",
+    // 5.11 G1.8:strings the English scan (tools/qa/i18n_scan.js) found untranslated, and the G3.9 mic tips / mic test
     // 5.11 G7
     "ملي ثانية لكل فك": "ms per decode", "ملي ثانية لكل فك (# ث صوت)": "ms per decode (# s of audio)",
     // 5.11 G6: hifz hub, map picker, auto flip
