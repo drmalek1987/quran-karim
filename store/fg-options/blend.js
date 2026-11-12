@@ -5,7 +5,7 @@ for (const s of ['playwright', '@playwright/test/node_modules/playwright']) { tr
 const R = path.resolve(__dirname, '..', '..'), D = __dirname, U = f => require('url').pathToFileURL(path.join(R, f)).href;
 global.window = global; require(path.join(R, 'web', 'quran-data.js'));
 const AYAH = window.QURAN.t[53][16].split(' ').slice(0, 4).join(' ');
-const ICON = U('store/icon-options/icon-1024.png'), TEX = U('store/icon-options/adaptive-1024.png');
+const ICON = U('store/icon-options/icon-1024.png'), TEX = U('store/icon-options/adaptive-1024.png'), WIDE = U('store/icon-options/adaptive-fg-1024.png');
 const BASE = `@font-face{font-family:Cairo;font-weight:700;src:url(${U('web/fonts/cairo-700.woff2')})}
 @font-face{font-family:Cairo;font-weight:600;src:url(${U('web/fonts/cairo-600.woff2')})}
 @font-face{font-family:AmiriQ;src:url(${U('web/fonts/amiri-quran.woff2')})}
@@ -29,11 +29,10 @@ const V = {
       box-shadow:0 0 0 5px #0f1e35,0 0 0 8px #d9b25a,0 0 0 14px rgba(217,178,90,.18),0 20px 50px rgba(0,0,0,.45)}</style>
       <div class="tex"></div><div class="med"></div>${TXT('left:40px;top:50%;transform:translateY(-50%);width:620px')}`,
   // b3: the cover photo is the whole background, tinted navy on the text side; the medallion with the word stays bright
-  b3: `<style>${BASE}body{background:url(${TEX}) 100% 50%/700px auto no-repeat,#0f1e35}
-      .tint{position:absolute;inset:0;background:linear-gradient(to right,rgba(15,30,53,.97) 0%,rgba(15,30,53,.94) 48%,rgba(15,30,53,.55) 68%,rgba(15,30,53,0) 88%)}
-      .glow{position:absolute;right:120px;top:50%;width:300px;height:300px;margin-top:-150px;border-radius:50%;
-      background:url(${ICON}) center/cover;-webkit-mask-image:radial-gradient(circle,#000 58%,transparent 72%);mask-image:radial-gradient(circle,#000 58%,transparent 72%)}</style>
-      <div class="tint"></div><div class="glow"></div>${TXT('left:40px;top:50%;transform:translateY(-50%);width:560px')}`,
+  b3: `<style>${BASE}body{background:url(${WIDE}) right -40px center/600px auto no-repeat,#0f1e35}
+      .tint{position:absolute;inset:0;background:linear-gradient(to right,rgba(15,30,53,1) 0%,rgba(15,30,53,1) 46%,rgba(15,30,53,.75) 56%,rgba(15,30,53,.25) 68%,rgba(15,30,53,0) 78%)}
+      .vig{position:absolute;inset:0;background:radial-gradient(40% 75% at 76% 50%,transparent 60%,rgba(15,30,53,.55) 100%)}</style>
+      <div class="tint"></div><div class="vig"></div>${TXT('left:40px;top:50%;transform:translateY(-50%);width:560px')}`,
 };
 (async () => {
   const b = await pw.chromium.launch(), pg = await b.newPage({ viewport: { width: 1024, height: 500 } });
