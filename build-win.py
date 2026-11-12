@@ -11,6 +11,9 @@ JDK = os.environ.get("JAVA_HOME") or r"C:\Program Files\Microsoft\jdk-17.0.21.21
 OUT = os.environ.get("OUT") or os.path.join(HERE, "build")
 KEYSTORE = os.environ.get("KEYSTORE") or os.path.join(HERE, "debug.keystore")
 PLAY = os.environ.get("PLAY") == "1"
+# Application id: the Play build is published as com.lawh.quran («لوح»); the GitHub/sideload build keeps com.quran.karim
+# (the Java code stays in package com.quran.karim either way: aapt2 --rename-manifest-package). APP_ID= overrides.
+APP_ID = os.environ.get("APP_ID") or ("com.lawh.quran" if PLAY else "com.quran.karim")
 
 def android_jar():
     if len(sys.argv) > 1: return sys.argv[1]
@@ -87,9 +90,14 @@ def main():
     run(sys.executable, "-I", os.path.join(HERE, "tools", "brotli_books.py"), os.path.join(W, "books"))
 
     run(bt("aapt2"), "compile", "--dir", res_dir, "-o", os.path.join(OUT, "res.zip"))
+    # the manifest actually linked (build-aab-win.py reuses it): provider authority follows the application id
+    man = open(os.path.join(HERE, "android", "AndroidManifest.xml"), encoding="utf-8").read().replace(
+        'android:authorities="com.quran.karim.share"', 'android:authorities="%s.share"' % APP_ID)
+    with open(os.path.join(OUT, "AndroidManifest.xml"), "w", encoding="utf-8", newline="\n") as f: f.write(man)
+    with open(os.path.join(OUT, "app-id.txt"), "w") as f: f.write(APP_ID)
     unsigned = os.path.join(OUT, "unsigned.apk")
     run(bt("aapt2"), "link", "-o", unsigned, "-I", ajar,
-        "--manifest", os.path.join(HERE, "android", "AndroidManifest.xml"),
+        "--manifest", os.path.join(OUT, "AndroidManifest.xml"), "--rename-manifest-package", APP_ID,
         "-0", "br", "--min-sdk-version", "21", "--target-sdk-version", "36",
         "-A", os.path.join(OUT, "assets"), "--java", os.path.join(OUT, "gen"), os.path.join(OUT, "res.zip"))
 

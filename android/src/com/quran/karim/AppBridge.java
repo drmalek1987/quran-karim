@@ -146,7 +146,7 @@ class AppBridge {
                     File f = new File(dir, safe.length() > 0 ? safe : "ayah.png");
                     FileOutputStream out = new FileOutputStream(f);
                     try { out.write(Base64.decode(base64, Base64.DEFAULT)); } finally { out.close(); }
-                    Uri uri = Uri.parse("content://" + ShareProvider.AUTHORITY + "/" + f.getName());
+                    Uri uri = Uri.parse("content://" + ShareProvider.authority(activity) + "/" + f.getName());
                     Intent i = new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     activity.startActivity(Intent.createChooser(i, "مشاركة الآية").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
@@ -167,7 +167,7 @@ class AppBridge {
                     File f = new File(dir, safe.length() > 0 ? safe : "backup.json");
                     FileOutputStream out = new FileOutputStream(f);
                     try { out.write(text.getBytes("UTF-8")); } finally { out.close(); }
-                    Uri uri = Uri.parse("content://" + ShareProvider.AUTHORITY + "/" + f.getName());
+                    Uri uri = Uri.parse("content://" + ShareProvider.authority(activity) + "/" + f.getName());
                     Intent i = new Intent(Intent.ACTION_SEND).setType("application/json").putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     activity.startActivity(Intent.createChooser(i, "حفظ النسخة الاحتياطية").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));

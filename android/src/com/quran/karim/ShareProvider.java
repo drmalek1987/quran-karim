@@ -12,7 +12,8 @@ import java.io.FileNotFoundException;
 
 /** Hands the picture of a shared ayah (saved in cache/share) to the app the user shares it with. */
 public class ShareProvider extends ContentProvider {
-    static final String AUTHORITY = "com.quran.karim.share";
+    /** "<applicationId>.share": the Play build is com.lawh.quran, the GitHub build com.quran.karim (both can be installed). */
+    static String authority(android.content.Context c) { return c.getPackageName() + ".share"; }
 
     private File fileOf(Uri uri) throws FileNotFoundException {
         String name = uri.getLastPathSegment();

@@ -44,7 +44,7 @@ def get_bundletool():
         os.remove(BUNDLETOOL); sys.exit("bundletool SHA-256 mismatch, deleted")
 
 def main():
-    for need in ("assets", "res.zip", "classes.dex"):
+    for need in ("assets", "res.zip", "classes.dex", "AndroidManifest.xml", "app-id.txt"):
         if not os.path.exists(os.path.join(OUT, need)): sys.exit("%s missing in %s: run build-win.py first (PLAY=1 for the Play build)" % (need, OUT))
     get_bundletool()
     manifest = open(os.path.join(HERE, "android", "AndroidManifest.xml"), encoding="utf-8").read()
@@ -52,7 +52,8 @@ def main():
     # 1. resources + manifest in the protobuf format bundles use
     proto = os.path.join(OUT, "proto.apk")
     run(os.path.join(BT, "aapt2.exe"), "link", "--proto-format", "-o", proto, "-I", android_jar(),
-        "--manifest", os.path.join(HERE, "android", "AndroidManifest.xml"), "--min-sdk-version", "21", "--target-sdk-version", "36",
+        "--manifest", os.path.join(OUT, "AndroidManifest.xml"), "--rename-manifest-package", open(os.path.join(OUT, "app-id.txt")).read().strip(),
+        "--min-sdk-version", "21", "--target-sdk-version", "36",
         "-0", "br", "-A", os.path.join(OUT, "assets"), os.path.join(OUT, "res.zip"))
     # 2. base module laid out as bundletool expects
     base = os.path.join(OUT, "base.zip")

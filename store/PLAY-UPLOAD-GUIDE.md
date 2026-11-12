@@ -40,7 +40,7 @@
 ## المرحلة 1: إنشاء التطبيق
 
 10. Play Console › **Home** › **Create app**.
-11. App name: `لوح - حفظ وتسميع القرآن` 📁 `store/listing-play.md`.
+11. App name: `لوح - قرآن كريم` 📁 `store/listing-play.md`.
 12. Default language: **Arabic – ar**.
 13. App or game: **App**. Free or paid: **Free** (المجاني مينفعش يتحوّل لمدفوع بعد كده).
 14. 👤 علّم على الإقرارات (Developer Program Policies و US export laws) واضغط **Create app**.
@@ -91,7 +91,7 @@
 39. لو سألك عن **App signing**: اختار **Use Google-generated key** (الموصى بيه) › **Continue**. ده Play App Signing:
     جوجل بتمسك مفتاح التوقيع، وإنت بتوقّع بمفتاح الرفع بس.
 40. **Upload** › اختار 📁 `quran-karim-v5.20-play.aab`.
-    - لو قال إن `com.quran.karim` مستخدم: وقف وكلّمني، لازم نغيّر الـ package قبل أول رفع.
+    - الـ package في نسخة بلاي هو `com.lawh.quran` (مبيتغيرش بعد أول رفع). نسخة GitHub فضلت `com.quran.karim`، فالاتنين ينفع يتسطّبوا مع بعض.
 41. Release name: `5.20` · Release notes: انسخ من 📁 `store/listing-play.md` قسم 3 › **Next**.
 42. اقرا التحذيرات (warnings عادي، errors لأ) › 👤 **Save and publish** / **Start rollout to Internal testing**.
 43. **Testers** › أنشئ قايمة إيميلات (إنت + 2 أو 3) › انسخ **Copy link** وافتحه من الموبايل › **Accept invite** › نزّل من بلاي.
