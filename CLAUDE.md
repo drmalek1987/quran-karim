@@ -42,6 +42,10 @@ PLAY=1 ... bash build.sh && bash build-aab.sh                  # Play bundle; ne
 ```
 - android-34 `android.jar` is required for 4.6+ (the ONNX code). Run from a normal local disk (the JVM fails on network mounts).
 - APK file name always carries the version: `quran-karim-<versionName>.apk`.
+- APKs are PRIVATE: upload them only to the releases of the private repo `drmalek1987/quran-karim-builds`
+  (`gh release create vX.Y quran-karim-vX.Y.apk -R drmalek1987/quran-karim-builds --target main`). Never attach an APK/AAB to a
+  release of the public repo `quran-karim` (it must stay public: the app downloads editions/models from its `editions` branch and
+  GitHub Pages serves the privacy policy from `docs/`).
 - Release checklist: bump `versionName`/`versionCode` in the manifest, the static version text in `web/index.html`
   («حول التطبيق»), and the cache name in `web/sw.js`.
 - Web build: serve `web/` with any static server (`python3 -m http.server -d web`).
