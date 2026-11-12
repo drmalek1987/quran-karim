@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(nv, "NvBridge");
         // Android 15+ draws apps edge to edge: keep the page clear of the status bar, the navigation bar and a camera cutout.
         FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(0xff0a4535);
+        root.setBackgroundColor(0xff122540);
         root.addView(web);
         if (Build.VERSION.SDK_INT >= 30) {
             root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {

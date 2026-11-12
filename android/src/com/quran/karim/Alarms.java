@@ -106,7 +106,7 @@ final class Alarms {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(c, ch) : new Notification.Builder(c);
         b.setSmallIcon(R.drawable.ic_notif).setContentTitle(e.optString("title")).setContentText(e.optString("text"))
             .setStyle(new Notification.BigTextStyle().bigText(e.optString("text")))
-            .setContentIntent(pi).setAutoCancel(true).setColor(0xff0f6b4f);
+            .setContentIntent(pi).setAutoCancel(true).setColor(0xff1e3a5f);
         if (Build.VERSION.SDK_INT < 26 && adhan) b.setSound("silent".equals(voice) ? null : sound).setPriority(Notification.PRIORITY_HIGH);
         else if (Build.VERSION.SDK_INT < 26) b.setDefaults(Notification.DEFAULT_ALL);
         try { nm.notify(adhan ? 2 : 3, b.build()); } catch (SecurityException ignored) { }

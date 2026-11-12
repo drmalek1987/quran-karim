@@ -3009,7 +3009,7 @@
   // A short burst of stars and a message, for a reached goal or a finished wird.
   function cheer(msg) {
     var d = document.createElement("div"); d.className = "cele";
-    var html = ""; for (var i = 0; i < 24; i++) html += '<i style="--x:' + (Math.random() * 2 - 1).toFixed(2) + ";--y:" + (Math.random() * -1 - .3).toFixed(2) + ";--d:" + (Math.random() * .3).toFixed(2) + 's;--c:' + ["#e0b44a", "#0f6b4f", "#23a079", "#f0d488"][i % 4] + '">✦</i>';
+    var html = ""; for (var i = 0; i < 24; i++) html += '<i style="--x:' + (Math.random() * 2 - 1).toFixed(2) + ";--y:" + (Math.random() * -1 - .3).toFixed(2) + ";--d:" + (Math.random() * .3).toFixed(2) + 's;--c:' + ["#e0b44a", "#1e3a5f", "#23a079", "#f0d488"][i % 4] + '">✦</i>';
     d.innerHTML = html + "<b>" + msg + "</b>"; document.body.appendChild(d);
     try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("60,80,60"); } catch (e) {}
     setTimeout(function () { d.remove(); }, 2600);
@@ -4063,16 +4063,16 @@
       var W = 1080, rh = 46, top = 190, c = document.createElement("canvas"), x = c.getContext("2d"), H = top + rh * (rows.length + 1) + 90;
       c.width = W; c.height = H;
       x.fillStyle = "#fbf7ee"; x.fillRect(0, 0, W, H); x.direction = "rtl"; x.textAlign = "center";
-      x.fillStyle = "#0f6b4f"; x.font = "700 46px Cairo, sans-serif"; x.fillText("إمساكية رمضان " + ar(rows[0].h.year) + " هـ" + (loc[2] ? " · " + loc[2] : ""), W / 2, 80);
+      x.fillStyle = "#1e3a5f"; x.font = "700 46px Cairo, sans-serif"; x.fillText("إمساكية رمضان " + ar(rows[0].h.year) + " هـ" + (loc[2] ? " · " + loc[2] : ""), W / 2, 80);
       x.fillStyle = "#7a6a40"; x.font = "400 26px Cairo, sans-serif"; x.fillText(PR_METHODS[cfg.method].n + " · الإمساك قبل الفجر بعشر دقائق", W / 2, 128);
       var cols = [170, 120, 120, 120, 120, 120, 120, 120], xs = [], acc = W - 40;
       cols.forEach(function (w) { xs.push(acc - w / 2); acc -= w; });
-      x.font = "700 24px Cairo, sans-serif"; x.fillStyle = "#0f6b4f"; head.forEach(function (h, j) { x.fillText(h, xs[j], top); });
+      x.font = "700 24px Cairo, sans-serif"; x.fillStyle = "#1e3a5f"; head.forEach(function (h, j) { x.fillText(h, xs[j], top); });
       x.font = "400 24px Cairo, sans-serif";
       rows.forEach(function (r, i) {
         var y = top + rh * (i + 1);
-        if (i % 2 === 0) { x.fillStyle = "rgba(15,107,79,.07)"; x.fillRect(40, y - 32, W - 80, rh); }
-        x.fillStyle = r.d.getDay() === 5 ? "#0f6b4f" : "#1d1a14";
+        if (i % 2 === 0) { x.fillStyle = "rgba(30,58,95,.07)"; x.fillRect(40, y - 32, W - 80, rh); }
+        x.fillStyle = r.d.getDay() === 5 ? "#1e3a5f" : "#1d1a14";
         [r.d.toLocaleDateString("ar-EG", { weekday: "short", day: "numeric", month: "numeric" }), ar(r.h.day)].concat(["imsak", "fajr", "dhuhr", "asr", "maghrib", "isha"].map(function (k) { return short(r.t[k]); }))
           .forEach(function (v, j) { x.fillText(v, xs[j], y); });
       });

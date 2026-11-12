@@ -1,0 +1,72 @@
+<!doctype html>
+<html dir="rtl"><head><meta charset="utf-8">
+<style>@font-face{font-family:AmiriQ;src:url(../../web/fonts/amiri-quran.woff2)}body{margin:0;background:#fff}svg{display:block;width:512px;height:512px}</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f1e35"/><stop offset=".55" stop-color="#1e3a5f"/><stop offset="1" stop-color="#2b5283"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dc95"/><stop offset=".5" stop-color="#dcb45c"/><stop offset="1" stop-color="#b8892f"/></linearGradient>
+  <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf7"/><stop offset="1" stop-color="#ece2cc"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e6bf"/><stop offset="1" stop-color="#e2c48a"/></linearGradient>
+</defs></svg>
+
+<!-- A: اللوح — the traditional memorisation board (rounded top, hanging hole); its last line turns into a voice wave -->
+<svg id="A" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <path d="M150 176 C150 116 196 84 256 84 C316 84 362 116 362 176 L362 404 C362 418 352 428 338 428 L174 428 C160 428 150 418 150 404 Z" fill="url(#wood)"/>
+  <circle cx="256" cy="128" r="14" fill="#1e3a5f"/>
+  <g stroke="#1e3a5f" stroke-width="11" stroke-linecap="round"><path d="M192 198 H320"/><path d="M206 236 H320"/><path d="M192 274 H304"/></g>
+  <g fill="#b8892f">
+    <rect x="186" y="324" width="12" height="40" rx="6"/><rect x="208" y="312" width="12" height="64" rx="6"/>
+    <rect x="230" y="328" width="12" height="32" rx="6"/><rect x="252" y="306" width="12" height="76" rx="6"/>
+    <rect x="274" y="320" width="12" height="48" rx="6"/><rect x="296" y="314" width="12" height="60" rx="6"/>
+    <rect x="318" y="330" width="12" height="28" rx="6"/>
+  </g>
+</svg>
+
+<!-- B: a speech bubble holding the ayah-end sign: "recite the ayah" -->
+<svg id="B" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <path d="M256 96 C356 96 420 158 420 236 C420 314 356 376 256 376 C238 376 222 374 206 370 L132 412 L150 344 C110 316 92 278 92 236 C92 158 156 96 256 96 Z" fill="url(#cream)"/>
+  <text x="256" y="300" text-anchor="middle" font-family="AmiriQ" font-size="190" fill="#b8892f">&#x06DD;&#x0661;&#x0667;</text>
+</svg>
+
+<!-- C: a brand mark from the letter ي (the first letter of يسّرنا): one gold sweep and its two dots -->
+<svg id="C" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <path d="M372 176 C 400 252 360 318 268 330 C 196 340 132 316 112 262 C 150 292 196 300 246 292 C 318 280 352 236 340 182 Z" fill="url(#gold)"/>
+  <path d="M356 136 C 368 120 392 120 400 138" fill="none" stroke="url(#gold)" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="214" cy="388" r="22" fill="url(#cream)"/><circle cx="282" cy="388" r="22" fill="url(#cream)"/>
+</svg>
+
+<!-- D: a ring of sound around a gold centre: the Quran recited, heard, kept -->
+<svg id="D" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <g id="ring" stroke="url(#gold)" stroke-width="11" stroke-linecap="round"></g>
+  <circle cx="256" cy="256" r="74" fill="url(#cream)"/>
+  <path d="M256 222 C240 212 220 210 200 212 L200 292 C220 290 240 292 256 302 C272 292 292 290 312 292 L312 212 C292 210 272 212 256 222 Z" fill="#1e3a5f"/>
+  <path d="M256 222 L256 302" stroke="#f6dc95" stroke-width="4"/>
+</svg>
+
+<!-- E: an open book drawn only with sound bars -->
+<svg id="E" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <g id="bookbars"></g>
+  <path d="M110 372 C170 352 220 356 256 384 C292 356 342 352 402 372" fill="none" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/>
+</svg>
+
+<script>
+  // D: 48 radial bars, lengths follow a voice-like envelope
+  const ring = document.getElementById('ring');
+  for (let i = 0; i < 48; i++) {
+    const a = i / 48 * Math.PI * 2, L = 22 + 40 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.37));
+    const r1 = 104, r2 = r1 + L, x1 = 256 + r1 * Math.sin(a), y1 = 256 - r1 * Math.cos(a), x2 = 256 + r2 * Math.sin(a), y2 = 256 - r2 * Math.cos(a);
+    ring.insertAdjacentHTML('beforeend', `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`);
+  }
+  // E: bars whose tops trace two curved pages
+  const g = document.getElementById('bookbars'); const n = 13;
+  for (let side of [-1, 1]) for (let i = 0; i < n; i++) {
+    const t = i / (n - 1), x = 256 + side * (14 + t * 136), bottom = 372 - 22 * Math.sin(t * Math.PI / 2) * 0 + (1 - t) * 12;
+    const top = 150 + 70 * Math.pow(t, 1.4) + 22 * Math.sin(i * 1.7) * (0.3 + 0.7 * t);
+    g.insertAdjacentHTML('beforeend', `<rect x="${x - 5}" y="${top}" width="10" height="${bottom - top - 18}" rx="5" fill="${i % 3 ? '#f3ead6' : '#dcb45c'}"/>`);
+  }
+</script>
+</body></html>

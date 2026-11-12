@@ -12,5 +12,5 @@
         android:textColor="#ccffffff" android:textSize="11sp" android:gravity="center" />
     <TextView android:id="@+id/w_cont" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_marginTop="8dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:background="@drawable/widget_btn"
-        android:textColor="#ff0f6b4f" android:textSize="13sp" android:textStyle="bold" android:gravity="center" />
+        android:textColor="#ff1e3a5f" android:textSize="13sp" android:textStyle="bold" android:gravity="center" />
 </LinearLayout>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html dir="rtl"><head><meta charset="utf-8">
+<style>
+@font-face { font-family: AmiriQ; src: url(../../web/fonts/amiri-quran.woff2); }
+body { margin: 0; background: #fff; }
+svg { display: block; width: 512px; height: 512px; }
+</style></head><body>
+<!-- Shared gradients -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f1e35"/><stop offset=".55" stop-color="#1e3a5f"/><stop offset="1" stop-color="#2b5283"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d68c"/><stop offset=".5" stop-color="#d9b25a"/><stop offset="1" stop-color="#b8892f"/></linearGradient>
+    <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf7"/><stop offset="1" stop-color="#efe6d2"/></linearGradient>
+  </defs>
+</svg>
+
+<!-- 1: voice — open book with a sound wave rising from the spine -->
+<svg id="i1" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <g fill="url(#gold)">
+    <rect x="232" y="118" width="16" height="74" rx="8"/><rect x="264" y="98" width="16" height="114" rx="8"/>
+    <rect x="200" y="138" width="16" height="44" rx="8"/><rect x="296" y="128" width="16" height="54" rx="8"/>
+    <rect x="168" y="150" width="16" height="22" rx="8"/><rect x="328" y="146" width="16" height="26" rx="8"/>
+  </g>
+  <path d="M256 250 C214 226 160 220 104 228 L104 384 C160 376 214 382 256 406 Z" fill="url(#cream)"/>
+  <path d="M256 250 C298 226 352 220 408 228 L408 384 C352 376 298 382 256 406 Z" fill="url(#cream)"/>
+  <path d="M256 250 L256 406" stroke="#c9a14a" stroke-width="6"/>
+  <path d="M96 236 L96 396 C158 386 214 392 256 418 C298 392 354 386 416 396 L416 236" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
+
+<!-- 2: mihrab arch with the open book -->
+<svg id="i2" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <path d="M136 420 L136 230 C136 160 196 120 256 82 C316 120 376 160 376 230 L376 420" fill="none" stroke="url(#gold)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M176 420 L176 240 C176 190 216 160 256 134 C296 160 336 190 336 240 L336 420" fill="none" stroke="url(#gold)" stroke-width="5" opacity=".7"/>
+  <path d="M256 300 C228 284 196 280 166 284 L166 372 C196 368 228 372 256 388 Z" fill="url(#cream)"/>
+  <path d="M256 300 C284 284 316 280 346 284 L346 372 C316 368 284 372 256 388 Z" fill="url(#cream)"/>
+  <path d="M256 300 L256 388" stroke="#c9a14a" stroke-width="4"/>
+  <circle cx="256" cy="214" r="12" fill="url(#gold)"/>
+</svg>
+
+<!-- 3: eight-point star (rub el hizb) with a microphone -->
+<svg id="i3" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <g fill="none" stroke="url(#gold)" stroke-width="14" stroke-linejoin="round">
+    <rect x="134" y="134" width="244" height="244" rx="18"/>
+    <rect x="134" y="134" width="244" height="244" rx="18" transform="rotate(45 256 256)"/>
+  </g>
+  <circle cx="256" cy="256" r="98" fill="#16294a"/>
+  <rect x="226" y="180" width="60" height="104" rx="30" fill="url(#cream)"/>
+  <path d="M206 254 C206 300 230 318 256 318 C282 318 306 300 306 254" fill="none" stroke="url(#cream)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M256 318 L256 340 M230 342 L282 342" stroke="url(#cream)" stroke-width="12" stroke-linecap="round"/>
+</svg>
+
+<!-- 4: the name in Quranic script, gold on navy, with a fine frame -->
+<svg id="i4" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <rect x="64" y="64" width="384" height="384" rx="56" fill="none" stroke="url(#gold)" stroke-width="6" opacity=".55"/>
+  <text x="256" y="300" text-anchor="middle" font-family="AmiriQ" font-size="150" fill="url(#gold)">يَسَّرۡنَا</text>
+  <path d="M176 360 L336 360" stroke="url(#gold)" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+  <circle cx="256" cy="360" r="9" fill="url(#gold)"/>
+</svg>
+
+<!-- 5: minimal modern — a single gold page curve forming a check / ascending path (memorised = done) -->
+<svg id="i5" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <path d="M120 300 C170 270 216 268 256 292 C296 268 342 270 392 300 L392 380 C342 352 296 352 256 378 C216 352 170 352 120 380 Z" fill="url(#cream)"/>
+  <path d="M256 292 L256 378" stroke="#c9a14a" stroke-width="5"/>
+  <path d="M186 196 L236 246 L340 130" fill="none" stroke="url(#gold)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</body></html>
