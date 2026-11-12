@@ -9,8 +9,8 @@ Data safety: `store/data-safety.md`. Privacy policy: `https://drmalek1987.github
 ## 1. Main store listing
 
 ### App name (≤ 30)
-- AR (default language, `ar`): `حافظ - القرآن الكريم والتفسير`
-- EN (`en-US` translation): `Hafiz - Quran & Tafsir Offline`
+- AR (default language, `ar`): `حافظ`
+- EN (`en-US` translation): `Hafiz`
 
 ### Short description (≤ 80, no "best/free/new", no emoji)
 - AR: `مصحف يعمل بدون إنترنت بثلاث طبعات، مع تفسير وتجويد ملون وتسميع بالصوت وأذكار`
