@@ -9,8 +9,8 @@ Data safety: `store/data-safety.md`. Privacy policy: `https://drmalek1987.github
 ## 1. Main store listing
 
 ### App name (≤ 30)
-- AR (default language, `ar`): `قارئ - القرآن الكريم والتفسير`
-- EN (`en-US` translation): `Qari - Quran & Tafsir Offline`
+- AR (default language, `ar`): `حافظ - القرآن الكريم والتفسير`
+- EN (`en-US` translation): `Hafiz - Quran & Tafsir Offline`
 
 ### Short description (≤ 80, no "best/free/new", no emoji)
 - AR: `مصحف يعمل بدون إنترنت بثلاث طبعات، مع تفسير وتجويد ملون وتسميع بالصوت وأذكار`
@@ -18,7 +18,7 @@ Data safety: `store/data-safety.md`. Privacy policy: `https://drmalek1987.github
 
 ### Full description – AR (≤ 4000)
 ```
-«قارئ» تطبيق لقراءة المصحف وتدبّره وحفظه، يعمل بدون إنترنت، بلا إعلانات وبلا تسجيل دخول.
+«حافظ» تطبيق لقراءة المصحف وتدبّره وحفظه، يعمل بدون إنترنت، بلا إعلانات وبلا تسجيل دخول.
 
 المصحف
 • ثلاث طبعات مصوّرة: مصحف المدينة النبوية (طبعة مجمع الملك فهد الحالية)، والطبعة القديمة من مصحف المدينة، ومصحف على ترتيب الشمرلي. تُنزَّل الطبعة التي تختارها مرة واحدة ثم تعمل بدون إنترنت.
@@ -52,7 +52,7 @@ Data safety: `store/data-safety.md`. Privacy policy: `https://drmalek1987.github
 
 ### Full description – EN (≤ 4000)
 ```
-Qari is a Mushaf app for reading, understanding and memorising the Quran. It works offline, has no ads and needs no account. The interface is Arabic, with an English option.
+Hafiz is a Mushaf app for reading, understanding and memorising the Quran. It works offline, has no ads and needs no account. The interface is Arabic, with an English option.
 
 The Mushaf
 • Three printed Mushaf editions: the current King Fahd Complex Madinah Mushaf, the older Madinah print, and a Shamarly-layout Mushaf. You download the edition you choose once, then it works offline.

@@ -12,7 +12,7 @@ function loadPW() {
 }
 const R = path.resolve(__dirname, '..');
 const url = f => require('url').pathToFileURL(path.join(R, f)).href;
-const TITLE = 'قارئ';
+const TITLE = 'حافظ';
 const SUB = 'القرآن الكريم · طبعة الملك فهد والشمرلي<br>تفسير · تجويد · سماع · ترتيل · بدون إنترنت';
 const html = `<!doctype html><html dir="rtl"><head><meta charset="utf-8"><style>
 @font-face { font-family: Cairo; font-weight: 700; src: url(${url('web/fonts/cairo-700.woff2')}); }
