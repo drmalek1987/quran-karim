@@ -87,7 +87,7 @@ The Quran text is letter-identical to the Madinah Mushaf (Hafs from Asim) as pub
 ### Category, tags, contact
 - App or game: **App** · Category: **Books & Reference** · Free.
 - Tags (pick up to 5 in Store settings › Tags): Books & Reference, Religion/Spirituality (if offered), Education, Reference, Audio.
-- Store settings › **App support**: Email = your dedicated support email (PUBLIC). Website = `https://github.com/drmalek1987/quran-karim` (optional). Phone: leave empty.
+- Store settings › **App support**: Email = drmalek2000@gmail.com (PUBLIC). Website = `https://github.com/drmalek1987/quran-karim` (optional). Phone: leave empty.
 - Privacy policy: `https://drmalek1987.github.io/quran-karim/privacy-policy.html`
 
 ## 2. App content answers
