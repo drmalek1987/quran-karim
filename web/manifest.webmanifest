@@ -1,6 +1,6 @@
 {
-  "name": "القرآن الكريم",
-  "short_name": "القرآن",
+  "name": "قارئ - القرآن الكريم",
+  "short_name": "قارئ",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",

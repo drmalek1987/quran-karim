@@ -1,4 +1,4 @@
-# دليل رفع «القرآن الكريم» على Google Play خطوة بخطوة
+# دليل رفع «قارئ» على Google Play خطوة بخطوة
 
 حساب شخصي (Personal)، مش تاجر (non-trader). النسخة: 5.20 (versionCode 68)، ملف `quran-karim-v5.20-play.aab`.
 اتراجع على قواعد جوجل يوم 12 نوفمبر 2026 (المصادر في `plans/play-store-plan.md`).
@@ -40,7 +40,7 @@
 ## المرحلة 1: إنشاء التطبيق
 
 10. Play Console › **Home** › **Create app**.
-11. App name: `القرآن الكريم - مصحف وتفسير` 📁 `store/listing-play.md`.
+11. App name: `قارئ - القرآن الكريم والتفسير` 📁 `store/listing-play.md`.
 12. Default language: **Arabic – ar**.
 13. App or game: **App**. Free or paid: **Free** (المجاني مينفعش يتحوّل لمدفوع بعد كده).
 14. 👤 علّم على الإقرارات (Developer Program Policies و US export laws) واضغط **Create app**.
