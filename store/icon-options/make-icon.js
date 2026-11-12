@@ -6,16 +6,16 @@ let root = cp.execSync('npm root -g', { encoding: 'utf8', shell: true }).trim(),
 for (const s of ['playwright', '@playwright/test/node_modules/playwright']) { try { pw = require(path.join(root, s)); break; } catch (e) {} }
 const D = __dirname, U = n => require('url').pathToFileURL(path.join(D, n)).href;
 // medallion centre in the base-1024 framing (measured on the photo), and the word size there
-const CX = 500, CY = 492, SIZE = 256, WORD = 'يَسَّرْنَا';
+const CX = 500, CY = 492, SIZE = +(process.env.QK_SIZE || 230), WORD = process.env.QK_WORD || 'لَوْح', SUF = process.env.QK_SUF || '', FONT = process.env.QK_FONT || 'Noto Nastaliq Urdu', WGT = process.env.QK_WEIGHT || '700';
 const html = (img, scale) => `<!doctype html><html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&display=block"></head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${FONT.replace(/ /g, '+')}${WGT === '400' ? '' : ':wght@' + WGT}&display=block"></head>
 <body style="margin:0"><canvas id="c" width="1024" height="1024"></canvas><script>
 (async () => {
-  await document.fonts.load('700 ${SIZE}px "Aref Ruqaa"', '${WORD}');
+  await document.fonts.load('${WGT} ${SIZE}px "${FONT}"', '${WORD}');
   const c = document.getElementById('c'), x = c.getContext('2d'), im = new Image();
   im.src = '${U(img)}'; await im.decode(); x.drawImage(im, 0, 0, 1024, 1024);
   const s = ${SIZE} * ${scale}, cx = 512 + (${CX} - 512) * ${scale}, cy = 512 + (${CY} - 512) * ${scale};
-  x.font = '700 ' + s + 'px "Aref Ruqaa"'; x.direction = 'rtl'; x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  x.font = '${WGT} ' + s + 'px "${FONT}"'; x.direction = 'rtl'; x.textAlign = 'left'; x.textBaseline = 'alphabetic';
   const m = x.measureText('${WORD}');
   // ink box: left = -actualBoundingBoxLeft, right = actualBoundingBoxRight, top = -ascent, bottom = descent
   const ox = cx - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2, oy = cy + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
@@ -35,7 +35,7 @@ const html = (img, scale) => `<!doctype html><html><head><meta charset="utf-8">
 </script></body></html>`;
 (async () => {
   const b = await pw.chromium.launch(), pg = await b.newPage({ viewport: { width: 1024, height: 1024 } });
-  for (const [img, scale, out] of [['base-1024.png', 1, 'icon-1024.png'], ['adaptive-1024.png', .60 / .90, 'adaptive-fg-1024.png']]) {
+  for (const [img, scale, out] of [['base-1024.png', 1, 'icon-1024' + SUF + '.png'], ['adaptive-1024.png', .60 / .90, 'adaptive-fg-1024' + SUF + '.png']]) {
     const f = path.join(D, '_icon.html'); fs.writeFileSync(f, html(img, scale));
     await pg.goto(require('url').pathToFileURL(f).href, { waitUntil: 'networkidle' }); await pg.waitForFunction(() => document.title === 'done');
     await (await pg.$('#c')).screenshot({ path: path.join(D, out) });   // (a file:// image taints the canvas for toDataURL)

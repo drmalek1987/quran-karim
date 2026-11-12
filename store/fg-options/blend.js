@@ -4,16 +4,24 @@ let root = cp.execSync('npm root -g', { encoding: 'utf8', shell: true }).trim(),
 for (const s of ['playwright', '@playwright/test/node_modules/playwright']) { try { pw = require(path.join(root, s)); break; } catch (e) {} }
 const R = path.resolve(__dirname, '..', '..'), D = __dirname, U = f => require('url').pathToFileURL(path.join(R, f)).href;
 global.window = global; require(path.join(R, 'web', 'quran-data.js'));
-const AYAH = window.QURAN.t[53][16].split(' ').slice(0, 4).join(' ');
-const ICON = U('store/icon-options/icon-1024.png'), TEX = U('store/icon-options/adaptive-1024.png'), WIDE = U('store/icon-options/adaptive-fg-1024.png');
-const BASE = `@font-face{font-family:Cairo;font-weight:700;src:url(${U('web/fonts/cairo-700.woff2')})}
+const AY = (process.env.QK_AYAH || '54,17,4').split(',');   // sura,ayah[-ayah],words
+const [AS, AN] = [+AY[0], +(AY[2] || 99)], [A1, A2] = AY[1].split('-').map(Number);
+const AR = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const AYAH = A2 ? [...Array(A2 - A1 + 1)].map((_, i) => window.QURAN.t[AS - 1][A1 - 1 + i] + (A1 + i < A2 ? ' ۝' + AR(A1 + i) : '')).join(' ')
+  : window.QURAN.t[AS - 1][A1 - 1].split(' ').slice(0, AN).join(' ');
+const NAME = process.env.QK_NAME || 'يسّرنا', SUF = process.env.QK_SUF || '';
+const ICON = U('store/icon-options/icon-1024' + (process.env.QK_SUF || '') + '.png'), TEX = U('store/icon-options/adaptive-1024.png'), WIDE = U(process.env.QK_PLAIN ? 'store/icon-options/adaptive-1024.png' : 'store/icon-options/adaptive-fg-1024' + (process.env.QK_SUF || '') + '.png');
+const NF = process.env.QK_NOTO ? `@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&display=block');` : '';
+const BASE = `${NF}@font-face{font-family:Cairo;font-weight:700;src:url(${U('web/fonts/cairo-700.woff2')})}
 @font-face{font-family:Cairo;font-weight:600;src:url(${U('web/fonts/cairo-600.woff2')})}
 @font-face{font-family:AmiriQ;src:url(${U('web/fonts/amiri-quran.woff2')})}
 html,body{margin:0;width:1024px;height:500px;overflow:hidden}body{font-family:Cairo,sans-serif;color:#fff;position:relative;background:#0f1e35}
 .t{position:absolute;display:flex;flex-direction:column;align-items:center}h1{margin:0;font:700 112px/1.05 Cairo;text-shadow:0 4px 18px rgba(0,0,0,.35)}
-.ay{font-family:AmiriQ,serif;color:#f0d79a;font-size:46px;line-height:1.9;margin:4px 0 12px;white-space:nowrap}.ay b{font-weight:400;color:#c9a14a}
+.ay{font-family:AmiriQ,serif;color:#f0d79a;font-size:${process.env.QK_AYSIZE || 46}px;line-height:1.9;margin:4px 0 12px;white-space:nowrap}.ay b{font-weight:400;color:#c9a14a}
 .chips{display:flex;gap:10px;white-space:nowrap}.chips span{border:1.5px solid rgba(240,215,154,.55);color:#f3e7c4;border-radius:999px;padding:2px 16px;font:600 20px/1.6 Cairo;background:rgba(15,30,53,.35)}`;
-const TXT = (style) => `<div class="t" style="${style}"><h1>يسّرنا</h1><div class="ay"><b>﴿</b>${AYAH}<b>﴾</b></div>
+const NOTO = process.env.QK_NOTO ? `h1{font-family:'Noto Nastaliq Urdu'!important;font-size:112px!important;line-height:1.7!important}.ay{font-family:'Noto Nastaliq Urdu'!important;font-size:${process.env.QK_AYSIZE || 30}px!important;line-height:2.4!important}` : '';
+const NOH1 = process.env.QK_NOH1 ? `h1{display:none}.ay{font-size:${process.env.QK_AYSIZE || 30}px!important}` : '';
+const TXT = (style) => `<style>${NOTO}${NOH1}</style>` + `<div class="t" style="${style}"><h1>${NAME}</h1><div class="ay"><b>﴿</b>${AYAH}<b>﴾</b></div>
   <div class="chips"><span>حفظ</span><span>تسميع</span><span>تفسير</span><span>تجويد</span><span>بدون إنترنت</span></div></div>`;
 const V = {
   // b1: the real cover fills the right side and fades into the navy: no card, no frame, one surface
@@ -39,7 +47,7 @@ const V = {
   for (const [k, body] of Object.entries(V)) {
     const f = path.join(D, k + '.html'); fs.writeFileSync(f, `<!doctype html><html dir="rtl"><head><meta charset="utf-8"></head><body>${body}</body></html>`);
     await pg.goto(require('url').pathToFileURL(f).href); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(300);
-    await pg.screenshot({ path: path.join(D, k + '.png') });
+    await pg.screenshot({ path: path.join(D, k + SUF + '.png') });
   }
   await b.close();
   cp.execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', path.join(D, 'b1.png'), '-i', path.join(D, 'b2.png'), '-i', path.join(D, 'b3.png'),
