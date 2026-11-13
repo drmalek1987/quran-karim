@@ -20,20 +20,24 @@ const WIFI_OFF = '<svg viewBox="0 0 24 24"><path d="M23.64 7c-.45-.34-4.93-4-11.
 const html = `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><style>
 @font-face { font-family: Cairo; font-weight: 700; src: url(${url('web/fonts/cairo-700.woff2')}); }
 @font-face { font-family: Cairo; font-weight: 600; src: url(${url('web/fonts/cairo-600.woff2')}); }
+@font-face { font-family: CairoL; font-weight: 600; src: url(${url('web/fonts/cairo-latin-600.woff2')}); }
 html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
 body { font-family: Cairo, sans-serif; color: #fff; position: relative;
   background: radial-gradient(90% 120% at 80% 20%, #2f5a90 0%, #1e3a5f 45%, #0b1729 100%); }
 .pat { position: absolute; inset: 0; opacity: .08; background-size: 120px 120px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%23f0d79a' stroke-width='1.6'%3E%3Crect x='36' y='36' width='48' height='48'/%3E%3Crect x='36' y='36' width='48' height='48' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E"); }
-.t { position: absolute; right: 64px; top: 70px; width: 700px; }
+.t { position: absolute; right: 64px; top: 44px; width: 700px; }
 .icon { display: flex; align-items: center; gap: 18px; }
 .icon img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 8px 24px rgba(0,0,0,.45), 0 0 0 2px rgba(240,215,154,.4); }
 .icon span { font: 700 40px Cairo; color: #f0d79a; }
-h1 { margin: 34px 0 0; font: 700 118px/1.12 Cairo; letter-spacing: -1px; text-shadow: 0 6px 24px rgba(0,0,0,.4); }
+h1 { margin: 18px 0 0; font: 700 106px/1.1 Cairo; letter-spacing: -1px; text-shadow: 0 6px 24px rgba(0,0,0,.4); }
 h1 em { font-style: normal; color: #f0d79a; }
-h2 { margin: 20px 0 0; font: 700 50px/1.3 Cairo; color: #fff; }
+h2 { margin: 14px 0 0; font: 700 46px/1.3 Cairo; color: #fff; }
+.en { direction: ltr; text-align: right; font: 600 28px/1.3 CairoL, sans-serif; color: rgba(255,255,255,.72); margin: 4px 0 0; }
+.en.g { color: #f0d79a; font-size: 32px; }
+.off .e { font: 600 28px CairoL, sans-serif; opacity: .8; }
 h2 b { color: #ff6b6b; }
-.off { display: inline-flex; align-items: center; gap: 14px; margin-top: 30px; padding: 10px 30px; border-radius: 999px;
+.off { display: inline-flex; align-items: center; gap: 14px; margin-top: 22px; padding: 8px 30px; border-radius: 999px;
   background: #c09a2e; color: #0f1e35; font: 700 40px Cairo; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
 .off svg { width: 40px; height: 40px; fill: #0f1e35; }
 .ph { position: absolute; left: 70px; top: 40px; padding: 12px; border-radius: 48px; background: #0a1322; transform: rotate(-4deg);
@@ -48,9 +52,9 @@ h2 b { color: #ff6b6b; }
 <div class="ph"><div class="scr"><img src="${url(img)}">${ring}</div></div>
 <div class="mic"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></div>
 <div class="t"><div class="icon"><img src="${url('store/icon-options/icon-1024.png')}"><span>لوح</span></div>
-<h1>سمِّع القرآن<br><em>بصوتك</em></h1>
-<h2>${VAR === 'a' ? 'ويُعلِّم لك <b>الخطأ</b> كلمةً كلمة' : 'ويتابعك التطبيق كلمةً كلمة'}</h2>
-<div class="off">${WIFI_OFF}دون إنترنت</div></div>
+<h1>سمِّع القرآن<br><em>بصوتك</em></h1><p class="en g">Recite the Quran by voice</p>
+<h2>${VAR === 'a' ? 'ويُعلِّم لك <b>الخطأ</b> كلمةً كلمة' : 'ويتابعك التطبيق كلمةً كلمة'}</h2><p class="en">${VAR === 'a' ? 'Your mistakes marked, word by word' : 'The app follows you, word by word'}</p>
+<div class="off">${WIFI_OFF}دون إنترنت <span class="e">· Offline</span></div></div>
 </body></html>`;
 (async () => {
   const tmp = path.join(OUT, 'thumb.html'); fs.writeFileSync(tmp, html);
