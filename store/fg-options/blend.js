@@ -15,7 +15,7 @@ const NF = process.env.QK_NOTO ? `@import url('https://fonts.googleapis.com/css2
 const BASE = `${NF}@font-face{font-family:Cairo;font-weight:700;src:url(${U('web/fonts/cairo-700.woff2')})}
 @font-face{font-family:Cairo;font-weight:600;src:url(${U('web/fonts/cairo-600.woff2')})}
 @font-face{font-family:AmiriQ;src:url(${U('web/fonts/amiri-quran.woff2')})}
-html,body{margin:0;width:1024px;height:500px;overflow:hidden}body{font-family:Cairo,sans-serif;color:#fff;position:relative;background:#0f1e35}
+html,body{margin:0;width:1024px;height:${process.env.QK_H || 500}px;overflow:hidden}body{font-family:Cairo,sans-serif;color:#fff;position:relative;background:#0f1e35}
 .t{position:absolute;display:flex;flex-direction:column;align-items:center}h1{margin:0;font:700 112px/1.05 Cairo;text-shadow:0 4px 18px rgba(0,0,0,.35)}
 .ay{font-family:AmiriQ,serif;color:#f0d79a;font-size:${process.env.QK_AYSIZE || 46}px;line-height:1.9;margin:4px 0 12px;white-space:nowrap}.ay b{font-weight:400;color:#c9a14a}
 .chips{display:flex;gap:10px;white-space:nowrap}.chips span{border:1.5px solid rgba(240,215,154,.55);color:#f3e7c4;border-radius:999px;padding:2px 16px;font:600 20px/1.6 Cairo;background:rgba(15,30,53,.35)}`;
@@ -43,7 +43,7 @@ const V = {
       <div class="tint"></div><div class="vig"></div>${TXT('left:40px;top:50%;transform:translateY(-50%);width:560px')}`,
 };
 (async () => {
-  const b = await pw.chromium.launch(), pg = await b.newPage({ viewport: { width: 1024, height: 500 } });
+  const b = await pw.chromium.launch(), pg = await b.newPage({ viewport: { width: 1024, height: +(process.env.QK_H || 500) }, deviceScaleFactor: +(process.env.QK_DPR || 1) });
   for (const [k, body] of Object.entries(V)) {
     const f = path.join(D, k + '.html'); fs.writeFileSync(f, `<!doctype html><html dir="rtl"><head><meta charset="utf-8"></head><body>${body}</body></html>`);
     await pg.goto(require('url').pathToFileURL(f).href); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(300);
