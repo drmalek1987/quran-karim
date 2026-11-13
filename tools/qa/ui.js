@@ -1281,18 +1281,20 @@ async function fresh(ctx, vp) {
   const wbPt = (n, s, a, w) => ev(([n, s, a, w]) => new Promise(res => QA_wb(n, rows => { const r = (rows || []).find(r => r[0] === s && r[1] === a && r[2] === w);
     const b = document.querySelector('.page-box[data-p="' + n + '"]'); if (!r || !b) return res(null); const g = b.getBoundingClientRect();
     res([g.left + (r[3] + r[5]) / 2000 * g.width, g.top + (r[4] + r[6]) / 2000 * g.height]); })), [n, s, a, w]);
-  if (ED === 'kfgqpc' || ED === 'kfold') {   // kfold: measured boxes since W5 (its 81:9 rect starts at 500)
+  // shamarly (W5): 2:2 is on page 3, 81:9 on page 503 (its rect starts at 639 on the mark)
+  const P22 = ED === 'shamarly' ? 3 : 2, P819 = ED === 'shamarly' ? 503 : 586, R819 = ED === 'shamarly' ? [610, 660] : [480, 530];
+  if (ED === 'kfgqpc' || ED === 'kfold' || ED === 'shamarly') {   // kfold: measured boxes since W5 (its 81:9 rect starts at 500)
     await check(G519, 'ضغطة طويلة على «ٱلْكِتَٰبُ» في صفحة ٢ بتفتح معنى الكلمة دي من غير شريط الآية', async () => {
-      await go('#/p/2', 1200); const xy = await wbPt(2, 2, 2, 1); if (!xy) throw new Error('no box');
+      await go('#/p/' + P22, 1200); const xy = await wbPt(P22, 2, 2, 1); if (!xy) throw new Error('no box');
       await longPress(xy); const r = await ev(() => { const d = document.querySelector('.wm-dlg'); return d && [d.querySelector('.words button.on').textContent, !!document.querySelector('#ayahBar button[data-c="x"]')]; });
       await ev(() => window.qBack()); await wait(300);
       return assert(r && r[0] === 'ٱلْكِتَٰبُ' && !r[1], JSON.stringify(r)); });
     await check(G519, 'صفحة ٥٨٦: كلمة «قُتِلَتْ» (٨١:٩) بتتعرف من مربعها، ومربع الآية متظبط على دايرتها', async () => {
-      await go('#/p/586', 1200); const xy = await wbPt(586, 81, 9, 2); if (!xy) throw new Error('no box');
+      await go('#/p/' + P819, 1200); const xy = await wbPt(P819, 81, 9, 2); if (!xy) throw new Error('no box');
       await longPress(xy); const w = await ev(() => { const d = document.querySelector('.wm-dlg'); return d && d.querySelector('.words button.on').textContent; });
       await ev(() => window.qBack()); await wait(300);
       const r9 = await ev(() => QA_rect(81, 9)[0]);
-      return assert(w === 'قُتِلَتْ' && r9[1] > 480 && r9[1] < 530, JSON.stringify([w, r9])); });
+      return assert(w === 'قُتِلَتْ' && r9[1] > R819[0] && r9[1] < R819[1], JSON.stringify([w, r9])); });
     await check(G519, 'اللمسة العادية على الصفحة لسه بتفتح شريط الآية، والسحب لسه بيقلب الصفحة', async () => {
       await go('#/p/51', 1200); const r = await ev(() => { const b = document.querySelector('.page-box').getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; });
       await p.mouse.click(r[0] + r[2] / 2, r[1] + r[3] / 2); await wait(400);
@@ -1302,21 +1304,21 @@ async function fresh(ctx, vp) {
       const h = await ev(() => location.hash);
       return assert(bar[0] && !bar[1] && h === '#/p/52', JSON.stringify([bar, h])); });
     await check(G519, 'نافذة معنى الكلمة بتمسح أي تحديد نص بيعمله الأندرويد تحت الصباع، وعنوانها مش قابل للتحديد', async () => {
-      await go('#/p/2', 1200); const xy = await wbPt(2, 2, 2, 1); if (!xy) throw new Error('no box'); await longPress(xy);
+      await go('#/p/' + P22, 1200); const xy = await wbPt(P22, 2, 2, 1); if (!xy) throw new Error('no box'); await longPress(xy);
       const r = await ev(() => new Promise(res => { const b = document.querySelector('.wm-dlg > b'), rg = document.createRange(); rg.selectNodeContents(b);
         getSelection().removeAllRanges(); getSelection().addRange(rg); setTimeout(() => res([getSelection().toString(), getComputedStyle(b).userSelect]), 150); }));
       await ev(() => window.qBack()); await wait(300);
       return assert(r[0] === '' && r[1] === 'none', JSON.stringify(r)); });
     await check(G519, 'وضع الحفظ: الضغطة الطويلة على الصفحة ما بتفتحش معنى الكلمة', async () => {
-      await go('#/p/2', 1200); await ev(() => hifzToggle()); await wait(500);
-      const on = await ev(() => !!document.querySelector('#hifzBar')); const xy = await wbPt(2, 2, 2, 1); if (xy) await longPress(xy);
+      await go('#/p/' + P22, 1200); await ev(() => hifzToggle()); await wait(500);
+      const on = await ev(() => !!document.querySelector('#hifzBar')); const xy = await wbPt(P22, 2, 2, 1); if (xy) await longPress(xy);
       const d = await ev(() => !!document.querySelector('.wm-dlg'));
       await ev(() => { if (document.getElementById('hifzBar')) hifzToggle(); document.querySelectorAll('.dlg-back').forEach(e => e.remove()); }); await wait(300);
       return assert(on && !d, JSON.stringify([on, d])); });
     await check(G519, 'تظليل الكلمة (التسميع) بيستخدم المربع المقاس: جوه مربع الآية وبعرض الكلمة', async () => {
-      await go('#/p/2', 1200); const r = await ev(() => new Promise(res => QA_wb(2, rows => { const x = rows.filter(r => r[0] === 2 && r[1] === 2);
-        res([rows.length, x.length, x.every(r => r[5] - r[3] >= 6 && r[5] - r[3] < 300)]); })));
-      return assert(r[0] > 30 && r[1] === 7 && r[2], JSON.stringify(r)); });   // 2:2 = 7 words
+      await go('#/p/' + P22, 1200); const r = await ev(n => new Promise(res => QA_wb(n, rows => { const x = rows.filter(r => r[0] === 2 && r[1] === 2);
+        res([rows.length, x.length, x.every(r => r[5] - r[3] >= 6 && r[5] - r[3] < 300)]); })), P22);
+      return assert(r[0] > (P22 === 3 ? 20 : 30) && r[1] === 7 && r[2], JSON.stringify(r)); });   // 2:2 = 7 words (shamarly page 3: 28 boxes)
   }
   if (ED === 'harmain') {
     // the Haramain photos: word boxes aligned in the straightened frame, mapped back through the page's homography
@@ -1337,7 +1339,7 @@ async function fresh(ctx, vp) {
   }
   // ---------- W3/W4 (plans/W-track-plan.md 5-6): hifz masks and the page-end turn from the measured word boxes ----------
   const G520 = 'W-track (W3/W4)';
-  if (ED === 'kfgqpc' || ED === 'kfold') {
+  if (ED === 'kfgqpc' || ED === 'kfold' || ED === 'shamarly') {
     await check(G520, 'W3: أقنعة الحفظ في صفحة ٥٠ على مربعات الكلمات بالظبط (كل آية في كل سطر = اتحاد مربعات كلماتها ± ٢‰)', async () => {
       await go('#/p/50', 1200); await ev(() => new Promise(r => QA_wb(50, r))); await ev(() => hifzToggle()); await wait(600);
       const r = await ev(() => new Promise(res => QA_wb(50, rows => {

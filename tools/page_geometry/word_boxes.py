@@ -119,7 +119,8 @@ def pb(p):
 
 
 CIRC = int(os.environ.get('CIRC', '0'))
-CW = 0.55 if ED == 'kfold' else 0.62   # ayah-end circle width in line heights (kfold: the medallion ring, 30 px of a 59 px line)
+CW = {'kfold': 0.55, 'shamarly': 0.52}.get(ED, 0.62)   # ayah-end circle width in line heights (kfold: the medallion ring, 30 px
+# of a 59 px line; shamarly: its hexagon, 30 px of a 59 px line)
 SLACK = float(os.environ.get('SLACK', '0'))   # line heights the first / last piece may really reach past its rect (page 586: a word off)
 def scan_strip(boxes):
     pieces, meta, off, f0, f1 = [], [], 0, 0, 0
@@ -128,7 +129,8 @@ def scan_strip(boxes):
         lx0, lx1 = LINE[(p, y0)]
         xl, xr = x0 * W / 1000, x1 * W / 1000; t, bt = y0 * H / 1000, y1 * H / 1000
         k = (bt - t) / 80; c = int((t + bt) / 2); sl = SLACK * (bt - t)
-        cw = 0.4 if ED == 'kfold' and p < 3 else CW   # kfold pages 1-2: a 15 px medallion on 40 px lines
+        cw = 0.4 if ED == 'kfold' and p < 3 else 0.6 if ED == 'shamarly' and p < 4 else CW   # kfold pages 1-2: a 15 px medallion
+        # on 40 px lines; shamarly pages 2-3: a 39 px mark on 65 px lines
         if i == len(boxes) - 1 and not CIRC: xl += cw * (bt - t)   # not the ayah-end circle (the rects start at it, 5.19)
         half = min(sl, (xr - xl) / 2)   # the true end may also be inside the rect
         if i == 0: e = min((lx1 + 15) * W / 1000, xr + sl); f0 = int((e - xr + half) / k); xr = e
@@ -189,15 +191,26 @@ def ayah_words(s, a, boxes):
     # a word squeezed to a sliver (the warp folded it onto a neighbour) shares its neighbour's span on that line, split by
     # letter count (the earlier word is on the right)
     ln = {w: ce - cs for w, cs, ce in spans}
+    if ED == 'shamarly':   # a short word the warp folded to under 2 columns (24 of 77k): a zero-width box at the left edge of the
+        # word before it, which the sliver rule below widens to its letter-count share
+        have = {r[2] for r in rows}
+        for w, cs, ce in spans:
+            prev = [q for q in rows if q[2] == w - 1]
+            if w not in have and prev and ce > cs:
+                q = min(prev, key=lambda q: q[3]); rows.append([s, a, w, q[3], q[4], q[3], q[6]])
+        rows.sort(key=lambda r: r[2])
     for r in rows:
-        if r[5] - r[3] >= 6: continue
-        nb = [q for q in rows if q is not r and q[4] == r[4] and abs(q[2] - r[2]) == 1 and q[5] - q[3] >= 6]
+        if r[5] - r[3] >= SLIVER: continue
+        nb = [q for q in rows if q is not r and q[4] == r[4] and abs(q[2] - r[2]) == 1 and q[5] - q[3] >= SLIVER]
         if not nb: continue
         q = max(nb, key=lambda q: q[5] - q[3]); x0, x1 = min(q[3], r[3]), max(q[5], r[5])
         R_, L_ = (r, q) if r[2] < q[2] else (q, r)   # R_ = earlier word, right part
         cut = int(round(x1 - (x1 - x0) * ln[R_[2]] / (ln[R_[2]] + ln[L_[2]])))
         R_[3], R_[5], L_[3], L_[5] = cut, x1, x0, cut
     return rows, A['cost']
+
+
+SLIVER = 14 if ED == 'shamarly' else 6   # per mille; shamarly's short words (مِن, أُم) fold to 8-12 px slivers
 
 
 def num(n): return ''.join(chr(0x660 + int(d)) for d in str(n))
@@ -264,7 +277,7 @@ if __name__ == '__main__':
     if REVIEW: review(REVIEW); sys.exit()
     a, b = (int(ARGS[2]), int(ARGS[3])) if len(ARGS) > 3 else (min(BY), max(BY))
     tot, miss = 0, []
-    with Pool(max(1, os.cpu_count() - 2)) as pool:
+    with Pool(min(4, max(1, os.cpu_count() - 2))) as pool:
         for n, k, costs, ms in pool.imap_unordered(page, range(a, b + 1)):
             tot += k; miss += ms
             if costs and max(costs) > 1.3: print('page', n, 'weak alignment', round(max(costs), 3), flush=True)

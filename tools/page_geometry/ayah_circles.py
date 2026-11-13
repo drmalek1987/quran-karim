@@ -19,7 +19,14 @@ SRC = ROOT + '/web/editions/%s.js' % ED
 src = open(SRC, encoding='utf8').read(); i0 = src.index('=') + 1
 DATA = json.loads(src[i0:].rstrip().rstrip(';')); R = DATA['r']
 TOL = 12   # per mille
-MK = np.load(os.path.join(HERE, 'kfold_medallion.npy')).astype(np.float32) if ED == 'kfold' else None
+PAGES = sorted({b[0] for sur in R for bs in sur for b in bs or []})   # kfgqpc/kfold 1-604, shamarly 2-522
+NPROC = min(4, max(1, os.cpu_count() - 2))
+# shamarly: its hexagonal ayah-end mark, the mean of 703 marks cut from the scans (shamarly_mark.npy, 36x34 px grey, ring at
+# columns 2-31; scores >= 0.7 on a mark, <= 0.6 elsewhere, pages 4-522)
+MKF = {'kfold': 'kfold_medallion.npy', 'shamarly': 'shamarly_mark.npy'}.get(ED)
+MK = np.load(os.path.join(HERE, MKF)).astype(np.float32) if MKF else None
+THR = 0.65 if ED == 'shamarly' else 0.55
+FIRSTP = 4 if ED == 'shamarly' else 3   # the first page after the ornate opening pages
 
 
 def circle(h):
@@ -44,7 +51,7 @@ def page(p):
         t, bt = int(y0 * H / 1000), int(y1 * H / 1000); band = ink[t:bt]
         if MK is not None:   # scores: >= 0.62 on a medallion, <= 0.45 elsewhere (pages 3-604)
             m = cv2.matchTemplate(gray[max(0, t - 6):bt + 6], MK, cv2.TM_CCOEFF_NORMED).max(0); cs = []
-            while m.max() > 0.55:
+            while m.max() > THR:
                 x = int(m.argmax()); cs.append((x + 2) * 1000 / W); m[max(0, x - 30):x + 30] = -1
             fixes += fix_line(pcs, sorted(cs, reverse=True)); check(p, y0, pcs, cs, out); continue
         best = None
@@ -70,6 +77,9 @@ def check(p, y0, pcs, cs, out):
 
 GRID = [(112, 164), (164, 216), (216, 268), (268, 318), (318, 370), (370, 422), (422, 474), (474, 526), (526, 578),
         (578, 630), (630, 682), (682, 732), (732, 784), (784, 836), (836, 888)]   # kfold's 15 line slots (per mille)
+if ED == 'shamarly':   # its 15 slots as the rects have them
+    GRID = [(102, 155), (155, 207), (208, 260), (260, 313), (313, 365), (365, 418), (418, 470), (471, 523), (523, 576),
+            (576, 628), (628, 681), (681, 734), (734, 786), (786, 839), (839, 891)]
 
 
 def medallions(img, bands):
@@ -78,7 +88,7 @@ def medallions(img, bands):
     for i, (y0, y1) in enumerate(bands):
         t, bt = int(y0 * H / 1000), int(y1 * H / 1000)
         m = cv2.matchTemplate(img[max(0, t - 6):bt + 6], MK, cv2.TM_CCOEFF_NORMED).max(0); cs = []
-        while m.max() > 0.55:   # >= 0.62 on a medallion, <= 0.45 elsewhere (pages 3-604)
+        while m.max() > THR:   # kfold: >= 0.62 on a medallion, <= 0.45 elsewhere (pages 3-604)
             x = int(m.argmax()); cs.append((x + 2) * 1000 / W); m[max(0, x - 30):x + 30] = -1
         out += [(i, c) for c in sorted(cs, reverse=True)]
     return out
@@ -113,6 +123,31 @@ def frame12(p, rgb):
     return bands, meds, Ll, Lr, dark
 
 
+def frame23(p, rgb):
+    """shamarly pages 2-3 (ornate, larger script): line bands from the dark-ink rows inside the text panel, the marks found
+    with the template scaled 1.3 (scores 0.85-0.92 there, < 0.75 at other scales); same returns as frame12."""
+    H, W, _ = rgb.shape; X0, X1, Y0, Y1 = 150, 645, 300, 815   # the text panel (px of the 795x1124 scans)
+    dark = np.zeros(rgb.shape[:2], bool); dark[Y0:Y1, X0:X1] = rgb[Y0:Y1, X0:X1].max(2) < 110
+    rows = dark.sum(1); runs = []
+    for y in np.nonzero(rows > 2)[0]:
+        if runs and y <= runs[-1][1] + 3: runs[-1][1] = y
+        else: runs.append([y, y])
+    runs = [q for q in runs if rows[q[0]:q[1] + 1].sum() > 500]
+    cut = [runs[0][0] - 6] + [(a[1] + b[0]) // 2 for a, b in zip(runs, runs[1:])] + [runs[-1][1] + 6]
+    bands = [(int(round(cut[i] * 1000 / H)), int(round(cut[i + 1] * 1000 / H))) for i in range(len(runs))]
+    t = cv2.resize(MK, None, fx=1.3, fy=1.3); g = rgb.mean(2).astype(np.float32)[Y0:Y1, X0:X1]
+    m = cv2.matchTemplate(g, t, cv2.TM_CCOEFF_NORMED); pk = []
+    while m.max() > 0.8:
+        y, x = np.unravel_index(m.argmax(), m.shape); pk.append((x + X0 + 3, y + Y0 + t.shape[0] / 2)); m[max(0, y - 20):y + 20, max(0, x - 25):x + 25] = -1
+    meds, Ll, Lr = [], [], []
+    for i, (y0, y1) in enumerate(bands):
+        ms = sorted((x * 1000 / W for x, y in pk if y0 <= y * 1000 / H < y1), reverse=True)
+        meds += [(i, m_) for m_ in ms]
+        nz = np.nonzero(dark[int(y0 * H / 1000):int(y1 * H / 1000)].sum(0) >= 2)[0]
+        Ll.append(min([nz[0] * 1000 / W - 1] + [m_ - 1 for m_ in ms])); Lr.append((nz[-1] + 1) * 1000 / W + 1)
+    return bands, meds, Ll, Lr, dark
+
+
 def rebuild(p):
     """kfold: the old print breaks some lines differently from the King Fahd font print its boxes were mapped from
     (page 370: 26:64-65 a line off), and puts some surah headers on the next page (76/77: Al-Nisa' header). So the page
@@ -123,21 +158,23 @@ def rebuild(p):
     ay = [(s, a) for s, sur in enumerate(R) for a, bs in enumerate(sur) if any(b[0] == p for b in bs or [])]
     if not ay: return None
     ends = [(s, a) for s, a in ay if R[s][a][-1][0] == p]
-    if p < 3:
-        bands, meds, Ll, Lr, dark = frame12(p, rgb); keep = list(range(len(bands))); L1 = max(Lr)
-        first = {0: 0} if p == 1 else {1: 1}   # Al-Fatiha starts with its basmala (ayah 1); Al-Baqarah after it
+    if p < FIRSTP:
+        bands, meds, Ll, Lr, dark = (frame23 if ED == 'shamarly' else frame12)(p, rgb); keep = list(range(len(bands))); L1 = max(Lr)
+        first = {0: 0} if p == FIRSTP - 2 else {1: 1}   # Al-Fatiha starts with its basmala (ayah 1); Al-Baqarah after it
     else:
         xs = [b for s, a in ay for b in R[s][a] if b[0] == p]
         L0 = max(set(b[1] for b in xs), key=[b[1] for b in xs].count); L1 = max(set(b[3] for b in xs), key=[b[3] for b in xs].count)
         sat = (rgb.max(2) - rgb.min(2)) > 40; dark = rgb.max(2) < 110
-        hdr = [i for i, (y0, y1) in enumerate(GRID) if sat[int(y0 * H / 1000):int(y1 * H / 1000), int(L0 * W / 1000):int(L1 * W / 1000)].mean() > 0.2]
-        starts = [s for s, a in ay if a == 0]
-        if len(hdr) == len(starts) + 1 and hdr[-1] == len(GRID) - 1: hdr = hdr[:-1]; tail = True   # next surah's header
+        hs = [i for i, (y0, y1) in enumerate(GRID) if sat[int(y0 * H / 1000):int(y1 * H / 1000), int(L0 * W / 1000):int(L1 * W / 1000)].mean() > 0.2]
+        # a header = a run of slots (kfold: 1, shamarly: 2); h = its last slot, the basmala follows
+        hdr = [i for i in hs if i + 1 not in hs]; hslots = set(hs)
+        starts = [s for s, a in ay if a == 0 and R[s][0][0][0] == p]   # not a first ayah running on from the page before (466)
+        if hdr and hdr[-1] == len(GRID) - 1: hdr = hdr[:-1]; tail = True   # next surah's header (nothing can follow it here)
         else: tail = False
         if len(hdr) == len(starts): own = list(hdr)
-        elif len(hdr) == len(starts) - 1 and ay[0][1] == 0: own = [-1] + hdr   # header at the foot of the page before
+        elif len(hdr) == len(starts) - 1 and starts and ay[0] == (starts[0], 0): own = [-1] + hdr   # header at the foot of the page before
         else: return None
-        skip, first = set(hdr) | ({len(GRID) - 1} if tail else set()), {}
+        skip, first = hslots | ({len(GRID) - 1} if tail else set()), {}
         for s, h in zip(starts, own):
             b = h + 1 if s == 8 else h + 2   # At-Tawba has no basmala
             if s != 8: skip.add(h + 1)
@@ -157,7 +194,7 @@ def rebuild(p):
         return dark[int(b[0] * H / 1000):int(b[1] * H / 1000), int(x0 * W / 1000):int(x1 * W / 1000)].mean() > 0.01
     out, k, pos = {}, 0, (0, Lr[0])   # pos: (band index, x) where the next ayah starts
     for s, a in ay:
-        if a == 0:
+        if a == 0 and s in first:
             if first[s] not in keep: return None
             pos = (keep.index(first[s]), Lr[keep.index(first[s])])
         i, x = pos
@@ -207,7 +244,7 @@ def fix_line(pcs, cs):
 
 if __name__ == '__main__':
     if '--rebuild' in sys.argv and MK is not None:
-        with Pool(max(1, os.cpu_count() - 2)) as pool: rb = dict(zip(range(1, 605), pool.map(rebuild, range(1, 605))))
+        with Pool(NPROC) as pool: rb = dict(zip(PAGES, pool.map(rebuild, PAGES)))
         done = [p for p in rb if rb[p] is not None]
         for s, sur in enumerate(R):
             for a, bs in enumerate(sur):
@@ -218,7 +255,7 @@ if __name__ == '__main__':
                 if nb: sur[a] = nb
         open(SRC, 'w', encoding='utf8', newline='\n').write(src[:i0] + json.dumps(DATA, ensure_ascii=False, separators=(',', ':')) + ';\n')
         print('rebuilt', len(done), 'pages; left as they were:', [p for p in rb if rb[p] is None]); sys.exit()
-    with Pool(max(1, os.cpu_count() - 2)) as pool: res = sorted(pool.map(page, range(1, 605)))
+    with Pool(NPROC) as pool: res = sorted(pool.map(page, PAGES))
     bad = [(p, o) for p, o, f in res if o]
     if '--fix' in sys.argv:
         nf = 0

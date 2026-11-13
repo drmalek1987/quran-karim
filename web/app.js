@@ -167,7 +167,9 @@
   // since W5 they are laid out again between the medallions on the scan (tools/page_geometry/ayah_circles.py --rebuild),
   // as some lines break differently. w: measured word boxes (W5).
   if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1, w: "editions/kfold-w/" }, window.ED_KFOLD);
-  if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2 }, window.ED_SHAMARLY);
+  // Shamarly: its ayah boxes too are laid out between the ayah-end marks on the scan since W5 (ayah_circles.py --rebuild);
+  // w: measured word boxes (W5).
+  if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2, w: "editions/shamarly-w/" }, window.ED_SHAMARLY);
   // crop: [top, right, bottom, left] in % of the page image that is empty margin (measured on sample pages of each edition with the
   // ink threshold, then rounded down a little); showPage hides it so the text block fills the page box. ar = image height / width.
   // cropFrom: the first page it is safe on (Shamarly pages 2-3 are full-bleed ornament). The scans (harmain) are uneven, so no crop.
