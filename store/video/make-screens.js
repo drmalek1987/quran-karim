@@ -13,14 +13,14 @@ const STA_H = fs.readFileSync(path.join(CL, 'stats', 'full.png')).readUInt32BE(2
 const P = (img, z = 1, fx = 180, fy = 320, ch = 640, mark = null) => ({ img, z, fx, fy, ch, mark });
 const shot = n => path.join(SH, n + '.png');
 const SCREENS = [
-  ['recite', 'سمِّع بصوتك', 'ويتابعك التطبيق كلمةً كلمة على صفحة المصحف', 'Recite aloud – the app follows you word by word',
+  ['recite', 'سمِّع بصوتك', 'التطبيق يستطيع متابعتك كلمةً بكلمة على صفحة المصحف', 'Recite aloud – the app follows you word by word',
     [P(path.join(CL, 'live', LIVE.states[13].f), 1.6, 180, lw[1] + 125)], true],
-  ['review', 'مراجعة السورة', 'تُخفى الآيات وتظهر أثناء القراءة، ويُعلَّم الخطأ بالأحمر', 'Covered verses open as you recite; slips are marked in red',
+  ['review', 'مراجعة السورة', 'تُخفى الآيات وتَظهر أثناء القراءة، ويُعلَّم الخطأ بالأحمر', 'Covered verses open as you recite; slips are marked in red',
     [P(path.join(CL, 'review', REV.states[REV.states.length - 1].f), 1.5, 180, rb[1] + 150, 640, rb)], true],
   ['talqin', 'التلقين', 'استمع إلى الآية من القارئ وردّدها حتى تثبت', 'Talqin: listen, repeat, memorise', [P(shot('talqin'))]],
-  ['hifzmap', 'خريطة الحفظ', 'كل صفحة حفظتها بلونها، والمراجعة المتباعدة تخبرك بما تراجعه اليوم', 'Your hifz map and spaced review', [P(shot('hifzmap')), P(shot('review'))]],
+  ['hifzmap', 'خريطة الحفظ', 'تحفظ كل صفحة حفظتها، والمراجعة المتباعدة تذكّرك بما تراجعه اليوم', 'Every page you memorise is kept; spaced review reminds you what to revise today', [P(shot('hifzmap')), P(shot('review'))]],
   ['mutash', 'المتشابهات والطلاب', 'اختبر نفسك في الآيات المتشابهة، وأرسل نتيجتك إلى المحفّظ', 'Similar-verse tests, results shared with your teacher', [P(shot('mutash')), P(shot('students'))]],
-  ['stats', 'إحصائياتك', 'وردك اليومي، أيام الالتزام، المكافآت، ونسبة الحفظ', 'Your reading, streaks, rewards and hifz progress',
+  ['stats', 'إحصائياتك', 'تسجّل وردك اليومي بعدد الكلمات والحروف، وأيام الالتزام، والمكافآت، ونسبة الحفظ', 'Daily reading counted in words and letters, streaks, rewards and hifz progress',
     [P(path.join(CL, 'stats', 'full.png'), 1, 180, 320, STA_H), P(path.join(CL, 'stats', 'full.png'), 1, 180, STA.cards[1].box[1] + 260, STA_H)]],
   ['editions', 'ثلاث طبعات للمصحف', 'الملك فهد · المدينة القديمة · الشمرلي', 'Three printed Mushaf editions', [P(shot('kfold')), P(shot('kfgqpc')), P(shot('shamarly'))]],
   ['more', 'تفسير وتجويد وأذكار', 'ابن كثير · الطبري · القرطبي · السعدي · ختمة · مواقيت الصلاة والقبلة', 'Tafsir, colour tajweed, khatma, adhkar, prayer times & Qibla', [P(shot('tajweed')), P(shot('tafsir')), P(shot('prayer'))]],
@@ -32,7 +32,9 @@ function phone(p, w) {   // screen w px wide, 16:9; camera: show (fx, fy) at the
   const ring = p.mark ? `<div class="ring" style="left:${tx + (p.mark[0] - 1) * k - 6}px;top:${ty + (p.mark[1] - 1) * k - 6}px;width:${(p.mark[2] + 2) * k}px;height:${(p.mark[3] + 2) * k}px"></div>` : '';
   return `<div class="ph"><div class="scr" style="width:${w}px;height:${h}px"><img src="${url(p.img)}" style="left:${tx}px;top:${ty}px;width:${360 * k}px">${ring}</div></div>`;
 }
-const page = ([id, t, sub, en, phones, big]) => {
+const page = ([id, t, sub0, en, phones, big]) => {
+  // keep «كلمةً بكلمة» on one line and the · separators with the word before them
+  const sub = sub0.replace('كلمةً بكلمة', 'كلمةً بكلمة').replace(/ · /g, ' · ');
   const n = phones.length, w = n === 1 ? 800 : n === 2 ? 520 : 430;
   return `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><style>
 @font-face { font-family: Cairo; font-weight: 700; src: url(${url('web/fonts/cairo-700.woff2')}); }
@@ -45,8 +47,8 @@ body { font-family: Cairo, sans-serif; color: #fff; position: relative; backgrou
 .cap { position: absolute; top: 96px; left: 70px; right: 70px; text-align: center; }
 .cap::before { content: ''; display: block; width: 120px; height: 5px; border-radius: 3px; background: #c09a2e; margin: 0 auto 30px; }
 h1 { margin: 0; font: 700 ${big ? 104 : 92}px/1.2 Cairo; text-shadow: 0 6px 24px rgba(0,0,0,.35); }
-.sub { margin: 18px 0 0; font: 600 42px/1.45 Cairo; color: #f0d79a; }
-.en { margin: 14px 0 0; direction: ltr; font: 600 30px/1.4 CairoL, sans-serif; color: rgba(255,255,255,.66); }
+.sub { margin: 18px 0 0; font: 600 42px/1.45 Cairo; color: #f0d79a; text-wrap: balance; }
+.en { margin: 14px 0 0; direction: ltr; font: 600 30px/1.4 CairoL, sans-serif; color: rgba(255,255,255,.66); text-wrap: balance; }
 .off { display: inline-flex; align-items: center; gap: 12px; margin-top: 26px; padding: 8px 28px; border-radius: 999px;
   border: 2px solid rgba(240,215,154,.6); background: rgba(15,30,53,.55); color: #f0d79a; font: 700 32px Cairo; }
 .off svg { width: 34px; height: 34px; fill: #f0d79a; } .off .e { font: 600 26px CairoL, sans-serif; opacity: .8; }
