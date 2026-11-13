@@ -61,7 +61,7 @@ uv venv .venv --python 3.11 && uv pip install --python .venv\Scripts\python.exe 
 - The `W zip: WARNING: header mismatch` lines while aligning are harmless (the APK verifies).
 - Play bundle: `$env:PLAY="1"` then `build-win.py` then `build-aab-win.py` → `quran-karim-v<ver>-play.aab` (bundletool pinned + SHA-256
   checked into `tools/bin/`, signed with `keys/upload.jks`, alias `upload`, password from `QK_UPLOAD_PASS` or `keys/upload-key.txt`).
-  `PLAY=1` builds application id **com.lawh.quran** (Play name «لوح - حفظ وتسميع القرآن»; the Java package stays com.quran.karim via
+  `PLAY=1` builds application id **com.lawh.quran** with minSdk 24 (Play automatic protection rejects 21; GitHub build keeps 21, `MIN_SDK=` overrides) (Play name «لوح - حفظ وتسميع القرآن»; the Java package stays com.quran.karim via
   aapt2 --rename-manifest-package, ShareProvider authority = <appId>.share); the GitHub build stays com.quran.karim. It also drops content without a licence (Haramain, adhan recordings, Darwish, tanwir; `PLAY_KEEP=` keeps some). Upload steps:
   `store/PLAY-UPLOAD-GUIDE.md`, policy audit: `plans/play-store-plan.md`.
 - Emulator: use the `Phone_API35` AVD (API 35 google_apis x86_64, 4 GB RAM, swiftshader GPU):

@@ -14,6 +14,8 @@ PLAY = os.environ.get("PLAY") == "1"
 # Application id: the Play build is published as com.lawh.quran («لوح»); the GitHub/sideload build keeps com.quran.karim
 # (the Java code stays in package com.quran.karim either way: aapt2 --rename-manifest-package). APP_ID= overrides.
 APP_ID = os.environ.get("APP_ID") or ("com.lawh.quran" if PLAY else "com.quran.karim")
+# Play automatic protection needs minSdk 24 (Android 7); the GitHub build keeps 21. MIN_SDK= overrides.
+MIN_SDK = os.environ.get("MIN_SDK") or ("24" if PLAY else "21")
 
 def android_jar():
     if len(sys.argv) > 1: return sys.argv[1]
@@ -93,12 +95,13 @@ def main():
     # the manifest actually linked (build-aab-win.py reuses it): provider authority follows the application id
     man = open(os.path.join(HERE, "android", "AndroidManifest.xml"), encoding="utf-8").read().replace(
         'android:authorities="com.quran.karim.share"', 'android:authorities="%s.share"' % APP_ID)
+    man = re.sub(r'android:minSdkVersion="\d+"', 'android:minSdkVersion="%s"' % MIN_SDK, man)
     with open(os.path.join(OUT, "AndroidManifest.xml"), "w", encoding="utf-8", newline="\n") as f: f.write(man)
     with open(os.path.join(OUT, "app-id.txt"), "w") as f: f.write(APP_ID)
     unsigned = os.path.join(OUT, "unsigned.apk")
     run(bt("aapt2"), "link", "-o", unsigned, "-I", ajar,
         "--manifest", os.path.join(OUT, "AndroidManifest.xml"), "--rename-manifest-package", APP_ID,
-        "-0", "br", "--min-sdk-version", "21", "--target-sdk-version", "36",
+        "-0", "br", "--min-sdk-version", MIN_SDK, "--target-sdk-version", "36",
         "-A", os.path.join(OUT, "assets"), "--java", os.path.join(OUT, "gen"), os.path.join(OUT, "res.zip"))
 
     # Donation relay key + address (DONATE_KEY/DONATE_URL, or keys/donate-key.txt); never in git. No key: no uploads.
@@ -119,7 +122,7 @@ def main():
     classes = [os.path.join(d, n) for d, _, ns in os.walk(os.path.join(OUT, "classes")) for n in ns if n.endswith(".class")]
     cls_args = os.path.join(OUT, "classes.txt")
     with open(cls_args, "w") as f: f.write("\n".join(classes + libs))
-    run(bt("d8"), "--release", "--min-api", "21", "--lib", ajar, "--output", OUT, "@" + cls_args)
+    run(bt("d8"), "--release", "--min-api", MIN_SDK, "--lib", ajar, "--output", OUT, "@" + cls_args)
     with zipfile.ZipFile(unsigned, "a", zipfile.ZIP_DEFLATED) as z:
         for dex in sorted(glob.glob(os.path.join(OUT, "classes*.dex"))): z.write(dex, os.path.basename(dex))
     # ONNX Runtime native libraries (NvAsr.java): packaged in the app (Google Play forbids downloaded native code),

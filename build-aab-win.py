@@ -53,7 +53,8 @@ def main():
     proto = os.path.join(OUT, "proto.apk")
     run(os.path.join(BT, "aapt2.exe"), "link", "--proto-format", "-o", proto, "-I", android_jar(),
         "--manifest", os.path.join(OUT, "AndroidManifest.xml"), "--rename-manifest-package", open(os.path.join(OUT, "app-id.txt")).read().strip(),
-        "--min-sdk-version", "21", "--target-sdk-version", "36",
+        "--min-sdk-version", re.search(r'android:minSdkVersion="(\d+)"', open(os.path.join(OUT, "AndroidManifest.xml"), encoding="utf-8").read()).group(1),
+        "--target-sdk-version", "36",
         "-0", "br", "-A", os.path.join(OUT, "assets"), os.path.join(OUT, "res.zip"))
     # 2. base module laid out as bundletool expects
     base = os.path.join(OUT, "base.zip")
