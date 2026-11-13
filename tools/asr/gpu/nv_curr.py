@@ -15,9 +15,12 @@ ROOT = os.environ.get('QROOT', r'D:\Quran App')
 QT = os.path.join(ROOT, 'qtrain')
 LEVEL = os.environ.get('LEVEL', 'L1'); DRY = os.environ.get('DRY') == '1'
 INIT = os.environ.get('INIT', '')
-STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000, 'G10b': 3000}[LEVEL]))
+STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000, 'G10b': 3000, 'G10c': 3000}[LEVEL]))
 EVAL = int(os.environ.get('EVAL', 200 if LEVEL == 'L1' else 400))
-G10B = LEVEL == 'G10b'
+G10B = LEVEL in ('G10b', 'G10c')   # G10c (2026-11-13) = G10b recipe + DEMAND/MUSAN noise sampled by source
+G10C = LEVEL == 'G10c'
+NOISE_W = {'user': .30, 'demand': .35, 'musan': .35}   # G10c: share of real-noise picks per source (not per file)
+HELDOUT = ('DLIVING', 'DKITCHEN', 'PCAFETER', 'TCAR')
 LR, WARM = float(os.environ.get('LR', 6e-5 if G10B else 1e-5)), int(os.environ.get('WARM', 200))
 # G10b: BATCH_SEC 40 / ACC 3 (P3 lesson 6: 60 s spills out of the 6 GB VRAM on long clips)
 BATCH_SEC, ACC = float(os.environ.get('BATCH_SEC', 40 if G10B else 60)), int(os.environ.get('ACC', 3 if G10B else 2))
@@ -34,8 +37,8 @@ MIX = {'L1': {'L1': .7, 'replay': .3}, 'L2': {'L2': .5, 'L1': .2, 'replay': .3},
        # G10b (2026-11-09 rethink, progress.md "G10 rethink"): only clips with trusted labels, noise/reverb/speed/gain
        # added on the fly (g10b_aug). replayT = tlog train clips whose whisper label check CER <= 5 (label_check_all.json);
        # the unfiltered tlog replay had ~40% misaligned labels (neighbouring ayah in the audio).
-       'G10b': {'L2': .4, 'L1': .2, 'replayT': .4}}[LEVEL]
-FREEZE = float(os.environ.get('FREEZE', 1 / 2 if LEVEL in ('L1', 'G10b') else 1 / 3))
+       'G10b': {'L2': .4, 'L1': .2, 'replayT': .4}, 'G10c': {'L2': .4, 'L1': .2, 'replayT': .4}}[LEVEL]
+FREEZE = float(os.environ.get('FREEZE', 1 / 2 if LEVEL in ('L1', 'G10b', 'G10c') else 1 / 3))
 # retry knob (plan D: one retry per failed level): REPLAY=0.4 scales the other shares down to fill 60%
 if os.environ.get('REPLAY'):
     r = float(os.environ['REPLAY']); o = {k: v for k, v in MIX.items() if k != 'replay'}; t = sum(o.values())
@@ -161,9 +164,23 @@ def _noise_pool():
     global NOISE
     if NOISE is None:
         import glob
-        NOISE = [load(p, 16000 * 600) for p in sorted(glob.glob(os.path.join(QT, 'g10b', 'noise', '*.wav')))]
-        NOISE = [z / max(1e-6, float(np.sqrt((z ** 2).mean()))) for z in NOISE if len(z) > 16000]
+        fs = sorted(glob.glob(os.path.join(QT, 'g10b', 'noise', '*.wav')))
+        bad = [f for f in fs if any(h in os.path.basename(f).upper() for h in HELDOUT)]
+        assert not bad, 'held-out DEMAND noise in the pool: %s' % bad
+        NOISE = [(f, load(f, 16000 * 600)) for f in fs]
+        NOISE = [(f, z / max(1e-6, float(np.sqrt((z ** 2).mean())))) for f, z in NOISE if len(z) > 16000]
+        if G10C:
+            g = {}
+            for f, z in NOISE:
+                b = os.path.basename(f); g.setdefault('demand' if b.startswith('demand_') else 'musan' if b.startswith('musan_') else 'user', []).append(z)
+            NOISE_BY.update(g); log('noise pool by source %s' % {k: len(v) for k, v in g.items()})
+        NOISE = [z for f, z in NOISE]
     return NOISE
+NOISE_BY = {}
+def _pick_noise(rnd):
+    if G10C and NOISE_BY:
+        ks = [k for k in NOISE_W if NOISE_BY.get(k)]; return rnd.choice(NOISE_BY[rnd.choices(ks, [NOISE_W[k] for k in ks])[0]])
+    return rnd.choice(NOISE)
 def _coloured(n, kind, rng):
     w = rng.standard_normal(n)
     if kind == 'white': return w
@@ -187,7 +204,7 @@ def g10b_aug(y, rnd, p=0.75):
     sp_rms = _rms(y)
     y = np.concatenate([np.zeros(int(16000 * rnd.uniform(0.05, 0.5))), y, np.zeros(int(16000 * rnd.uniform(0.3, 1.6)))])
     snr = rnd.uniform(5, 20); r = rnd.random(); n = len(y)
-    if r < 0.5 and _noise_pool(): z = _fit(rnd.choice(NOISE), n, rnd)
+    if r < 0.5 and _noise_pool(): z = _fit(_pick_noise(rnd), n, rnd)
     elif r < 0.85 or not BABBLE: z = _coloured(n, rnd.choice(['white', 'pink', 'pink', 'brown']), rng)
     else:
         snr = max(snr, 10); z = np.zeros(n)

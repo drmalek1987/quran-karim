@@ -12,6 +12,7 @@ ARGS = sys.argv[1:]
 FONT_DIR, ED = ARGS[0], ARGS[1]
 sys.argv = [sys.argv[0], os.path.dirname(FONT_DIR.rstrip('/'))]
 import tajweed_pages as tp
+sys.argv = sys.argv[:1] + ARGS   # restore, so spawned workers (Windows) see the same arguments
 tp.FONT = os.path.join(FONT_DIR, 'UthmanicHafs1Ver18.ttf')
 tp.FIX = {}
 ROOT = tp.ROOT
@@ -90,7 +91,7 @@ def page(n):
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     a, b = (int(ARGS[2]), int(ARGS[3])) if len(ARGS) > 3 else (1, max(BY))
-    with Pool(os.cpu_count()) as pool:
+    with Pool(int(os.environ.get('TJ_PROCS', os.cpu_count()))) as pool:
         for n, px, costs in pool.imap_unordered(page, range(a, b + 1)):
             if costs and max(costs) > 1.3: print('page', n, 'weak alignment', round(max(costs), 3), flush=True)
     print('pages', len(os.listdir(OUT)), 'size', round(sum(os.path.getsize(os.path.join(OUT, f)) for f in os.listdir(OUT)) / 1e6, 2), 'MB')
