@@ -660,3 +660,4 @@ NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths,
 - 2026-11-12 navy theme + «يسّرنا» + Met-cover icon: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0 (kfgqpc hung twice while other headless Chromium renders ran in parallel; passed alone).
 - 2026-11-12 «لوح» rename + icon: data.py 28/0, ui.js kfgqpc 290/0.
 - 2026-11-13 in-app name «لوح» + Play title «لوح - حفظ وتسميع القرآن»: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0; signed AAB (com.lawh.quran) rebuilt, validate OK.
+- 2026-11-13 5.21 (69): uses-feature not-required (gps, network location, mic, touchscreen), EN name «Lawh»: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0. aapt2 badging: 0 required features; GitHub minSdk 21 / Play minSdk 24; signer 7d8b31d2; AAB validate OK. Not run on a phone/emulator (manifest-only change).

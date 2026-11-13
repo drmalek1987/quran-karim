@@ -462,7 +462,7 @@
       });
     }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-label", "placeholder", "title"] });
     var t = document.getElementById("title");
-    document.title = "The Noble Quran";
+    document.title = "Lawh";
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
