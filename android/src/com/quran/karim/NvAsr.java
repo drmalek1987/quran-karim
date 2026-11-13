@@ -35,7 +35,11 @@ import java.util.concurrent.Executors;
 class NvAsr {
     static final int PERMISSION_REQUEST = 79;
     private static final int SR = 16000, NF = 512, WIN = 400, HOP = 160, NB = 257, NM = 80;
-    private static final int PRE = SR * 3 / 10; private static final double QUIET_END = 1.0;
+    private static final int PRE = SR * 3 / 10; private static final double QUIET_END = 0.5;
+    // 5.21 VAD: speech blocks raise the room floor 10x more slowly (RISE_SPEECH; it used to climb to the voice mid-ayah and
+    // cut it), except after CATCH_BLOCKS speech blocks in a row (a fan/AC switched on: catch up as before). bench.py
+    // --frise_sp 0.0005 --quiet 0.5 --fcatch 5, G10b ctc_up: ALL 93.7 -> 97.3, noisy10/5 89.5/82.8 -> 96.8/93.8, last-word wait -0.18 s.
+    private static final double RISE_SPEECH = 0.0005; private static final int CATCH_BLOCKS = 50;
     // 5.11 G7: a partial decodes only the audio after the piece's frozen point; once that is longer than FREEZE s, the part
     // up to the quietest 100 ms block of its last 2 s (a breath, below 0.6 x the median level) is decoded once and its text
     // kept. The FINAL piece is decoded whole as before (same verdicts). tools/asr/eval/stream_cut.py, 52 continuous
@@ -252,7 +256,7 @@ class NvAsr {
     }
 
     // The microphone, in 100 ms blocks. A piece of speech starts with the 0.3 s before the voice was heard (so the first
-    // letter of a word after a pause is not cut) and ends after 1.0 s of quiet (or at 12 s), so a reciter's pauses and
+    // letter of a word after a pause is not cut) and ends after 0.5 s of quiet (or at 12 s), so a reciter's pauses and
     // long madd do not split a word; while it goes on, it is decoded about every half second for the words so far, unless the
     // last decode is still running. (Both tuned with tools/asr/eval/bench.py: word verdicts 86.8% -> 94.3% with rAlign.)
     private void listen(final int g) {
@@ -271,7 +275,7 @@ class NvAsr {
             float[] seg = new float[SR * 12]; int len = 0, lastPartial = 0, frz = 0;
             float[] be = new float[121];                                     // each 100 ms block's level in the piece
             float[] pre = new float[PRE]; int preN = 0;                       // the last 0.3 s before speech
-            double floor = 0.004, quiet = 0, voiced = 0;
+            double floor = 0.004, quiet = 0, voiced = 0; int run = 0;      // run: speech blocks in a row
             boolean bad = false;
             try {
                 mic.startRecording();   // throws when the microphone cannot be taken (inside the try: this is a bare thread)
@@ -283,8 +287,11 @@ class NvAsr {
                     if (n == 0) continue;
                     double e = 0; for (int i = 0; i < n; i++) { double x = blk[i] / 32768.0; e += x * x; }
                     e = Math.sqrt(e / n);
+                    double f0 = floor;
                     floor = e < floor ? e : floor * 0.995 + e * 0.005;   // the room's own level
                     boolean speech = e > Math.max(VMIN, floor * 3);
+                    run = speech ? run + 1 : 0;
+                    if (speech && e >= f0 && run <= CATCH_BLOCKS) floor = f0 * (1 - RISE_SPEECH) + e * RISE_SPEECH;
                     double dt = n / (double) SR;
                     if (speech && len == 0) { System.arraycopy(pre, PRE - preN, seg, 0, preN); len = preN; for (int b = 0; b <= preN / BLK && b < be.length; b++) be[b] = 1f; }
                     if (speech || len > 0) { int k = Math.min(n, seg.length - len); for (int i = 0; i < k; i++) seg[len + i] = blk[i] / 32768f;
