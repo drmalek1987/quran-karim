@@ -119,6 +119,7 @@ def pb(p):
 
 
 CIRC = int(os.environ.get('CIRC', '0'))
+CW = 0.55 if ED == 'kfold' else 0.62   # ayah-end circle width in line heights (kfold: the medallion ring, 30 px of a 59 px line)
 SLACK = float(os.environ.get('SLACK', '0'))   # line heights the first / last piece may really reach past its rect (page 586: a word off)
 def scan_strip(boxes):
     pieces, meta, off, f0, f1 = [], [], 0, 0, 0
@@ -127,7 +128,8 @@ def scan_strip(boxes):
         lx0, lx1 = LINE[(p, y0)]
         xl, xr = x0 * W / 1000, x1 * W / 1000; t, bt = y0 * H / 1000, y1 * H / 1000
         k = (bt - t) / 80; c = int((t + bt) / 2); sl = SLACK * (bt - t)
-        if i == len(boxes) - 1 and not CIRC: xl += 0.62 * (bt - t)   # not the ayah-end circle (the rects start at it, 5.19)
+        cw = 0.4 if ED == 'kfold' and p < 3 else CW   # kfold pages 1-2: a 15 px medallion on 40 px lines
+        if i == len(boxes) - 1 and not CIRC: xl += cw * (bt - t)   # not the ayah-end circle (the rects start at it, 5.19)
         half = min(sl, (xr - xl) / 2)   # the true end may also be inside the rect
         if i == 0: e = min((lx1 + 15) * W / 1000, xr + sl); f0 = int((e - xr + half) / k); xr = e
         if i == len(boxes) - 1: e = max((lx0 - 15) * W / 1000, xl - sl); f1 = int((xl - e + half) / k); xl = e

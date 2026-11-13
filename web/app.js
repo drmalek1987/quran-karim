@@ -163,8 +163,10 @@
   };
   if (window.ED_KFGQPC) EDS.kfgqpc = Object.assign({ name: "طبعة الملك فهد", dir: "editions/kfgqpc/", tj: "editions/kfgqpc-tj/", min: 1, w: "editions/kfgqpc-w/" }, window.ED_KFGQPC);   // w: measured word boxes (5.19)
   // طبعة الملك فهد القديمة = the scanned older Madinah print (HA's PDF, PDF page = page + 3). Its lines are the same as the
-  // King Fahd edition's, so its ayah boxes are those boxes moved onto the scan's text frame (tools/kfold/make_edition.py).
-  if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1 }, window.ED_KFOLD);
+  // King Fahd edition's, so its ayah boxes were those boxes moved onto the scan's text frame (tools/kfold/make_edition.py);
+  // since W5 they are laid out again between the medallions on the scan (tools/page_geometry/ayah_circles.py --rebuild),
+  // as some lines break differently. w: measured word boxes (W5).
+  if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1, w: "editions/kfold-w/" }, window.ED_KFOLD);
   if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2 }, window.ED_SHAMARLY);
   // crop: [top, right, bottom, left] in % of the page image that is empty margin (measured on sample pages of each edition with the
   // ink threshold, then rounded down a little); showPage hides it so the text block fills the page box. ar = image height / width.

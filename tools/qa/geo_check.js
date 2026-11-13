@@ -1,5 +1,5 @@
 // W0 (plans/W-track-plan.md step 4): how well the page geometry the app estimates matches the measured word boxes.
-// Usage: ED=kfgqpc|harmain SEED=518 N=30 node tools/qa/geo_check.js   (playwright found as in ui.js)
+// Usage: ED=kfgqpc|harmain|kfold SEED=518 N=30 node tools/qa/geo_check.js   (playwright found as in ui.js)
 // Reference = measured word boxes (editions/<ed>-w/NNN.js, rows [s,a,w,x0,y0,x1,y1] per mille, w = place in rWords()).
 // The app's internals that are not exposed (norm, rWords, ayahAt, lastWordOnPages, pageWordAt's estimate path) are
 // taken verbatim from web/app.js source at run time and evaluated in the page (Q = window.QURAN is the live edition),
@@ -20,7 +20,7 @@ const { chromium } = loadPW();
 const WEB = path.resolve(process.env.QK_WEB || __dirname + '/../../web');
 const W = require('url').pathToFileURL(WEB + '/index.html').href;
 const ED = process.env.ED || 'kfgqpc', SEED = +(process.env.SEED || 518), N = +(process.env.N || 30);
-if (!['kfgqpc', 'harmain'].includes(ED)) { console.error('ED must be an edition with measured word boxes: kfgqpc, harmain'); process.exit(2); }
+if (!['kfgqpc', 'harmain', 'kfold'].includes(ED)) { console.error('ED must be an edition with measured word boxes: kfgqpc, harmain, kfold'); process.exit(2); }
 
 // the source of `function name(...) {...}` in app.js (brace counted)
 const SRC = fs.readFileSync(WEB + '/app.js', 'utf8');

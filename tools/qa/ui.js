@@ -1281,7 +1281,7 @@ async function fresh(ctx, vp) {
   const wbPt = (n, s, a, w) => ev(([n, s, a, w]) => new Promise(res => QA_wb(n, rows => { const r = (rows || []).find(r => r[0] === s && r[1] === a && r[2] === w);
     const b = document.querySelector('.page-box[data-p="' + n + '"]'); if (!r || !b) return res(null); const g = b.getBoundingClientRect();
     res([g.left + (r[3] + r[5]) / 2000 * g.width, g.top + (r[4] + r[6]) / 2000 * g.height]); })), [n, s, a, w]);
-  if (ED === 'kfgqpc') {
+  if (ED === 'kfgqpc' || ED === 'kfold') {   // kfold: measured boxes since W5 (its 81:9 rect starts at 500)
     await check(G519, 'ضغطة طويلة على «ٱلْكِتَٰبُ» في صفحة ٢ بتفتح معنى الكلمة دي من غير شريط الآية', async () => {
       await go('#/p/2', 1200); const xy = await wbPt(2, 2, 2, 1); if (!xy) throw new Error('no box');
       await longPress(xy); const r = await ev(() => { const d = document.querySelector('.wm-dlg'); return d && [d.querySelector('.words button.on').textContent, !!document.querySelector('#ayahBar button[data-c="x"]')]; });
@@ -1337,7 +1337,7 @@ async function fresh(ctx, vp) {
   }
   // ---------- W3/W4 (plans/W-track-plan.md 5-6): hifz masks and the page-end turn from the measured word boxes ----------
   const G520 = 'W-track (W3/W4)';
-  if (ED === 'kfgqpc') {
+  if (ED === 'kfgqpc' || ED === 'kfold') {
     await check(G520, 'W3: أقنعة الحفظ في صفحة ٥٠ على مربعات الكلمات بالظبط (كل آية في كل سطر = اتحاد مربعات كلماتها ± ٢‰)', async () => {
       await go('#/p/50', 1200); await ev(() => new Promise(r => QA_wb(50, r))); await ev(() => hifzToggle()); await wait(600);
       const r = await ev(() => new Promise(res => QA_wb(50, rows => {
