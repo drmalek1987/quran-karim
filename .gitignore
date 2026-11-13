@@ -24,3 +24,8 @@ tools/qa/matrix/
 tools/qa/i18n-missing.json
 !web/editions/*-w/
 tools/bin/
+
+# promo video: generated screens, clip states and renders (store/video/*.js make them)
+store/video/out/
+store/video/shots/
+store/video/clips/
