@@ -1,4 +1,4 @@
-# القرآن الكريم – Android app
+# لوح (Lawh) – Quran app for Android
 
 An offline Android app that shows the whole Quran as searchable Arabic text.
 

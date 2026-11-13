@@ -40,7 +40,7 @@
 ## المرحلة 1: إنشاء التطبيق
 
 10. Play Console › **Home** › **Create app**.
-11. App name: `لوح - قرآن كريم` 📁 `store/listing-play.md`.
+11. App name: `لوح - حفظ وتسميع القرآن` 📁 `store/listing-play.md`.
 12. Default language: **Arabic – ar**.
 13. App or game: **App**. Free or paid: **Free** (المجاني مينفعش يتحوّل لمدفوع بعد كده).
 14. 👤 علّم على الإقرارات (Developer Program Policies و US export laws) واضغط **Create app**.

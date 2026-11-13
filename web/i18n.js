@@ -113,7 +113,7 @@
     "حققت هدف النهارده: # صفحة": "Today's goal reached: # pages",
     "رمضان": "Ramadan", "الإمساك": "Imsak", "الإفطار": "Iftar", "المؤذن": "Muezzin", "تذكير قبل الأذان": "Reminder before adhan", "# د": "# min", "الأذان مقفول": "Adhan off",
     "صوت الأذان والتذكير قبله": "Adhan voice & reminder", "الحرم المكي": "Makkah Haram", "مشاركة الإمساكية صورة": "Share timetable as image",
-    "أهلًا بيك في القرآن الكريم": "Welcome to The Noble Quran", "اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.": "Choose the mushaf you usually read. You can change it later in Settings.",
+    "أهلًا بيك في «لوح»": "Welcome to Lawh", "لوح": "Lawh", "اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.": "Choose the mushaf you usually read. You can change it later in Settings.",
     "نص مشكول (بدون صور)": "Vowelled text (no page images)", "تخطي": "Skip", "التالي": "Next", "يلا نبدأ": "Let's start", "مدينتك": "Your city",
     "عشان مواقيت الصلاة والأذان والقبلة. كل الحساب بيتم على الموبايل من غير إنترنت.": "For prayer times, adhan and qibla. Everything is worked out on the phone, offline.",
     "استخدم موقعي": "Use my location", "أو اختار مدينة…": "or pick a city…", "تحب نفكّرك بإيه؟": "What should we remind you of?", "تقدر تغيّر المواعيد بعدين من شاشة الصلاة.": "You can change times later on the Prayer screen.",

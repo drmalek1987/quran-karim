@@ -1,4 +1,4 @@
-# Google Play – first release plan + policy audit (Quran Karim 5.20, versionCode 68)
+# Google Play – first release plan + policy audit (Lawh «لوح», 5.20, versionCode 68; Play id com.lawh.quran)
 
 Written 2026-11-12. Account: Google Play Developer, **personal, non-trader**. Rules below were checked on the web the same day
 (sources at the end). Owner: **C** = Claude (done in the repo), **U** = the user (only the user can do it).

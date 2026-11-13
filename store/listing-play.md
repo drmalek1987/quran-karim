@@ -9,7 +9,7 @@ Data safety: `store/data-safety.md`. Privacy policy: `https://drmalek1987.github
 ## 1. Main store listing
 
 ### App name (≤ 30)
-- AR (default language, `ar`): `لوح - قرآن كريم`
+- AR (default language, `ar`): `لوح - حفظ وتسميع القرآن`
 - EN (`en-US` translation): `Lawh - Quran Hifz by Voice`
 
 ### Short description (≤ 80, no "best/free/new", no emoji)

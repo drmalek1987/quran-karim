@@ -659,3 +659,4 @@ NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths,
 - kfold re-run alone: 283/0 → the S3 FAIL was the known intermittent voice-tie flake. Total: 0 FAIL on kfgqpc, kfold, shamarly + data.py.
 - 2026-11-12 navy theme + «يسّرنا» + Met-cover icon: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0 (kfgqpc hung twice while other headless Chromium renders ran in parallel; passed alone).
 - 2026-11-12 «لوح» rename + icon: data.py 28/0, ui.js kfgqpc 290/0.
+- 2026-11-13 in-app name «لوح» + Play title «لوح - حفظ وتسميع القرآن»: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0; signed AAB (com.lawh.quran) rebuilt, validate OK.

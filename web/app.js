@@ -741,7 +741,7 @@
   var homeTab = load("tab", "surah");
 
   function showHome() {
-    titleEl.textContent = "القرآن الكريم";
+    titleEl.textContent = "لوح";
     btnBack.hidden = true;
     var last = load("last", null), lastPage = load(edKey("lastPage"), null);
     var html = "";
@@ -2955,7 +2955,7 @@
       x.fillStyle = ink; x.font = fs + "px " + font;
       lines.forEach(function (l, i) { x.fillText(l, W / 2, P + 130 + i * lh + fs * 0.4); });
       x.fillStyle = gold; x.font = "400 26px Cairo, sans-serif";
-      x.fillText("سورة " + Q.s[s - 1][0] + " · الآية " + ar(a) + " · تطبيق القرآن الكريم", W / 2, H - P + 20);
+      x.fillText("سورة " + Q.s[s - 1][0] + " · الآية " + ar(a) + " · تطبيق لوح", W / 2, H - P + 20);
       done(c.toDataURL("image/png"));
     };
     if (document.fonts && document.fonts.load) Promise.all([document.fonts.load("58px " + font, Q.t[s - 1][a - 1]), document.fonts.load("600 34px Cairo")]).then(go, go); else go();
@@ -3978,7 +3978,7 @@
       }).join("") + "</div>" +
         '<div class="pr-tiles"><button id="prMonth">' + ic("calendar") + "إمساكية رمضان</button><button id=\"prQibla\">" + ic("compass") + "اتجاه القبلة</button></div>" +
         (window.AppBridge && AppBridge.setAlarms ? '<button class="continue" id="prTest">' + ic("bell") + ' جرّب الأذان بعد دقيقة</button>' +
-          '<p class="hint">لو التجربة ماوصلتش: افتح إعدادات الموبايل › التطبيقات › القرآن الكريم، وخلّي الإشعارات شغالة، والبطارية «بلا قيود». وفي موبايلات شاومي وأوبو وريلمي فعّل كمان «التشغيل التلقائي» (Autostart).</p>' : "");
+          '<p class="hint">لو التجربة ماوصلتش: افتح إعدادات الموبايل › التطبيقات › لوح، وخلّي الإشعارات شغالة، والبطارية «بلا قيود». وفي موبايلات شاومي وأوبو وريلمي فعّل كمان «التشغيل التلقائي» (Autostart).</p>' : "");
     } else html += '<p class="hint">حدّد موقعك أو اختر مدينتك لحساب مواقيت الصلاة على الجهاز (بدون إنترنت).</p>';
     html += '<details class="pr-set"' + (loc ? "" : " open") + "><summary>" + ic("pin") + "الموقع وطريقة الحساب</summary>" +
       '<div class="q-loc"><button class="continue" id="prGps">' + ic("pin") + ' استخدم موقعي الحالي</button><select class="input" id="prCity">' + opts + "</select></div>" +
@@ -4076,7 +4076,7 @@
         [r.d.toLocaleDateString("ar-EG", { weekday: "short", day: "numeric", month: "numeric" }), ar(r.h.day)].concat(["imsak", "fajr", "dhuhr", "asr", "maghrib", "isha"].map(function (k) { return short(r.t[k]); }))
           .forEach(function (v, j) { x.fillText(v, xs[j], y); });
       });
-      x.fillStyle = "#9a7420"; x.font = "400 22px Cairo, sans-serif"; x.fillText("تطبيق القرآن الكريم", W / 2, H - 36);
+      x.fillStyle = "#9a7420"; x.font = "400 22px Cairo, sans-serif"; x.fillText("تطبيق لوح", W / 2, H - 36);
       shareImage(c.toDataURL("image/png"), "imsakia.png");
     };
   }
@@ -4190,7 +4190,7 @@
     var done = 0; F.members.forEach(function (m) { done += m.d.length; });
     return "📖 " + F.name + ": خلصنا " + ar(done) + " من ٣٠ جزء\n" + F.members.map(function (m) {
       return "• " + m.n + ": " + (m.j.length ? m.j.map(function (j) { return ar(j) + (m.d.indexOf(j) >= 0 ? "✓" : ""); }).join("، ") : "مفيش أجزاء") ;
-    }).join("\n") + "\n\nلتحديث الختمة في تطبيق القرآن الكريم: الختمة الجماعية ← استيراد، والصق الكود ده:\n" + familyCode(F);
+    }).join("\n") + "\n\nلتحديث الختمة في تطبيق «لوح»: الختمة الجماعية ← استيراد، والصق الكود ده:\n" + familyCode(F);
   }
   function showFamily() {
     titleEl.textContent = "الختمة الجماعية";
@@ -4279,7 +4279,7 @@
   function teacherText(r) {
     return "📖 نتيجة اختبار الحفظ: " + r.n + "\n" + ltRange(r) + " (" + (r.k === "w" ? "بالكلمات" : "على المصحف") + ") · " + ltDay(r.d) + "\nالنتيجة: " + ar(r.sc) + "٪" +
       (r.ay ? " · " + ar(r.ay) + " آية" : "") + (r.miss && r.miss.length ? "\nنسيت: " + r.miss.map(akName).join("، ") : "") +
-      "\n\nللمحفّظ: افتح «طلابي» في تطبيق القرآن الكريم والصق الرسالة دي:\n" + teacherCode(r);
+      "\n\nللمحفّظ: افتح «طلابي» في تطبيق «لوح» والصق الرسالة دي:\n" + teacherCode(r);
   }
   function teacherSend() {
     var r = load("lastTest", null); if (!r) return;
@@ -4361,7 +4361,7 @@
     function done() { save("onboarded", true); if (mode === "pages" && !edReady(edition)) { mode = "text"; save("mode", "text"); applySettings(); } d.remove(); syncAlarms(); route(); }
     function paint() {
       var LAST = 3, dots = '<div class="wel-dots">' + [0, 1, 2, 3].map(function (i) { return "<i" + (i === step ? ' class="on"' : "") + "></i>"; }).join("") + "</div>", body;
-      if (step === 0) body = '<div class="wel-ic">' + ic("book") + "</div><h2>أهلًا بيك في القرآن الكريم</h2><p>اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</p>" +
+      if (step === 0) body = '<div class="wel-ic">' + ic("book") + "</div><h2>أهلًا بيك في «لوح»</h2><p>اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</p>" +
         '<div class="wel-opts">' + ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) { return '<button data-e="' + k + '"' + (k === edition && mode === "pages" ? ' class="on"' : "") + ">" + EDS[k].name + "</button>"; }).join("") +
         '<button data-e="text"' + (mode === "text" ? ' class="on"' : "") + ">نص مشكول (بدون صور)</button></div>";
       else if (step === 1) {
