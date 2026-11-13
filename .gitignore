@@ -29,3 +29,8 @@ tools/bin/
 store/video/out/
 store/video/shots/
 store/video/clips/
+tools/asr/gpu/*.log
+tools/asr/gpu/*.stdout
+tools/asr/gpu/*.err
+tools/asr/gpu/*.out
+tools/asr/gpu/musan_done.txt
