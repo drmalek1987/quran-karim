@@ -1,4 +1,4 @@
-// Play promo video for «لوح»: a silent, slow "brag-slim" film built as one HTML page whose look at time t is set by
+// Play promo video for «لَوْح»: a silent, slow "brag-slim" film built as one HTML page whose look at time t is set by
 // render(t), shot frame by frame in headless Chromium and piped into FFmpeg (H.264, 30 fps, no audio track).
 // Inputs: store/video/shots/ (node store/video/shots.js) and the live-clip states in store/video/clips/
 // (node store/video/clips.js). The camera moves over the clips (zoom on the mic, follow the word box, push in on the
@@ -62,7 +62,7 @@ const body = SC.map(s => {
     <h2>يعمل دون إنترنت، حتى التسميع</h2><p class="en big">Works fully offline – even recitation recognition</p>
     <div class="chips"><span>دون إعلانات</span><span>دون حساب</span><span>بياناتك على جهازك</span></div>
     <p class="note">يعمل التعرّف على التلاوة بعد تنزيل النموذج مرةً واحدة · One-time model download</p></section>`;
-  return `<section id="end"><img class="icon" src="${url('store/icon-options/icon-1024.png')}"><h1>لوح</h1>
+  return `<section id="end"><img class="icon" src="${url('store/icon-options/icon-1024.png')}"><h1>لَوْح</h1>
     <p class="sub">حفظ وتسميع القرآن</p><p class="en">Lawh – Quran Hifz by Voice</p></section>`;
 }).join('\n');
 

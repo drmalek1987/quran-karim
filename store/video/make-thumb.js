@@ -51,7 +51,7 @@ h2 b { color: #ff6b6b; }
 </style></head><body><div class="pat"></div>
 <div class="ph"><div class="scr"><img src="${url(img)}">${ring}</div></div>
 <div class="mic"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></div>
-<div class="t"><div class="icon"><img src="${url('store/icon-options/icon-1024.png')}"><span>لوح</span></div>
+<div class="t"><div class="icon"><img src="${url('store/icon-options/icon-1024.png')}"><span>لَوْح</span></div>
 <h1>سمِّع القرآن<br><em>بصوتك</em></h1><p class="en g">Recite the Quran by voice</p>
 <h2>${VAR === 'a' ? 'ويُعلِّم لك <b>الخطأ</b> كلمةً كلمة' : 'ويتابعك التطبيق كلمةً كلمة'}</h2><p class="en">${VAR === 'a' ? 'Your mistakes marked, word by word' : 'The app follows you, word by word'}</p>
 <div class="off">${WIFI_OFF}دون إنترنت <span class="e">· Offline</span></div></div>
