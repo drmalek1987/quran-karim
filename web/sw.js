@@ -1,5 +1,5 @@
 // Caches the whole app so it works offline after the first visit.
-var CACHE = "quran-v65";
+var CACHE = "quran-v66";
 var FILES = ["./", "index.html", "style.css", "app.js", "asr.js", "azkar.js", "duas.js", "topics.js", "flags.js", "i18n.js", "quran-data.js", "thematic.js",
   // the rest of what index.html loads at start, and the files the app loads on first use
   "editions/kfgqpc.js", "editions/kfold.js", "editions/shamarly.js", "books/index.js",

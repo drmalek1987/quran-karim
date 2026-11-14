@@ -661,3 +661,11 @@ NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths,
 - 2026-11-12 «لوح» rename + icon: data.py 28/0, ui.js kfgqpc 290/0.
 - 2026-11-13 in-app name «لوح» + Play title «لوح - حفظ وتسميع القرآن»: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0; signed AAB (com.lawh.quran) rebuilt, validate OK.
 - 2026-11-13 5.21 (69): uses-feature not-required (gps, network location, mic, touchscreen), EN name «Lawh»: data.py 28/0, ui.js kfgqpc 290/0, kfold 283/0, shamarly 283/0. aapt2 badging: 0 required features; GitHub minSdk 21 / Play minSdk 24; signer 7d8b31d2; AAB validate OK. Not run on a phone/emulator (manifest-only change).
+
+## 5.22 release QA (2026-11-14, quran-karim-v5.22.apk, versionCode 70, sw quran-v66, signer 7d8b31d2)
+- Changes under test: model pack v4 (G10b, `ASRM ver 4`), VAD floor fix (NvAsr.listen), voice commands wait for the rest (`voicePending`), measured word boxes kfold + Shamarly (`-w`), regenerated tajweed layers kfold-tj + shamarly-tj (new zips on `editions`).
+- data.py 28 PASS / 0 FAIL. ui.js (each edition unzipped in web/, one at a time): kfgqpc 290/0 · kfold 290/0 · shamarly 290/0 · harmain 290/0. The prayer-times flake did not appear; no re-run needed.
+- Feature checklist covered by the suite (sections above): data + files, home/index, page reading (4 editions, word boxes, tajweed layers), search, text view, tafsir/books, audio player, hifz + tests + mic paths, khatma, bookmarks/notes, azkar/duas, qibla + prayer times + adhan alarms, settings/downloads (model update offer), English UI, Back handling, dialogs.
+- Builds: GitHub APK 70,086,064 B, signer SHA-256 7d8b31d2d4edd850c4916e614478944da82da80d9643b65dc0cc7678184e3bc4; Play AAB quran-karim-v5.22-play.aab 40,732,702 B, bundletool validate OK, no harmain/pages/tjpages/adhan_/darwish/tanwir entries, .so only base/lib/arm64-v8a/{libonnxruntime,libonnxruntime4j_jni}.so.
+- Play .so: NvAsr.java uses only `System.loadLibrary("onnxruntime")` + `("onnxruntime4j_jni")` (lines 91, 241-242, resolved from the APK's lib dir); no `System.load(path)` in NvAsr/EdStore, so the pack's asr/asrnv/lib/*.so is never loaded.
+- Not run on the phone (bee81250 not connected at build time).

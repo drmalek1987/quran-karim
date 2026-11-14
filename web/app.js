@@ -338,7 +338,7 @@
   // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
   // Only NVIDIA's model is left (NvAsr.java, its own runtime in the pack). The whisper models (asrbase, asrft) and the
   // web runtime they needed (asrrt) were dropped in 5.4: their files are removed from phones that still have them.
-  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 93, ver: 3 } };   // v3 (5.16d): L2 fine-tune + Z1 pos-table trim
+  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 93, ver: 4 } };   // v4 (5.22): G10b fine-tune, Z1 layout
   function asrPacks(m) { return [m, m + "p"]; }
   // Model versions are separate files (asrnv2.zip …); v1 (asrnv.zip, the 5.7 model) stays on the server for rollback.
   // The pack carries asr/<m>/ver.txt; a phone without it has v1 and is offered «تحديث» in Settings › Downloads.
