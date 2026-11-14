@@ -2792,8 +2792,14 @@
     if (!got) return null;
     var F = quranFlat(); return { s: F.s[got.f], a: F.a[got.f] };       // the ayah of the first word heard right
   }
+  // A command that stops on a word that needs more after it (افتح، سورة، صفحة، الجزء، آية …) or is empty: wait for the rest.
+  function voicePending(raw) {
+    var t = norm(raw || "").replace(/[إأآ]/g, "ا").replace(/ة/g, "ه").replace(/\s+/g, " ").trim();
+    return !t || /(^|\s)(افتح|روح|وديني|اعرض|سوره|صفحه|الصفحه|جزء|الجزء|ايه|الايه|رقم)$/.test(t);
+  }
   function voiceListen(cb) {
     if (!window.ReciteBridge) return toast("الأوامر الصوتية شغالة في التطبيق على الموبايل بس");
+    voice.buf = ""; clearTimeout(voice.t);
     if (voice.on) { voice.on = false; Mic.stop(); var im = document.getElementById("idxMic"); if (im) im.classList.remove("on"); return; }
     if (!micGate(function () { voiceListen(cb); })) return;
     reciteStop(); voice.on = true; voice.cb = cb; Mic.start();
@@ -2859,10 +2865,24 @@
       if (st === "busy") { toast("بيجهّز الموديل…"); return; }
       if (st === "noperm") toast("محتاج إذن الميكروفون للأوامر الصوتية");
       else if (st === "none") toast("الموبايل مفيهوش خدمة التعرّف على الكلام");
-      if (st !== "listening") { voice.on = false; voice.cb && voice.cb(null, "end"); } else voice.cb && voice.cb(null, "listening");
+      if (st !== "listening") {
+        voice.on = false; clearTimeout(voice.t);
+        if (voice.buf) { var vb = voice.buf; voice.buf = ""; voice.cb && voice.cb(vb, "final"); }   // the mic stopped mid-command
+        voice.cb && voice.cb(null, "end");
+      } else voice.cb && voice.cb(null, "listening");
       return;
     }
-    if (kind === "final") { voice.on = false; Mic.stop(); }
+    // 5.22: the mic ends a piece after 0.5 s of quiet, so «افتح سورة … الكهف» arrives as two finals. A final that is
+    // clearly unfinished (ends on a command word) keeps the mic open for the rest; a complete one acts at once.
+    if (kind === "final") {
+      var full = (voice.buf ? voice.buf + " " : "") + text; clearTimeout(voice.t);
+      if (voicePending(full)) {
+        voice.buf = full; voice.cb && voice.cb(full, "partial");
+        voice.t = setTimeout(function () { if (!voice.on || !voice.buf) return; var bt = voice.buf; voice.buf = ""; voice.on = false; Mic.stop(); voice.cb && voice.cb(bt, "final"); }, 2500);
+        return;
+      }
+      voice.buf = ""; voice.on = false; Mic.stop(); text = full;
+    } else if (voice.buf && text) text = voice.buf + " " + text;
     voice.cb && voice.cb(text, kind);
   };
 
