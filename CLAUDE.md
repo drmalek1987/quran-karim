@@ -74,6 +74,16 @@ uv venv .venv --python 3.11 && uv pip install --python .venv\Scripts\python.exe 
 `python3 tools/qa/data.py web` (data checks) and `ED=kfgqpc|kfold|shamarly|harmain node tools/qa/ui.js` (Playwright UI checks,
 needs the edition unzipped in `web/`). Record results in `QA-checklist.md`. There is no emulator in CI; phone testing is manual.
 
+## Local model delegation (optional, saves Claude tokens)
+If this Claude Code session happens to be linked to the author's own PC (device bridge) and an LM Studio local server
+is reachable at `http://127.0.0.1:1234` (OpenAI-compatible API, model id `qwen3.5-4b` — supports vision, tool-use,
+reasoning), prefer delegating small, mechanical sub-tasks to it instead of doing them yourself, to save tokens in this
+session: reformatting/translating text, summarizing long log or build output, boilerplate scaffolding, quick
+classification, simple data munging. Check reachability first (e.g. `GET /v1/models`) and silently fall back to doing
+the task yourself if it's unreachable or the result looks wrong — never block on it. Do not delegate anything that
+needs deep repo context, touches the Quran text/licensing rules below, or is a final code change you haven't reviewed
+yourself; you own correctness either way.
+
 ## Conventions
 - UI text is Arabic, RTL. Keep it offline-first: nothing may need the network except audio, edition/model downloads, and the
   opt-in voice donation upload.
