@@ -223,7 +223,7 @@
   var pageBg = load("pageBg", PAPER);
   if (pageBg === "auto") pageBg = isDarkTheme() ? NIGHT : PAPER;
   // 5.27: how the hidden words look in hifz / review masks (root class mask-<id>, a colour panel in settings)
-  var MASKS = ["def", "haze", "dots", "gold", "comp", "anal"];
+  var MASKS = ["def", "comp", "anal"];   // 5.28: haze, dots and gold removed after the phone test
   var maskStyle = load("maskStyle", "def"); if (MASKS.indexOf(maskStyle) < 0) maskStyle = "def";
   var tjOn = load("tajweed", true);
   // One switch for the tajweed colours everywhere: the text view and the pages of the editions that have them.
@@ -326,24 +326,9 @@
   document.querySelectorAll("#maskSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       maskStyle = b.dataset.v; save("maskStyle", maskStyle); applySettings();
-      if (hifz && hifz.on && hifz.paint) hifz.paint(); else hzHazeFix();   // an open hifz page repaints live
+      if (hifz && hifz.on && hifz.paint) hifz.paint();   // an open hifz page repaints live
     });
   });
-  // 5.27: «haze» masks show the page image blurred under the box: hand each page box its image size / offset and each mask its position (px)
-  function hzHazeFix() {
-    if (maskStyle !== "haze") return;
-    document.querySelectorAll(".page-box").forEach(function (pb) {
-      var im = [].filter.call(pb.children, function (c) { return c.tagName === "IMG"; });
-      if (!im.length) return;
-      var m0 = im.filter(function (i) { return !i.classList.contains("tjo"); })[0] || im[0];
-      pb.style.setProperty("--bgimg", im.slice().reverse().map(function (i) { return 'url("' + (i.currentSrc || i.src) + '")'; }).join(","));
-      pb.style.setProperty("--pw", m0.offsetWidth + "px"); pb.style.setProperty("--ph", m0.offsetHeight + "px");
-      pb.style.setProperty("--ox", m0.offsetLeft + "px"); pb.style.setProperty("--oy", m0.offsetTop + "px");
-      pb.querySelectorAll(".hifz-mask").forEach(function (m) { m.style.setProperty("--bx", m.offsetLeft + "px"); m.style.setProperty("--by", m.offsetTop + "px"); });
-    });
-  }
-  var hzHazeT = 0;
-  window.addEventListener("resize", function () { if (maskStyle === "haze") { clearTimeout(hzHazeT); hzHazeT = setTimeout(hzHazeFix, 120); } });
   setInterval(function () { if (theme === "sun") applySettings(); }, 60000);
   // The timer sleeps while the app is in the background, so check again when it comes back (and right now, at start-up:
   // the cached q.themeNow the head script paints from may be from before maghrib).
@@ -1360,7 +1345,6 @@
           });
         });
       });
-      hzHazeFix();
     });
   }
   // Sprint 2 #11/#42: the words judged so far (only while the mic is on), and whether word i of ayah k is still hidden
@@ -5022,7 +5006,8 @@
     var hb = document.getElementById("htBad"); if (hb) hb.ontoggle = function () { htBadOpen = this.open; };
     var missed = 0, rec = null;
     document.getElementById("htQari").onclick = function () { player.playRange(s, from, to); };
-    document.getElementById("htPages").onclick = function () { hifzTestPages(s, from); };
+    // 5.28 #13: the same range path as the map's «اختبرني» (app.js hzTestStart): hifz.test.end = the last ayah here, so only these ayat are masked and the mic stops after them
+    document.getElementById("htPages").onclick = function () { hzTestStart({ k: "a", s: s, a1: from, a2: to, w: "o" }, "m"); };
     // a peek at every hidden word (not counted as forgotten); tapped again hides them back
     document.getElementById("htPeek").onclick = function () {
       var t = view.querySelector(".ht-text"), on = t.classList.toggle("peek");

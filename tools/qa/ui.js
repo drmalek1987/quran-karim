@@ -1480,32 +1480,58 @@ async function fresh(ctx, vp) {
     }
     await p.setViewportSize({ width: 390, height: 844 });
     return assert(res.every(r => r[3]), JSON.stringify(res)); });
-  await check(G527, 'شكل إخفاء الكلمات: لوحة ٦ ألوان بـ aria-label، الاختيار بيتحفظ (q.maskStyle) وبيتطبّق كـ class mask-<id>، وافتراضيها def', async () => {
+  await check(G527, 'شكل إخفاء الكلمات: لوحة ٣ ألوان بـ aria-label، الاختيار بيتحفظ (q.maskStyle) وبيتطبّق كـ class mask-<id>، وافتراضيها def', async () => {
     await ev(() => localStorage.removeItem('q.maskStyle')); await p.reload(); await wait(800);
     const d0 = await ev(() => document.documentElement.classList.contains('mask-def'));
     await p.click('#btnSettings'); await wait(300);
-    const ids = ['def', 'haze', 'dots', 'gold', 'comp', 'anal'], res = [];
+    const ids = ['def', 'comp', 'anal'], res = [];   // 5.28: haze/dots/gold removed
     for (const id of ids) { await ev(id => document.querySelector('#maskSet [data-v=' + id + ']').click(), id); await wait(80);
       res.push(await ev(id => [document.documentElement.classList.contains('mask-' + id), document.documentElement.className.split(' ').filter(c => /^mask-/.test(c)).length === 1, localStorage.getItem('q.maskStyle') === JSON.stringify(id), document.querySelector('#maskSet [data-v=' + id + ']').classList.contains('on')], id)); }
     const lab = await ev(() => [...document.querySelectorAll('#maskSet button')].every(b => (b.getAttribute('aria-label') || '').length > 2));
     await ev(() => { localStorage.removeItem('q.maskStyle'); }); await p.reload(); await wait(600);
-    return assert(d0 && lab && ids.length === 6 && res.every(r => r.every(Boolean)), JSON.stringify([d0, lab, res])); });
-  await check(G527, 'شكل الإخفاء: كل الستايلات بتغيّر شكل أقنعة صفحة حفظ مفتوحة لحظيًا (فاتح وداكن)، الضباب فيه صورة الصفحة، وكل لون له fallback hex قبل color-mix', async () => {
+    return assert(d0 && lab && ids.length === 3 && await ev(() => document.querySelectorAll('#maskSet button').length === 3) && res.every(r => r.every(Boolean)), JSON.stringify([d0, lab, res])); });
+  await check(G527, 'شكل الإخفاء: كل الستايلات بتغيّر شكل أقنعة صفحة حفظ مفتوحة لحظيًا (فاتح وداكن)، وكل لون له fallback hex قبل color-mix', async () => {
     const out3 = [];
     for (const dark of [false, true]) {
       await ev(dk => { localStorage.setItem('q.mode', '"pages"'); if (dk) { localStorage.setItem('q.theme', '"dark"'); localStorage.setItem('q.pageBg', '"#12161a"'); } else { localStorage.removeItem('q.theme'); localStorage.removeItem('q.pageBg'); } }, dark);
       await p.reload(); await wait(800); await go('#/hifzmap', 500); await ev(() => window.hzTestStart({ k: 'a', s: 80, a1: 18, a2: 42, w: 'o' }, 'm')); await wait(2500);
       await p.click('#btnSettings'); await wait(300);
       const seen = {};
-      for (const id of ['def', 'haze', 'dots', 'gold', 'comp', 'anal']) { await ev(id => document.querySelector('#maskSet [data-v=' + id + ']').click(), id); await wait(350);
+      for (const id of ['def', 'comp', 'anal']) { await ev(id => document.querySelector('#maskSet [data-v=' + id + ']').click(), id); await wait(350);
         seen[id] = await ev(() => { const m = document.querySelector('.hifz-mask'), cs = getComputedStyle(m), bf = getComputedStyle(m, '::before'); return [cs.backgroundColor + '|' + cs.backgroundImage.slice(0, 30) + '|' + cs.boxShadow.slice(0, 40), m.style.getPropertyValue('--bx'), bf.filter, bf.backgroundImage.slice(0, 12)]; }); }
       const vals = Object.values(seen).map(v => v[0]);
-      out3.push([new Set(vals).size === 6, /blur/.test(seen.haze[2]) && /^url/.test(seen.haze[3]) && seen.haze[1] !== '', /radial/.test(seen.dots[0])]);
+      out3.push([new Set(vals).size === 3]);
       await ev(() => { document.getElementById('settings').hidden = true; const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); localStorage.removeItem('q.maskStyle'); });
     }
     await ev(() => { localStorage.removeItem('q.theme'); localStorage.removeItem('q.pageBg'); localStorage.removeItem('q.maskStyle'); }); await p.reload(); await wait(600);
     const fb = (require('fs').readFileSync(__dirname + '/../../web/style.css', 'utf8').match(/background: #[0-9a-f]{6}; background: color-mix/g) || []).length;
-    return assert(out3.every(r => r.every(Boolean)) && fb >= 10, JSON.stringify([out3, fb])); });
+    return assert(out3.every(r => r.every(Boolean)) && fb >= 6, JSON.stringify([out3, fb])); });
+  // ---- 5.28 (phone feedback 5.27) ----
+  const G528 = 'نسخة 5.28';
+  await check(G528, '#13: «المصحف» في «اختبار الحفظ» بيخفي نفس آيات الاختبار بس (زي «اختبرني» في الخريطة)، والمايك بيقف بعد آخر آية', async () => {
+    await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.removeItem('q.turn'); localStorage.setItem('q.hifzTest', JSON.stringify({ lv: 100, s: 112, from: 1 })); });
+    await p.reload(); await wait(800); await ev(() => { window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; });
+    const close = () => ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); });
+    const masks = () => ev(() => [...document.querySelectorAll('.hifz-mask')].map(m => m.style.cssText).sort().join(';'));
+    await go('#/hifzmap', 500); await ev(() => window.hzTestStart({ k: 'a', s: 112, a1: 1, a2: 4, w: 'o' }, 'm')); await wait(1500); const ref = await masks(); await close(); await wait(300);
+    await go('#/hifztest/112', 800); await p.click('#htPages'); await wait(1500); const got = await masks();
+    const T = a => ev(a => window.QURAN.t[111][a - 1].split(' ').filter(w => /[ء-يٱ]/.test(w)).join(' '), a);
+    await p.click('#hifzBar [data-c="mic"]'); await wait(200); await ev(() => window.onRecite('', 'state:listening')); const on0 = await ev(() => !!window.__rec.on);
+    for (const a of [1, 2, 3, 4]) { await ev(t => window.onRecite(t, 'final'), await T(a)); await wait(300); }
+    await wait(1800); const on1 = await ev(() => !!window.__rec.on);
+    await close(); await ev(() => { delete window.ReciteBridge; localStorage.removeItem('q.hifzTest'); }); await wait(300);
+    return assert(ref && got === ref && on0 && !on1, JSON.stringify([ref.length, got.length, got === ref, on0, on1])); });
+  await check(G528, '#12: في القراءة العمودية زرار الهلال والاستماع فوق شريط الحفظ (من غير ما يتغطّوا)', async () => {
+    const out = [];
+    for (const vp of [[360, 640], [390, 844]]) {
+      await p.setViewportSize({ width: vp[0], height: vp[1] });
+      await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"v"'); }); await p.reload(); await wait(900);
+      await go('#/hifzmap', 500); await ev(() => window.hzTestStart({ k: 'a', s: 80, a1: 18, a2: 42, w: 'o' }, 'm')); await wait(1800);
+      out.push(await ev(() => { const v = document.querySelector('.vbar'), b = document.getElementById('hifzBar'); if (!v || !b) return [!!v, !!b]; const vr = v.getBoundingClientRect(), br = b.getBoundingClientRect(), d = document.getElementById('vDark').getBoundingClientRect(); return [vr.bottom <= br.top + 0.5, d.height > 0, getComputedStyle(v).display !== 'none', Math.round(vr.bottom), Math.round(br.top)]; }));
+      await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); }); await wait(300);
+    }
+    await ev(() => localStorage.removeItem('q.turn')); await p.setViewportSize({ width: 390, height: 844 }); await p.reload(); await wait(600);
+    return assert(out.every(r => r[0] && r[1] && r[2]), JSON.stringify(out)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

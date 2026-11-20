@@ -902,3 +902,14 @@ Resume: dev C -> bump 5.27 (75, sw quran-v71) -> full QA x4 sequential (nothing 
 Resume: user OK -> install 5.27 on bee81250 (call state 0, no taps) -> user checklist -> release (commit 5.23-5.27 + push + gh release v5.27 private builds repo + Play AAB) on the user word.
 - 2026-11-20 RELEASED on the user word («ارفع علي github»): commit 96cbdae (5.23-5.27) pushed to main (rebased on 912c5fe, CLAUDE.md LM Studio note); gh release v5.27 on private drmalek1987/quran-karim-builds with quran-karim-v5.27.apk (70,102,448 B, signer 7d8b31d2). Not done: Play AAB (PLAY=1), 5.27 install on bee81250. Left uncommitted on purpose: untracked screenshots/ASR eval outputs, store/fg-options png edits, plans/report-5.26-5.27.html (page screenshots).
 Resume: Play AAB 5.27 on the user word -> install 5.27 on the phone (user OK) -> phone checklist plans/phone-test-5.27.html -> next roadmap item.
+
+## 2026-11-20 — 5.28 (76): phone feedback 5.27 (13 pass, 5 notes)
+- Goal check: hifz test correctness (test → mic → result) = core app goal; small, targeted fixes.
+- #3-5: mask styles haze/dots/gold removed (MASKS = def/comp/anal; old stored values fall back to def via app.js:227).
+- #13: «اختبار الحفظ» › «المصحف» (htPages) called hifzTestPages(s, from) with no end -> whole page masked, mic never stopped. Now hzTestStart({k:'a',s,a1:from,a2:to,w:'o'},'m') like the map «اختبرني» (precedent app.js:3010).
+- #12: vertical reading .vbar (moon) was fixed at bottom 16px under the hifz bar; now body.has-hifz .vbar uses --hzbar.
+- QA: new group «نسخة 5.28» (2 checks) PASS; negative control on 5.27 code FAILs both (masks 939 vs 205, mic on, vbar 624>572).
+- Resume: full QA 4 editions -> build 5.28 APK + verify -> report + plans/phone-test-5.28.html -> ask user before install/push.
+- QA 5.28: data 28/0 · ui.js 304/0 ×4 editions (kfgqpc, kfold, shamarly, harmain) · matrix 40/0 · fs-motion 9/9 · recite_sim exit 0.
+- Build: quran-karim-v5.28.apk 70,086,064 bytes, versionCode 76, signer 7d8b31d2 ✓, assets app.js = web/app.js ✓.
+- Resume: user OK -> install on bee81250 (check mCallState=0) and/or GitHub (commit+push, builds release v5.28) -> phone checklist plans/phone-test-5.28.html.

@@ -85,5 +85,17 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e
 function sum() { var p = 0, f = 0; Object.keys(S).forEach(function (k) { if (S[k].v === "pass") p++; if (S[k].v === "fail") f++; });
   document.getElementById("sum").textContent = "نجح " + p + " · فيه مشكلة " + f + " · فاضل " + (id - p - f) + " من " + id; }
 sum();
+// Export: results live in this browser's storage, not in the file, so give the user text to paste in the chat.
+function report() { var n = 0, out = [];
+  G.forEach(function (g) { g[1].forEach(function (it) { var st = S["i" + (++n)] || {};
+    out.push(n + ". " + it[1] + ": " + (st.v === "pass" ? "نجح" : st.v === "fail" ? "مشكلة" + (st.n ? " ← " + st.n : "") : "—")); }); });
+  return document.getElementById("sum").textContent + "\n" + out.join("\n"); }
+var B = document.createElement("button"), T = document.createElement("textarea");
+B.textContent = "📋 انسخ النتيجة وابعتها"; B.style.cssText = "width:100%;padding:14px;margin:18px 0 6px;font-size:17px;border-radius:10px;border:0;background:#1f3a5f;color:#fff;font-family:inherit";
+T.rows = 10; T.style.display = "none";
+B.onclick = function () { var r = report(); T.value = r; T.style.display = "block"; T.select();
+  if (navigator.share) { navigator.share({ text: r }).catch(function () {}); }
+  else if (navigator.clipboard) { navigator.clipboard.writeText(r).then(function () { B.textContent = "✓ اتنسخت – الصقها في الشات"; }, function () {}); } };
+document.body.appendChild(B); document.body.appendChild(T);
 </script>
 </body></html>

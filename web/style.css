@@ -385,8 +385,6 @@ body.reading .quran, body.reading .basmala, body.reading .page-info { color: var
 #maskSet .mk-sw i { display: block; width: 26px; height: 13px; border-radius: 5px; }
 #maskSet .mk-def { background: #d3d5d4; background: color-mix(in srgb, var(--pbg) 82%, #1e3a5f); box-shadow: inset 0 0 0 1px #c3c6c5; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pbg) 70%, #1e3a5f); }
 :root.pdark #maskSet .mk-def { background: #2a3a3a; background: color-mix(in srgb, var(--pbg) 80%, #6fd6a8); }
-#maskSet .mk-haze { filter: blur(1.2px); }
-#maskSet .mk-dots { border-radius: 0; height: 13px; }
 .swatches input[type=color] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
 /* ---------- screen sizes ---------- */
@@ -583,29 +581,10 @@ body.has-player.has-bar .player { display: none; }
 /* 5.27: mask styles (q.maskStyle -> root class mask-<id>): the colour panel in settings. color-mix lines come after a solid hex fallback (WebView < 111) */
 :root .hifz-mask { background: #d3d5d4; background: color-mix(in srgb, var(--pbg) 82%, #1e3a5f); }
 :root.pdark .hifz-mask { background: #2a3a3a; background: color-mix(in srgb, var(--pbg) 80%, #6fd6a8); }
-:root.mask-gold .hifz-mask, :root.mask-gold .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-gold { background: #dec88d; background: color-mix(in srgb,var(--pbg) 40%,#cba84d); box-shadow: inset 0 0 0 1px #d0b980,0 0 0 1px #ad862566; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#ad8625),0 0 0 1px #ad862566; border-color: transparent; }
-:root.pdark.mask-gold .hifz-mask, :root.pdark.mask-gold .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-gold { background: #6d5f38; background: color-mix(in srgb,var(--pbg) 52%,#cfad59); box-shadow: inset 0 0 0 1px #827656,0 0 0 1px #ddc58866; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#ddc588),0 0 0 1px #ddc58866; }
 :root.mask-comp .hifz-mask, :root.mask-comp .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-comp { background: #e8d1d6; background: color-mix(in srgb,var(--pbg) 72%,#b86f99); box-shadow: inset 0 0 0 1px #ca92ad; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#a23f77); border-color: transparent; }
 :root.pdark.mask-comp .hifz-mask, :root.pdark.mask-comp .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-comp { background: #453342; background: color-mix(in srgb,var(--pbg) 70%,#bc769e); box-shadow: inset 0 0 0 1px #7b6173; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#d09fbb); }
 :root.mask-anal .hifz-mask, :root.mask-anal .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-anal { background: #c8e1d9; background: color-mix(in srgb,var(--pbg) 70%,#52ada7); box-shadow: inset 0 0 0 1px #8cb9b1; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#328680); border-color: transparent; }
 :root.pdark.mask-anal .hifz-mask, :root.pdark.mask-anal .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-anal { background: #2d494b; background: color-mix(in srgb,var(--pbg) 68%,#66b7b2); box-shadow: inset 0 0 0 1px #577979; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#90cbc7); }
-/* haze: the page image blurred under the box, soft feathered edges, a veil on top (hzHazeFix in app.js sets --bgimg/--pw/--ph/--ox/--oy and each mask's --bx/--by) */
-:root.mask-haze .hifz-mask, :root.mask-dots .hifz-mask { box-sizing: content-box; margin: calc(-1 * var(--mpy)) calc(-1 * var(--mpx)); padding: var(--mpy) var(--mpx); }
-:root.mask-haze .hifz-mask { --mpx: 5px; --mpy: 3px; --pad: 20px; --bl: 8px; overflow: hidden; background: var(--pbg); box-shadow: none; border-radius: 9px;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 3px, #000 calc(100% - 3px), transparent), linear-gradient(to bottom, transparent, #000 3px, #000 calc(100% - 3px), transparent);
-  -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent, #000 3px, #000 calc(100% - 3px), transparent), linear-gradient(to bottom, transparent, #000 3px, #000 calc(100% - 3px), transparent); mask-composite: intersect; }
-:root.mask-haze .hifz-mask::before { content: ""; position: absolute; inset: calc(-1 * var(--pad)); background-image: var(--bgimg, none); background-size: var(--pw) var(--ph); background-repeat: no-repeat;
-  background-position: calc(var(--pad) - var(--bx, 0px) + var(--ox, 0px)) calc(var(--pad) - var(--by, 0px) + var(--oy, 0px)); background-color: var(--pbg); background-blend-mode: normal, multiply; filter: blur(var(--bl)); }
-:root.mask-haze .hifz-mask::after { content: ""; position: absolute; inset: 0; background: rgba(251, 247, 238, .42); background: color-mix(in srgb, var(--pbg) 42%, transparent); }
-:root.pdark.mask-haze .hifz-mask::before { background-color: #ede9e5; filter: invert(1) hue-rotate(180deg) blur(var(--bl)); }
-:root.pdark.mask-haze .hifz-mask::after { background: rgba(18, 22, 26, .42); background: color-mix(in srgb, var(--pbg) 42%, transparent); }
-:root.mask-haze .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-haze { background: #b9b7b0; background: color-mix(in srgb, var(--pbg) 45%, #8a8a8a); box-shadow: 0 0 6px 2px #b9b7b0; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--pbg) 45%, #8a8a8a); border-color: transparent; border-radius: 9px; }
-:root.pdark.mask-haze .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-haze { background: #3a3d40; background: color-mix(in srgb, var(--pbg) 55%, #9aa0a6); box-shadow: 0 0 6px 2px #3a3d40; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--pbg) 55%, #9aa0a6); }
-/* dots: clean paper + a dotted line as long as the word */
-:root.mask-dots .hifz-mask { --mpx: 3px; --mpy: 3px; border-radius: 4px; box-shadow: none; background: radial-gradient(circle, rgba(70, 60, 50, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); }
-:root.pdark.mask-dots .hifz-mask { background: radial-gradient(circle, rgba(236, 230, 216, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); }
-:root.mask-dots .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-dots { background: radial-gradient(circle, rgba(70, 60, 50, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; border-color: transparent; }
-:root.pdark.mask-dots .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-dots { background: radial-gradient(circle, rgba(236, 230, 216, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; }
 /* Sprint 2 #29: words skipped in a recitation: violet dashed box, until they are read (red = wrong, yellow = unsure, teal = highlight) */
 .rc-skipw { position: absolute; border: 2px dashed #8e44ad; border-radius: 6px; background: #8e44ad2e; pointer-events: none; z-index: 3; }
 :root.pdark .rc-skipw { border-color: #c39bd3; background: #c39bd338; }
@@ -750,6 +729,9 @@ html.en body { font-family: "Cairo", system-ui, sans-serif; }
 /* The vertical-reading moon / listen buttons sit under the settings and index sheets, and above the reciter bar when it shows. */
 .vbar { z-index: 5; }
 body.has-player .vbar { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84px); }
+/* 5.28 #12: vertical reading: the moon / listen buttons sit above the memorisation bar (its measured height, --hzbar) */
+body.has-hifz .vbar { bottom: calc(var(--hzbar, 66px) + max(10px, env(safe-area-inset-bottom)) + 10px); }
+body.has-hifz.has-player .vbar { bottom: calc(var(--hzbar, 66px) + max(10px, env(safe-area-inset-bottom)) + 84px); }
 /* sebha */
 .tsb { display: grid; gap: 14px; justify-items: center; padding-top: 6px; }
 .tsb-ph { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }

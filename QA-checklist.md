@@ -723,3 +723,8 @@ New checks to run every release from now on (phone/emulator + headless):
 - [x] Map box long-press: no contextmenu/selection/link (boxes are span role=button) (headless). [ ] real WebView: no «file:///» callout.
 - [x] Hifz bar never covers the mushaf nav row / moon (360x640, 390x844, headless). [ ] real phone with nav-bar inset.
 - [x] Settings «شكل الإخفاء» colour panel, 6 swatches (def, haze, dots, gold, comp #b86f99, anal #52ada7), live repaint, light + dark, hex fallback before color-mix; haze/dots unreadable at 4x; ayah markers visible.
+
+## 5.28 (phone feedback 5.27)
+- [ ] Mask style panel: 3 swatches only (def, comp #b86f99, anal #52ada7); an old haze/dots/gold value falls back to grey.
+- [ ] «اختبار الحفظ» › «المصحف»: only the chosen ayat are masked; the mic stops after the last one (ui.js «نسخة 5.28» #13).
+- [ ] Vertical reading + hifz test: moon / listen buttons above the hifz bar (ui.js «نسخة 5.28» #12); horizontal still OK (5.27 #11).
