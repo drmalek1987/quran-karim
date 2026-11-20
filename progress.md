@@ -913,3 +913,16 @@ Resume: Play AAB 5.27 on the user word -> install 5.27 on the phone (user OK) ->
 - QA 5.28: data 28/0 · ui.js 304/0 ×4 editions (kfgqpc, kfold, shamarly, harmain) · matrix 40/0 · fs-motion 9/9 · recite_sim exit 0.
 - Build: quran-karim-v5.28.apk 70,086,064 bytes, versionCode 76, signer 7d8b31d2 ✓, assets app.js = web/app.js ✓.
 - Resume: user OK -> install on bee81250 (check mCallState=0) and/or GitHub (commit+push, builds release v5.28) -> phone checklist plans/phone-test-5.28.html.
+- Released: code 9eec9ee on main; builds repo v5.28 (APK 70,086,064 bytes). Not installed on the phone. Resume: wait for the 5.28 phone checklist results (plans/phone-test-5.28.html).
+
+## 2026-11-20 — 5.29 (77): phone feedback 5.28 (10 pass, 1 note)
+- Note #11: random review + vertical reading: after moving to a new place the page scrolled back to the old one.
+- Root cause: reciteLineRect (app.js ~2711) used recite.k = the last ayah of the OLD place until the first word of the new one was heard, so capKeep scrolled back on every mic result.
+- Fix: reciteLineRect returns null when recite.k is outside the current place [T.s:T.a .. T.end] (precedent: hifzBar app.js:2406 uses the place range).
+- QA: «نسخة 5.29» check PASS; negative control FAIL (#/p/441 -> #/p/294), same as the phone.
+- Resume: full QA 4 editions -> build 5.29 + verify -> phone checklist plans/phone-test-5.29.html -> ask user (GitHub / phone).
+- QA 5.29 (parallel, tools/qa/run-parallel.js): ui.js 305/0 ×4 in 13.3 min wall (5.28 one-by-one: 304/0 ×4 in 51 min) · data 28/0 · matrix 40/0 · fs-motion 9/9 · recite_sim 0 · whole QA 15 min.
+- Build: quran-karim-v5.29.apk 70,086,064 bytes, versionCode 77, signer 7d8b31d2 ✓, app.js = web ✓.
+- Resume: user OK -> GitHub (commit+push, builds v5.29) and/or phone -> plans/phone-test-5.29.html.
+- Installed 5.29 on bee81250 (call state 0, adb install Success, versionCode 77). Not on GitHub yet. Resume: phone checklist plans/phone-test-5.29.html results.
+- Phone test 5.29: 8/8 pass (random review vertical, next places, horizontal, «المصحف» range, moon). Resume: GitHub v5.29 on user word -> Play AAB on user word -> next roadmap item (P3 L2 model ship).

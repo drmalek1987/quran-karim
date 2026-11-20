@@ -2709,7 +2709,11 @@
   // measured word boxes, else the ayah's rects on the mounted pages). Null when nothing is placed on screen yet.
   function reciteLineRect() {
     var k = recite.k; if (!k || !hifz.on || !hifz.box) return null;
-    var sa = k.split(":"), s = +sa[0], a = +sa[1], rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], n = rWords(k).length, top = 1e9, bot = -1e9;
+    var sa = k.split(":"), s = +sa[0], a = +sa[1];
+    // 5.29: after «الموضع اللي بعده» recite.k is still the last ayah of the old place until the first word of the new one is heard:
+    // no line to follow then, else every mic result scrolls the vertical view back to the old place
+    var T = hifz.test; if (T && T.end) { var te = T.end.split(":"), g = gIdx(s, a); if (g < gIdx(T.s, T.a) || g > gIdx(+te[0], +te[1])) return null; }
+    var rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], n = rWords(k).length, top = 1e9, bot = -1e9;
     var add = function (bx, y0, y1) { var r = bx.getBoundingClientRect(); top = Math.min(top, r.top + r.height * y0 / 1000); bot = Math.max(bot, r.top + r.height * y1 / 1000); };
     [recite.pos - 1, recite.pos].forEach(function (wi) {
       if (wi < 0 || wi >= n) return;

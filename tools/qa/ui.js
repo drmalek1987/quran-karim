@@ -1532,6 +1532,18 @@ async function fresh(ctx, vp) {
     }
     await ev(() => localStorage.removeItem('q.turn')); await p.setViewportSize({ width: 390, height: 844 }); await p.reload(); await wait(600);
     return assert(out.every(r => r[0] && r[1] && r[2]), JSON.stringify(out)); });
+  await check('نسخة 5.29', '#11: مراجعة عشوائية في القراءة العمودية: بعد الانتقال لموضع جديد الصفحة ماترجعش للموضع القديم مع نتايج المايك، وبتتابع الموضع الجديد', async () => {
+    await ev(() => { localStorage.setItem('q.mode', '"pages"'); localStorage.setItem('q.turn', '"v"'); }); await p.reload(); await wait(900);
+    const gay = i => ev(i => { let c = 0; for (let s = 1; s <= 114; s++) { const n = window.QURAN.s[s - 1][3]; if (i < c + n) return [s, i - c + 1]; c += n; } }, i);
+    const P = [[2140, 2145], [3720, 3725]], b1 = await gay(P[0][0]), e1 = await gay(P[0][1]), b2 = await gay(P[1][0]);
+    await go('#/hifzmap', 500); await ev(P => window.hzTestStart({ k: 's', s: 18, w: 'r' }, 'm', P), P); await wait(2200);
+    await recAyat(b1[0], b1[1], e1[1]); await wait(1800);
+    const at = await ev(() => [location.hash, scrollY]);
+    for (let i = 0; i < 6; i++) { await ev(() => window.onRecite('ما', 'partial')); await wait(350); }
+    await wait(1500); const after = await ev(() => [location.hash, scrollY, window.reciteLineRect()]);
+    await recAyat(b2[0], b2[1], b2[1]); await wait(900); const lr = await ev(() => window.reciteLineRect());
+    await ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); delete window.ReciteBridge; localStorage.removeItem('q.turn'); }); await p.reload(); await wait(600);
+    return assert(at[0] === after[0] && Math.abs(after[1] - at[1]) < 300 && after[2] === null && lr && lr.top > 0 && lr.bottom < 844, JSON.stringify([at, after, lr])); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

@@ -728,3 +728,6 @@ New checks to run every release from now on (phone/emulator + headless):
 - [ ] Mask style panel: 3 swatches only (def, comp #b86f99, anal #52ada7); an old haze/dots/gold value falls back to grey.
 - [ ] «اختبار الحفظ» › «المصحف»: only the chosen ayat are masked; the mic stops after the last one (ui.js «نسخة 5.28» #13).
 - [ ] Vertical reading + hifz test: moon / listen buttons above the hifz bar (ui.js «نسخة 5.28» #12); horizontal still OK (5.27 #11).
+
+## 5.29 (phone feedback 5.28)
+- [ ] Random review, vertical reading: after «الموضع اللي بعده» the page stays at the new place with mic results (ui.js «نسخة 5.29»); following resumes on the first recited ayah.
