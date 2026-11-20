@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np, soundfile as sf
 from bench import Quran, Model, recite_dp, rsame, SR
 
-QUIET_END, VMIN, PGAIN, PRE = 1.0, 0.0015, -30.0, 3          # NvAsr.java 5.11: 1.0 s quiet, VMIN, louder() to -30 dBFS, 0.3 s pre
+QUIET_END, VMIN, PGAIN, PRE = 0.5, 0.0015, -30.0, 3          # NvAsr.java 5.22: 0.5 s quiet, VMIN, louder() to -30 dBFS, 0.3 s pre
 GAP = 0.12
 
 def pieces(y, cut_at=None, look=2.0, dip=0.6):

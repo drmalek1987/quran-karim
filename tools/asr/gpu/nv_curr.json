@@ -481,5 +481,442 @@
    "tlog": 6.92,
    "train_G10": 39.6
   }
+ },
+ "init_G10b": {
+  "test_L1": 4.17,
+  "test_L2": 8.23,
+  "test_L3": 17.64,
+  "ho_reciters": 9.88,
+  "ho_retasy": 6.81,
+  "noisy20": 8.61,
+  "noisy10": 17.2,
+  "noisy5": 24.42,
+  "tlog": 6.84,
+  "train_G10b": 15.0,
+  "noisy_10_5": 20.81
+ },
+ "G10b_lr3e-5": {
+  "cfg": {
+   "lr": 3e-05,
+   "warm": 50,
+   "steps": 300,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step150": {
+   "test_L1": 4.35,
+   "test_L2": 8.31,
+   "test_L3": 17.37,
+   "ho_reciters": 9.24,
+   "ho_retasy": 5.39,
+   "noisy20": 8.07,
+   "noisy10": 16.44,
+   "noisy5": 23.18,
+   "tlog": 5.89,
+   "train_G10b": 14.56,
+   "noisy_10_5": 19.81
+  },
+  "best": [
+   150,
+   19.81
+  ],
+  "step300": {
+   "test_L1": 4.42,
+   "test_L2": 8.2,
+   "test_L3": 16.96,
+   "ho_reciters": 9.39,
+   "ho_retasy": 5.54,
+   "noisy20": 8.04,
+   "noisy10": 16.74,
+   "noisy5": 23.24,
+   "tlog": 5.91,
+   "train_G10b": 14.56,
+   "noisy_10_5": 19.99
+  }
+ },
+ "G10b_lr6e-5": {
+  "cfg": {
+   "lr": 6e-05,
+   "warm": 50,
+   "steps": 300,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step150": {
+   "test_L1": 4.33,
+   "test_L2": 8.13,
+   "test_L3": 16.96,
+   "ho_reciters": 9.27,
+   "ho_retasy": 5.32,
+   "noisy20": 7.83,
+   "noisy10": 16.77,
+   "noisy5": 23.03,
+   "tlog": 5.86,
+   "train_G10b": 14.51,
+   "noisy_10_5": 19.9
+  },
+  "best": [
+   150,
+   19.9
+  ],
+  "step300": {
+   "test_L1": 3.9,
+   "test_L2": 8.07,
+   "test_L3": 16.52,
+   "ho_reciters": 9.2,
+   "ho_retasy": 5.68,
+   "noisy20": 8.01,
+   "noisy10": 16.77,
+   "noisy5": 23.51,
+   "tlog": 5.89,
+   "train_G10b": 14.21,
+   "noisy_10_5": 20.14
+  }
+ },
+ "G10b_lr1e-4": {
+  "cfg": {
+   "lr": 0.0001,
+   "warm": 50,
+   "steps": 300,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step150": {
+   "test_L1": 4.53,
+   "test_L2": 8.35,
+   "test_L3": 16.76,
+   "ho_reciters": 9.12,
+   "ho_retasy": 5.54,
+   "noisy20": 7.68,
+   "noisy10": 16.74,
+   "noisy5": 23.27,
+   "tlog": 5.84,
+   "train_G10b": 14.0,
+   "noisy_10_5": 20.0
+  },
+  "best": [
+   300,
+   20.3
+  ],
+  "step300": {
+   "test_L1": 4.06,
+   "test_L2": 7.48,
+   "test_L3": 16.29,
+   "ho_reciters": 9.12,
+   "ho_retasy": 5.5,
+   "noisy20": 7.89,
+   "noisy10": 16.68,
+   "noisy5": 23.93,
+   "tlog": 5.88,
+   "train_G10b": 14.03,
+   "noisy_10_5": 20.3
+  }
+ },
+ "G10b": {
+  "cfg": {
+   "lr": 6e-05,
+   "warm": 200,
+   "steps": 3000,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step300": {
+   "test_L1": 3.81,
+   "test_L2": 7.42,
+   "test_L3": 15.87,
+   "ho_reciters": 9.39,
+   "ho_retasy": 5.87,
+   "noisy20": 8.16,
+   "noisy10": 17.04,
+   "noisy5": 23.9,
+   "tlog": 5.89,
+   "train_G10b": 14.16,
+   "noisy_10_5": 20.47
+  },
+  "best_sha": "d1b7970040a3659a",
+  "best": [
+   2100,
+   19.49
+  ],
+  "step600": {
+   "test_L1": 3.29,
+   "test_L2": 6.93,
+   "test_L3": 15.17,
+   "ho_reciters": 9.13,
+   "ho_retasy": 6.01,
+   "noisy20": 7.8,
+   "noisy10": 16.62,
+   "noisy5": 23.51,
+   "tlog": 5.95,
+   "train_G10b": 14.21,
+   "noisy_10_5": 20.07
+  },
+  "step900": {
+   "test_L1": 3.17,
+   "test_L2": 7.09,
+   "test_L3": 14.91,
+   "ho_reciters": 9.06,
+   "ho_retasy": 5.72,
+   "noisy20": 7.65,
+   "noisy10": 16.29,
+   "noisy5": 23.72,
+   "tlog": 5.79,
+   "train_G10b": 13.61,
+   "noisy_10_5": 20.0
+  },
+  "step1200": {
+   "test_L1": 3.33,
+   "test_L2": 6.84,
+   "test_L3": 14.67,
+   "ho_reciters": 8.95,
+   "ho_retasy": 6.01,
+   "noisy20": 7.4,
+   "noisy10": 16.8,
+   "noisy5": 23.48,
+   "tlog": 5.73,
+   "train_G10b": 14.03,
+   "noisy_10_5": 20.14
+  },
+  "step1500": {
+   "test_L1": 3.67,
+   "test_L2": 7.06,
+   "test_L3": 14.63,
+   "ho_reciters": 8.9,
+   "ho_retasy": 5.32,
+   "noisy20": 7.49,
+   "noisy10": 16.02,
+   "noisy5": 23.42,
+   "tlog": 5.8,
+   "train_G10b": 13.21,
+   "noisy_10_5": 19.72
+  },
+  "step1800": {
+   "test_L1": 3.51,
+   "test_L2": 6.79,
+   "test_L3": 14.52,
+   "ho_reciters": 8.98,
+   "ho_retasy": 5.06,
+   "noisy20": 7.37,
+   "noisy10": 16.29,
+   "noisy5": 23.45,
+   "tlog": 5.88,
+   "train_G10b": 13.31,
+   "noisy_10_5": 19.87
+  },
+  "step2100": {
+   "test_L1": 3.36,
+   "test_L2": 6.73,
+   "test_L3": 14.24,
+   "ho_reciters": 8.95,
+   "ho_retasy": 5.21,
+   "noisy20": 7.43,
+   "noisy10": 16.11,
+   "noisy5": 22.88,
+   "tlog": 5.88,
+   "train_G10b": 13.31,
+   "noisy_10_5": 19.49
+  },
+  "step2400": {
+   "test_L1": 3.33,
+   "test_L2": 6.75,
+   "test_L3": 14.3,
+   "ho_reciters": 9.07,
+   "ho_retasy": 5.17,
+   "noisy20": 7.43,
+   "noisy10": 16.14,
+   "noisy5": 22.97,
+   "tlog": 5.86,
+   "train_G10b": 13.15,
+   "noisy_10_5": 19.55
+  },
+  "step2700": {
+   "test_L1": 3.17,
+   "test_L2": 6.3,
+   "test_L3": 13.39,
+   "ho_reciters": 9.03,
+   "ho_retasy": 5.14,
+   "noisy20": 7.43,
+   "noisy10": 16.29,
+   "noisy5": 23.06,
+   "tlog": 5.84,
+   "train_G10b": 13.21,
+   "noisy_10_5": 19.67
+  },
+  "step3000": {
+   "test_L1": 3.22,
+   "test_L2": 6.57,
+   "test_L3": 13.61,
+   "ho_reciters": 9.07,
+   "ho_retasy": 5.25,
+   "noisy20": 7.43,
+   "noisy10": 16.38,
+   "noisy5": 23.09,
+   "tlog": 5.86,
+   "train_G10b": 13.25,
+   "noisy_10_5": 19.73
+  }
+ },
+ "init_G10c": {
+  "test_L1": 3.36,
+  "test_L2": 6.73,
+  "test_L3": 14.24,
+  "ho_reciters": 8.95,
+  "ho_retasy": 5.21,
+  "noisy20": 7.43,
+  "noisy10": 16.11,
+  "noisy5": 22.88,
+  "tlog": 5.88,
+  "train_G10b": 11.68,
+  "noisy_10_5": 19.49
+ },
+ "G10c_lr1e-5": {
+  "cfg": {
+   "lr": 1e-05,
+   "warm": 50,
+   "steps": 300,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step150": {
+   "test_L1": 3.29,
+   "test_L2": 6.7,
+   "test_L3": 14.12,
+   "ho_reciters": 8.99,
+   "ho_retasy": 5.25,
+   "noisy20": 7.49,
+   "noisy10": 16.08,
+   "noisy5": 22.94,
+   "tlog": 5.85,
+   "train_G10b": 11.66,
+   "noisy_10_5": 19.51
+  },
+  "best": null,
+  "step300": {
+   "test_L1": 3.42,
+   "test_L2": 6.73,
+   "test_L3": 14.14,
+   "ho_reciters": 8.99,
+   "ho_retasy": 5.25,
+   "noisy20": 7.49,
+   "noisy10": 16.08,
+   "noisy5": 22.97,
+   "tlog": 5.84,
+   "train_G10b": 11.68,
+   "noisy_10_5": 19.52
+  }
+ },
+ "G10c_lr3e-5": {
+  "cfg": {
+   "lr": 3e-05,
+   "warm": 50,
+   "steps": 300,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step150": {
+   "test_L1": 3.36,
+   "test_L2": 6.58,
+   "test_L3": 13.73,
+   "ho_reciters": 8.93,
+   "ho_retasy": 5.14,
+   "noisy20": 7.59,
+   "noisy10": 16.2,
+   "noisy5": 22.91,
+   "tlog": 5.78,
+   "train_G10b": 11.65,
+   "noisy_10_5": 19.55
+  },
+  "best": null,
+  "step300": {
+   "test_L1": 3.29,
+   "test_L2": 6.61,
+   "test_L3": 14.0,
+   "ho_reciters": 9.06,
+   "ho_retasy": 5.25,
+   "noisy20": 7.56,
+   "noisy10": 16.23,
+   "noisy5": 23.21,
+   "tlog": 5.79,
+   "train_G10b": 11.58,
+   "noisy_10_5": 19.72
+  }
+ },
+ "G10c_lr6e-5": {
+  "cfg": {
+   "lr": 6e-05,
+   "warm": 50,
+   "steps": 300,
+   "freeze": 0.5,
+   "batch_sec": 40.0,
+   "acc": 3,
+   "mix": {
+    "L2": 0.4,
+    "L1": 0.2,
+    "replayT": 0.4
+   }
+  },
+  "step150": {
+   "test_L1": 3.36,
+   "test_L2": 6.67,
+   "test_L3": 13.71,
+   "ho_reciters": 9.15,
+   "ho_retasy": 4.81,
+   "noisy20": 7.46,
+   "noisy10": 16.32,
+   "noisy5": 23.12,
+   "tlog": 5.72,
+   "train_G10b": 11.5,
+   "noisy_10_5": 19.72
+  },
+  "best": null,
+  "step300": {
+   "test_L1": 3.24,
+   "test_L2": 6.51,
+   "test_L3": 13.57,
+   "ho_reciters": 9.04,
+   "ho_retasy": 4.99,
+   "noisy20": 7.4,
+   "noisy10": 16.5,
+   "noisy5": 23.21,
+   "tlog": 5.78,
+   "train_G10b": 11.31,
+   "noisy_10_5": 19.86
+  }
  }
 }

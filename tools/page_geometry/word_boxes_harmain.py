@@ -42,7 +42,15 @@ def ayah_rows(x, n):
         # the print never splits a word over two lines: the piece that holds most of its columns is the word, a few
         # columns spilled onto the end of the line before (or page before) are dropped
         cnt = [((sx >= m[3]) & (sx < m[4])).sum() for m in R['meta']]
-        if max(cnt) < 2: continue
+        if max(cnt) < 2:
+            # the DTW squeezed the whole word into the GAP between two strips, so no column of it is inside a line piece.
+            # Its ink is the first word of the next line: give it a one-column sliver at that piece's start edge (x = z-1),
+            # the sliver pass in page() then splits the span it shares with the next word by letter count
+            nx = [m for m in R['meta'] if m[3] > sx.max()]
+            if nx and nx[0][0] == n:
+                p, c, z, o0, o1, k = nx[0]
+                rows.append([x['s'], x['a'], w, z - 1, c - HALF * k, z, c + HALF * k, c])
+            continue
         p, c, z, o0, o1, k = R['meta'][int(np.argmax(cnt))]
         if p == n:
             sel = sx[(sx >= o0) & (sx < o1)]

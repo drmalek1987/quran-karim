@@ -35,19 +35,19 @@
  ],
  "words": 3951,
  "src": {
-  "pageWordAt": 1488,
-  "ayahAt": 1538,
-  "lastWordOnPages": 2086,
-  "hifzPagesMount": 1241
+  "pageWordAt": 1489,
+  "ayahAt": 1539,
+  "lastWordOnPages": 2087,
+  "hifzPagesMount": 1242
  },
  "a_longpress_pct": 100,
- "a_estimateOnly_pct": 64.2,
- "b_hifz_meanIoU": 0.373,
- "b_hifz_iouGt05_pct": 36.6,
- "b_hifz_xOverlap": 0.433,
- "b_hifz_yOverlap": 0.798,
+ "a_estimateOnly_pct": 64.8,
+ "b_hifz_meanIoU": 0.374,
+ "b_hifz_iouGt05_pct": 36.9,
+ "b_hifz_xOverlap": 0.435,
+ "b_hifz_yOverlap": 0.797,
  "d_splitPages": 0,
- "c_line_pct": 96.6,
+ "c_line_pct": 96.5,
  "d_pageEnd_exact_pct": 100,
  "d_meanAbsOffset": 0,
  "d_meanOffset": 0,
@@ -74,7 +74,7 @@
    2,
    89,
    10,
-   0.01
+   0.02
   ],
   [
    14,
@@ -88,14 +88,14 @@
    2,
    89,
    15,
-   0.15
+   0.17
   ],
   [
    14,
    2,
    89,
    16,
-   0
+   0.02
   ],
   [
    14,
@@ -123,7 +123,7 @@
    2,
    90,
    9,
-   0.02
+   0.04
   ],
   [
    14,
@@ -277,7 +277,7 @@
    2,
    91,
    12,
-   0.16
+   0.17
   ],
   [
    14,
@@ -291,7 +291,7 @@
    2,
    91,
    14,
-   0.08
+   0.09
   ],
   [
    14,
@@ -326,7 +326,7 @@
    2,
    91,
    19,
-   0.05
+   0.07
   ],
   [
    14,
@@ -343,5 +343,5 @@
    0
   ]
  ],
- "b_worst_count": 1147
+ "b_worst_count": 1124
 }

@@ -4,6 +4,7 @@
 // the last printed word of an ayah that runs over the page (Shamarly), E reading mode finds a jump after 4 misses,
 // F landscape follow, G vertical hifz hides the pages ahead, H decode time reaches the stats.
 // Usage: node recite_sim.js [out.json]   (also run from ui.js, group «نسخة 5.11»)
+// Sprint 2 #48: a map box tap opens the mushaf; the long-press dialog (hzPick) is gone (5.26 #47), so the whole-page test starts through window.hifzTestPages
 const W = require('url').pathToFileURL(require('path').resolve(__dirname, '../../web') + '/index.html').href;
 async function run(b) {
   const out = {};
@@ -24,8 +25,9 @@ async function run(b) {
   out.pages = { whole, split };
 
   // A) recite: the page turns on a PARTIAL at its last word
-  const startTest = async n => { await go('#/hifzmap', 700); await p.click('.hm-grid .hm-c[data-p="' + n + '"]'); await wait(250); await p.click('#hzMus'); await wait(1300); await p.click('#hifzBar [data-c="mic"]'); await wait(200); await say('', 'state:listening'); };
-  const stopTest = () => ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); });
+  const startTest = async n => { await go('#/hifzmap', 700); await ev(n => { const c = document.querySelector('.hm-grid .hm-c[data-p="' + n + '"]'), s = +c.dataset.s, i = window.QURAN.p[s - 1].indexOf(+n); window.hifzTestPages(s, i < 0 ? 1 : i + 1); }, n); await wait(1300); await p.click('#hifzBar [data-c="mic"]'); await wait(200); await say('', 'state:listening'); };
+  // Sprint 2 #43: ✕ now saves the results (summary dialog / cheer), so those are dismissed here like ui.js does
+  const stopTest = () => ev(() => { const x = document.querySelector('#hifzBar [data-c="x"]'); if (x) x.click(); document.querySelectorAll('.dlg-back, .cheer').forEach(e => e.remove()); });
   {
     const f = await facts(whole); await startTest(whole);
     const own = f.it.map((x, i) => [x, f.w[i]]).filter(([x]) => x[0] * 1000 + x[1] >= f.it[0][0] * 1000 + f.it[0][1]);
@@ -93,7 +95,7 @@ async function run(b) {
   // G) vertical hifz hides the pages after the one being recited
   {
     await ev(() => localStorage.setItem('q.turn', '"v"')); await p.reload(); await wait(900);
-    await go('#/hifzmap', 700); await p.click('.hm-grid .hm-c[data-p="50"]'); await wait(250); await p.click('#hzMus'); await wait(1800);
+    await go('#/hifzmap', 700); await ev(n => { const c = document.querySelector('.hm-grid .hm-c[data-p="' + n + '"]'), s = +c.dataset.s, i = window.QURAN.p[s - 1].indexOf(+n); window.hifzTestPages(s, i < 0 ? 1 : i + 1); }, 50); await wait(1800);
     out.G = await ev(() => { const st = document.getElementById('vhzSt'), c = [...document.querySelectorAll('.vp-c')], i = c.findIndex(x => x.querySelector('.page-box[data-p="51"]'));
       const img = c[i] && c[i].querySelector('img'); return { css: st && st.textContent, after: img && getComputedStyle(img).visibility, own: getComputedStyle(c[i - 1].querySelector('img')).visibility }; });
     await stopTest(); await wait(300); out.G.off = await ev(() => (document.getElementById('vhzSt') || {}).textContent);

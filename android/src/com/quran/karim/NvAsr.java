@@ -62,6 +62,8 @@ class NvAsr {
     // One number per mic session: a stop() then a quick start() must not let the old recording thread (or a decode
     // queued for it) carry on beside the new one. start/stop bump it; the thread and emit() check theirs.
     private final java.util.concurrent.atomic.AtomicInteger gen = new java.util.concurrent.atomic.AtomicInteger();
+    // The session stop() just ended: only its flush final (the piece open when the mic stopped) may still be delivered.
+    private volatile int stoppedGen = -1;
     // The last few whole pieces of speech by number: the page names the piece it matched (window.nvSeq is set just
     // before each final onRecite), so a donated clip is the audio of exactly those words even if the reader went on.
     private final java.util.LinkedHashMap<Integer, float[]> finals = new java.util.LinkedHashMap<Integer, float[]>();
@@ -115,7 +117,7 @@ class NvAsr {
     }
 
     @JavascriptInterface
-    public void stop() { on = false; gen.incrementAndGet(); tell("", "state:stopped"); }
+    public void stop() { stoppedGen = gen.get(); on = false; gen.incrementAndGet(); tell("", "state:stopped"); }
 
     /** The app left the screen: the microphone never stays open behind it. */
     void background() { if (on) stop(); }
@@ -301,18 +303,23 @@ class NvAsr {
                     if (speech) { voiced += dt; quiet = 0; } else if (len > 0) quiet += dt;
                     boolean end = len > 0 && (quiet > QUIET_END || len >= seg.length);
                     if (end) {
-                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final", g); } }); }
+                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final", g, false); } }); }
                         len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0;
                     } else if (len - lastPartial >= Math.max(SR / 2, partMs * 2 * SR / 1000) && voiced > 0.5 && !decoding) {
                         lastPartial = len; decoding = true;
                         final int cut = freezeAt(be, frz, len);
                         final float[] y = java.util.Arrays.copyOfRange(seg, frz, cut > 0 ? cut : len);
                         if (cut > 0) frz = cut;
-                        work.execute(new Runnable() { public void run() { emit(y, cut > 0 ? "freeze" : "partial", g); } });
+                        work.execute(new Runnable() { public void run() { emit(y, cut > 0 ? "freeze" : "partial", g, false); } });
                     }
                 }
             } catch (Throwable t) { bad = !(t instanceof java.util.concurrent.RejectedExecutionException);   // rejected = the activity is closing
             } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); }
+            // The mic stopped mid-piece: judge what was heard instead of dropping it (same 0.3 s voiced threshold as a normal end).
+            if (!bad && len > 0 && voiced > 0.3) {
+                final float[] y = java.util.Arrays.copyOf(seg, len);
+                try { work.execute(new Runnable() { public void run() { emit(y, "final", g, true); } }); } catch (java.util.concurrent.RejectedExecutionException e) { }
+            }
             if (bad) micError(g);
         } });
         rec.start();
@@ -330,9 +337,14 @@ class NvAsr {
         return be[best] < 0.6f * m[m.length / 2] ? (best + 1) * BLK : -1;
     }
 
-    private void emit(float[] y, String kind, int g) {
+    // Still the session to answer? A flush passes after stop() (this exact session just stopped, no newer start since).
+    private boolean live(int g, boolean flush) {
+        return (on && gen.get() == g) || (flush && stoppedGen == g && gen.get() == g + 1 && !on);
+    }
+
+    private void emit(float[] y, String kind, int g, boolean flush) {
         try {
-            if (!on || gen.get() != g) return;
+            if (!live(g, flush)) return;
             long t0 = android.os.SystemClock.elapsedRealtime();
             String t = decode(louder(y));
             // how long the decode took and how much audio it read: the page keeps the average (Stats, 5.11 G7)
@@ -355,9 +367,9 @@ class NvAsr {
                 }
                 before += "window.nvSeq=" + n + ";";
             }
-            if (on && gen.get() == g && t.length() > 0) tell(t, kind, before);
+            if (live(g, flush) && t.length() > 0) tell(t, kind, before);
         } catch (Throwable e) {
-            if (on && gen.get() == g) tell("", "state:error:run " + e.getMessage());
+            if (live(g, flush)) tell("", "state:error:run " + e.getMessage());
         } finally { if (!kind.equals("final")) decoding = false; }
     }
 

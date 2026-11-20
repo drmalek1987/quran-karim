@@ -93,3 +93,12 @@ yourself; you own correctness either way.
 - Quran text must stay letter-identical to the verified source (quranenc Uthmani = KFGQPC Hafs v13); never OCR.
 - Licences: KFGQPC fonts (free in software), quran-json CC BY-SA 4.0, tajweed data CC BY 4.0, OpenITI CC BY-NC-SA 4.0,
   NVIDIA FastConformer CC BY 4.0. The Haramain/Dar Misr scans need publisher permission before any store release.
+
+## How to make changes (analogical reasoning)
+For any new feature, refactor, or non-trivial bug fix, use the `analogical-reasoning` skill: cite the precedent
+(`file:line`), state why it works, list what not to copy, then implement. Skip it for one-line/cosmetic changes.
+Typical precedents in this repo:
+- New screen/route → an existing `#/...` route in `web/app.js`; new strings → `web/i18n.js`; new setting → a `q.` key.
+- New edition / downloadable pack → an existing entry in `EDS` (`web/app.js`) + `EdStore.java`.
+- New native capability → an existing bridge (`AppBridge`, `QiblaBridge`) registered in `MainActivity.java`.
+- New data generator → `tools/make_books.py` / `tools/make_data.py`; QA → `tools/qa/`.

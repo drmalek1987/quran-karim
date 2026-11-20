@@ -101,7 +101,8 @@ async function measureAll(p, log) {
     await setTurn(t);
     await ev(() => { window.QA_NOFS = false; });
     // auto: open the mushaf and touch nothing (full screen after 5 s)
-    await run(t + ' entry auto', async () => { await ev(() => { location.hash = '#/p/50'; }); await sleep(800); await ev(() => window.__rec.start()); }, 6200);
+    // from a non-home screen: back from a mushaf opened from home goes straight home (pgFromHome), so only here back = leave full screen
+    await run(t + ' entry auto', async () => { await ev(() => { location.hash = '#/more'; }); await sleep(500); await ev(() => { location.hash = '#/p/50'; }); await sleep(800); await ev(() => window.__rec.start()); }, 6200);
     await run(t + ' exit back', () => ev(() => qBack()), 1600);
     await sleep(600);
     // manual: a tap on the page (full screen 1.2 s later), a tap again to leave
@@ -110,6 +111,13 @@ async function measureAll(p, log) {
     await run(t + ' exit manual', tapPage, 1600);
     await sleep(800);
   }
+  // 5.23 #5: a mushaf opened from home (in full screen) -> back goes straight home and leaves full screen
+  await ev(() => { window.QA_NOFS = false; location.hash = '#/'; }); await sleep(600);
+  await ev(() => { location.hash = '#/p/50'; }); await sleep(800); await tapPage(); const fsIn = await waitFs(true); await sleep(300);
+  await ev(() => qBack()); await sleep(900);
+  const hh = await ev(() => ({ h: location.hash, fs: document.body.classList.contains('fs') }));
+  res['home back'] = { ok: fsIn && (hh.h === '#/' || hh.h === '' || hh.h === '#') && !hh.fs, fsIn, hash: hh.h, fs: hh.fs };
+  if (log) console.log('home back'.padEnd(22), res['home back'].ok ? 'PASS' : 'FAIL', JSON.stringify(res['home back']));
   return { ins, res };
 }
 module.exports = { headlessPage, measureAll, cdpPage };

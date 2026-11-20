@@ -68,7 +68,7 @@ button:active { transform: scale(.97); }
   background: var(--pattern), var(--grad); color: var(--accent-ink);
   box-shadow: 0 4px 18px rgba(8, 50, 38, .18);
 }
-.bar h1 { flex: 1; margin: 0 4px; font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar h1 { flex: 1; min-width: 0; margin: 0 4px; font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .icon-btn {
   display: grid; place-items: center; flex: none;
   background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .14); color: inherit; font-size: 20px;
@@ -214,6 +214,16 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
 /* index (فهرس) */
 .idx-btn { width: auto; gap: 6px; display: flex; padding: 0 12px; font-size: 14px; font-weight: 600; }
 .idx-btn .ic { width: 18px; height: 18px; }
+/* narrow phones: the title gets the room — a smaller title font, and the index button shows its icon only (the mushaf page header keeps its label) */
+@media (max-width: 430px) {
+  .bar h1 { font-size: 17px; }
+  body:not(.pgview) .idx-btn { font-size: 0; gap: 0; width: 40px; padding: 0; justify-content: center; }
+}
+@media (max-width: 380px) {
+  .bar { gap: 4px; padding-inline: 8px; }
+  .bar h1 { font-size: 16px; margin: 0 2px; }
+  .bar .icon-btn { width: 38px; }
+}
 .index-page { position: fixed; inset: 0; z-index: 8; background: var(--bg); overflow-y: auto; }
 .index-page[hidden] { display: none; }
 .list li.cur { background: var(--gold-soft); box-shadow: inset 0 0 0 1.5px var(--gold), var(--shadow); }
@@ -228,6 +238,8 @@ mark { background: #ffe14d; color: #1d1a14; border-radius: 4px; padding: 0 1px; 
 .page-box { position: relative; margin: 0 auto; width: min(100%, max(640px, calc((var(--vh, 100vh) - 150px) * .624))); }
 .ayah-box { position: absolute; background: rgba(255, 214, 0, .45); mix-blend-mode: multiply; border-radius: 4px; pointer-events: none; }
 :root.pdark .ayah-box { background: rgba(255, 214, 0, .3); mix-blend-mode: normal; }
+.srch-w { position: absolute; background: rgba(255, 120, 0, .38); mix-blend-mode: multiply; border-radius: 3px; pointer-events: none; }
+:root.pdark .srch-w { background: rgba(255, 150, 40, .35); mix-blend-mode: normal; }
 .page-cap { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 10px 14px; margin: 0 0 12px; border-inline-start: 4px solid var(--gold); }
 .cap-head { display: flex; align-items: center; gap: 8px; color: var(--accent); font-size: 13px; font-weight: 600; }
 .cap-head span { flex: 1; }
@@ -368,6 +380,13 @@ body.reading .quran, body.reading .basmala, body.reading .page-info { color: var
 .swatches label { position: relative; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; overflow: hidden;
   background: conic-gradient(#f44, #fd4, #4d6, #4cf, #64f, #f4c, #f44); border: 2px solid var(--card); }
 .swatches label.on { box-shadow: 0 0 0 2.5px var(--accent); }
+/* 5.27: the mask-style panel: tiny previews of each look on the page colour */
+#maskSet .mk-sw { display: grid; place-items: center; width: 40px; height: 32px; border-radius: 10px; background: var(--pbg); overflow: hidden; -webkit-tap-highlight-color: transparent; }
+#maskSet .mk-sw i { display: block; width: 26px; height: 13px; border-radius: 5px; }
+#maskSet .mk-def { background: #d3d5d4; background: color-mix(in srgb, var(--pbg) 82%, #1e3a5f); box-shadow: inset 0 0 0 1px #c3c6c5; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pbg) 70%, #1e3a5f); }
+:root.pdark #maskSet .mk-def { background: #2a3a3a; background: color-mix(in srgb, var(--pbg) 80%, #6fd6a8); }
+#maskSet .mk-haze { filter: blur(1.2px); }
+#maskSet .mk-dots { border-radius: 0; height: 13px; }
 .swatches input[type=color] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
 /* ---------- screen sizes ---------- */
@@ -558,8 +577,38 @@ body.has-player.has-bar .player { display: none; }
 .dlg-no { background: var(--soft); color: var(--accent); }
 
 /* Memorisation mode: hidden ayat as soft bars on the page, as blanks in the text. */
+/* 5.26 #11: one rounded grey box per run of hidden words (the 5.24 look); ayah markers stay outside the boxes */
 .hifz-mask { position: absolute; border-radius: 6px; background: color-mix(in srgb, var(--pbg) 82%, #1e3a5f); box-shadow: 0 0 0 1px color-mix(in srgb, var(--pbg) 70%, #1e3a5f) inset; pointer-events: none; }
 :root.pdark .hifz-mask { background: color-mix(in srgb, var(--pbg) 80%, #6fd6a8); }
+/* 5.27: mask styles (q.maskStyle -> root class mask-<id>): the colour panel in settings. color-mix lines come after a solid hex fallback (WebView < 111) */
+:root .hifz-mask { background: #d3d5d4; background: color-mix(in srgb, var(--pbg) 82%, #1e3a5f); }
+:root.pdark .hifz-mask { background: #2a3a3a; background: color-mix(in srgb, var(--pbg) 80%, #6fd6a8); }
+:root.mask-gold .hifz-mask, :root.mask-gold .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-gold { background: #dec88d; background: color-mix(in srgb,var(--pbg) 40%,#cba84d); box-shadow: inset 0 0 0 1px #d0b980,0 0 0 1px #ad862566; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#ad8625),0 0 0 1px #ad862566; border-color: transparent; }
+:root.pdark.mask-gold .hifz-mask, :root.pdark.mask-gold .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-gold { background: #6d5f38; background: color-mix(in srgb,var(--pbg) 52%,#cfad59); box-shadow: inset 0 0 0 1px #827656,0 0 0 1px #ddc58866; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#ddc588),0 0 0 1px #ddc58866; }
+:root.mask-comp .hifz-mask, :root.mask-comp .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-comp { background: #e8d1d6; background: color-mix(in srgb,var(--pbg) 72%,#b86f99); box-shadow: inset 0 0 0 1px #ca92ad; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#a23f77); border-color: transparent; }
+:root.pdark.mask-comp .hifz-mask, :root.pdark.mask-comp .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-comp { background: #453342; background: color-mix(in srgb,var(--pbg) 70%,#bc769e); box-shadow: inset 0 0 0 1px #7b6173; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#d09fbb); }
+:root.mask-anal .hifz-mask, :root.mask-anal .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-anal { background: #c8e1d9; background: color-mix(in srgb,var(--pbg) 70%,#52ada7); box-shadow: inset 0 0 0 1px #8cb9b1; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#328680); border-color: transparent; }
+:root.pdark.mask-anal .hifz-mask, :root.pdark.mask-anal .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-anal { background: #2d494b; background: color-mix(in srgb,var(--pbg) 68%,#66b7b2); box-shadow: inset 0 0 0 1px #577979; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pbg) 45%,#90cbc7); }
+/* haze: the page image blurred under the box, soft feathered edges, a veil on top (hzHazeFix in app.js sets --bgimg/--pw/--ph/--ox/--oy and each mask's --bx/--by) */
+:root.mask-haze .hifz-mask, :root.mask-dots .hifz-mask { box-sizing: content-box; margin: calc(-1 * var(--mpy)) calc(-1 * var(--mpx)); padding: var(--mpy) var(--mpx); }
+:root.mask-haze .hifz-mask { --mpx: 5px; --mpy: 3px; --pad: 20px; --bl: 8px; overflow: hidden; background: var(--pbg); box-shadow: none; border-radius: 9px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 3px, #000 calc(100% - 3px), transparent), linear-gradient(to bottom, transparent, #000 3px, #000 calc(100% - 3px), transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent, #000 3px, #000 calc(100% - 3px), transparent), linear-gradient(to bottom, transparent, #000 3px, #000 calc(100% - 3px), transparent); mask-composite: intersect; }
+:root.mask-haze .hifz-mask::before { content: ""; position: absolute; inset: calc(-1 * var(--pad)); background-image: var(--bgimg, none); background-size: var(--pw) var(--ph); background-repeat: no-repeat;
+  background-position: calc(var(--pad) - var(--bx, 0px) + var(--ox, 0px)) calc(var(--pad) - var(--by, 0px) + var(--oy, 0px)); background-color: var(--pbg); background-blend-mode: normal, multiply; filter: blur(var(--bl)); }
+:root.mask-haze .hifz-mask::after { content: ""; position: absolute; inset: 0; background: rgba(251, 247, 238, .42); background: color-mix(in srgb, var(--pbg) 42%, transparent); }
+:root.pdark.mask-haze .hifz-mask::before { background-color: #ede9e5; filter: invert(1) hue-rotate(180deg) blur(var(--bl)); }
+:root.pdark.mask-haze .hifz-mask::after { background: rgba(18, 22, 26, .42); background: color-mix(in srgb, var(--pbg) 42%, transparent); }
+:root.mask-haze .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-haze { background: #b9b7b0; background: color-mix(in srgb, var(--pbg) 45%, #8a8a8a); box-shadow: 0 0 6px 2px #b9b7b0; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--pbg) 45%, #8a8a8a); border-color: transparent; border-radius: 9px; }
+:root.pdark.mask-haze .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-haze { background: #3a3d40; background: color-mix(in srgb, var(--pbg) 55%, #9aa0a6); box-shadow: 0 0 6px 2px #3a3d40; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--pbg) 55%, #9aa0a6); }
+/* dots: clean paper + a dotted line as long as the word */
+:root.mask-dots .hifz-mask { --mpx: 3px; --mpy: 3px; border-radius: 4px; box-shadow: none; background: radial-gradient(circle, rgba(70, 60, 50, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); }
+:root.pdark.mask-dots .hifz-mask { background: radial-gradient(circle, rgba(236, 230, 216, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x, var(--pbg); }
+:root.mask-dots .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), #maskSet .mk-dots { background: radial-gradient(circle, rgba(70, 60, 50, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; border-color: transparent; }
+:root.pdark.mask-dots .ht-w:not(.shown):not(.miss):not(.ok):not(.uns), :root.pdark #maskSet .mk-dots { background: radial-gradient(circle, rgba(236, 230, 216, .6) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; background: radial-gradient(circle, color-mix(in srgb, var(--pink) 60%, transparent) 1.3px, transparent 1.8px) 0 66% / 6px 6px repeat-x; }
+/* Sprint 2 #29: words skipped in a recitation: violet dashed box, until they are read (red = wrong, yellow = unsure, teal = highlight) */
+.rc-skipw { position: absolute; border: 2px dashed #8e44ad; border-radius: 6px; background: #8e44ad2e; pointer-events: none; z-index: 3; }
+:root.pdark .rc-skipw { border-color: #c39bd3; background: #c39bd338; }
 .ayah.hid, .ayah.hid * { color: transparent !important; }
 .ayah.hid { background: var(--soft); border-radius: 8px; box-decoration-break: clone; -webkit-box-decoration-break: clone; cursor: pointer; }
 .ayah.hid .ayah-no { color: var(--muted) !important; }
@@ -567,8 +616,9 @@ body.has-player.has-bar .player { display: none; }
   display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-lg);
   animation: up .25s cubic-bezier(.2, .8, .3, 1); }
 body.has-player .hifz-bar { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 74px); }
-body.has-hifz main { padding-bottom: 96px; }
-body.has-hifz.has-player main { padding-bottom: 170px; }
+/* 5.27 #2: room under the page for the whole memorisation bar (its measured height + its offset incl. the safe area), so the nav row (moon) sits above it */
+body.has-hifz main, body.fs.pgview.has-hifz main#view { padding-bottom: calc(var(--hzbar, 66px) + max(10px, env(safe-area-inset-bottom)) + 24px); }
+body.has-hifz.has-player main, body.fs.pgview.has-hifz.has-player main#view { padding-bottom: calc(var(--hzbar, 66px) + max(10px, env(safe-area-inset-bottom)) + 98px); }
 .hz-info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-inline-start: 6px; }
 .hz-info b { font-size: 13.5px; color: var(--accent); white-space: nowrap; }
 .hz-info span { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
@@ -867,7 +917,8 @@ body.has-tabs .player { bottom: 70px; }
 .du-cats button { flex: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--card); color: inherit; font: inherit; font-size: 13px; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
 .du-cats button .ic { width: 16px; height: 16px; } .du-cats button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ht-top { display: grid; gap: 8px; } .ht-top select { margin: 0; }
-.ht-pick { display: flex; gap: 8px; } .ht-pick #htS { flex: 1; min-width: 0; } .ht-pick #htA { flex: none; width: auto; max-width: 42%; }
+.ht-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .ht-pick #htS { grid-column: 1 / -1; min-width: 0; } .ht-pick #htA, .ht-pick #htA2 { min-width: 0; }   /* 5.25 #40: three selects in one row clipped «إلى الآية ٣٠» on phones; same layout as .tq */
+.hz-resume { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 0 0 12px; font-size: 15px; flex-wrap: wrap; } .hz-resume b { font-weight: 700; }   .hzr-t { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.5; text-align: start; } .hzr-t span { font-size: 13px; font-weight: 500; opacity: .85; }   /* Sprint 2 #1/#35 */
 .ht-text { background: var(--pbg, var(--card)); color: var(--pink, inherit); border-radius: 18px; padding: 16px; font-family: "Amiri Quran", serif; font-size: calc(var(--quran-size, 26px) * .9); line-height: 2.3; text-align: justify; box-shadow: var(--shadow); }
 .ht-w { font: inherit; color: transparent; background: rgba(30,58,95,.12); border: 0; border-bottom: 2px dashed var(--accent); border-radius: 6px; padding: 0 4px; cursor: pointer; }
 .ht-w.shown { color: inherit; } .ht-w.miss { background: rgba(214,69,65,.15); border-color: #d64541; } .ht-w.ok { background: rgba(30,58,95,.15); border-bottom-style: solid; } .ht-w.uns { background: rgba(244,196,48,.2); border-color: #d4a017; border-style: dashed; }
@@ -896,7 +947,8 @@ body.has-tabs .player { bottom: 70px; }
 .hm-lg { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin: 12px 0; }
 .hm-lg span { display: flex; align-items: center; gap: 6px; }
 .hm-grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; }
-.hm-c { display: block; aspect-ratio: 1; border-radius: 3px; background: rgba(127,127,127,.18); }
+.hm-grid, .hm-c, .hm a, .hz-nav a, .ht-mini, .hifz-bar { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.hm-c { cursor: pointer; display: block; aspect-ratio: 1; border-radius: 3px; background: rgba(127,127,127,.18); }
 .hm-lg .hm-c { width: 14px; }
 .hm-c.c1 { background: #f0d488; } .hm-c.c2 { background: #e0a04a; } .hm-c.c3 { background: var(--accent); }
 .hm .continue { width: 100%; margin-top: 10px; }
@@ -1006,6 +1058,11 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
 /* 4.2: voice commands and voice search on the search screen */
 .q-row { display: flex; gap: 8px; align-items: center; }
 .q-row .input { flex: 1; min-width: 0; }
+.q-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+.q-wrap .input { width: 100%; padding-inline-end: 44px; }
+.q-wrap .input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.q-clr { position: absolute; inset-inline-end: 4px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 26px; line-height: 1; cursor: pointer; }
+.q-clr[hidden] { display: none; }
 .q-mic { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--grad); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .q-mic .ic { width: 22px; height: 22px; }
 .q-mic.on { animation: micPulse 1.2s infinite; }
@@ -1014,17 +1071,24 @@ html.en .ar-only, html:not(.en) .en-only { display: none !important; }
 /* 4.2: reading aloud on the mushaf pages: corner mic, caption with the word being read, the word boxed on the scan */
 .rd-mic { position: fixed; z-index: 21; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom)); width: 52px; height: 52px; border-radius: 50%; border: 0;
   background: var(--grad); color: #fff; display: grid; place-items: center; box-shadow: 0 3px 10px #0004; cursor: pointer; padding: 0; }
+/* 5.26 #47: «اختبرني» pill left of the mic while a map range is shown */
+.rd-test { position: fixed; z-index: 21; right: 76px; bottom: calc(16px + env(safe-area-inset-bottom)); height: 52px; padding: 0 16px; border-radius: 26px; border: 0; display: flex; align-items: center; gap: 6px;
+  background: var(--accent); color: #fff; font: inherit; font-weight: 700; box-shadow: 0 2px 10px #0004; cursor: pointer; }
+.rd-test .ic { width: 20px; height: 20px; }
+.rd-cap ~ .rd-test { display: none; }
 .rd-mic .ic { width: 24px; height: 24px; }
 .rd-mic.on { background: #d63031; animation: micPulse 1.2s infinite; }
-body.has-player .rd-mic { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84px); }
+body.has-player .rd-mic, body.has-player .rd-test { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84px); }
 .rd-cap { position: fixed; z-index: 21; right: 76px; left: 70px; bottom: calc(14px + env(safe-area-inset-bottom)); background: var(--card); color: var(--text); border-radius: 14px;
-  padding: 6px 12px; box-shadow: 0 3px 12px #0003; font-family: "Amiri Quran", serif; font-size: 18px; line-height: 1.9; direction: rtl; max-height: 30vh; overflow: auto; }
+  padding: 6px 12px; box-shadow: 0 3px 12px #0003; font-family: "Amiri Quran", serif; font-size: 18px; line-height: 1.9; direction: rtl; overflow: hidden; }
+/* 5.26 #38: the caption text is at most 2 lines; the latest words stay in view (capFollow) */
+.rd-cap > div { max-height: 3.8em; overflow: hidden; }
 .rd-cap small { display: block; font-family: "Cairo", sans-serif; font-size: 12px; color: var(--muted); line-height: 1.4; }
 .rd-cap mark { background: #ffe066; color: #000; border-radius: 4px; padding: 0 2px; }
 body.has-player .rd-cap { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 84px); }
 .rd-word { position: absolute; border: 2px solid #e67e22; border-radius: 6px; background: #ffd43b55; pointer-events: none; z-index: 3; }
 
-body.sheet-open .rd-mic { display: none; }
+body.sheet-open .rd-mic, body.sheet-open .rd-test { display: none; }
 .tsb-ph .tsb-add { border-style: dashed; color: var(--accent); }
 .tsb-x { font-style: normal; margin-inline-start: 4px; opacity: .7; padding: 0 4px; }
 #idxMic.on { color: #d63031; animation: micPulse 1.2s infinite; }
@@ -1037,9 +1101,9 @@ body.sheet-open .rd-mic { display: none; }
 .tap-ok { box-shadow: 0 0 0 3px #2ecc71 !important; transition: box-shadow .1s; }
 .rd-mic.on, .hifz-bar .rec { background: #d64541 !important; color: #fff !important; }
 /* 5.13 P2.2: the home screen's mic sits above the tab bar (and the player, when it shows) */
-body.has-tabs .rd-mic, body.has-tabs .rd-cap { bottom: calc(80px + env(safe-area-inset-bottom)); }
-body.has-tabs.has-player .rd-mic, body.has-tabs.has-player .rd-cap { bottom: calc(154px + env(safe-area-inset-bottom)); }
-body.has-hifz .rd-mic, body.has-hifz .rd-cap { bottom: calc(96px + env(safe-area-inset-bottom)); }   /* above the memorisation bar */
+body.has-tabs .rd-mic, body.has-tabs .rd-cap, body.has-tabs .rd-test { bottom: calc(80px + env(safe-area-inset-bottom)); }
+body.has-tabs.has-player .rd-mic, body.has-tabs.has-player .rd-cap, body.has-tabs.has-player .rd-test { bottom: calc(154px + env(safe-area-inset-bottom)); }
+body.has-hifz .rd-mic, body.has-hifz .rd-cap, body.has-hifz .rd-test { bottom: calc(96px + env(safe-area-inset-bottom)); }   /* above the memorisation bar */
 
 /* hifz test layout: mini map card, big mic, one row of icon buttons, wrong-ayat chips */
 .ht { padding-bottom: 90px; } .ht [hidden] { display: none !important; }
@@ -1108,6 +1172,9 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .hz-nav { margin: 0 0 12px; gap: 6px; flex-wrap: nowrap; }
 .hz-nav a { flex: 1; text-align: center; padding: 8px 6px; border-radius: 12px; background: rgba(127,127,127,.1); color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600; }
 .hz-nav a.on { background: var(--accent); color: var(--accent-ink, #fff); }
+/* Sprint 2 #48: the hifz-map box's ayat in the mushaf (soft teal, not the yellow search/ayah colour) */
+.hm-hl { position: absolute; background: rgba(20, 160, 160, .22); box-shadow: inset 0 0 0 1.5px rgba(10, 120, 130, .6); mix-blend-mode: multiply; border-radius: 4px; pointer-events: none; }
+:root.pdark .hm-hl { background: rgba(60, 220, 220, .22); box-shadow: inset 0 0 0 1.5px rgba(90, 230, 230, .7); mix-blend-mode: normal; }
 .hm-c.hm-s { box-shadow: inset 0 0 0 1.5px rgba(127,127,127,.35); }
 .hz-pick b { display: block; margin-bottom: 10px; }
 .hz-from { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 14px; } .hz-from select { flex: 1; }
@@ -1196,3 +1263,26 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 .tc-miss { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .tc-miss a { font-size: 13px; padding: 2px 10px; border-radius: 10px; background: var(--gold-soft); color: inherit; text-decoration: none; }
 .tc-del { margin-top: 6px; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+/* 5.23 #16: one-tap bookmark corner button on the mushaf (outline = not marked, filled = marked) */
+/* Sprint 2 #44/#45: #qBar holds the juz/hizb label and the bookmark button; fixed under the app bar's height + below the status bar
+   (safe-area), the same box in normal / body.fs / hifz. Only the button takes taps. */
+.q-bar { position: fixed; z-index: 19; left: 8px; right: 8px; top: max(calc(var(--barh, 60px) + 4px), calc(env(safe-area-inset-top, 0px) + 4px)); height: 32px;
+  display: flex; align-items: center; gap: 8px; pointer-events: none; }
+.q-bar[hidden] { display: none; }
+.q-bar .q-mk { position: static; width: 32px; height: 32px; margin-inline-start: auto; pointer-events: auto; flex: none; }
+.q-mk { position: fixed; z-index: 19; left: 10px; top: calc(var(--barh, 60px) + 10px); width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); padding: 0;
+  background: var(--card); color: var(--accent); display: grid; place-items: center; opacity: .8; box-shadow: 0 2px 8px #0003; cursor: pointer; }
+.q-mk[hidden] { display: none; }
+.q-mk .ic { width: 20px; height: 20px; }
+.q-mk.on { opacity: 1; background: var(--accent); color: #fff; }
+.q-mk.on .ic { fill: currentColor; }
+/* fixed spot in every mode (full screen included): moving it up when the bars hid made the tap land on the page and only bring the bars back */
+
+/* 5.23 welcome: edition/model download state, primary model button */
+.wel-card .wel-pri { background: var(--accent); color: #fff; }
+.wel-opts button .dl-p { margin: 8px auto 2px; } .wel-opts button small { display: block; font-weight: 400; color: var(--muted); }
+.wel-dlt { display: block; font-size: 13px; font-weight: 700; margin-top: 6px; }
+.wel-err { display: block; color: #d64541; font-size: 13px; font-weight: 600; margin-top: 6px; }
+p.wel-err { margin: 0; } .wel-retry { display: block; margin-top: 4px; font-size: 13px; text-decoration: underline; }
+.wel-card .dl-p { width: 80%; margin: 6px auto 2px; } .wel-pc { display: block; color: var(--muted); }
+.wel-card p.wel-err { color: #d64541; font-weight: 600; }

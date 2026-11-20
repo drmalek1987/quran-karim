@@ -669,3 +669,57 @@ NOT tested: phone mic (rapid on/off, Home during recitation), API 21–22 paths,
 - Builds: GitHub APK 70,086,064 B, signer SHA-256 7d8b31d2d4edd850c4916e614478944da82da80d9643b65dc0cc7678184e3bc4; Play AAB quran-karim-v5.22-play.aab 40,732,702 B, bundletool validate OK, no harmain/pages/tjpages/adhan_/darwish/tanwir entries, .so only base/lib/arm64-v8a/{libonnxruntime,libonnxruntime4j_jni}.so.
 - Play .so: NvAsr.java uses only `System.loadLibrary("onnxruntime")` + `("onnxruntime4j_jni")` (lines 91, 241-242, resolved from the APK's lib dir); no `System.load(path)` in NvAsr/EdStore, so the pack's asr/asrnv/lib/*.so is never loaded.
 - Not run on the phone (bee81250 not connected at build time).
+## 5.23 release QA (2026-11-19, quran-karim-v5.23.apk, versionCode 71, sw quran-v67, signer 7d8b31d2)
+- Changes: mic flush on stop (recite/htv/mtv), fold spread in the one spread setting (width >= 800), search word marked on the page, Haramain 2 missing words (2:41:6, 56:86:1), King Fahd ayah boundaries rebuilt from the circles (bad ends 807 -> 52, basmala no longer part of ayah 1), new check tools/qa/ayah_circle_check.py + ayah_ring.npy.
+- data.py 28 PASS / 0 FAIL. ui.js (one edition at a time): kfgqpc 292/0 · kfold 292/0 · shamarly 292/0 · harmain 292/1 then 292/0 twice (flake: S3 «سمّع التكملة» picked 17:48, word-for-word identical to 25:9, so voice cannot choose).
+- geo_check kfgqpc: all word-box metrics >= 5.22; estimate IoU>0.5 seeds 518/7/99 = -0.2/-0.1/+0.6.
+- Builds: GitHub APK 70,086,064 B, signer 7d8b31d2d4edd850…; Play AAB quran-karim-v5.23-play.aab 40,732,992 B, upload key 71:18:F1…, bundletool validate OK.
+- Not run on the phone (bee81250 not connected): first-word latency + mic-stop check pending.
+- Phone bee81250 (M2007J3SY), first-word latency, tools/qa/phone_latency.py (5 reciter clips x 2 from the PC speakers, PC clock, ffplay lag 0.35 s assumed, test-only WebView-debug copy of 5.23): first partial median 1.18 s, p90 1.70 s (9 trials; 1 discarded: an event from the trial before); first final after speech end median 0.90 s, p90 1.04 s; words right 9/10 clips (Alafasy 86:5 3/4). Real 5.23 reinstalled.
+
+## 5.24 release QA (Sprint 1, 2026-11-19, quran-karim-v5.24.apk, versionCode 72, sw quran-v68)
+New checks to run every release from now on (phone/emulator + headless):
+- [ ] #36 Hifz test: whole short surah «خلصت» >= 80% -> ✓ appears at once in the surah select and «السور المحفوظة» (no leaving the screen); < 80% -> ✓ goes away at once.
+- [ ] #37 Hifz map: memorised >= 80% shows (box 3, or 2 if an ayah wrong/due); reviewed-only surah shows (2/3 from its review state); < 80% never colour 3 and does not raise «% محفوظ»; shared page 604: ring > 0 after 112 only; state survives app close/reopen. Script: scratchpad s1/map37/e2e-after.js (copy into tools/qa if kept).
+- [ ] #5 Back: home -> mushaf (also fullscreen, also after index-sheet jump) -> Android back AND in-app back -> home in one press; khatma bookmark -> page -> back -> khatma; search -> page -> back -> search. fs-motion harness «home back» check.
+- [ ] #16 Bookmark button on the mushaf frame (also in fullscreen): one tap -> toast + filled icon + listed in khatma; tap again -> removed; page turn repaints the icon.
+- [ ] #7 Welcome edition: first tap selects at once, «جاري التحميل» + real bar under the edition, applied on done; error -> message + «إعادة المحاولة».
+- [ ] #9 Welcome model: primary button; bar + «جاري التحميل»; done -> next step by itself; error -> message + «إعادة المحاولة» re-downloads.
+- [ ] #8 Welcome location: city or GPS set -> ✓ then next step by itself (~0.7 s).
+- [ ] #4 Random test: place <= half a page of the edition (15 lines -> <= 7), 3-12 ayat in short surahs, long ayat fewer, 2:282 alone; wrong-ayah anchor kept inside its place.
+- [ ] #23 GitHub APK: every adhan voice plays (Settings › prayer sound) + التحرير والتنوير opens on 3 ayat of different surahs. Play AAB: none of them by design (licence, store/licences-status.md).
+
+## 5.25 release QA (Sprint 2, 2026-11-20, quran-karim-v5.25.apk, versionCode 73, sw quran-v69)
+New checks to run every release from now on (phone/emulator + headless):
+- [ ] #47 Map: a «محفوظة جزئيًا» page tasmee'd at 100% -> «محفوظة ومراجَعة» at once (long surah, one page only).
+- [ ] #49 Map: review by «بالسرد» >= 80% and by «اختبار عشوائي» >= 80% update the boxes at once; < 80% leaves the box as it was (surah stays on «السور المراجعة», due tomorrow); states kept after force-stop.
+- [ ] #48 Map box tap -> mushaf on that box's ayat, highlighted teal (.hm-hl, also dark mode); long press -> test dialog (once).
+- [ ] #1/#35 Leave a word test / mushaf test / review ward mid-way -> force-stop -> «استئناف من المرة الماضية · <surah · ayah>» on home, «اختبار الحفظ», «المراجعة» -> same place.
+- [ ] #29 Hifz/review with the mic: skip words or ayat -> tracking follows, skipped words violet; read them back -> cleared word by word; reading-mode mic shows no violet; leftover skipped words count as forgotten.
+- [ ] #38 Recite the last 3 lines of 3 pages: the live caption never covers the current line (moves to the top).
+- [ ] #11 Mushaf hifz test: words hidden in page-paper strips, ayah markers and line positions visible, no letter/harakat fragments; words show as recited.
+- [ ] #26 Mushaf hifz test: fullscreen after ~3 s, any tap exits, the hifz bar stays usable.
+- [ ] #40 «اختبار الحفظ» «إلى الآية»: the test stops at that ayah.
+- [ ] #42 «فكّرني» reveals one word (ayah counted forgotten); a silent test ends by itself at the last word.
+- [ ] #43 No «خلصت» anywhere in hifz/review; sessions end by themselves; ✕ saves partial results; 80% rule and next part still work.
+- [ ] #50 Review buttons read «اختبار عشوائي».
+- [ ] #44 Top bar on the mushaf: juz / hizb / rub' right for the page (p1, p22, p300, p604, vertical mode), bookmark one tap inside it, same place in fullscreen and hifz, not over Quran text (check every edition's top margin).
+- [ ] #45 Settings «شريط الجزء والحزب فوق الصفحة» off -> bar hidden, bookmark alone at the same place; kept after restart.
+- [x] #40 on a 390 px phone: the «إلى الآية» select shows the full number («إلى الآية ٣٠», not clipped to «٠»): surah select on its own row, from/to below (style.css .ht-pick grid). Emulator 2026-11-20 PASS.
+
+## 5.26 release QA (phone feedback on 5.25, 2026-11-20, quran-karim-v5.26.apk, versionCode 74, sw quran-v70)
+- [ ] #44/#45 no juz/hizb bar label, no settings row; bookmark #qMk alone, first tap works (normal + auto-fullscreen).
+- [ ] #47 map box tap -> #/p/N?r=S:A1-A2 highlighted + «اختبرني» pill next to the mic; pill -> only the range masked (112 on p604 does not mask 113/114), mic starts, stops by itself after the last ayah, result dialog. No long-press dialog.
+- [ ] #48 the highlighted range is visible under the top bar on open (flip + vertical, slow image load).
+- [ ] #11 mushaf masks = 5.24 grey boxes per run of hidden words; ayah markers fully visible, no letter tails (kfgqpc p585 Abasa from ayah 18; shamarly; harmain; dark).
+- [ ] #29 skip >= 5 words at once -> vibrate + short tone once; skip < 5 -> violet only; normal mic reading: nothing.
+- [ ] #38 vertical: caption fixed, page follows so the read line stays above the caption (last 3 lines p50/p300/p582: 0 overlaps); user scroll pauses follow ~2 s. Flip: caption <= 2 lines, latest words.
+- [ ] #50 «المراجعة» -> «اختبار عشوائي» exactly; no random button in «اختبار الحفظ».
+- [ ] #1 resume button only in «المراجعة» (not home, not «اختبار الحفظ»).
+- [ ] pill «اختبرني» does not overlap the hint line (hint hidden while the pill shows).
+
+## 5.27 release QA (2026-11-20, quran-karim-v5.27.apk, versionCode 75, sw quran-v71)
+- [x] data.py 28/0; ui.js 302/0 on kfgqpc, kfold, shamarly, harmain (sequential, emulator off, no crash); matrix 40/0; fs-motion 9/9; recite_sim exit 0.
+- [x] Map box long-press: no contextmenu/selection/link (boxes are span role=button) (headless). [ ] real WebView: no «file:///» callout.
+- [x] Hifz bar never covers the mushaf nav row / moon (360x640, 390x844, headless). [ ] real phone with nav-bar inset.
+- [x] Settings «شكل الإخفاء» colour panel, 6 swatches (def, haze, dots, gold, comp #b86f99, anal #52ada7), live repaint, light + dark, hex fallback before color-mix; haze/dots unreadable at 4x; ayah markers visible.

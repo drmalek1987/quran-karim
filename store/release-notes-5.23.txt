@@ -1,0 +1,12 @@
+<ar>
+- إيقاف المايك في نص الآية: آخر كلمات اتقالت بتتعلّم (التسميع واختبار الحفظ واختبار التكملة)
+- حدود الآيات في مصحف الملك فهد اتظبطت على علامات الآيات، والبسملة مش جزء من الآية الأولى
+- الكلمة اللي بتدوّر عليها بتتعلّم على الصفحة
+- صفحتان متجاورتان على الفولد بالعرض
+</ar>
+<en-US>
+- Mic stopped mid-ayah: the last words heard are still judged (recite, hifz test, continuation test)
+- King Fahd ayah boundaries now follow the ayah circles; basmala no longer part of ayah 1
+- Searched word marked on the page
+- Two-page spread on landscape foldables
+</en-US>

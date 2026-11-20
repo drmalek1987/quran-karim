@@ -35,6 +35,13 @@
       o.frequency.value = 660; g.gain.value = 0.15; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.25);
       setTimeout(function () { c.close(); }, 600); } catch (e) {}
   }
+  // 5.26 #29: a skip of 5 or more words at once in a hifz test / review: one buzz and a short soft beep
+  function skipAlert() {
+    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("0,120,60,120"); else if (navigator.vibrate) navigator.vibrate([0, 120, 60, 120]); } catch (e) {}
+    try { var C = window.AudioContext || window.webkitAudioContext, c = new C(), o = c.createOscillator(), g = c.createGain();
+      o.frequency.value = 520; g.gain.value = 0.06; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.12);
+      setTimeout(function () { c.close(); }, 400); } catch (e) {}
+  }
   function save(k, v) { try { localStorage.setItem("q." + k, JSON.stringify(v)); } catch (e) {} }
 
   // ---------- helpers ----------
@@ -133,12 +140,25 @@
     return any ? hit : null;
   }
   // nq can hold several search terms separated by | (a search with conditions); every one is marked.
-  function highlight(s, a, nq) {
-    var words = Q.t[s - 1][a - 1].split(" "), hit = null;
+  function hitSet(words, nq) {
+    var hit = null;
     (nq || "").split("|").forEach(function (t) {
       var h = t && (wordHits(words, t, norm, " ") || wordHits(words, skel(t), skel, ""));
       if (h) { hit = hit || {}; for (var i in h) hit[i] = true; }
     });
+    return hit;
+  }
+  // W6b: the matched words of ayah (s, a) as rWords indexes (rWords skips tokens with no letters); [] when none.
+  function searchWordIdx(s, a, nq) {
+    try {
+      var words = Q.t[s - 1][a - 1].split(" "), hit = hitSet(words, nq), out = [], j = 0;
+      if (!hit) return out;
+      words.forEach(function (w, i) { if (!norm(w).replace(/\s/g, "")) return; if (hit[i]) out.push(j); j++; });
+      return out;
+    } catch (e) { return []; }
+  }
+  function highlight(s, a, nq) {
+    var words = Q.t[s - 1][a - 1].split(" "), hit = hitSet(words, nq);
     if (!hit) return words.join(" ");
     return words.map(function (w, i) { return hit[i] ? "<mark>" + w + "</mark>" : w; }).join(" ");
   }
@@ -202,11 +222,13 @@
   var PAPER = "#fbf7ee", NIGHT = "#12161a";
   var pageBg = load("pageBg", PAPER);
   if (pageBg === "auto") pageBg = isDarkTheme() ? NIGHT : PAPER;
+  // 5.27: how the hidden words look in hifz / review masks (root class mask-<id>, a colour panel in settings)
+  var MASKS = ["def", "haze", "dots", "gold", "comp", "anal"];
+  var maskStyle = load("maskStyle", "def"); if (MASKS.indexOf(maskStyle) < 0) maskStyle = "def";
   var tjOn = load("tajweed", true);
   // One switch for the tajweed colours everywhere: the text view and the pages of the editions that have them.
   var tjPg = tjOn;
-  var spreadPref = load("spread", true);
-  // Reading background: the chosen colour, or one that follows the light / dark theme.
+  var spreadPref = load("spread", true);  // Reading background: the chosen colour, or one that follows the light / dark theme.
   function luminance(hex) {
     var n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(function (v) {
       v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
@@ -263,12 +285,13 @@
     document.querySelectorAll("#trSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === trOn); });
     document.querySelectorAll("#langSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (window.LANG || "ar")); });
   document.querySelectorAll("#hapticSet button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === hapticLevel()); });
-    document.querySelectorAll("#spreadSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spreadPref); });
-    root.classList.toggle("tjpg", tjPg);
+    document.querySelectorAll("#spreadSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spreadPref); });    root.classList.toggle("tjpg", tjPg);
     var bg = pageBg, dark = luminance(bg) < 0.18;
     root.style.setProperty("--pbg", bg);
     root.style.setProperty("--pink", dark ? "#ece6d8" : "#1d1a14");
     root.classList.toggle("pdark", dark);
+    MASKS.forEach(function (m) { root.classList.toggle("mask-" + m, m === maskStyle); });
+    document.querySelectorAll("#maskSet button").forEach(function (b) { var on = b.dataset.v === maskStyle; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
     var preset = false;
     document.querySelectorAll("#pageBg button").forEach(function (b) { var on = b.dataset.v === pageBg; preset = preset || on; b.classList.toggle("on", on); });
     var pick = document.getElementById("pageBgPick");
@@ -300,6 +323,27 @@
     b.addEventListener("click", function () { setPageBg(b.dataset.v); });
   });
   document.getElementById("pageBgPick").addEventListener("input", function () { setPageBg(this.value); });
+  document.querySelectorAll("#maskSet button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      maskStyle = b.dataset.v; save("maskStyle", maskStyle); applySettings();
+      if (hifz && hifz.on && hifz.paint) hifz.paint(); else hzHazeFix();   // an open hifz page repaints live
+    });
+  });
+  // 5.27: «haze» masks show the page image blurred under the box: hand each page box its image size / offset and each mask its position (px)
+  function hzHazeFix() {
+    if (maskStyle !== "haze") return;
+    document.querySelectorAll(".page-box").forEach(function (pb) {
+      var im = [].filter.call(pb.children, function (c) { return c.tagName === "IMG"; });
+      if (!im.length) return;
+      var m0 = im.filter(function (i) { return !i.classList.contains("tjo"); })[0] || im[0];
+      pb.style.setProperty("--bgimg", im.slice().reverse().map(function (i) { return 'url("' + (i.currentSrc || i.src) + '")'; }).join(","));
+      pb.style.setProperty("--pw", m0.offsetWidth + "px"); pb.style.setProperty("--ph", m0.offsetHeight + "px");
+      pb.style.setProperty("--ox", m0.offsetLeft + "px"); pb.style.setProperty("--oy", m0.offsetTop + "px");
+      pb.querySelectorAll(".hifz-mask").forEach(function (m) { m.style.setProperty("--bx", m.offsetLeft + "px"); m.style.setProperty("--by", m.offsetTop + "px"); });
+    });
+  }
+  var hzHazeT = 0;
+  window.addEventListener("resize", function () { if (maskStyle === "haze") { clearTimeout(hzHazeT); hzHazeT = setTimeout(hzHazeFix, 120); } });
   setInterval(function () { if (theme === "sun") applySettings(); }, 60000);
   // The timer sleeps while the app is in the background, so check again when it comes back (and right now, at start-up:
   // the cached q.themeNow the head script paints from may be from before maghrib).
@@ -710,16 +754,24 @@
     var ds = document.querySelectorAll(".dlg-back"), d = ds[ds.length - 1];   // the topmost one (a confirm can sit over the note dialog)
     if (d) { d.remove(); return true; }
     if (!sheet.hidden) { sheet.hidden = true; return true; }
-    if (!indexSheet.hidden) { indexSheet.hidden = true; return true; }
+    if (!indexSheet.hidden) { indexSheet.hidden = true; blurIn(indexSheet); return true; }
     var x = document.querySelector('#ayahBar button[data-c="x"]');
     if (x) { x.click(); return true; }
-    if (/^#\/p\//.test(location.hash) && document.body.classList.contains("fs")) { fsSet(false); return true; }
+    if (/^#\/p\//.test(location.hash) && document.body.classList.contains("fs") && !pgFromHome) { fsSet(false); return true; }   // from home: straight home, not one back to leave full screen
     return navBack(true);
   };
   // Back (5.6): the first back goes one screen back, the next one home; two backs within 1.5 s anywhere leave the app
   // ("exit" tells MainActivity to finish). qBackN counts backs since the last screen the reader opened.
   var qBackN = 0, qBacking = false, qExitAt = 0;
   window.addEventListener("hashchange", function () { if (qBacking) qBacking = false; else qBackN = 0; });
+  // 5.23 #5: the mushaf was opened from home: back goes straight home, however many in-mushaf hash moves (index sheet,
+  // reading-by-voice jumps) were pushed since. Kept while moving between #/p/ and #/s/, cleared on any other screen.
+  var pgFromHome = false;
+  window.addEventListener("hashchange", function (e) {
+    var o = (e.oldURL || "").split("#")[1] || "", n = location.hash;
+    if (/^#\/(p|s)\//.test(n)) { if (o === "" || o === "/") pgFromHome = true; else if (!/^\/(p|s)\//.test(o)) pgFromHome = false; }
+    else pgFromHome = false;
+  });
   function navBack(hw) {
     var home = !location.hash || location.hash === "#/" || location.hash === "#", now = Date.now();
     if (hzFrom && /^#\/(p|s|hifztest)\//.test(location.hash)) {
@@ -729,6 +781,7 @@
     if (hw && now - qExitAt < 1500) return "exit";
     if (hw) qExitAt = now;
     if (home) { if (hw) toast(window.LANG === "en" ? "Press back again to exit" : "اضغط رجوع مرة تانية عشان تخرج"); return true; }
+    if (pgFromHome && /^#\/(p|s)\//.test(location.hash)) { pgFromHome = false; qBackN = 0; fsSet(false); location.replace("#/"); return true; }
     if (qBackN < 1 && history.length > 1) { qBackN++; qBacking = true; history.back(); }
     else { qBackN = 0; location.replace("#/"); }
     return true;
@@ -744,7 +797,10 @@
   // ---------- views ----------
   var homeTab = load("tab", "surah");
 
+  var homeShown = false;   // true while the current screen is home, so a re-render on home keeps its scroll
   function showHome() {
+    if (!homeShown) { window.scrollTo(0, 0); requestAnimationFrame(function () { if (homeShown) window.scrollTo(0, 0); }); }   // once more after layout / a keyboard resize
+    homeShown = true;
     titleEl.textContent = "لوح";
     btnBack.hidden = true;
     var last = load("last", null), lastPage = load(edKey("lastPage"), null);
@@ -759,7 +815,7 @@
     // 5.16 U5: with a memorised surah, «هدف اليوم» lives inside the «النهارده» card (one card, no repeat)
     var td = todayCard();
     html += '<div class="home-row' + (td ? " one" : "") + '"><button class="mini" id="tPrayer">' + ic("clock") + "<span>" + prayerTileText() + "</span></button>" + (td ? "" : goalCard()) + "</div>";
-    html += khatmaCard() + td;
+    html += khatmaCard() + td;   // 5.26 #1: the resume button now lives only in «المراجعة»
     // 5.13 P2.2: the mic is always on the home screen: it finds the ayah being recited anywhere in the Quran, opens its
     // page and follows the reading there (the same rdToggle / rdHear as the mic on the mushaf)
     rdPage = null;
@@ -816,7 +872,7 @@
     });
     filter.addEventListener("input", render);
     list.addEventListener("click", function (e) {
-      var li = e.target.closest("li"); if (li) go(+li.dataset.s, li.dataset.a ? +li.dataset.a : 1);
+      var li = e.target.closest("li"); if (li) { filter.blur(); go(+li.dataset.s, li.dataset.a ? +li.dataset.a : 1); }
     });
     render();
     var cur = list.querySelector(".cur");
@@ -829,7 +885,9 @@
     indexSheet.hidden = false;
     mountIndex(document.getElementById("indexBody"), currentSurah);
   };
-  document.getElementById("closeIndex").onclick = function () { indexSheet.hidden = true; };
+  document.getElementById("closeIndex").onclick = function () { indexSheet.hidden = true; blurIn(indexSheet); };
+  // a field left focused in a closed sheet keeps the keyboard up and its later resize can scroll the screen underneath
+  function blurIn(box) { var a = document.activeElement; if (a && box.contains(a) && a.blur) a.blur(); }
 
   function withTranslation(done) {
     if (window.TR_EN) { done(); return; }
@@ -968,7 +1026,7 @@
   function showSearch(q) {
     titleEl.textContent = "البحث";
     btnBack.hidden = false;
-    view.innerHTML = '<div class="q-row"><input id="q" class="input" type="search" placeholder="ابحث في الآيات والسور والأذكار، أو ٢:٢٥٥" autocomplete="off">' +
+    view.innerHTML = '<div class="q-row"><div class="q-wrap"><input id="q" class="input" type="search" placeholder="ابحث في الآيات والسور، أو ٢:٢٥٥" autocomplete="off"><button id="qClr" class="q-clr" aria-label="مسح" hidden>×</button></div>' +
       '<button id="qMic" class="q-mic" aria-label="أوامر صوتية">' + ic("mic") + "</button></div>" + '<p class="hint q-mic-hint" hidden></p><div id="res"></div>';
     var input = document.getElementById("q"), res = document.getElementById("res");
     input.value = q || lastQuery;
@@ -1007,14 +1065,20 @@
       return '<div class="result" data-s="' + s + '" data-a="' + a + '"><div class="ref">سورة ' + Q.s[s - 1][0] + " · الآية " + ar(a) +
         " · الجزء " + ar(juzOf(s, a)) + " · صفحة " + ar(pageOf(s, a)) + '</div><div class="txt">' + highlight(s, a, hq) + "</div></div>";
     }
-    input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(run, 200); });
+    var clr = document.getElementById("qClr");
+    function syncClr() { clr.hidden = !input.value; }
+    input.addEventListener("input", function () { syncClr(); clearTimeout(timer); timer = setTimeout(run, 200); });
+    // Own clear button: the native one is a tiny target in the Android WebView and left the old query in place.
+    clr.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    clr.onclick = function () { clearTimeout(timer); input.value = ""; syncClr(); run(); input.focus(); };
+    syncClr();
     var mic = document.getElementById("qMic"), mh = view.querySelector(".q-mic-hint");
     mic.onclick = function () {
       voiceListen(function (text, kind) {
         if (!input.isConnected) return;
         if (kind === "listening") { mic.classList.add("on"); mh.hidden = false; mh.textContent = "سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية."; return; }
         if (kind === "end") { mic.classList.remove("on"); return; }
-        input.value = text; mic.classList.toggle("on", kind !== "final");
+        input.value = text; syncClr(); mic.classList.toggle("on", kind !== "final");
         if (kind !== "final") return;
         mh.hidden = true;
         var got = voiceLocate(text), near = voiceAyahs(text);
@@ -1057,7 +1121,8 @@
     }).join("");
   }
   // Tablet held sideways: two pages side by side like an open mushaf (the even page on the right, as printed: 2-3, 4-5, ...).
-  function spreadOn() { return mode === "pages" && spreadPref && window.innerWidth > window.innerHeight && window.innerWidth >= 900 && window.innerHeight >= 500; }
+  // Width >= 800 also covers fold inner screens (about 841 wide in landscape).
+  function spreadOn() { return mode === "pages" && spreadPref && window.innerWidth > window.innerHeight && window.innerWidth >= 800 && window.innerHeight >= 500; }
   var lastSpread = null;
   window.addEventListener("resize", function () {
     if (turnMode === "v") return;
@@ -1077,7 +1142,7 @@
       var cw = vc ? 1 - (vl + vr) / 100 : 1, ch = vc ? 1 - (vc[0] + vc[2]) / 100 : 1;
       html += '<div class="vp-c" style="padding-top:' + ratio * ch / cw + '%"><div class="page-box vp" data-p="' + p + '" style="width:' + 100 / cw + "%;height:" + 100 / ch + "%;left:" + (-vl / cw) + "%;top:" + (vc ? -vc[0] / ch : 0) + '%"><img loading="lazy" alt="صفحة ' + p + '" src="' + ed.dir + pad(p) + '.avif">' + tjLayer(p) + "</div></div>";
     }
-    view.innerHTML = html + "</div>" + rdMicHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
+    view.innerHTML = html + "</div>" + rdMicHtml() + rdTestHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
       '</button><button id="vDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>";
     var list = view.querySelector(".vpages"), hl0 = hl;
     var vbar = document.querySelector(".bar"); if (vbar) root.style.setProperty("--barh", vbar.offsetHeight + "px");
@@ -1098,6 +1163,7 @@
       currentSurah = p >= Q.first && p <= Q.last ? surahOfPage(p) : 0;
       if (!hl0) history.replaceState(null, "", "#/p/" + p);
       save(edKey("lastPage"), p);
+      mkPaint();
       trackPage(p);
       if (hifz.on) vHifz(p);
     }
@@ -1161,6 +1227,7 @@
     var start = boxOf(n) || boxOf(Q.first);
     setCur(n);
     if (hl) mark(hl.s, hl.a);
+    hmHlDraw(boxOf);
     // Right after the app opens the first scroll can be ignored, which used to reopen the vertical reading at page 1.
     // Keep placing the page until it holds, and let the scroll watcher wait meanwhile.
     vHold = true;
@@ -1169,12 +1236,13 @@
       if (g !== vGen) return;   // a newer render owns the hold
       if (!document.body.contains(start)) { vHold = false; return; }
       // An ayah opened from search or a link goes to the top of the screen, just under the bar.
-      var f = hl && list.querySelector(".ayah-box"), y = (f || start).getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight - (f ? 8 : 0);
+      var f = (hl || hmR) && list.querySelector(".ayah-box, .hm-hl"), y = (f || start).getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight - (f ? 8 : 0);
       window.scrollTo(0, y);
       // The browser may also put the scroll back to the top when the app finishes loading, so hold on until then.
       if ((Math.abs(window.scrollY - y) > 2 || document.readyState !== "complete" || k < 3) && k < 600) return requestAnimationFrame(function () { place(k + 1); });
       vHold = false;
     })(0);
+    if (hmR) hmKeep(function () { return list.querySelector(".hm-hl"); });   // 5.26 #48
     setCur(n);
   }
   // Which page is being read: the one across the upper part of the screen.
@@ -1184,7 +1252,7 @@
     if (bx && bx.dataset.p) {
       var p = +bx.dataset.p;
       if (p !== vCur) { vCur = p; titleEl.textContent = "صفحة " + ar(p); currentSurah = p >= Q.first && p <= Q.last ? surahOfPage(p) : 0;
-        history.replaceState(null, "", "#/p/" + p + ((/\?a=.*$/.exec(location.hash) || [""])[0])); save(edKey("lastPage"), p); trackPage(p); }
+        history.replaceState(null, "", "#/p/" + p + ((/\?a=.*$/.exec(location.hash) || [""])[0])); save(edKey("lastPage"), p); trackPage(p); mkPaint(); }
       if (hifz.on && vHz) vHz(p);
     }
   }, { passive: true });
@@ -1249,47 +1317,57 @@
       }
     hifz.pages = pages; hifz.box = boxOf;
     hifzMount(items, function () {
-      view.querySelectorAll(".hifz-mask, .rc-badw").forEach(function (x) { x.remove(); });
+      view.querySelectorAll(".hifz-mask, .rc-badw, .rc-unsw, .rc-skipw").forEach(function (x) { x.remove(); });
+      // 5.26 #11: the 5.24 look: ONE rounded grey box per run of hidden words on a line (measured word boxes, else the letter-count
+      // estimate); a word shows once it is judged, tapped / «فكّرني» or its ayah is revealed. Ayah markers are not words: never covered.
+      var V = hzV();
       items.forEach(function (k) {
-        if (hifz.shown[k]) { var sa0 = k.split(":"), ws0 = rWords(k); reciteBad(k).forEach(function (i) { wordBoxes(+sa0[0], +sa0[1], ws0, i, boxOf, "rc-badw"); }); return; }
-        // While reciting, each line of the ayah opens once all its words are judged (the line or the ayah, whichever
-        // ends first), with its wrong words red; the ayah counts as shown only at its end, as before.
-        var sa = k.split(":"), rs0 = Q.r[sa[0] - 1][sa[1] - 1], V = recite.on ? (recite.disp || recite.V || {}) : {}, wl = rWords(k);
-        // the furthest word judged in this ayah (any word of a later ayah = past its end): a line the reader is past opens
-        // even if one of its words is not judged yet (5.11 G7; it is judged on the final piece, red if wrong)
-        var past = -1; for (var pi = wl.length - 1; pi >= 0; pi--) if ((k + ":" + pi) in V) { past = pi; break; }
-        if (recite.on && past < wl.length - 1 && laterHeard(k, V)) past = wl.length;
+        var sa = k.split(":"), wl = rWords(k), rs0 = Q.r[sa[0] - 1][sa[1] - 1];
+        var shownAy = !!hifz.shown[k], wb = shownAy ? null : hzWb(k);
+        var cls = function (i) {
+          var x = k + ":" + i, v = V[x];
+          if (recite.on && recite.skp && recite.skp[x] && !(x in V)) return "rc-skipw";   // #29: skipped, violet until read
+          if (shownAy) return (recite.disp || recite.V || {})[x] === 0 ? "rc-badw" : null;
+          return v === 0 ? "rc-badw" : v === 2 ? "rc-unsw" : null;
+        };
+        wl.forEach(function (w, i) { var c = cls(i); if (c && (shownAy || !hzHidden(k, i, V) || c === "rc-skipw")) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, c, k); });
+        if (shownAy) return;
         var lw = function (w) { return norm(w).length + 1; }, tot = wl.reduce(function (t, w) { return t + lw(w); }, 0);
-        var span = rs0.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0, mids = [], cs = [], c0 = 0;
+        var span = rs0.reduce(function (t, r) { return t + r[3] - r[1]; }, 0), acc = 0, cs = [], mids = [], c0 = 0;
         wl.forEach(function (w) { cs.push(c0); mids.push((c0 + lw(w) / 2) / tot * span); c0 += lw(w); });
-        var wb = hzWb(k);   // W3: measured word boxes (null = the letter-count estimate below)
         rs0.forEach(function (b, li) {
           var x0 = acc, x1 = acc + b[3] - b[1]; acc = x1;
           var mine = [];
           if (wb) wb.forEach(function (ps, i) { if (ps.some(function (q) { return q[0] === li; })) mine.push(i); });
           else mids.forEach(function (m, i) { if (m >= x0 && m < x1) mine.push(i); });
-          if (mine.length && (mine.every(function (i) { return (k + ":" + i) in V; }) || (recite.on && past > mine[mine.length - 1]))) {
-            mine.forEach(function (i) { var x = V[k + ":" + i]; if (x === 0 || x === 2) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, x ? "rc-unsw" : "rc-badw"); });
-            return;
-          }
-          var bx = boxOf(b[0]); if (!bx) return;
-          // 5.16 U3: a line opens word by word as it is recited (it used to wait for the whole line, 7–10 words late):
-          // the words up to the furthest one heard show (wrong ones red), the mask covers the rest of the line only
-          var rev = 0; if (recite.on) while (rev < mine.length && mine[rev] <= past) rev++;
-          var right = b[3];
-          if (rev) {
-            mine.slice(0, rev).forEach(function (i) { var x = V[k + ":" + i]; if (x === 0 || x === 2) wordBoxes(+sa[0], +sa[1], wl, i, boxOf, x ? "rc-unsw" : "rc-badw"); });
-            var a0 = x0 / span * tot, a1 = x1 / span * tot, st = Math.min(a1, Math.max(a0, cs[mine[rev]]));
-            right = b[3] - (st - a0) / (a1 - a0) * (b[3] - b[1]);
-          }
-          var R = [b[1], b[2] + 5, right, b[4] - 4];
-          if (wb && mine.length) { R = hzWbMask(wb, li, mine.slice(rev), mine.slice(0, rev)); if (!R) return; }
-          var d = document.createElement("div"); d.className = "hifz-mask"; d.dataset.k = k;
-          d.style.cssText = "left:" + R[0] / 10 + "%;top:" + R[1] / 10 + "%;width:" + (R[2] - R[0]) / 10 + "%;height:" + (R[3] - R[1]) / 10 + "%";
-          bx.appendChild(d);
+          var bx = boxOf(b[0]); if (!bx || !mine.length) return;
+          // runs of consecutive hidden words on this line
+          var runs = [], cur = null;
+          mine.forEach(function (i) { if (hzHidden(k, i, V)) { if (cur) cur.push(i); else runs.push(cur = [i]); } else cur = null; });
+          runs.forEach(function (run) {
+            var R;
+            if (wb) R = hzWbMask(wb, li, run, mine.filter(function (i) { return run.indexOf(i) < 0; }));
+            else {   // letter-count estimate: the run's span along the line (right to left)
+              var a0 = x0 / span * tot, a1 = x1 / span * tot, W = b[3] - b[1];
+              var pos = function (c) { return b[3] - (Math.min(a1, Math.max(a0, c)) - a0) / (a1 - a0) * W; };
+              var last = run[run.length - 1], l = last === mine[mine.length - 1] ? b[1] : pos(cs[last] + lw(wl[last]));
+              R = [l, b[2] + 5, pos(cs[run[0]]), b[4] - 4];
+            }
+            if (!R) return;
+            var d = document.createElement("div"); d.className = "hifz-mask"; d.dataset.k = k;
+            d.style.cssText = "left:" + R[0] / 10 + "%;top:" + R[1] / 10 + "%;width:" + (R[2] - R[0]) / 10 + "%;height:" + (R[3] - R[1]) / 10 + "%";
+            bx.appendChild(d);
+          });
         });
       });
+      hzHazeFix();
     });
+  }
+  // Sprint 2 #11/#42: the words judged so far (only while the mic is on), and whether word i of ayah k is still hidden
+  function hzV() { return recite.on ? (recite.disp || recite.V || {}) : {}; }
+  function hzHidden(k, i, V) {
+    var x = k + ":" + i;
+    return !hifz.shown[k] && !hifz.wsh[x] && !(x in V) && !(recite.on && recite.skp && recite.skp[x]);
   }
   // W3: ayah k's measured word boxes by word (rWords numbering): per word its pieces [li, x0, y0, x1, y1], li = the ayah's
   // line rect (Q.r) nearest the piece's centre. Null (the estimate is used) when the edition has no boxes, a page's boxes
@@ -1321,7 +1399,8 @@
     hid.forEach(function (i) { wb[i].forEach(function (q) { if (q[0] === li) u = u ? [Math.min(u[0], q[1]), Math.min(u[1], q[2]), Math.max(u[2], q[3]), Math.max(u[3], q[4])] : q.slice(1); }); });
     if (!u) return null;
     shw.forEach(function (i) { wb[i].forEach(function (q) { if (q[0] === li && q[1] >= u[2]) rv = Math.min(rv, q[1]); }); });
-    return [Math.max(0, u[0] - P), u[1], Math.min(1000, u[2] + P, Math.max(u[2], (u[2] + rv) / 2)), u[3]];
+    var LW = 8, VP = 4;   // widened toward the ayah marker (left) by 8 permille and 4 permille above/below, so no letter tail shows
+    return [Math.max(0, u[0] - P - LW), Math.max(0, u[1] - VP), Math.min(1000, u[2] + P, Math.max(u[2], (u[2] + rv) / 2)), Math.min(1000, u[3] + VP)];
   }
   // vertical hifz: the pages after the one being recited show nothing until they are reached (5.11 G7)
   function vHide(p) {
@@ -1365,14 +1444,14 @@
       '" value="' + n + '"><button id="pNext">التالية' + ic("left") + '</button>' +
       '<button id="pPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") + "</button>" +
       '<button id="pDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>" +
-      (cap ? "" : '<p class="hint page-tip">اضغط على أي آية في الصفحة لتظليلها ونسخها.</p>') + rdMicHtml();
+      (cap || rdTestHtml() ? "" : '<p class="hint page-tip">اضغط على أي آية في الصفحة لتظليلها ونسخها.</p>') + rdMicHtml() + rdTestHtml();
     var box = view.querySelector('.page-box[data-p="' + n + '"]'), boxes = view.querySelectorAll(".page-box");
     function boxOf(p) { return view.querySelector('.page-box[data-p="' + p + '"]'); }
     rdPage = { pages: pages, mark: function (s, a) { mark(s, a); ayahBar(null); }, box: boxOf, turn: function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); } };
     // reading by voice went on to this page (turned with the page effect): light the ayah being read
     if (rd.on && rd.s && ((Q.r[rd.s - 1] && Q.r[rd.s - 1][rd.a - 1]) || []).some(function (b) { return pages.indexOf(b[0]) >= 0; })) setTimeout(function () { if (rdPage && rdPage.pages === pages) { rdPage.mark(rd.s, rd.a); rdPaint(); } }, 0);
     function mark(s, a, q) {
-      view.querySelectorAll(".ayah-box:not(.play)").forEach(function (x) { x.remove(); });
+      view.querySelectorAll(".ayah-box:not(.play), .srch-w").forEach(function (x) { x.remove(); });
       hl = s ? { s: s, a: a, q: q || "" } : null;
       qs = hl ? "?a=" + s + ":" + a + (hl.q ? "&h=" + encodeURIComponent(hl.q) : "") : "";
       history.replaceState(null, "", "#/p/" + n + qs);
@@ -1383,12 +1462,41 @@
         d.style.cssText = "left:" + b[1] / 10 + "%;top:" + b[2] / 10 + "%;width:" + (b[3] - b[1]) / 10 + "%;height:" + (b[4] - b[2]) / 10 + "%";
         bx.appendChild(d);
       });
+      if (q) srchWords(s, a, q, boxOf);
       ayahBar(s, a, function () { mark(null); }, function () { location.hash = "#/s/" + s + "/" + a + (hl && hl.q ? "?h=" + encodeURIComponent(hl.q) : ""); });
+    }
+    // W6b: the searched words drawn over their measured boxes (.srch-w); nothing when there are no boxes / no match / an error
+    function srchWords(s, a, q, boxOf, again) {
+      try {
+        var idx = searchWordIdx(s, a, q); if (!idx.length) return;
+        var wb = hzWb(s + ":" + a);
+        if (!wb) {
+          if (!again && EDS[edition] && EDS[edition].w) {   // boxes not loaded yet: ask for the ayah's pages, draw when they arrive
+            var rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], pg = [], left = 0;
+            rs.forEach(function (r) { if (pg.indexOf(r[0]) < 0) pg.push(r[0]); });
+            left = pg.length;
+            pg.forEach(function (p) { wbNeed(p, function () { if (--left === 0 && hl && hl.s === s && hl.a === a) srchWords(s, a, q, boxOf, true); }); });
+          }
+          return;
+        }
+        var rs2 = Q.r[s - 1][a - 1];
+        view.querySelectorAll(".srch-w").forEach(function (x) { x.remove(); });
+        idx.forEach(function (i) {
+          (wb[i] || []).forEach(function (b) {
+            var r = rs2[b[0]], bx = r && boxOf(r[0]); if (!bx) return;
+            var d = document.createElement("div"); d.className = "srch-w";
+            d.style.cssText = "left:" + b[1] / 10 + "%;top:" + b[2] / 10 + "%;width:" + (b[3] - b[1]) / 10 + "%;height:" + (b[4] - b[2]) / 10 + "%";
+            bx.appendChild(d);
+          });
+        });
+      } catch (e) {}
     }
     window.scrollTo(0, 0);
     if (hl) mark(hl.s, hl.a, hl.q); else ayahBar(null);
-    var first = view.querySelector(".ayah-box");
+    hmHlDraw(boxOf);
+    var first = view.querySelector(".ayah-box, .hm-hl");
     if (first) scrollUnderBar(first);   // an ayah opened from search / a link goes to the top of the screen, under the bar
+    if (hmR) hmKeep(function () { return view.querySelector(".hm-hl"); });   // 5.26 #48
     save(edKey("lastPage"), n);
     trackPage(pages[0]);
     (sp ? [base - 2, base - 1, base + 2, base + 3] : [n - 1, n + 1]).forEach(function (k) { if (k >= Q.min && k < Q.count) new Image().src = EDS[edition].dir + pad(k) + ".avif"; });
@@ -1399,7 +1507,7 @@
         if (Date.now() - dragEnd < 400 || Date.now() - lpPageAt < 700) return;
         var r = bx.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
         var hit = ayahAt(+bx.dataset.p, x, y);
-        if (hifz.on) { if (hit) hifzFlip(hit[0] + ":" + hit[1]); return; }
+        if (hifz.on) { hzTap(+bx.dataset.p, x, y, hit); return; }
         if (!hit || (hl && hl.s === hit[0] && hl.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
       });
     });
@@ -1534,6 +1642,8 @@
     ["pointerup", "pointercancel"].forEach(function (k) { root.addEventListener(k, function () { fingers = Math.max(0, fingers - 1); stop(); }); });
     root.addEventListener("contextmenu", function (e) { if (e.target.closest(".page-box")) e.preventDefault(); });
   }
+  // 5.27 #1: long press on the hifz screens' boxes / links / bar shows no callout, link preview or menu
+  document.addEventListener("contextmenu", function (e) { if (e.target.closest && e.target.closest(".hm-grid, .hm a, .hz-nav, .ht-mini, .hifz-bar")) e.preventDefault(); });
 
   // Ayah boxes grouped by page, built on first use: byPage[n] = [[s, a, x0, y0, x1, y1], ...].
   var byPage = null;
@@ -1779,6 +1889,35 @@
   }
   function openPage(n) { location.hash = "#/p/" + n; }
   function openAyahPage(s, a, q) { location.hash = "#/p/" + pageOf(s, a) + "?a=" + s + ":" + a + (q ? "&h=" + encodeURIComponent(q) : ""); }
+  // Sprint 2 #48: a hifz-map box opens the mushaf on its first ayah, ALL its ayat lit in .hm-hl (hash param r=S:A1-A2, no yellow ayah)
+  var hmR = null;   // {s, a1, a2} of the route being shown, set by the router
+  function openAyahRange(s, a1, a2) { location.hash = "#/p/" + pageOf(s, a1) + "?r=" + s + ":" + a1 + "-" + a2; }
+  // 5.26 #48: a range opened from the map must end up fully under the top bar, even when the page images load (and move the layout)
+  // after the first scroll: re-fit on every image load for 3 s, until the reader touches / scrolls the page
+  var hmKeepGen = 0;
+  function hmKeep(getEl) {
+    var gen = ++hmKeepGen, t0 = Date.now(), evs = ["touchstart", "wheel", "mousedown", "keydown"];
+    function fit() {
+      if (gen !== hmKeepGen) return done();
+      var f = getEl(); if (!f || Date.now() - t0 > 3000) return done();
+      var bar = document.querySelector(".bar"), h = bar && !document.body.classList.contains("fs") ? bar.offsetHeight : 0;
+      var top = f.getBoundingClientRect().top - h - 8;
+      if (Math.abs(top) > 3) window.scrollTo(0, Math.max(0, window.pageYOffset + top));
+    }
+    function done() { document.removeEventListener("load", fit, true); evs.forEach(function (x) { document.removeEventListener(x, stop, true); }); clearInterval(iv); }
+    function stop() { hmKeepGen++; done(); }
+    document.addEventListener("load", fit, true); evs.forEach(function (x) { document.addEventListener(x, stop, { capture: true, passive: true }); });
+    var iv = setInterval(fit, 250);
+  }
+  function hmHlDraw(boxOf) {
+    if (!hmR) return;
+    for (var a = hmR.a1; a <= hmR.a2; a++) ((Q.r && Q.r[hmR.s - 1] && Q.r[hmR.s - 1][a - 1]) || []).forEach(function (b) {
+      var bx = boxOf(b[0]); if (!bx) return;
+      var d = document.createElement("div"); d.className = "hm-hl";
+      d.style.cssText = "left:" + b[1] / 10 + "%;top:" + b[2] / 10 + "%;width:" + (b[3] - b[1]) / 10 + "%;height:" + (b[4] - b[2]) / 10 + "%";
+      bx.appendChild(d);
+    });
+  }
 
   function go(s, a) {
     if (mode === "pages") openPage(pageOf(s, a));
@@ -2015,9 +2154,9 @@
   // ---------- الحفظ والمراجعة ----------
   // Memorisation mode in the page and text views: every ayah is hidden; tapping one shows or hides it again,
   // and the bar shows the next one in order, shows all, or hides all. What is shown resets when the page changes.
-  var hifz = { on: false, shown: {}, items: [], paint: null, next: null };
+  var hifz = { on: false, shown: {}, wsh: {}, items: [], paint: null, next: null };   // Sprint 2 #11/#42: wsh = words revealed by a tap / «فكّرني» ("s:a:w" -> 1)
   window.hifzToggle = function () { hifzToggle(); };
-  function hifzToggle() { hifz.on = !hifz.on; hifz.shown = {}; recite.V = {}; recite.disp = null; recite.ptr = null; recite.ok = recite.words = 0; recite.wrong = []; if (!hifz.on) { hifz.test = null; reciteStop(); } var y = window.scrollY; route(); hifzBar(); window.scrollTo(0, y); }
+  function hifzToggle() { hifz.on = !hifz.on; hzFsPend = hifz.on; if (!hifz.on) hzFs = false; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; recite.V = {}; recite.disp = null; recite.ptr = null; recite.ok = recite.words = 0; recite.wrong = []; if (!hifz.on) { hifz.test = null; reciteStop(); } var y = window.scrollY; route(); hifzBar(); window.scrollTo(0, y); }
   function hifzMount(items, paint) { hifz.items = items; hifz.shown = {}; hifz.fk = null;
     // a test that starts at a chosen ayah (map › «ابدأ من الآية», 5.11 G6): the ayat before it stay open as context
     // (and in a random test, 5.14, the ayat before the place being tested)
@@ -2026,19 +2165,24 @@
     if (T0 && T0.end) { var ep = T0.end.split(":"); items.forEach(function (k) { var p = k.split(":"); if (+p[0] > +ep[0] || (+p[0] === +ep[0] && +p[1] > +ep[1])) hifz.shown[k] = true; }); }
     // a new page while reciting: ayat already recited (one split over the page end) stay open, and the words heard so
     // far in this utterance belong to the last page, so the matcher skips them
-    if (recite.on) { items.forEach(function (k) { if ((k + ":" + (rWords(k).length - 1)) in (recite.V || {})) hifz.shown[k] = true; }); if (!recite.cmt) recite.skip = recite.heard || 0; recite.cmt = false; recite.base = null; } hifz.paint = paint; hifz.next = null; hifz.ending = null; paint(); hifzBar(); }
+    if (recite.on) { items.forEach(function (k) { if ((k + ":" + (rWords(k).length - 1)) in (recite.V || {})) hifz.shown[k] = true; }); if (!recite.cmt) recite.skip = recite.heard || 0; recite.cmt = false; recite.base = null; } hifz.paint = paint; hifz.next = null; hifz.ending = null; paint(); hifzBar();
+    if (hzAutoMic) { hzAutoMic = false; setTimeout(function () { if (hifz.on && hifz.test && !recite.on) reciteToggle(); }, 0); } }
   function hifzFlip(k) {
     hifz.shown[k] = !hifz.shown[k];
-    // In a test on the mushaf, an ayah tapped open counts as forgotten; one opened with «افتكرتها» counts as remembered.
-    if (hifz.test && hifz.shown[k]) { hifz.test.seen[k] = 1; hifz.test.miss[k] = 1; }
+    if (hifz.test) rWords(k).forEach(function (w, i) { if (hifz.shown[k]) hifz.wsh[k + ":" + i] = 1; else delete hifz.wsh[k + ":" + i]; });   // Sprint 2 #29: not "skipped"
+    // In a test on the mushaf, an ayah tapped open counts as forgotten (as «فكّرني», Sprint 2 #42).
+    if (hifz.test && hifz.shown[k]) { hifz.test.seen[k] = 1; hifz.test.miss[k] = 1; (hifz.test.fg = hifz.test.fg || {})[k] = 1; }
     hifz.paint(); hifzBar(); hifzRevealed(k);
   }
   // The hifz test on the pages of the chosen edition: whole ayat are hidden, and the score is the share remembered.
   function hifzTestPages(s, a) {
-    hifz.on = true; hifz.shown = {}; hifz.test = { s: s, a: a, seen: {}, miss: {} };
+    hzResumeClear(); hzFsPend = true;   // Sprint 2 #1/#35 a new test replaces the old resume; #26 fullscreen
+    hifz.on = true; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; hifz.test = { s: s, a: a, seen: {}, miss: {} };
     recite.ok = recite.words = 0; recite.wrong = []; recite.k = null; recite.base = null; recite.V = {}; recite.disp = null; recite.ptr = null;
-    location.hash = mode === "pages" ? "#/p/" + pageOf(s, a) : "#/s/" + s + "/" + a;
+    var h = mode === "pages" ? "#/p/" + pageOf(s, a) : "#/s/" + s + "/" + a;
+    if (location.hash === h) setTimeout(route, 0); else location.hash = h;   // 5.26: the vertical reader already rewrote ?r= away: the same hash must still re-render, after the caller set hifz.test.end (async like a hashchange)
   }
+  window.hifzTestPages = hifzTestPages;   // QA: a whole-page test without an end (no UI path any more)
   function reciteHistory() {
     var log = load("reciteLog", []); if (!log.length) return "";
     var w = 0, b = 0; log.forEach(function (x) { w += x.w; b += x.bad; });
@@ -2054,27 +2198,84 @@
   }
   // Every ayah recited (or revealed in a test) goes on the hifz map by itself: q.hifzAyat {"s:a": {d: day, ok: 1|0}}.
   function hifzMark(k, ok) {
-    var H = load("hifzAyat", {}); H[k] = { d: todayStr(), ok: ok ? 1 : 0 }; save("hifzAyat", H);
+    var H = load("hifzAyat", {}); H[k] = { d: todayStr(), ok: ok ? 1 : 0, rv: H[k] && H[k].rv }; if (!H[k].rv) delete H[k].rv; save("hifzAyat", H);   // Sprint 2 #47: live marks never touch rv
   }
   function hifzMarks(m) {
     var ks = Object.keys(m); if (!ks.length) return;
-    var H = load("hifzAyat", {}), d = todayStr(); ks.forEach(function (k) { H[k] = { d: d, ok: m[k] ? 1 : 0 }; }); save("hifzAyat", H);
+    var H = load("hifzAyat", {}), d = todayStr(); ks.forEach(function (k) { var rv = H[k] && H[k].rv; H[k] = { d: d, ok: m[k] ? 1 : 0 }; if (rv) H[k].rv = rv; }); save("hifzAyat", H);
+  }
+  // Sprint 2 #29/#42: at the session end the words still skipped, and the ayat with a word revealed by «فكّرني» / a tap, count as
+  // forgotten ayat (seen + missed), so the score is honest
+  function hzFlush(t) {
+    if (!t) return;
+    Object.keys(recite.skp || {}).forEach(function (x) { var k = x.split(":").slice(0, 2).join(":"); t.seen[k] = 1; t.miss[k] = 1; });
+    Object.keys(t.miss).forEach(function (k) { t.seen[k] = 1; });
+  }
+  // Sprint 2 #29: the words of this page (keys, in reading order) that are unjudged but before the furthest judged one are the skipped
+  // ones (recite.skp), kept per word until they are judged; the first time a short legend says what the violet words are
+  function hzSkips(disp, keys) {
+    var sk = recite.skp = recite.skp || {}, f = -1, l = -1, i, add = 0, T = hifz.test;
+    // only the ayat the test covers (its start to its end: a range / place test leaves the others open as context) are looked at
+    var lo = T ? gIdx(T.s, T.a) : 0, hi = T && T.end ? gIdx.apply(null, T.end.split(":").map(Number)) : 1e9;
+    keys = keys.filter(function (x) { var p = x.split(":"), g = gIdx(+p[0], +p[1]); return g >= lo && g <= hi; });
+    for (i = 0; i < keys.length; i++) if (keys[i] in disp) { if (f < 0) f = i; l = i; }
+    var was = {}; keys.forEach(function (x) { if (sk[x]) was[x] = 1; delete sk[x]; });
+    var fresh = 0;   // 5.26 #29: words newly skipped by this one step
+    for (i = f + 1; f >= 0 && i < l; i++) if (!(keys[i] in disp) && !hifz.wsh[keys[i]]) { sk[keys[i]] = 1; add++; if (!was[keys[i]]) fresh++; }
+    if (fresh >= 5 && hifz.on) skipAlert();
+    if (add && !load("skipTip", false)) { save("skipTip", true); toast("الكلمات اللي اتخطيتها متعلّمة بلون بنفسجي، ارجع اقراها"); }
+  }
+  // Sprint 2 #42: «فكّرني» / a tap on a masked word reveals that ONE word and counts its ayah as forgotten; the ayah shows (and is
+  // seen) once none of its words is hidden any more
+  function hzForget(k, i) {
+    var T = hifz.test, wl = rWords(k), V = hzV();
+    hifz.wsh[k + ":" + i] = 1;
+    if (T) { (T.fg = T.fg || {})[k] = 1; T.miss[k] = 1; }
+    if (wl.every(function (w, j) { return !hzHidden(k, j, V); })) { hifz.shown[k] = true; if (T) T.seen[k] = 1; }
+    if (recite.on && i + 1 < wl.length) recite.ptr = k + ":" + (i + 1);
+    hifz.paint(); hifzBar();
+    if (hifz.shown[k]) hifzRevealed(k);
+  }
+  // the next hidden word in reading order, from the reader's place (recite.ptr, else the first hidden ayah of rNext())
+  function hzNextWord() {
+    var V = hzV(), list = [], from = 0, j, e;
+    hifz.items.forEach(function (k) { rWords(k).forEach(function (w, i) { list.push([k, i]); }); });
+    var ix = recite.ptr ? list.findIndex(function (e) { return e[0] + ":" + e[1] === recite.ptr; }) : -1, nk = rNext();
+    if (ix >= 0) from = ix; else if (nk) { ix = list.findIndex(function (e) { return e[0] === nk; }); if (ix >= 0) from = ix; }
+    for (j = from; j < list.length; j++) { e = list[j]; if (hzHidden(e[0], e[1], V)) return e; }
+    for (j = 0; j < from; j++) { e = list[j]; if (hzHidden(e[0], e[1], V)) return e; }
+    return null;
+  }
+  // a tap on a mushaf page in memorisation mode: in a test, the masked word nearest the finger shows (forgotten); a shown ayah tapped
+  // hides again; outside a test (plain memorisation mode) the ayah flips as before
+  function hzTap(n, x, y, hit) {
+    var T = hifz.test;
+    if (!T || !hifz.box) { if (hit) hifzFlip(hit[0] + ":" + hit[1]); return; }
+    var rows = wbRows(n), V = hzV(), best = null, bd = 25;
+    if (rows) rows.forEach(function (r) {
+      var k = r[0] + ":" + r[1]; if (hifz.items.indexOf(k) < 0 || !hzHidden(k, r[2], V)) return;
+      var dx = x < r[3] ? r[3] - x : x > r[5] ? x - r[5] : 0, dy = y < r[4] ? r[4] - y : y > r[6] ? y - r[6] : 0, d = dx + 3 * dy;
+      if (d < bd) { bd = d; best = [k, r[2]]; }
+    });
+    else if (hit && hifz.items.indexOf(hit[0] + ":" + hit[1]) >= 0) rWords(hit[0] + ":" + hit[1]).some(function (w, i) { if (hzHidden(hit[0] + ":" + hit[1], i, V)) { best = [hit[0] + ":" + hit[1], i]; return true; } });
+    if (best) return hzForget(best[0], best[1]);
+    if (hit && hifz.shown[hit[0] + ":" + hit[1]]) hifzFlip(hit[0] + ":" + hit[1]);
   }
   function hifzTestDone() {
-    var t = hifz.test, seen = Object.keys(t.seen).length, miss = Object.keys(t.miss).length;
+    var t = hifz.test; hzFlush(t);
+    var seen = Object.keys(t.seen).length, miss = Object.keys(t.miss).length;
     if (!seen) return toast("اكشف آية واحدة على الأقل الأول");
+    hzResumeClear();   // Sprint 2 #1/#35: the session is over, nothing to resume
     var score = Math.round((seen - miss) / seen * 100), s = t.s, rw = recite.words, rb = recite.wrong.slice();
-    var mk = {}; Object.keys(t.seen).forEach(function (k) { mk[k] = !t.miss[k]; }); hifzMarks(mk);
+    var mk = {}; Object.keys(t.seen).forEach(function (k) { mk[k] = !t.miss[k]; });
     if (rw) { asrStat("ok", recite.ok); asrStat("bad", rw - recite.ok); }
     if (rw) { var log = load("reciteLog", []); log.unshift({ d: todayStr(), s: s, ay: seen, w: rw, bad: rb.length, wrong: rb.slice(0, 40) }); save("reciteLog", log.slice(0, 60)); }
-    // the surahs tested get today as their review date (they are marked memorised only by hifzAuto, at 80%)
+    // the surahs tested get today as their review date (the surah joins hzRev / hifzLog at 80%, in hzRecord)
     var ts = {}; Object.keys(t.seen).forEach(function (k) { var x = k.split(":")[0], e = ts[x] = ts[x] || { n: 0, m: 0 }; e.n++; if (t.miss[k]) e.m++; });
-    var res = load("hifzScores", {});
-    Object.keys(ts).forEach(function (x) {
-      var e = ts[x], sp = Math.round((e.n - e.m) / e.n * 100);
-      if (t.end) hzSetRev(+x, sp); else if (e.n >= Q.s[+x - 1][3]) hzSetMemo(+x, sp);
-      res[x] = { d: todayStr(), score: sp };
-    });
+    // Sprint 2 #47/#49: ONE call per finished session (ayat marks + rv + surah-level review/memo)
+    var res = load("hifzScores", {}), sps = {};
+    Object.keys(ts).forEach(function (x) { var e = ts[x], sp = sps[x] = Math.round((e.n - e.m) / e.n * 100); res[x] = { d: todayStr(), score: sp }; });
+    hzRecord(mk, score, { rev: !!t.end, memo: function (x) { return ts[x].n >= Q.s[+x - 1][3]; }, sp: sps });
     save("hifzScores", res); syncAlarms();
     var sk = Object.keys(t.seen).sort(akCmp);
     lastTestSave({ k: "m", r: [sk[0], sk[sk.length - 1]], sc: score, ay: seen, miss: Object.keys(t.miss).sort(akCmp), w: rw, bad: rb.length });
@@ -2120,7 +2321,7 @@
     var next = hifz.next; if (!next || hifz.ending === next) return; hifz.ending = next;
     setTimeout(function () {
       if (!hifz.on || hifz.next !== next) return;
-      if (hzFlipOn()) next(); else if (hifz.test) hifzTestDone();
+      if (hzFlipOn()) { next(); setTimeout(capKeep, 700); } else if (hifz.test) hifzTestDone();
     }, 150);
   }
   // the next page's first ayah (or nothing: the last page, auto flip off, or the page's last ayah runs on there anyway)
@@ -2132,14 +2333,20 @@
     return hifz.items.indexOf(s + ":" + a) >= 0 ? null : s + ":" + a;
   }
   function hifzRevealed(k) {
-    var items = hifz.items, next = hifz.next;
-    if (!next || !hifz.shown[k] || k !== items[items.length - 1] || (!recite.on && items.some(function (x) { return !hifz.shown[x]; }))) return;
+    var items = hifz.items, next = hifz.next, T9 = hifz.test;
+    if ((!next && !T9) || !hifz.shown[k] || k !== items[items.length - 1] || (!recite.on && items.some(function (x) { return !hifz.shown[x]; }))) return;
+    // Sprint 2 #43: no «خلصت» button: a test with no set end (a range test ends in hifzBar) finishes by itself once the last ayah of its
+    // last page (or of the text view) is revealed
+    if (T9 && !T9.end && !T9.fin && (!next || (hifz.pages && hifz.pages[hifz.pages.length - 1] >= Q.last))) {
+      T9.fin = 1; setTimeout(function () { if (hifz.test === T9 && hifz.on) hifzTestDone(); }, 1200); return;
+    }
+    if (!next) return;
     // «قلب تلقائي» off (5.11 G6): the page's last ayah ends a test right there; outside a test the page just stays
     if (!hzFlipOn()) {
       setTimeout(function () { if (!hifz.on || hifz.next !== next || !hifz.shown[k]) return; if (hifz.test) hifzTestDone(); else toast("خلصت الصفحة"); }, 1200);
       return;
     }
-    setTimeout(function () { if (hifz.on && hifz.next === next && hifz.shown[k]) next(); }, 1200);
+    setTimeout(function () { if (hifz.on && hifz.next === next && hifz.shown[k]) { next(); setTimeout(capKeep, 700); } }, 1200);
   }
   // While reciting a test on the pages, the next hidden ayah is kept in view (between the bar and 70% of the screen).
   function hifzFollow() {
@@ -2158,25 +2365,65 @@
     window.scrollTo({ top: Math.max(0, c.getBoundingClientRect().top + window.scrollY - top - 4), behavior: "auto" });
     hifz.fk = null;
   }
+  // Sprint 2 #1/#35: q.hzResume = {kind: "w"|"m", label, hash, state} is written at every step of a hifz / review session and
+  // cleared when it ends; a button at the top of «اختبار الحفظ» / «المراجعة» / home brings the session back (localStorage only).
+  var hzResLast = "", hzNoBtn = false;
+  function hzResumeGet() { var r = load("hzResume", null); return r && r.kind && r.hash && r.state ? r : null; }
+  function hzResumeClear() { hzResLast = ""; try { localStorage.removeItem("q.hzResume"); } catch (e) {} }
+  function hzResumeSet(r) { var j = JSON.stringify(r); if (j === hzResLast) return; hzResLast = j; save("hzResume", r); }
+  function hzResumeLabel(s, a) { return "سورة " + Q.s[s - 1][0] + " · الآية " + ar(a); }
+  function hzResumeBtn() {
+    var r = hzResumeGet(); if (!r || hzNoBtn) return "";
+    return '<button class="continue hz-resume" id="hzResume">' + ic("rep") + '<span class="hzr-t"><span>استئناف من المرة الماضية</span><b>' + r.label + "</b></span></button>";   // Sprint 2 #46: two clean lines, no trailing «·»
+  }
+  function hzResumeBind() { var b = document.getElementById("hzResume"); if (b) b.onclick = hzResumeGo; }
+  // the mushaf test: the first ayah not yet revealed, the range's end / places, and the seen / missed ayat so far (for the score)
+  function hzResumeM() {
+    var T = hifz.test; if (!hifz.on || !T || T.fin || !Object.keys(T.seen).length) return;
+    var i = gIdx(T.s, T.a), lim = T.end ? gIdx.apply(null, T.end.split(":").map(Number)) : 6235;
+    while (i <= lim && T.seen[gAy(i).join(":")]) i++;
+    if (i > lim) return;
+    var x = gAy(i);
+    hzResumeSet({ kind: "m", label: hzResumeLabel(x[0], x[1]), hash: mode === "pages" ? "#/p/" + pageOf(x[0], x[1]) : "#/s/" + x[0] + "/" + x[1],
+      state: { s: x[0], a: x[1], end: T.end, pc: T.pc, pn: T.pn, pt: T.pt, rv: T.rv, seen: T.seen, miss: T.miss, fg: T.fg, hzFrom: hzFrom } });
+  }
+  function hzResumeGo() {
+    var r = hzResumeGet(); if (!r) return;
+    hzFrom = !!r.state.hzFrom;
+    if (hifz.on) { hifz.on = false; hifz.test = null; reciteStop(); hifzBar(); }
+    if (r.kind === "w") { save("hifzTest", r.state.ht); hzNoBtn = true; }
+    else {
+      var m = r.state;
+      hifz.on = true; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; hifz.test = { s: m.s, a: m.a, seen: m.seen || {}, miss: m.miss || {}, fg: m.fg || {}, end: m.end, pc: m.pc || [], pn: m.pn, pt: m.pt, rv: m.rv };
+      recite.ok = recite.words = 0; recite.wrong = []; recite.k = null; recite.base = null; recite.V = {}; recite.disp = null; recite.ptr = null;
+      hzFsPend = true;
+    }
+    if (location.hash === r.hash) route(); else location.hash = r.hash;
+  }
   function hifzBar() {
     var bar = document.getElementById("hifzBar");
     // a test with a range (المراجعة › اختبرني, 5.13 P2.6) ends by itself once its last ayah is recited or opened
     if (hifz.test && hifz.test.end && hifz.test.seen[hifz.test.end] && !hifz.test.fin) { hifz.test.fin = 1; setTimeout(function () { if (hifz.test && hifz.test.fin) { if (hifz.test.pc && hifz.test.pc.length) hifzNextPlace(); else hifzTestDone(); } }, hifz.test.pc && hifz.test.pc.length ? 300 : 900); }
+    hzResumeM();
     document.body.classList.toggle("has-hifz", hifz.on);
     if (!hifz.on || !document.body.classList.contains("vread")) vHide(0);
-    if (!hifz.on) { if (bar) bar.remove(); return; }
+    if (!hifz.on) { if (bar) bar.remove(); document.body.style.removeProperty("--hzbar"); return; }
     if (!bar) {
       bar = document.createElement("div"); bar.id = "hifzBar"; bar.className = "hifz-bar"; document.body.appendChild(bar);
       bar.onclick = function (e) {
         var b = e.target.closest("button"), c = b && b.dataset.c; if (!c) return;
         var k;
-        if (c === "done") return hifzTestDone();
         if (c === "mic") return reciteToggle();
-        if (c === "nx") { k = hifz.items.filter(function (x) { return !hifz.shown[x]; })[0]; if (k) { hifz.shown[k] = true; if (hifz.test) hifz.test.seen[k] = 1; } else if (hifz.next) { hifz.next(); return; } else toast("كُشفت كل الآيات"); }
+        if (c === "nx" && hifz.test && hifz.box) {
+          // Sprint 2 #42: «فكّرني» reveals ONE word (the next hidden one) and counts its ayah as forgotten
+          var nw = hzNextWord(); if (nw) return hzForget(nw[0], nw[1]);
+          if (hifz.next) { hifz.next(); return; } toast("كُشفت كل الآيات"); }
+        else if (c === "nx") { k = hifz.items.filter(function (x) { return !hifz.shown[x]; })[0]; if (k) { hifz.shown[k] = true; if (hifz.test) { hifz.test.seen[k] = 1; hifz.test.miss[k] = 1; (hifz.test.fg = hifz.test.fg || {})[k] = 1; } } else if (hifz.next) { hifz.next(); return; } else toast("كُشفت كل الآيات"); }
         else if (c === "pv") { var sh = hifz.items.filter(function (x) { return hifz.shown[x]; }); if (sh.length) hifz.shown[sh[sh.length - 1]] = false; }
         else if (c === "all") hifz.items.forEach(function (x) { hifz.shown[x] = true; });
         else if (c === "none") hifz.shown = {};
-        else if (c === "x") return hifzToggle();
+        // Sprint 2 #43: ✕ saves what was recited so far (no «خلصت» button any more); with nothing seen it just closes
+        else if (c === "x") { if (hifz.test) hzFlush(hifz.test); if (hifz.test && Object.keys(hifz.test.seen).length) return hifzTestDone(); return hifzToggle(); }
         else if (c === "flip") { var fo = !load("hifzFlip", true); save("hifzFlip", fo); toast(fo ? "الصفحة هتتقلب لوحدها في آخرها" : "مش هتتقلب: الاختبار بيخلص في آخر الصفحة"); }
         hifz.paint(); hifzBar();
         if (c === "nx" && k) hifzRevealed(k);
@@ -2184,18 +2431,19 @@
     }
     var n = hifz.items.filter(function (x) { return hifz.shown[x]; }).length, fl = load("hifzFlip", true);
     hifzFollow();
-    var T = hifz.test, tm = T ? Object.keys(T.miss).length : 0, ts = T ? Object.keys(T.seen).length : 0;
+    var T = hifz.test, tm = T ? Object.keys(T.miss).filter(function (x) { return T.seen[x]; }).length : 0, ts = T ? Object.keys(T.seen).length : 0;   // Sprint 2 #42: an ayah with a word revealed counts as forgotten once it is all shown
     bar.innerHTML = (T ? '<div class="hz-info"><b>' + (recite.on ? "بسمع…" : "اختبار الحفظ") + "</b><span>" + (recite.words ? "كلمات صح " + ar(recite.words - recite.wrong.length) + " · غلط " + ar(recite.wrong.length) : "افتكرت " + ar(ts - tm) + " · نسيت " + ar(tm)) + "</span></div>" :
       '<div class="hz-info"><b>وضع الحفظ</b><span>' + ar(n) + " من " + ar(hifz.items.length) + " آية ظاهرة</span></div>") +
-      '<div class="hz-btns"><button data-c="nx" class="hz-main">' + ic("eye") + (T ? "افتكرتها" : "اكشف التالية") + "</button>" + (T ? '<button data-c="mic"' + (recite.on ? ' class="rec"' : "") + ' aria-label="سمّع بصوتك">' + ic("mic") + '</button><button data-c="done">' + ic("check") + "خلصت</button>" : "") + (T ? "" : '<button data-c="pv" aria-label="أخفِ آخر آية">' + ic("eyeoff") + "</button>") +
+      '<div class="hz-btns"><button data-c="nx" class="hz-main">' + ic("eye") + (T ? "فكّرني" : "اكشف التالية") + "</button>" + (T ? '<button data-c="mic"' + (recite.on ? ' class="rec"' : "") + ' aria-label="سمّع بصوتك">' + ic("mic") + "</button>" : "") + (T ? "" : '<button data-c="pv" aria-label="أخفِ آخر آية">' + ic("eyeoff") + "</button>") +
       (T ? "" : '<button data-c="all">الكل</button><button data-c="none">إخفاء</button>') + (hifz.pages ? '<button data-c="flip" class="hz-flip' + (fl || (T && T.rv) ? " on" : "") + '" aria-pressed="' + !!(fl || (T && T.rv)) + '"' + (T && T.rv ? " disabled" : "") + ' aria-label="قلب الصفحة تلقائي">' + ic("book") + "<small>قلب تلقائي</small></button>" : "") + '<button data-c="x" aria-label="إنهاء وضع الحفظ">' + ic("x") + "</button></div>";
+    document.body.style.setProperty("--hzbar", bar.offsetHeight + "px");   // 5.27 #2: the page keeps this much room under it
   }
 
   // ---------- التسميع بالصوت ----------
   // In the hifz test, the reader recites from memory and the phone's speech recogniser (ReciteBridge) hears it. Each heard
   // word is matched to the next hidden ayah's words; an ayah shows once its last word is reached, wrong or skipped words are
   // kept for the summary, and the page turns by itself after its last ayah (hifzRevealed). q.reciteLog keeps every session.
-  var recite = { on: false, k: null, pos: 0, ok: 0, words: 0, base: null, wrong: [], V: {}, disp: null, ptr: null }; window.__rec = recite;
+  var recite = { on: false, k: null, pos: 0, ok: 0, words: 0, base: null, wrong: [], V: {}, disp: null, ptr: null, skp: {} }; window.__rec = recite;   // Sprint 2 #29: skp = skipped words ("s:a:w" -> 1)
   function rSkel(w) { return norm(w).replace(/[اءؤئوي]/g, ""); }
   function rSame(a, b) {
     if (!a || !b) return false; if (a === b) return true;
@@ -2317,7 +2565,7 @@
   // words right where CTC reads them. Returns the number of words turned.
   var CTC_UNSURE = 1.0;
   function ctcJudge(r, key) {
-    if (!r || Mic.cur !== "nv" || !window.NvBridge || !NvBridge.ctc || window.nvSeq == null || !ctcReady()) return 0;
+    if (!r || (Mic.cur || Mic.last) !== "nv" || !window.NvBridge || !NvBridge.ctc || window.nvSeq == null || !ctcReady()) return 0;
     if (!Object.keys(r.v).some(function (i) { return r.v[i] === 0; })) return 0;
     var us = [], own = {}, prev = null, i, turned = 0;
     for (i = r.a; i < r.b; i++) {
@@ -2396,7 +2644,9 @@
   // ayah shows once its last word is judged, and its wrong words are marked red. While an utterance is still being
   // heard only right words count, so nothing turns red (or shows) ahead of the reader.
   function reciteHear(text, fin) {
-    if (!recite.on || !hifz.on) return;
+    // NvAsr flushes the piece open when the mic stopped as one last final (just after state:stopped): judge it once
+    var tail = fin && !recite.on && recite.stopAt && Date.now() - recite.stopAt < 3000; if (tail) recite.stopAt = 0;
+    if ((!recite.on && !tail) || !hifz.on) return;
     if (!recite.base) recite.base = { shown: JSON.stringify(hifz.shown) };
     var shownBefore = JSON.parse(recite.base.shown), keys = [], E = [];
     hifz.items.forEach(function (x) { hifz.shown[x] = !!shownBefore[x]; });
@@ -2414,7 +2664,7 @@
     if (r) Object.keys(r.v).forEach(function (i) { if (fin || r.v[i] === 1) disp[keys[i]] = r.v[i]; });
     hifz.items.forEach(function (k) { if (!hifz.shown[k] && (k + ":" + (rWords(k).length - 1)) in disp) { hifz.shown[k] = true; revealed.push(k); } });
     if (r) { var last = keys[r.b - 1].split(":"); recite.k = last[0] + ":" + last[1]; recite.pos = +last[2] + 1; }
-    recite.disp = disp;
+    recite.disp = disp; hzSkips(disp, keys);
     if (fin) reciteCommit(disp, r, keys);
     function reciteCommit(disp, r, keys) {
       recite.V = disp; recite.base = null;
@@ -2433,8 +2683,9 @@
         bad.sort(function (x, y) { return x[0] - y[0]; }).forEach(function (x) { recite.wrong.push([k, ws[x[0]]]); });
         if (touched && !touched[k]) return;
         if (bad.length > 5 && load("errAlert", true) && !(recite.alerted = recite.alerted || {})[k]) { recite.alerted[k] = 1; errAlert(); }
-        if (hifz.test) { hifz.test.seen[k] = 1; if (bad.length) hifz.test.miss[k] = 1; else delete hifz.test.miss[k]; }
-        marks[k] = !bad.length;
+        var fg = !!(hifz.test && hifz.test.fg && hifz.test.fg[k]);   // Sprint 2 #42: a word revealed by «فكّرني» / a tap keeps its ayah forgotten
+        if (hifz.test) { hifz.test.seen[k] = 1; if (bad.length || fg) hifz.test.miss[k] = 1; else delete hifz.test.miss[k]; }
+        marks[k] = !bad.length && !fg;
       });
       hifzMarks(marks);
     }
@@ -2458,7 +2709,7 @@
     }
     hifz.paint(); hifzBar(); reciteCap();
     if (fin) revealed.forEach(hifzRevealed);
-    if (pe) hifzPageGo();
+    if (pe && recite.on) hifzPageGo();      // no page turn after the mic stopped
   }
   // The words of the ayah being recited, only as far as they were heard (red = wrong), under the corner mic.
   function reciteCap() {
@@ -2468,15 +2719,61 @@
     var k = recite.k, h = '<div class="rd-cap"><small>' + (k ? "سورة " + Q.s[k.split(":")[0] - 1][0] + " · الآية " + ar(+k.split(":")[1]) : "سامعك… سمّع من حفظك") + "</small>";
     if (k) h += "<div>" + rWords(k).slice(0, recite.pos).map(function (w, i) { var x = (recite.disp || {})[k + ":" + i]; return x === 0 ? '<span class="rc-bad">' + w + "</span>" : x === 2 ? '<span class="rc-uns">' + w + "</span>" : w; }).join(" ") + "</div>";
     b.insertAdjacentHTML("afterend", h + "</div>");
-    capFollow(true);
+    capFollow(true); capKeep();
   }
-  // The caption beside the mic follows the reader in a long ayah: the word being read (or the last one recited) is kept
-  // in view instead of the caption showing only the ayah's start.
-  function capFollow(toEnd) {
-    var c = document.querySelector(".rd-cap"); if (!c) return;
-    var m = c.querySelector("mark");
-    if (m && !toEnd) c.scrollTop += m.getBoundingClientRect().top - c.getBoundingClientRect().top - c.clientHeight / 2;
-    else c.scrollTop = c.scrollHeight;
+  // Sprint 2 #38: the screen rect of the line(s) being recited (the last word recited and the next one: their line rects from the
+  // measured word boxes, else the ayah's rects on the mounted pages). Null when nothing is placed on screen yet.
+  function reciteLineRect() {
+    var k = recite.k; if (!k || !hifz.on || !hifz.box) return null;
+    var sa = k.split(":"), s = +sa[0], a = +sa[1], rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], n = rWords(k).length, top = 1e9, bot = -1e9;
+    var add = function (bx, y0, y1) { var r = bx.getBoundingClientRect(); top = Math.min(top, r.top + r.height * y0 / 1000); bot = Math.max(bot, r.top + r.height * y1 / 1000); };
+    [recite.pos - 1, recite.pos].forEach(function (wi) {
+      if (wi < 0 || wi >= n) return;
+      var got = false;
+      rs.forEach(function (b) {
+        var bx = hifz.box(b[0]), rows = bx && wbRows(b[0]); if (!rows) return;
+        rows.forEach(function (r) {
+          if (r[0] !== s || r[1] !== a || r[2] !== wi) return;
+          var cy = (r[4] + r[6]) / 2; if (cy < b[2] - 8 || cy > b[4] + 8) return;   // the line rect (of this ayah) the word is on
+          add(bx, b[2], b[4]); got = true;
+        });
+      });
+      if (!got) rs.forEach(function (b) { var bx = hifz.box(b[0]); if (bx) add(bx, b[2], b[4]); });   // no word boxes: the whole ayah's rects
+    });
+    return bot > top ? { top: top, bottom: bot } : null;
+  }
+  // 5.26 #38 (redesign): the caption stays where it is. In the vertical scroll view the page scrolls along with the reading so the
+  // line being read (recite: its line rect; normal mic reading: the boxed word) is always above the caption; smooth, one scroll at a
+  // time, and paused ~2 s after the reader's own touch / wheel. In the page-flip view the caption may cover the page's bottom.
+  var capUser = 0, capBusy = 0, capTimer = 0;
+  ["touchstart", "touchmove", "wheel", "mousedown", "keydown"].forEach(function (ev) { window.addEventListener(ev, function () { capUser = Date.now(); }, { passive: true, capture: true }); });
+  function capTop() {   // the screen y where the caption (or, with none, the mic) starts
+    var c = document.querySelector(".rd-cap") || document.getElementById("rdMic");
+    return c ? c.getBoundingClientRect().top : innerHeight;
+  }
+  window.reciteLineRect = function () { return curLineRect(); };   // QA
+  function curLineRect() {
+    if (rd.on) { var w = document.querySelector(".rd-word"); if (!w) return null; var r = w.getBoundingClientRect(); return { top: r.top, bottom: r.bottom }; }
+    return recite.on ? reciteLineRect() : null;
+  }
+  function capKeep() {
+    if (turnMode !== "v" || (!recite.on && !rd.on)) return;
+    var lr = curLineRect(); if (!lr) return;
+    var wait = capUser + 2000 - Date.now(), now = Date.now();
+    if (wait > 0 || now - capBusy < 450) { clearTimeout(capTimer); capTimer = setTimeout(capKeep, Math.max(wait, capBusy + 450 - now) + 30); return; }
+    var bar = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight + 8, lim = capTop() - 12;
+    if (lr.bottom <= lim && lr.top >= bar) return;
+    // bring the line to ~30% of the free band below the bar, so the next lines need no scroll for a while
+    var want = bar + Math.max(0, (lim - bar - (lr.bottom - lr.top)) * 0.3);
+    window.scrollBy({ top: lr.top - want, behavior: "smooth" }); capBusy = now;
+    clearTimeout(capTimer); capTimer = setTimeout(capKeep, 520);
+  }
+  function capFollow(toEnd) {   // the caption's text shows at most 2 lines (CSS); the latest words / the word being read stay in them
+    var c = document.querySelector(".rd-cap"), d = c && c.querySelector(":scope > div"); if (!d) return;
+    var m = d.querySelector("mark"), lh = parseFloat(getComputedStyle(d).lineHeight) || 34;
+    if (m && !toEnd) d.scrollTop += m.getBoundingClientRect().top - d.getBoundingClientRect().top - d.clientHeight / 2 + m.offsetHeight / 2;
+    else d.scrollTop = d.scrollHeight;
+    d.scrollTop = Math.round(d.scrollTop / lh) * lh;
   }
   // The wrong words of a recited ayah ("s:a" -> word numbers), for marking them red.
   function reciteBad(k) {
@@ -2497,12 +2794,13 @@
     reciteHear(text, kind === "final");
   };
   function reciteToggle() {
-    if (recite.on) { recite.on = false; recite.base = null; Mic.stop(); hifzBar(); reciteCap(); return; }
+    if (recite.on) { recite.on = false; recite.base = null; recite.stopAt = Date.now(); Mic.stop(); hifzBar(); reciteCap(); return; }
     if (!window.ReciteBridge) return toast("التسميع بالصوت شغال في التطبيق على الموبايل بس");
     if (!micGate(reciteToggle)) return;
     recite.on = true; recite.k = null; recite.pos = 0; recite.base = null; hifzPageTop(); Mic.start(); hifzBar(); reciteCap();
+    if (hifz.on && /^#\/p\//.test(location.hash) && !document.body.classList.contains("fs")) hifzFsLater(3000);   // Sprint 2 #26: the mic starts, full screen again after 3 s
   }
-  function reciteStop() { if (recite.on) { recite.on = false; Mic.stop(); reciteCap(); } }
+  function reciteStop() { if (recite.on) { recite.on = false; recite.stopAt = Date.now(); Mic.stop(); reciteCap(); } }
 
   // ---------- القراءة بالصوت على صفحات المصحف ----------
   // The mic in the corner of the mushaf pages: the reader recites, the ayah is found from the words heard (voiceAyahs) and
@@ -2511,6 +2809,8 @@
   // no word boxes), and at the end of the page the page is turned.
   var rdPage = null;
   var rd = { on: false, s: 0, a: 0, w: 0, heard: [], done: 0 };
+  // 5.26 #47: «اختبرني» next to the mic while a hifz-map range (#/p/N?r=...) is shown
+  function rdTestHtml() { return hmR && !hifz.on && /[?&]r=/.test(location.hash) ? '<button id="rdTest" class="rd-test">' + ic("eyeoff") + "اختبرني</button>" : ""; }
   function rdMicHtml() { return '<button id="rdMic" class="rd-mic' + (rd.on ? " on" : "") + '" aria-label="القراءة بالصوت">' + ic("mic") + "</button>" + (rd.on ? rdCapHtml() : ""); }
   function rdWords(s, a) { return Q.t[s - 1][a - 1].split(" "); }
   function rdCapHtml() {
@@ -2529,7 +2829,7 @@
   }
   // Boxes for word w of an ayah on the scan: the ayah's letters spread over its line pieces (right to left, in reading
   // order), as the scans have no word boxes. box(page) gives the page's element.
-  function wordBoxes(s, a, ws, wi, box, cls) {
+  function wordBoxes(s, a, ws, wi, box, cls, dk) {
     var rs = (Q.r[s - 1] && Q.r[s - 1][a - 1]) || [], len = function (w) { return norm(w).length + 1; };
     // 5.19: the measured word boxes when this edition has them (wi counted among the real words, as rWords)
     if (EDS[edition] && EDS[edition].w) {
@@ -2540,7 +2840,7 @@
         var rows = wbRows(p); if (!rows) { wbNeed(p, function () {}); return; }
         rows.forEach(function (r) {
           if (r[0] !== s || r[1] !== a || r[2] !== ri) return; var bx = box(p); if (!bx) return; got = true;
-          var d = document.createElement("div"); d.className = cls;
+          var d = document.createElement("div"); d.className = cls; if (dk) d.dataset.k = dk;
           d.style.cssText = "left:" + r[3] / 10 + "%;top:" + r[4] / 10 + "%;width:" + (r[5] - r[3]) / 10 + "%;height:" + (r[6] - r[4]) / 10 + "%";
           bx.appendChild(d);
         });
@@ -2555,7 +2855,7 @@
       var x0 = Math.max(from, a0), x1 = Math.min(to, a1); if (x1 <= x0) return;
       var bx = box(r[0]); if (!bx) return;
       var right = r[3] - (x0 - a0) / (a1 - a0) * w, left = r[3] - (x1 - a0) / (a1 - a0) * w;
-      var d = document.createElement("div"); d.className = cls;
+      var d = document.createElement("div"); d.className = cls; if (dk) d.dataset.k = dk;
       d.style.cssText = "left:" + left / 10 + "%;top:" + r[2] / 10 + "%;width:" + (right - left) / 10 + "%;height:" + (r[4] - r[2]) / 10 + "%";
       bx.appendChild(d);
     });
@@ -2644,6 +2944,7 @@
   function rdFollow() {
     var w = document.querySelector(".rd-word"); if (!w) return;
     var r = w.getBoundingClientRect(), top = (document.querySelector(".bar") || { offsetHeight: 0 }).offsetHeight + 8;
+    if (turnMode === "v") { capKeep(); return; }   // 5.26 #38: the vertical view keeps the word above the caption
     if (r.top < top || r.bottom > innerHeight * 0.7) window.scrollBy({ top: r.top - Math.max(top, innerHeight * 0.35), behavior: "smooth" });
   }
   // Of the recogniser's guesses, the one that fits the ayah being read best (or, before it is found, any ayah best).
@@ -2676,8 +2977,9 @@
   var Mic = {
     cur: null,
     nv: function () { return !!window.NvBridge && NvBridge.ready(); },
-    start: function () { Mic.cur = Mic.nv() ? "nv" : "phone"; if (Mic.cur === "nv") NvBridge.start(); else ReciteBridge.start(); },
-    stop: function () { var c = Mic.cur; Mic.cur = null; try { if (c === "nv") NvBridge.stop(); else if (window.ReciteBridge) ReciteBridge.stop(); } catch (e) {} }
+    last: null,          // the engine of the session just stopped: its flushed final is still judged on that engine (ctcJudge)
+    start: function () { recite.stopAt = htv.stopAt = mtv.stopAt = 0; Mic.last = null; Mic.cur = Mic.nv() ? "nv" : "phone"; if (Mic.cur === "nv") NvBridge.start(); else ReciteBridge.start(); },
+    stop: function () { var c = Mic.cur; Mic.last = c || Mic.last; Mic.cur = null; try { if (c === "nv") NvBridge.stop(); else if (window.ReciteBridge) ReciteBridge.stop(); } catch (e) {} }
   };
   function rdStop() { if (!rd.on) return; rd.on = false; try { if (window.Asr) Asr.stop(); } catch (e) {} Mic.stop(); rdPaint(); }
   function rdToggle() {
@@ -2700,6 +3002,13 @@
     rdPaint();
   }
   document.addEventListener("click", function (e) { if (e.target.closest("#rdMic")) rdToggle(); });
+  // 5.26 #47: «اختبرني» on a hifz-map range (#/p/N?r=S:A1-A2): the same path as «المراجعة» › range (hifz.test.end = A2), then the mic starts
+  var hzAutoMic = false;
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("#rdTest") || !hmR) return;
+    var r = hmR; rdStop(); hzAutoMic = true;
+    hzTestStart({ k: "a", s: r.s, a1: r.a1, a2: r.a2, w: "o" }, "m");
+  });
   window.addEventListener("hashchange", function () { if (rd.on && !/^#\/p\//.test(location.hash)) rdStop(); else { setTimeout(rdPaint, 50); if (rd.on) rdHints(); } });
 
   // ---------- الأوامر الصوتية ----------
@@ -2899,6 +3208,31 @@
       toast(window.LANG === "en" ? "Bookmark «" + name + "» saved" : "حُفظت العلامة «" + name + "»");
     });
   }
+  // 5.23 #16: a corner button on the mushaf: one tap bookmarks / un-bookmarks the page on screen, no dialog. Its entries
+  // carry p (the page) so only these are toggled off, never a bookmark the reader named by hand.
+  var mkBtn = document.createElement("button");
+  mkBtn.id = "qMk"; mkBtn.className = "q-mk"; mkBtn.hidden = true; mkBtn.setAttribute("aria-label", "علامة على هذه الصفحة");
+  // Sprint 2 #44 / 5.26: the button lives in a thin transparent bar over the page frame (#qBar); the juz/hizb label was removed.
+  // The bar is fixed under the app bar's height (the same spot in normal, fullscreen and hifz mode, so the first tap never lands on the page);
+  // only its button and label take taps, and those stop the click so the page's fs / auto-scroll handlers never see it.
+  var mkBar = document.createElement("div");
+  mkBar.id = "qBar"; mkBar.className = "q-bar"; mkBar.hidden = true;
+  mkBar.appendChild(mkBtn);
+  document.body.appendChild(mkBar);
+  mkBar.addEventListener("click", function (e) { e.stopPropagation(); });
+  function mkPage() { var m = /^#\/p\/(\d+)/.exec(location.hash); return m ? +m[1] : 0; }
+  function mkPaint() {
+    var pg = mkPage(), on = pg && marks().some(function (x) { return x.p === pg; });
+    mkBar.hidden = !pg; mkBtn.hidden = !pg; mkBtn.classList.toggle("on", !!on); mkBtn.innerHTML = ic("mark");
+  }
+  mkBtn.onclick = function () {
+    var pg = mkPage(), M = marks(), i = -1; if (!pg) return;
+    M.forEach(function (x, k) { if (i < 0 && x.p === pg) i = k; });
+    if (i >= 0) { M.splice(i, 1); save("marks", M); mkPaint(); toast(window.LANG === "en" ? "Bookmark removed" : "اتشالت العلامة"); return; }
+    var f = firstAyahOfPage(pg); if (!f) return toast("لا توجد آيات في هذه الصفحة");
+    M.unshift({ n: (window.LANG === "en" ? "Page " : "صفحة ") + ar(pg), s: f[0], a: f[1], t: Date.now(), p: pg }); save("marks", M); mkPaint();
+    toast(window.LANG === "en" ? "Bookmarked page " + ar(pg) : "اتسجلت علامة على الصفحة " + ar(pg));
+  };
   // A small sheet with one text field (prompt() does nothing inside the Android WebView).
   // Repeat a chosen group of ayat: from, to, and how many times the whole group is recited (0 = until stopped).
   function rangeDialog(s, a) {
@@ -3099,7 +3433,7 @@
     return '<div class="st-ring"><div class="hl-ring" style="--p:' + (p == null ? 0 : p) + '"><b>' + (p == null ? "—" : ar(p) + "٪") + "</b></div><small>" + label + "</small></div>";
   }
   function hifzStatsHtml() {
-    var pc = hifzPageColors(), tot = Q.last - Q.first + 1, pct = Math.round(pc.cnt[3] * 1000 / tot + pc.cnt[2] * 1000 / tot) / 10, HA = load("hifzAyat", {}), rv = 0, n = 0;
+    var pc = hifzPageColors(), tot = Q.last - Q.first + 1, pct = pc.pct, HA = load("hifzAyat", {}), rv = 0, n = 0;
     Object.keys(HA).forEach(function (k) { if (HA[k]) { n++; if (HA[k].ok === 0) rv++; } });
     var log = load("reciteLog", []), w = 0, b = 0; log.forEach(function (x) { w += x.w; b += x.bad; });
     return '<section class="kh-sec st-hifz"><h3>' + ic("eyeoff") + "الحفظ</h3>" +
@@ -3538,11 +3872,12 @@
   // 5.11 G6: the hifz test, the map and the log, one tap from each other (the test is the main tool)
   function hzNav(cur) {
     return '<nav class="z-sort hz-nav">' + [["#/hifztest", "اختبار الحفظ"], ["#/hifzmap", "خريطة الحفظ"], ["#/hifzlog", "المراجعة"]].map(function (x) {
-      return '<a href="' + x[0] + '"' + (x[0] === cur ? ' class="on" aria-current="page"' : "") + ">" + x[1] + "</a>"; }).join("") + "</nav>";
+      return '<a href="' + x[0] + '"' + (x[0] === cur ? ' class="on" aria-current="page"' : "") + ">" + x[1] + "</a>"; }).join("") + "</nav>" +
+      (cur === "#/hifzlog" ? hzResumeBtn() : "");
   }
   // ---------- 5.13 P2.6: «المراجعة» ----------
   // A surah is memorised when the app heard 80% of its ayat right in tests (q.hifzAyat, ok = 1), never by a tap:
-  // hifzAuto puts it in q.hifzLog (review dates) at 80% and takes it out below. Old marks of surahs with no tested ayah stay.
+  // hzRecord puts it on the lists at 80%. Old marks of surahs with no tested ayah stay.
   function hifzPct(s, HA) {
     var n = Q.s[s - 1][3], ok = 0, any = 0;
     for (var a = 1; a <= n; a++) { var h = HA[s + ":" + a]; if (h) { any++; if (h.ok) ok++; } }
@@ -3557,26 +3892,38 @@
     else return D;
     save("hifzLog", D); return D;
   }
-  // a test from «المراجعة» with p on surah s: at 80% the surah is on «السور المراجعة» (q.hzRev), below it is taken off;
-  // a surah on the list gets its next review date (hzReviewed)
+  // a test from «المراجعة» with p on surah s: at 80% the surah is on «السور المراجعة» (q.hzRev); below it STAYS on the list
+  // and comes back tomorrow (Sprint 2 #47: iv = 1); a surah on the list gets its next review date (hzReviewed)
   function hzSetRev(s, p) {
     var R = hzRevData();
     if (p >= 80 && !R[s]) R[s] = { m: todayStr(), r: todayStr(), iv: 7 };
-    else if (p < 80 && R[s]) delete R[s];
-    if (R[s]) hzReviewed(R[s], p);
+    if (R[s]) { hzReviewed(R[s], p); if (p < 80) R[s].iv = 1; }
     save("hzRev", R); return R;
   }
-  window.hzSetMemo = hzSetMemo; window.hzSetRev = hzSetRev;   // QA
-  function hifzAuto(ss) {
-    var HA = load("hifzAyat", {}), D = hifzLogData(), ch = false, seen = {};
-    ss.forEach(function (s) {
-      if (seen[s]) return; seen[s] = 1;
-      var r = hifzPct(s, HA); if (!r.any) return;
-      if (r.p >= 80 && !D[s]) { D[s] = { m: todayStr(), r: todayStr(), iv: 7 }; ch = true; }
-      else if (r.p < 80 && D[s]) { delete D[s]; ch = true; }
+  // Sprint 2 #47/#49: the ONE place a finished session (word test, mushaf test, sard / random review) is recorded.
+  // marks = {"s:a": true|false}, p = the session score 0..100. rv (the day the ayah was last reviewed with >= 80%) is written
+  // only here; the map colours read it (hifzPageColors). o = {rev: bool, memo: fn(s) -> whole surah covered, sp: {s: surah score}}
+  function hzRecord(marks, p, o) {
+    o = o || {};
+    var H = load("hifzAyat", {}), t = todayStr(), ss = {};
+    Object.keys(marks).forEach(function (k) {
+      var h = H[k] || {}, n = { d: t, ok: marks[k] ? 1 : 0 };
+      Object.keys(h).forEach(function (f) { if (!(f in n)) n[f] = h[f]; });
+      if (p >= 80) n.rv = t;
+      H[k] = n; ss[k.split(":")[0]] = 1;
     });
-    if (ch) { save("hifzLog", D); syncAlarms(); }
+    save("hifzAyat", H);
+    Object.keys(ss).forEach(function (x) {
+      var s = +x, sp = o.sp && o.sp[x] != null ? o.sp[x] : p;
+      if (sp >= 80) { if (o.rev) hzSetRev(s, sp); else if (o.memo && o.memo(x)) hzSetMemo(s, sp); }
+      else {   // below 80: a review session keeps the surah on hzRev, due again tomorrow; a whole-surah test still takes it off hifzLog
+        var R = hzRevData(); if (R[s]) { R[s].iv = 1; save("hzRev", R); }
+        if (!o.rev && o.memo && o.memo(x)) hzSetMemo(s, sp);
+      }
+    });
+    return H;
   }
+  window.hzSetMemo = hzSetMemo; window.hzSetRev = hzSetRev; window.hzRecord = hzRecord;   // QA
   // test ranges: ayat by their place in the whole Quran (0..6235); quarters and halves from the 240 rub' al-hizb (QURAN.h)
   var AY0 = null;
   function ayStart() { if (!AY0) { AY0 = [0]; for (var i = 0; i < 114; i++) AY0.push(AY0[i] + Q.s[i][3]); } return AY0; }
@@ -3604,6 +3951,25 @@
     return W.sort(function (a, b) { return a - b; });
   }
   window.hzWrong = hzWrong;   // QA
+  // 5.23: mushaf lines a place of ayat i0..i1 (gIdx) covers in the current edition: line pieces from Q.r (box = [page, x1, y1, x2, y2]),
+  // pieces of one page with y within half a line height are one line, so ayat sharing a line count it once. 0 = no boxes (text mode)
+  function hzLines(i0, i1) {
+    if (!Q.r) return 0;
+    var pg = {}, n = 0;
+    for (var i = i0; i <= i1; i++) { var x = gAy(i), bs = Q.r[x[0] - 1] && Q.r[x[0] - 1][x[1] - 1]; (bs || []).forEach(function (b) { (pg[b[0]] = pg[b[0]] || []).push([b[2], b[4] - b[2]]); }); }
+    Object.keys(pg).forEach(function (k) { var prev = -1e9; pg[k].sort(function (u, v) { return u[0] - v[0]; }).forEach(function (u) { if (u[0] - prev > 0.5 * u[1]) { n++; prev = u[0]; } }); });
+    return n;
+  }
+  // lines on a full page by edition (measured on the boxes: median and p90 are 15 in kfgqpc, kfold, shamarly, harmain; the 12-line pages are
+  // only surah starts); a place is at most half of it
+  var HZ_LINES = { kfgqpc: 15, kfold: 15, shamarly: 15, harmain: 15 };
+  function hzCap() { return (HZ_LINES[edition] || 15) / 2; }
+  // an ayah range cut into places of at most half a page each (a longer single ayah stands alone)
+  function hzSplit(a, b) {
+    var out = [], st = a, cap = hzCap();
+    while (st <= b) { var en = st; while (en < b && hzLines(st, en + 1) <= cap) en++; out.push([st, en]); st = en + 1; }
+    return out;
+  }
   function hzParts(c) {
     var R = hzRange(c), len = R[1] - R[0] + 1;
     if (c.w === "x") {
@@ -3617,23 +3983,25 @@
       return G;
     }
     if (c.w !== "r") return [[R[0], R[1]]];
-    if (len <= 3) return [[R[0], R[1]]];
+    if (len <= 3) return hzSplit(R[0], R[1]);
     // at random, a place lands on a wrong ayah 2 times in 3 (while there are wrong ayat not yet in a place)
     var mx = Math.max(1, Math.min(10, Math.ceil(len / 30))), mn = Math.ceil(mx / 2), want = mn + Math.floor(Math.random() * (mx - mn + 1)), P = [], W2 = hzWrong(R);
     for (var t = 0; t < 300 && P.length < want; t++) {
-      var n = Math.min(len, 3 + Math.floor(Math.random() * 10)), st, en, free = W2.filter(function (i) { return P.every(function (x) { return i < x[0] || i > x[1]; }); });
-      if (free.length && Math.random() < 2 / 3) { var wi = free[Math.floor(Math.random() * free.length)]; st = Math.max(R[0], Math.min(R[1] - n + 1, wi - Math.floor(Math.random() * n))); }
+      var n = Math.min(len, 3 + Math.floor(Math.random() * 10)), st, en, wi = -1, free = W2.filter(function (i) { return P.every(function (x) { return i < x[0] || i > x[1]; }); });
+      if (free.length && Math.random() < 2 / 3) { wi = free[Math.floor(Math.random() * free.length)]; st = Math.max(R[0], Math.min(R[1] - n + 1, wi - Math.floor(Math.random() * n))); }
       else st = R[0] + Math.floor(Math.random() * (len - n + 1));
       en = st + n - 1;
+      // half-page cap: trim from the end while the wrong ayah stays inside, else from the start; a long ayah ends up alone
+      while (en > st && hzLines(st, en) > hzCap()) { if (wi < 0 || en > wi) en--; else st++; }
       if (P.every(function (x) { return en < x[0] - 1 || st > x[1] + 1; })) P.push([st, en]);
     }
     return P.sort(function (x, y) { return x[0] - y[0]; });
   }
-  window.hzParts = hzParts; window.hzTestStart = function (c, how, P) { hzTestStart(c, how, P); };   // QA
+  window.hzParts = hzParts; window.hzLines = hzLines; window.hzCap = hzCap; window.hzTestStart = function (c, how, P) { hzTestStart(c, how, P); };   // QA
   function hzTestStart(c, how, P0) {
     var P = P0 || hzParts(c);
-    if (!P.length) return toast("مفيش آيات غلط في المدى ده. جرّب «عشوائي» أو مدى تاني.");
-    hzFrom = location.hash === "#/hifzlog";
+    if (!P.length) return toast("مفيش آيات غلط في المدى ده. جرّب «اختبار عشوائي» أو مدى تاني.");
+    hzFrom = location.hash === "#/hifzlog"; hzResumeClear();   // Sprint 2 #1/#35: a different test replaces the old resume
     var b = gAy(P[0][0]), e = gAy(P[0][1]), pc = P.slice(1), tot = P.length;
     if (how === "m") { hifzTestPages(b[0], b[1]); hifz.test.rv = 1; hifz.test.end = e[0] + ":" + e[1]; hifz.test.pc = pc; hifz.test.pn = 1; hifz.test.pt = tot; if (tot > 1) toast(hzPlace(1, tot)); return; }
     var st = load("hifzTest", { lv: 25 });
@@ -3647,7 +4015,7 @@
     var way = load("hzWardWay", "o");
     hzTestStart({ k: "s", s: w[0], w: way }, "m", hzWardPlan(w, way));
   }
-  // 5.16 U2: «بالسرد» = each due surah whole; «عشوائي» = random parts (3–12 ayat) inside each due surah, in Quran order
+  // 5.16 U2: «بالسرد» = each due surah whole; «عشوائي» = random parts (3–12 ayat, at most half a page) inside each due surah, in Quran order
   function hzWardPlan(w, way) {
     var P = [];
     if (way === "r") w.forEach(function (s) { P = P.concat(hzParts({ k: "s", s: s, w: "r" })); });
@@ -3700,7 +4068,7 @@
       (c.k === "jq" || c.k === "jh" || c.k === "mq" || c.k === "mh" ? sel("hzQ", "الجزء من المدى", parts, c.q) : "") + "</div>" +
       (c.k === "a" ? '<div class="hz-row hz-ays"><span>من الآية</span>' + sel("hzA1", "من الآية", ays, c.a1) + "<span>إلى</span>" + sel("hzA2", "إلى الآية", ays, Math.max(c.a1, c.a2)) + "</div>" : "") +
       '<p class="hint hz-rng"><span>من</span> <b>' + ayName(R[0]) + "</b> <span>إلى</span> <b>" + ayName(R[1]) + "</b> · <span>" + ar(R[1] - R[0] + 1) + " آية</span></p>" +
-      '<div class="z-sort hz-way"><button data-w="o"' + (c.w !== "r" && c.w !== "x" ? ' class="on"' : "") + '>بالسرد</button><button data-w="r"' + (c.w === "r" ? ' class="on"' : "") + ">عشوائي (٣–١٢ آية)</button>" +
+      '<div class="z-sort hz-way"><button data-w="o"' + (c.w !== "r" && c.w !== "x" ? ' class="on"' : "") + '>بالسرد</button><button data-w="r"' + (c.w === "r" ? ' class="on"' : "") + ">اختبار عشوائي</button>" +
       '<button data-w="x"' + (c.w === "x" ? ' class="on"' : "") + ">أخطائي بس (" + ar(nW) + ")</button></div>" +
       (c.w === "x" ? '<p class="hint">' + (nW ? "الاختبار بيبقى على الآيات اللي غلطت فيها قبل كده، مع آية قبلها وآية بعدها." : "مفيش آيات غلط في المدى ده لسه.") + "</p>" : "") +
       '<div class="hz-go"><button class="continue" id="hzGoM">' + ic("book") + ' على المصحف</button><button class="continue" id="hzGoW">' + ic("eyeoff") + " بالكلمات</button></div></section>";
@@ -3709,12 +4077,12 @@
     html += '<section class="hz-due" id="hzDue"><h3 class="hz-h">' + ic("rep") + "عليك مراجعة</h3>" +
       '<div class="hz-row hz-daily"><span>ورد المراجعة اليومي</span>' + sel("hzDaily", "ورد المراجعة اليومي", [[0, "كل المستحق"], [1, "صفحة واحدة"], [2, "صفحتين"], [3, "٣ صفحات"], [5, "٥ صفحات"], [10, "١٠ صفحات"], [20, "٢٠ صفحة"]], per) + "</div>" +
       (due.length ? '<p class="hint hz-wsum">ورد النهارده: ' + ar(due.length) + " سورة · " + ar(W.pages) + " صفحة" + (W.all > due.length ? " · وفيه " + ar(W.all - due.length) + " سورة تانية مستنية" : "") + "</p>" +
-        '<div class="z-sort hz-wway">' + [["o", "بالسرد"], ["r", "عشوائي"]].map(function (x) { return '<button data-ww="' + x[0] + '"' + (load("hzWardWay", "o") === x[0] ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div>" +
+        '<div class="z-sort hz-wway">' + [["o", "بالسرد"], ["r", "اختبار عشوائي"]].map(function (x) { return '<button data-ww="' + x[0] + '"' + (load("hzWardWay", "o") === x[0] ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div>" +
         '<button class="continue hz-wgo" id="hzWardGo">' + ic("book") + " اختبرني في ورد النهارده</button>" + due.map(function (x) {
       return '<div class="hl-due"><div><b>سورة ' + Q.s[x.s - 1][0] + "</b><small>آخر مراجعة من " + ar(x.age) + " يوم · كل " + ar(x.iv) + " يوم" + (x.sc != null && x.sc < 70 ? " · آخر نتيجة " + ar(x.sc) + "٪" : "") +
         '</small></div><button data-test="' + x.s + '">اختبرني</button></div>';
     }).join("") : '<p class="hint">مفيش مراجعة مستحقة النهارده. كل سورة ليها ميعاد: أول مرة بعد ٧ أيام. ولو جبت ٩٠٪ أو أكتر، المدة بتتضاعف لحد ٩٠ يوم. ولو جبت أقل من ٧٠٪، بترجعلك تاني يوم.</p>') + "</section>";
-    html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="continue hl-sbtn">' + ic("check") + ' السور المراجعة</summary><p class="hint">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class="hl-list">';
+    html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="continue hl-sbtn">' + ic("check") + ' السور المراجعة</summary><p class="hint">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتفضل فيها وبترجع لك في المراجعة بكرة.</p><ul class="hl-list">';
     for (var s = 1; s <= 114; s++) {
       var e = L[s], pc = hifzPct(s, HA);
       html += '<li data-s="' + s + '" class="' + (e ? "on" : "") + '"><span class="hl-n">' + ar(s) + "</span><b>" + Q.s[s - 1][0] + "</b>" +
@@ -3722,6 +4090,7 @@
     }
     view.innerHTML = '<div class="hl">' + html + "</ul></details></section></div>";
     document.getElementById("hlFold").ontoggle = function () { hzFoldOpen = this.open; };
+    hzResumeBind();
     var put = function (k, v, top) {
       c[k] = v; if (k === "s") { c.a1 = 1; c.a2 = Math.min(7, Q.s[v - 1][3]); }
       save("hzScope", c); var y = window.scrollY; showHifzLog(); window.scrollTo(0, top ? 0 : y);
@@ -4128,29 +4497,45 @@
   // ---------- خريطة الحفظ ----------
   // Every page of the current edition as a square, coloured from hifzLog (memorised surahs and when they were last revised).
   // Colour 0..3 of every mushaf page (c[pageNo]) and how many pages have each; shared by the hifz map and the hifz test's mini map.
+  // ONE colour rule per surah segment (a surah's ayat on one page); the page colour and the map boxes both use it (5.23 #37):
+  // on = memorised (hifzLog) or reviewed (hzRev). on: 2 if the review is due, a tested ayah is wrong or older than 14 days, else 3
+  // (never raised by the ayah colour). not on: 0 if no ayah of it was tested, else 1 (<80%, never complete).
   function hifzPageColors() {
-    var L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), today = dayNum(new Date()), cnt = [0, 0, 0, 0], col = [];
-    // ayat recited or tested one by one (hifzMark), per page: how many of the page's ayat, the oldest day, any wrong
-    var HA = load("hifzAyat", {}), PA = {};
-    for (var s0 = 1; s0 <= 114; s0++) Q.p[s0 - 1].forEach(function (pg, i) {
-      var e = PA[pg] = PA[pg] || { n: 0, got: 0, age: 0, bad: false }, h = HA[s0 + ":" + (i + 1)]; e.n++;
-      if (h) { e.got++; e.age = Math.max(e.age, today - parseDay(h.d)); if (!h.ok) e.bad = true; }
-    });
+    var L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), today = dayNum(new Date()), cnt = [0, 0, 0, 0], col = [], HA = load("hifzAyat", {}), SG = [], PT = {};
+    for (var s0 = 1; s0 <= 114; s0++) {
+      var g = SG[s0] = {}, on = !!(L[s0] || RV[s0]), due = !!(RV[s0] && hzDueInfo(RV[s0], hzScoreOf(sc, s0)).due);
+      Q.p[s0 - 1].forEach(function (pg, i) {
+        var e = g[pg] = g[pg] || { n: 0, got: 0, age: 0, bad: false, on: on, due: due, rv: 0, rvAge: 0 }, h = HA[s0 + ":" + (i + 1)]; e.n++; PT[pg] = (PT[pg] || 0) + 1;
+        if (h) { e.got++; e.age = Math.max(e.age, today - parseDay(h.d)); if (!h.ok) e.bad = true; if (h.rv) { e.rv++; e.rvAge = Math.max(e.rvAge, today - parseDay(h.rv)); } }
+      });
+    }
+    function segc(s, n) {
+      var e = SG[s] && SG[s][n]; if (!e) return 0;
+      // Sprint 2 #47/#49: review results (rv, written only by hzRecord) decide first: every ayah reviewed >= 80% -> 3 (2 after 14 days),
+      // some -> 1, none -> the legacy rule below
+      if (e.rv) return e.rv === e.n ? (e.rvAge <= 14 ? 3 : 2) : 1;
+      if (e.on) return e.due || e.bad || e.age > 14 ? 2 : 3;
+      return e.got || e.bad ? 1 : 0;
+    }
+    var done = 0;
     for (var n = Q.first; n <= Q.last; n++) {
-      var ss = [], on = 0, age = 0, weak = false;
+      var ss = [], c, on = 0, a3 = 0, a2 = 0, a0 = 0, onAy = 0;
       for (var s = 1; s <= 114; s++) { var ps = Q.p[s - 1]; if (ps[0] <= n && ps[ps.length - 1] >= n) ss.push(s); }
-      ss.forEach(function (s) { var e = L[s], r = RV[s]; if (e) { on++; if (r && hzDueInfo(r, hzScoreOf(sc, s)).due) weak = true; } });
-      var c = !on ? 0 : on < ss.length ? 1 : weak ? 2 : 3, pa = PA[n];
-      if (pa && pa.got) c = Math.max(c, pa.got < pa.n ? 1 : pa.age > 14 || pa.bad ? 2 : 3);
+      ss.forEach(function (s) { var k = segc(s, n); if (k === 3) a3++; if (k === 2) a2++; if (k === 0) a0++; if (k >= 2) { on++; onAy += SG[s][n].n; } });
+      c = !ss.length ? 0 : a3 === ss.length ? 3 : on === ss.length && a2 ? 2 : a0 === ss.length ? 0 : 1;
+      if (ss.length === 1) c = segc(ss[0], n);
+      if (PT[n]) done += onAy / PT[n];
       cnt[c]++; col[n] = c;
     }
-    return { c: col, cnt: cnt };
+    var tot = Q.last - Q.first + 1;
+    return { c: col, cnt: cnt, done: done, pct: Math.round(done * 1000 / tot) / 10, p2: Math.round(done * 10000 / tot) / 100, segc: segc };
   }
+  window.hifzPageColors = hifzPageColors;   // QA
   // Small hifz-map card for the top of the hifz test: ring of memorised pages + ayat waiting for review; links to the map.
   function hifzMini() {
-    var pc = hifzPageColors(), tot = Q.last - Q.first + 1, pct = Math.round(pc.cnt[3] * 1000 / tot + pc.cnt[2] * 1000 / tot) / 10, HA = load("hifzAyat", {}), rv = 0;
+    var pc = hifzPageColors(), tot = Q.last - Q.first + 1, pct = pc.pct, HA = load("hifzAyat", {}), rv = 0;
     Object.keys(HA).forEach(function (k) { if (HA[k] && HA[k].ok === 0) rv++; });
-    return '<a class="ht-mini hl-top" href="#/hifzmap"><div class="hl-ring" style="--p:' + pct + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(pct) + "٪ محفوظ · " + ar(rv) + " آية للمراجعة</b><small>خريطة الحفظ ←</small></div></a>";
+    return '<a class="ht-mini hl-top" href="#/hifzmap"><div class="hl-ring" style="--p:' + pc.p2 + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(pct) + "٪ محفوظ · " + ar(rv) + " آية للمراجعة</b><small>خريطة الحفظ ←</small></div></a>";
   }
   function showHifzMap() {
     titleEl.textContent = "خريطة الحفظ";
@@ -4158,42 +4543,31 @@
     var pc = hifzPageColors(), cnt = pc.cnt, cells = "", L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), HA = load("hifzAyat", {}), today = dayNum(new Date());
     // a page holding more than one surah gets one box per surah (5.11 G6): the colour rules of hifzPageColors, for that
     // surah's ayat on that page
-    function segCol(s, n) {
-      var e = L[s], c = !e ? 0 : RV[s] && hzDueInfo(RV[s], hzScoreOf(sc, s)).due ? 2 : 3, got = 0, tot = 0, age = 0, bad = false;
-      Q.p[s - 1].forEach(function (pg, i) { if (pg !== n) return; tot++; var h = HA[s + ":" + (i + 1)]; if (h) { got++; age = Math.max(age, today - parseDay(h.d)); if (!h.ok) bad = true; } });
-      if (got) c = Math.max(c, got < tot ? 1 : age > 14 || bad ? 2 : 3);
-      return c;
-    }
+    function segCol(s, n) { return pc.segc(s, n); }
     for (var n = Q.first; n <= Q.last; n++) {
       var ss = []; for (var s = 1; s <= 114; s++) { var ps = Q.p[s - 1]; if (ps[0] <= n && ps[ps.length - 1] >= n) ss.push(s); }
-      if (ss.length < 2) cells += '<a class="hm-c c' + pc.c[n] + '" href="#/p/' + n + '" data-p="' + n + '" data-s="' + (ss[0] || surahOfPage(n)) + '" title="' + ar(n) + '"></a>';
-      else ss.forEach(function (s) { cells += '<a class="hm-c hm-s c' + segCol(s, n) + '" href="#/p/' + n + '" data-p="' + n + '" data-s="' + s + '" title="' + Q.s[s - 1][0] + " · " + ar(n) + '"></a>'; });
+      if (ss.length < 2) cells += '<span class="hm-c c' + pc.c[n] + '" role="button" tabindex="0" data-p="' + n + '" data-s="' + (ss[0] || surahOfPage(n)) + '" aria-label="' + ar(n) + '"></span>';
+      else ss.forEach(function (s) { cells += '<span class="hm-c hm-s c' + segCol(s, n) + '" role="button" tabindex="0" data-p="' + n + '" data-s="' + s + '" aria-label="' + Q.s[s - 1][0] + " · " + ar(n) + '"></span>'; });
     }
-    var tot = Q.last - Q.first + 1, pct = Math.round(cnt[3] * 1000 / tot + cnt[2] * 1000 / tot) / 10;
+    var tot = Q.last - Q.first + 1, pct = pc.pct;
     var lg = [["c3", "محفوظة ومراجَعة", cnt[3]], ["c2", "محتاجة مراجعة", cnt[2]], ["c1", "محفوظة جزئيًا", cnt[1]], ["c0", "لسه", cnt[0]]];
-    view.innerHTML = '<div class="hm">' + hzNav("#/hifzmap") + '<div class="hl-top"><div class="hl-ring" style="--p:' + pct + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(cnt[2] + cnt[3]) + " صفحة محفوظة</b><small>من " + ar(tot) + " صفحة</small><small>" + EDS[edition].name + "</small></div></div>" +
+    view.innerHTML = '<div class="hm">' + hzNav("#/hifzmap") + '<div class="hl-top"><div class="hl-ring" style="--p:' + pc.p2 + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(pc.done < 10 ? Math.round(pc.done * 10) / 10 : Math.round(pc.done)) + " صفحة محفوظة</b><small>من " + ar(tot) + " صفحة</small><small>" + EDS[edition].name + "</small></div></div>" +
       '<div class="hm-lg">' + lg.map(function (l) { return '<span><i class="hm-c ' + l[0] + '"></i>' + l[1] + " (" + ar(l[2]) + ")</span>"; }).join("") + "</div>" +
       '<div class="hm-grid">' + cells + "</div>" +
-      '<p class="hint">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع عشان تختار الآية وتبدأ الاختبار. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
+      '<p class="hint">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع تفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» جنب المايك عشان تختبر نفسك فيها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
       hzMemoList(L) + "</div>";
     document.getElementById("hmFold").ontoggle = function () { hzMemoOpen = this.open; };
-    view.querySelectorAll(".hm-grid .hm-c").forEach(function (c) { c.onclick = function (e) { e.preventDefault(); hzPick(+c.dataset.s, +c.dataset.p); }; });
-  }
-  // a box of the map: choose the ayah to start from, then test on the mushaf (the main way), with hidden words, or just read
-  function hzPick(s, n) {
-    var ay = []; Q.p[s - 1].forEach(function (pg, i) { if (pg === n) ay.push(i + 1); }); if (!ay.length) ay = [1];
-    var d = el('<div class="dlg-back"><div class="dlg hz-pick"><b>سورة ' + Q.s[s - 1][0] + " · صفحة " + ar(n) + '</b><label class="hz-from">ابدأ من الآية <select class="input" id="hzA">' +
-      ay.map(function (a) { return '<option value="' + a + '">' + ar(a) + "</option>"; }).join("") + "</select></label>" +
-      '<div class="hz-acts"><button class="continue" id="hzMus">' + ic("book") + " اختبار على المصحف</button>" +
-      '<button class="continue" id="hzWords">' + ic("eyeoff") + " اختبار بالكلمات</button>" +
-      '<button class="continue" id="hzOpen">' + ic("text") + ' افتح الصفحة</button></div><div class="dlg-btns"><button class="dlg-no">إلغاء</button></div></div></div>').firstChild;
-    document.body.appendChild(d);
-    var a = function () { return +d.querySelector("#hzA").value; }, close = function () { d.remove(); };
-    d.onclick = function (e) { if (e.target === d) close(); };
-    d.querySelector(".dlg-no").onclick = close;
-    d.querySelector("#hzMus").onclick = function () { var x = a(); close(); hifzTestPages(s, x); };
-    d.querySelector("#hzWords").onclick = function () { var x = a(), st = load("hifzTest", { lv: 25 }); close(); save("hifzTest", { lv: st.lv || 25, s: s, from: x }); location.hash = "#/hifztest/" + s; };
-    d.querySelector("#hzOpen").onclick = function () { close(); location.hash = "#/p/" + n; };
+    // 5.26 #47: tap = open the box's ayat in the mushaf, highlighted; the «اختبرني» button there starts the test on exactly these ayat
+    view.querySelectorAll(".hm-grid .hm-c").forEach(function (c) {
+      var s = +c.dataset.s, n = +c.dataset.p;
+      // 5.27 #1: the box is a role=button span (not an <a href>): a long press on the phone showed the WebView's «file:///» link preview
+      c.onclick = function (e) {
+        e.preventDefault();
+        var ay = []; Q.p[s - 1].forEach(function (pg, i) { if (pg === n) ay.push(i + 1); });
+        if (ay.length) openAyahRange(s, ay[0], ay[ay.length - 1]); else location.hash = "#/p/" + n;
+      };
+      c.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); c.click(); } };
+    });
   }
 
   // ---------- الختمة الجماعية للعيلة ----------
@@ -4382,12 +4756,36 @@
   function showWelcome() {
     var step = 0, d = document.createElement("div"); d.className = "wel"; document.body.appendChild(d);
     var rc = remCfg(), cfg = prayerCfg();
-    function done() { save("onboarded", true); if (mode === "pages" && !edReady(edition)) { mode = "text"; save("mode", "text"); applySettings(); } d.remove(); syncAlarms(); route(); }
+    // 5.23: wEd = the edition being fetched from this screen ({id, err}); wMd = the recitation model being fetched ({err}).
+    var wEd = null, wMd = null, wRetry = "التحميل فشل. اتأكد من الإنترنت وحاول تاني", prevDl = window.onEdDl;
+    function done() { window.onEdDl = prevDl; save("onboarded", true); if (mode === "pages" && !edReady(edition)) { mode = "text"; save("mode", "text"); applySettings(); } d.remove(); syncAlarms(); route(); }
+    function next() { if (step < 3) { step++; paint(); } else done(); }
+    // The same download events as Settings (onEdDl) also drive the bars here: edition bars carry data-dlp (updated by
+    // onEdDl itself); the model's one bar (shared runtime + pack) is updated here; errors repaint the step.
+    window.onEdDl = function (e, v) {
+      prevDl(e, v);
+      if (!d.isConnected) return;
+      var m = /^asrnvp?$/.test(e);
+      if (v === "error") { if (wEd && wEd.id === e) wEd.err = true; else if (m && wMd) wMd.err = true; else return; paint(); return; }
+      if (v === "done") { if (m && !wMd && step === 2 && e === "asrnvp") paint(); return; }
+      if (wEd && wEd.id === e && typeof v === "number") {   // onEdDl's own lookup hits Settings' hidden bar first, so this one is set here
+        var eb = d.querySelector('[data-dlp="' + e + '"]');
+        if (eb) { eb.querySelector("i").style.width = v + "%"; eb.nextElementSibling.textContent = v + "%"; }
+      } else if (v === "wait" && wEd && wEd.id === e) { var wb = d.querySelector('[data-dlp="' + e + '"]'); if (wb) wb.nextElementSibling.textContent = "النت فاصل، التنزيل هيكمّل لوحده…"; }
+      if (m && typeof v === "number") {
+        var pc = Math.round((asrPacks("asrnv").indexOf(e) * 100 + v) / 2), bar = d.querySelector("[data-wm]");
+        if (bar) { bar.querySelector("i").style.width = pc + "%"; bar.nextElementSibling.textContent = pc + "%"; }
+      }
+    };
     function paint() {
       var LAST = 3, dots = '<div class="wel-dots">' + [0, 1, 2, 3].map(function (i) { return "<i" + (i === step ? ' class="on"' : "") + "></i>"; }).join("") + "</div>", body;
       if (step === 0) body = '<div class="wel-ic">' + ic("book") + "</div><h2>أهلًا بيك في «لوح»</h2><p>اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</p>" +
-        '<div class="wel-opts">' + ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) { return '<button data-e="' + k + '"' + (k === edition && mode === "pages" ? ' class="on"' : "") + ">" + EDS[k].name + "</button>"; }).join("") +
-        '<button data-e="text"' + (mode === "text" ? ' class="on"' : "") + ">نص مشكول (بدون صور)</button></div>";
+        '<div class="wel-opts">' + ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) {
+          var sel = wEd ? wEd.id === k : k === edition && mode === "pages", st = "";
+          if (wEd && wEd.id === k) st = wEd.err ? '<span class="wel-err">' + wRetry + '</span><span class="wel-retry">إعادة المحاولة</span>' :
+            '<span class="wel-dlt">جاري التحميل</span><span class="dl-p" data-dlp="' + k + '"><i style="width:' + Math.max(0, edPct[k] || 0) + '%"></i></span><small>' + Math.max(0, edPct[k] || 0) + "%</small>";
+          return '<button data-e="' + k + '"' + (sel ? ' class="on"' : "") + ">" + EDS[k].name + st + "</button>"; }).join("") +
+        '<button data-e="text"' + (!wEd && mode === "text" ? ' class="on"' : "") + ">نص مشكول (بدون صور)</button></div>";
       else if (step === 1) {
         var loc = load("qiblaLoc", null);
         body = '<div class="wel-ic">' + ic("pin") + "</div><h2>مدينتك</h2><p>عشان مواقيت الصلاة والأذان والقبلة. كل الحساب بيتم على الموبايل من غير إنترنت.</p>" +
@@ -4399,10 +4797,11 @@
         // donation is a separate opt-in, unticked by default (G3.8).
         var aq = asrPacks("asrnv").some(function (k) { return edQ.indexOf(k) >= 0; });
         body = '<div class="wel-ic">' + ic("mic") + "</div><h2>نموذج التعرّف على التلاوة</h2><p>بيسمع تلاوتك ويتابعها في المصحف ويصحّح التسميع. بيشتغل على الموبايل من غير إنترنت، وحجمه " + ar(ASRM.asrnv.mb) + " ميجا (الأفضل تنزّله على wifi).</p>" +
-          (asrReady("asrnv") ? '<p class="wel-got">✓ النموذج جاهز</p>' : aq ? '<p class="wel-got">جاري التنزيل… تابعه من الإعدادات › التحميلات</p>' :
+          (asrReady("asrnv") ? '<p class="wel-got">✓ النموذج جاهز</p>' : wMd && wMd.err ? '<p class="wel-err">' + wRetry + '</p><button class="continue wel-pri" id="wRetry">' + ic("dl") + " إعادة المحاولة</button>" :
+          wMd || aq ? '<p class="wel-got">جاري التحميل</p><span class="dl-p" data-wm="1"><i style="width:' + wMdPct() + '%"></i></span><small class="wel-pc">' + wMdPct() + "%</small>" :
           '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
           '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>' +
-          '<button class="continue" id="wDl" disabled>' + ic("dl") + " حمّل النموذج</button>");
+          '<button class="continue wel-pri" id="wDl" disabled>' + ic("dl") + " حمّل النموذج</button>");
       } else body = '<div class="wel-ic">' + ic("bell") + "</div><h2>تحب نفكّرك بإيه؟</h2><p>تقدر تغيّر المواعيد بعدين من شاشة الصلاة.</p>" +
         [["adhan", "الأذان في مواعيده"], ["m", "أذكار الصباح"], ["e", "أذكار المساء"], ["kahf", "الكهف يوم الجمعة"], ["stat", "ملخص قراءة اليوم"]].map(function (r) {
           var on = r[0] === "adhan" ? cfg.adhan.fajr : rc[r[0]].on;
@@ -4411,15 +4810,27 @@
       // 5.11 G3: «تخطي» skips this step (the last one finishes); «تخطي الكل» leaves the welcome at once.
       d.innerHTML = '<div class="wel-card">' + dots + body + '<div class="wel-btns"><button class="wel-skip">تخطي</button><button class="wel-next">' + (step < LAST ? "التالي" : "يلا نبدأ") + "</button></div>" +
         (step < LAST ? '<button class="wel-all">تخطي الكل</button>' : "") + "</div>";
+      // 5.23: a tap selects the edition at once; a missing one shows «جاري التحميل» + its bar and is applied when it arrives.
       d.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () {
-        needEd(b.dataset.e, function () {
-          if (b.dataset.e === "text") { mode = "text"; save("mode", "text"); } else { mode = "pages"; save("mode", "pages"); if (b.dataset.e !== edition) switchEdition(b.dataset.e); }
-          applySettings(); paint(); }); }; });
+        var k = b.dataset.e;
+        function apply() {
+          wEd = null;
+          if (k === "text") { mode = "text"; save("mode", "text"); } else { mode = "pages"; save("mode", "pages"); if (k !== edition) switchEdition(k); }
+          applySettings(); paint();
+        }
+        if (wEd && wEd.id === k && !wEd.err) return;                 // already on its way
+        if (wEd && wEd.id !== k) edThen[wEd.id] = function () {};    // an earlier pick that never finished: drop its follow-up
+        if (k === "text" || edReady(k)) { wEd = null; apply(); return; }
+        wEd = { id: k }; delete edPct[k];
+        needEd(k, function () { if (wEd && wEd.id === k) apply(); }, true); paint();
+      }; });
+      // after a location is set: show the ✓ for a moment, then go on exactly like «التالي»
+      function locSet() { paint(); setTimeout(function () { if (step === 1 && d.isConnected) next(); }, 700); }
       if (step === 1) {
-        document.getElementById("wCity").onchange = function () { var c = CITIES[+this.value]; if (c) { save("qiblaLoc", [c[1], c[2], c[0]]); paint(); } };
+        document.getElementById("wCity").onchange = function () { var c = CITIES[+this.value]; if (c) { save("qiblaLoc", [c[1], c[2], c[0]]); locSet(); } };
         document.getElementById("wGps").onclick = function () {
           this.textContent = "جارٍ تحديد موقعك…";
-          window.qiblaLocation = function (lat, lon) { save("qiblaLoc", [lat, lon, ""]); paint(); };
+          window.qiblaLocation = function (lat, lon) { save("qiblaLoc", [lat, lon, ""]); locSet(); };
           window.qiblaLocationError = function () { toast("تعذّر تحديد الموقع، اختار مدينتك"); paint(); };
           if (window.QiblaBridge) return window.QiblaBridge.locate();
           if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (p) { window.qiblaLocation(p.coords.latitude, p.coords.longitude); }, function () { window.qiblaLocationError(); });
@@ -4430,16 +4841,31 @@
       if (wDl) wDl.onclick = function () {
         save("modelConsent", { v: 1, t: Date.now() }); save("donate", document.getElementById("wDonate").checked ? 1 : 0); donatePaint();
         if (!window.EdBridge) { toast("التنزيل متاح في التطبيق على الموبايل بس"); return; }
-        needAsr("asrnv", function () { asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة"); }); asrBtn(); paint();
+        startModel();
       };
+      var wRt = document.getElementById("wRetry"); if (wRt) wRt.onclick = startModel;
       d.querySelectorAll("[data-w]").forEach(function (c) { c.onchange = function () {
         if (c.dataset.w === "adhan") ["fajr", "dhuhr", "asr", "maghrib", "isha"].forEach(function (k) { cfg.adhan[k] = c.checked; }); else rc[c.dataset.w].on = c.checked;
         save("prayer", cfg); save("reminders", rc);
         if (c.checked) try { if (window.AppBridge && AppBridge.askNotifications) AppBridge.askNotifications(); } catch (e) {}
       }; });
-      d.querySelector(".wel-skip").onclick = function () { if (step < LAST) { step++; paint(); } else done(); };
+      d.querySelector(".wel-skip").onclick = next;
       var all = d.querySelector(".wel-all"); if (all) all.onclick = done;
-      d.querySelector(".wel-next").onclick = function () { if (step < LAST) { step++; paint(); } else done(); };
+      d.querySelector(".wel-next").onclick = next;
+    }
+    // Model: both packs (shared runtime + model) behind one bar; a finished download goes on like «التالي»; a failed one
+    // shows the message + «إعادة المحاولة» (the failed pack left edQ, so needAsr queues it again and edNext restarts it).
+    function wMdPct() {
+      var ps = asrPacks("asrnv"), t = 0;
+      ps.forEach(function (k) { t += EdBridge.state(k) === "ready" ? 100 : Math.max(0, edPct[k] || 0); });
+      return Math.round(t / ps.length);
+    }
+    function startModel() {
+      wMd = { err: false }; asrPacks("asrnv").forEach(function (k) { delete edPct[k]; });
+      needAsr("asrnv", function () {
+        asrPick("asrnv"); paintEdDl(); toast("خلص تنزيل نموذج التعرّف على التلاوة");
+        wMd = null; if (step === 2 && d.isConnected) next();
+      }); asrBtn(); paint();
     }
     paint();
   }
@@ -4504,6 +4930,17 @@
     }
     return h + "</ul></details></section>";
   }
+  // repaint only surah s's ✓ (select option + list row) after a save: a re-render would wipe the result panel and stop the mic
+  function hzPaintChecks(s) {
+    var e = hifzLogData()[s], o = document.querySelector('#htS option[value="' + s + '"]'), li = document.querySelector('.hl-list li[data-s="' + s + '"]');
+    if (o) o.textContent = ar(s) + ". " + Q.s[s - 1][0] + (e ? " ✓" : "");
+    var mini = document.querySelector(".ht-mini");   // the «% محفوظ» card counts this surah now too
+    if (mini) mini.outerHTML = hifzMini();
+    if (!li) return;
+    li.classList.toggle("on", !!e);
+    li.querySelector(".hl-chk").textContent = e ? "✓" : "";
+    li.querySelector("small").textContent = ar(Q.s[s - 1][3]) + " آية" + (e && e.score != null ? " · " + ar(e.score) + "٪" : "");
+  }
   function showHifzTest(s) {
     // a voice test left running on an earlier render stops, unless it goes on into the next ayat (htv.more)
     var carry = htv.on && htv.carry ? { skip: htv.carrySkip || 0 } : null;
@@ -4518,18 +4955,26 @@
     // 5.16e: a range left over from an earlier «المراجعة» test does not follow into «اختبار الحفظ» (opened from its tab,
     // home or the map): the test here is a plain one, «قلب تلقائي» works
     if (rg && !hzFrom) { rg = null; ["end", "n", "acc", "pc", "pn", "pt", "cont"].forEach(function (x) { delete st[x]; }); save("hifzTest", st); }
-    var endA = rg ? gAy(rg.end) : null, last = endA && endA[0] === s ? endA[1] : cnt;
+    // Sprint 2 #40: «إلى الآية» (q.hifzTest.to2) stops a plain test at that ayah; the parts of 10 still apply inside it
+    var to2 = !rg && st.s === s && st.to2 ? Math.max(from, Math.min(cnt, st.to2)) : cnt;
+    var endA = rg ? gAy(rg.end) : null, last = endA && endA[0] === s ? endA[1] : to2;
     var to = Math.min(cnt, from + (rg ? rg.n : 10) - 1, last);
     var hzFl = load("hifzFlip", true);
     var nx = to < last ? { s: s, from: to + 1 } : rg && endA[0] > s ? { s: s + 1, from: 1 } : null;
     // a random test's next place (5.14): its first ayah, its length and end
     if (!nx && rg && rg.pc.length) { var P1 = rg.pc[0], b1 = gAy(P1[0]); nx = { s: b1[0], from: b1[1], place: P1 }; }
     // the saved test state for the next part (or this part at another level): the range goes along
-    var stNext = function (o) { var c9 = load("hifzTest", {}); if (c9.ss) o.ss = c9.ss; if (rg) { var c0 = load("hifzTest", {}); o.n = rg.n; o.end = rg.end; o.acc = c0.acc || rg.acc; o.pc = rg.pc; o.pn = rg.pn; o.pt = rg.pt; } return o; };
-    var goNext = function () {
+    var stNext = function (o) { var c9 = load("hifzTest", {}); if (c9.ss) o.ss = c9.ss; if (!rg && to2 < cnt) o.to2 = to2; if (rg) { var c0 = load("hifzTest", {}); o.n = rg.n; o.end = rg.end; o.acc = c0.acc || rg.acc; o.pc = rg.pc; o.pn = rg.pn; o.pt = rg.pt; } return o; };
+    var nxState = function () {
       var o = stNext({ lv: lv, s: nx.s, from: nx.from });
-      if (nx.place) { o.n = nx.place[1] - nx.place[0] + 1; o.end = nx.place[1]; o.pc = rg.pc.slice(1); o.pn = rg.pn + 1; hzPlaceBuzz(); }
+      if (nx.place) { o.n = nx.place[1] - nx.place[0] + 1; o.end = nx.place[1]; o.pc = rg.pc.slice(1); o.pn = rg.pn + 1; }
       else o.cont = 1;   // the next ayat of the same place: not a new start (5.15b item 6)
+      return o;
+    };
+    var goNext = function () {
+      var o = nxState();
+      if (nx.place) hzPlaceBuzz();
+      hzResArm = true; hzNoBtn = true;   // Sprint 2 #1/#35: the next part is a step of the session: saved once it is on screen
       save("hifzTest", o);
       if (nx.s !== s) history.replaceState(null, "", "#/hifztest/" + nx.s);
       showHifzTest(nx.s);
@@ -4537,11 +4982,12 @@
     var opts = ""; for (var i = 1; i <= 114; i++) opts += '<option value="' + i + '"' + (i === s ? " selected" : "") + ">" + ar(i) + ". " + Q.s[i - 1][0] + (L[i] ? " ✓" : "") + "</option>";
     // the start ayah, next to the surah (5.13 P2.5, like the map's «ابدأ من الآية»); the test shows ten ayat from it
     var aopts = ""; for (var i2 = 1; i2 <= cnt; i2++) aopts += '<option value="' + i2 + '"' + (i2 === from ? " selected" : "") + ">من الآية " + ar(i2) + "</option>";
+    var aopts2 = ""; for (var i3 = from; i3 <= cnt; i3++) aopts2 += '<option value="' + i3 + '"' + (i3 === to2 ? " selected" : "") + ">إلى الآية " + ar(i3) + "</option>";
     // Hide every n-th word from a random start, so each round hides different words; the level is the share hidden.
-    var html = '<div class="ht">' + hzNav("#/hifztest") + '<div class="ht-top"><div class="ht-pick"><select class="input" id="htS" aria-label="السورة">' + opts + '</select><select class="input" id="htA" aria-label="ابدأ من الآية">' + aopts + '</select></div><div class="z-sort ht-lv"><span>إخفاء</span>' +
+    var html = '<div class="ht">' + hzNav("#/hifztest") + '<div class="ht-top"><div class="ht-pick"><select class="input" id="htS" aria-label="السورة">' + opts + '</select><select class="input" id="htA" aria-label="ابدأ من الآية">' + aopts + '</select><select class="input" id="htA2" aria-label="إلى الآية"' + (rg ? " disabled" : "") + ">" + aopts2 + '</select></div><div class="z-sort ht-lv"><span>إخفاء</span>' +
       [[25, "ربع الكلمات"], [50, "النص"], [100, "كل الكلمات"]].map(function (x) { return '<button data-l="' + x[0] + '"' + (x[0] === lv ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div></div>" +
       hifzMini() +
-      '<p class="hint">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت». الآيات ' + ar(from) + "–" + ar(to) + " من " + ar(cnt) + '.' + (rg ? ' <span>الاختبار لحد</span> <b>' + ayName(rg.end) + "</b>" : "") + (rg && rg.pt > 1 ? ' <b class="ht-place">' + hzPlace(rg.pn, rg.pt) + "</b>" : "") + '</p><div class="ht-text">';
+      '<p class="hint">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، والاختبار بيخلص لوحده أول ما كل الكلمات تظهر. الآيات ' + ar(from) + "–" + ar(to) + " من " + ar(cnt) + '.' + (rg ? ' <span>الاختبار لحد</span> <b>' + ayName(rg.end) + "</b>" : "") + (rg && rg.pt > 1 ? ' <b class="ht-place">' + hzPlace(rg.pn, rg.pt) + "</b>" : "") + '</p><div class="ht-text">';
     var hidden = 0, open0 = lv === 100 && !st.cont ? 3 + Math.floor(Math.random() * 3) : 0;
     for (var a = from; a <= to; a++) {
       var every = lv === 100 ? 1 : lv === 50 ? 2 : 4, off = Math.floor(Math.random() * every);
@@ -4566,7 +5012,7 @@
       // disabled (5.15c item 1)
       '<button class="continue' + (rg || hzFl ? " on" : "") + '" id="htFlip"' + (rg ? " disabled" : "") + ' aria-pressed="' + !!(rg || hzFl) + '">' + ic("anext") + "<span>قلب تلقائي</span></button></div>" +
       '<audio id="htAudio" controls hidden></audio>' +
-      '<div class="ht-foot"><button class="continue" id="htDone">' + ic("check") + " خلصت</button>" +
+      '<div class="ht-foot">' +   // Sprint 2 #43: no «خلصت»: htFinish runs when the last hidden word shows
       (nx ? '<button class="continue" id="htNext">' + (nx.place ? "الموضع اللي بعده" : "الآيات اللي بعدها") + "</button>" : "") + '</div><p class="ht-res" id="htRes"></p>' +
       (bad.length ? '<details class="ht-bad hl-fold" id="htBad"' + (htBadOpen ? " open" : "") + '><summary><b>آيات غلطت فيها قبل كده (' + ar(bad.length) + ')</b></summary><div>' + bad.map(function (x) { return '<button data-a="' + x.a + '">الآية ' + ar(x.a) + "</button>"; }).join("") + "</div></details>" : "") +
       reciteHistory() + hzMemoList(L) + "</div>";
@@ -4598,13 +5044,26 @@
         rec.start(); b.innerHTML = ic("astop") + "<span>إيقاف</span>"; b.classList.add("rec");
       }).catch(function () { toast("محتاج إذن الميكروفون عشان تسجّل"); });
     };
-    view.querySelectorAll(".ht-w").forEach(function (b) { b.onclick = function () { if (b.classList.contains("shown")) return; b.classList.add("shown", "miss"); b.dataset.tap = 1; missed++; }; });
+    view.querySelectorAll(".ht-w").forEach(function (b) { b.onclick = function () {
+      if (b.classList.contains("shown")) return; b.classList.add("shown", "miss"); b.dataset.tap = 1; missed++;
+      htResume();
+      // the last hidden word tapped: the part ends (a voice session on it stops too)
+      if (!finished && !view.querySelector(".ht-w:not(.shown)")) {
+        if (htv.on) { htv.on = false; htv.stopAt = Date.now(); Mic.stop(); if (htMic) { htMic.classList.remove("rec"); htMic.innerHTML = ic("mic") + " سمّع بالصوت"; } }
+        htFinish();
+      }
+    }; });
+    // Sprint 2 #1/#35: the word test's resume point: q.hifzTest as is (the current part) and the first ayah with a hidden word left
+    function htResume() {
+      var f = view.querySelector(".ht-w:not(.shown)"), a = f ? +f.dataset.a : to, rb = document.getElementById("hzResume"); if (rb) rb.remove();
+      hzResumeSet({ kind: "w", label: hzResumeLabel(s, a), hash: "#/hifztest/" + s, state: { ht: load("hifzTest", {}), hzFrom: hzFrom } });
+    }
     // Recite from memory into the mic: each hidden word shows when it is said right, and turns red when it is skipped
     // or said wrong. The heard words are aligned with the test's words ayah by ayah (rAlign), so a misheard extra word
     // does not throw the rest off.
     var htMic = document.getElementById("htMic");
     if (htMic) htMic.onclick = function () {
-      if (htv.on) { htv.on = false; Mic.stop(); htMic.classList.remove("rec"); htMic.innerHTML = ic("mic") + " سمّع بالصوت"; return; }
+      if (htv.on) { htv.on = false; htv.stopAt = Date.now(); Mic.stop(); htMic.classList.remove("rec"); htMic.innerHTML = ic("mic") + " سمّع بالصوت"; return; }
       htvSetup(0);
       if (!micGate(function () { htMic.click(); })) { htv.on = false; return; }
       reciteStop(); player.stop(); Mic.start(); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف";
@@ -4620,7 +5079,7 @@
       var nth = {}, hk = ws.map(function (e) { var a = e.dataset.a; nth[a] = (nth[a] || 0); return s + ":" + a + ":" + nth[a]++; });   // "s:a:w", w = place in rWords
       htv = { on: true, ws: ws, sk: ws.map(function (e) { return rSkel(e.textContent); }), keys: hk, ptr: 0, V: {}, shownV: {}, force: {}, skip: skip || 0,
         // the next ayat with the mic on (q.hifzFlip): this part is scored and saved, then the same mic goes on
-        more: nx && (rg || load("hifzFlip", true)) ? function () { htv.carry = true; document.getElementById("htDone").click(); var t = document.getElementById("htRes").textContent; goNext(); return t; } : null,
+        more: nx && (rg || load("hifzFlip", true)) ? function () { htv.carry = true; htFinish(); var t = document.getElementById("htRes").textContent; goNext(); return t; } : null,
         // a word's look for a verdict: 1 green, 0 red, null not judged yet (hidden again); words the reader tapped stay
         set: function (i, v) {
           var e = ws[i]; if (!e.classList.contains("ht-w") || e.dataset.tap) return;
@@ -4633,7 +5092,7 @@
           else if (!miss) { missed++; e.classList.remove("ok"); e.classList.add("shown", "miss"); }
         },
         unmiss: function (e) { if (e.classList.contains("miss")) { e.classList.remove("miss"); e.classList.add("ok"); missed--; } },
-        btn: htMic, s: s, fix: document.getElementById("htFix"), done: function () { document.getElementById("htDone").click(); },
+        btn: htMic, s: s, fix: document.getElementById("htFix"), done: function () { htFinish(); },
         // the next word to say is kept in view, between the bar and 70% of the screen (5.11 #11)
         follow: function (at) {
           var e = ws[Math.min(ws.length - 1, at)]; if (!e) return;
@@ -4642,19 +5101,21 @@
         } };
       htv.fix.hidden = true;
     }
-    document.getElementById("htA").onchange = function () { save("hifzTest", { lv: lv, s: s, from: +this.value }); showHifzTest(s); };
-    document.getElementById("htS").onchange = function () { save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };
+    document.getElementById("htA").onchange = function () { var f9 = +this.value; hzResumeClear(); save("hifzTest", { lv: lv, s: s, from: f9, to2: st.to2 && st.to2 >= f9 ? st.to2 : undefined }); showHifzTest(s); };
+    document.getElementById("htA2").onchange = function () { hzResumeClear(); save("hifzTest", { lv: lv, s: s, from: from, to2: +this.value }); showHifzTest(s); };
+    document.getElementById("htS").onchange = function () { hzResumeClear(); save("hifzTest", { lv: lv, s: +this.value, from: 1 }); location.replace("#/hifztest/" + this.value); };
     view.querySelectorAll(".ht-lv button").forEach(function (b) { b.onclick = function () { save("hifzTest", stNext({ lv: +b.dataset.l, s: s, from: from })); showHifzTest(s); }; });
     view.querySelectorAll(".ht-bad button").forEach(function (b) { b.onclick = function () { save("hifzTest", { lv: lv, s: s, from: +b.dataset.a }); showHifzTest(s); window.scrollTo(0, 0); }; });
     if (document.getElementById("htNext")) document.getElementById("htNext").onclick = function () { goNext(); window.scrollTo(0, 0); };
-    // «خلصت», or the end of the test recited by voice (htv.done): the score, every ayah on the hifz map (hifzMark: right
+    // the last hidden word shown (tapped, or recited by voice: htv.done / htv.more): the score, every ayah on the hifz map (hifzMark: right
     // if none of its hidden words was missed) and, once the surah's last part is done, the surah itself.
     var finished = false;
-    document.getElementById("htDone").onclick = function () {
+    function htFinish() {
+      var mk = null;   // Sprint 2 #47/#49: this part's ayat marks, recorded once with its score by hzRecord
       view.querySelectorAll(".ht-w:not(.shown)").forEach(function (b) { b.classList.add("shown", "ok"); });
       if (!finished) {
         finished = true;
-        for (var a = from; a <= to; a++) hifzMark(s + ":" + a, !view.querySelector('.ht-w.miss[data-a="' + a + '"]'));
+        mk = {}; for (var a = from; a <= to; a++) mk[s + ":" + a] = !view.querySelector('.ht-w.miss[data-a="' + a + '"]');
         asrStat("ok", hidden - missed); asrStat("bad", missed);
         var c1 = load("hifzTest", {}), q0 = c1.ss && c1.ss.s === s && c1.ss.to === from - 1 ? c1.ss : { s: s, a1: from, h: 0, m: 0 };
         c1.ss = { s: s, a1: q0.a1, to: to, h: q0.h + hidden, m: q0.m + missed };
@@ -4674,11 +5135,21 @@
       // 5.15b item 8: the surah's score so far in this test; from «المراجعة» it marks the surah, from «اختبار الحفظ» only once
       // the whole surah was tested
       var q1 = load("hifzTest", {}).ss || { h: hidden, m: missed, a1: from, to: to }, sp = q1.h ? Math.round((q1.h - q1.m) / q1.h * 100) : 100;
-      if (rg) hzSetRev(s, sp); else if (q1.a1 === 1 && q1.to === cnt) hzSetMemo(s, sp);
+      var sps = {}; sps[s] = sp;
+      if (mk) hzRecord(mk, score, { rev: !!rg, memo: function () { return q1.a1 === 1 && q1.to === cnt; }, sp: sps });
+      if (rg || (q1.a1 === 1 && q1.to === cnt)) hzPaintChecks(s);
       syncAlarms();
       var res = load("hifzScores", {}); res[s] = { d: todayStr(), score: sp }; save("hifzScores", res);
       lastTestSave({ k: "w", r: [s + ":" + (q1.a1 || from), s + ":" + (q1.to || to)], sc: sp, wh: q1.h, wm: q1.m });
-    };
+      // Sprint 2 #1/#35: more parts to go: the resume point is the next part; the last part ends the session
+      if (nx && mk) hzResumeSet({ kind: "w", label: hzResumeLabel(nx.s, nx.from), hash: "#/hifztest/" + nx.s, state: { ht: nxState(), hzFrom: hzFrom } });
+      else if (!nx) hzResumeClear();
+    }
+    // Sprint 2 #46: a part with no hidden word (a quarter of a one-word ayah, say) is finished at once, not left waiting for the voice
+    if (!hidden) setTimeout(function () { if (!finished && document.getElementById("htRes") && !view.querySelector(".ht-w")) htFinish(); }, 0);
+    window.__htFinish = htFinish;   // QA: ends the part like the last hidden word shown (the old «خلصت» button's job)
+    if (hzResArm) { hzResArm = false; htResume(); }
+    hzNoBtn = false; hzResumeBind();
     if (carry) {
       if (!htMic) { htv.on = false; Mic.stop(); return; }
       htvSetup(carry.skip); htMic.classList.add("rec"); htMic.innerHTML = ic("astop") + " إيقاف"; htvTop();
@@ -4692,11 +5163,14 @@
     setTimeout(function () { b.classList.remove("tap-ok"); }, 450);
   }, true);
   // The hifz test's voice mode (showHifzTest): heard words placed in the test's words (rLocal).
-  var htv = { on: false };
+  var htv = { on: false }, hzResArm = false;
   var htvPrev = window.onRecite;
   window.onRecite = function (text, kind) {
-    if (!htv.on) return htvPrev(text, kind);
-    if (!document.body.contains(htv.btn)) { htv.on = false; Mic.stop(); return; }
+    // NvAsr's flush final right after the stop button: marks the words once (no mic restart, page turn or test end)
+    var tail = !htv.on && kind === "final" && htv.stopAt && Date.now() - htv.stopAt < 3000;
+    if (!htv.on && !tail) return htvPrev(text, kind);
+    if (tail) { htv.stopAt = 0; if (!htv.btn || !document.body.contains(htv.btn)) return; }
+    else if (!document.body.contains(htv.btn)) { htv.on = false; Mic.stop(); return; }
     if (kind.indexOf("state:") === 0) {
       var st = kind.slice(6);
       if (st === "busy") toast("بيجهّز الموديل…");
@@ -4744,7 +5218,9 @@
       }
     }
     // the end reached (the very last word may be misheard or cut by the mic): the test finishes by itself
-    if ((fin || endNow) && r && htv.ptr >= n - 1) {
+    // Sprint 2 #43: ... or every hidden word of the range is shown, even if the last words are plain (not hidden)
+    var allSh = htv.ws.every(function (e) { return !e.classList.contains("ht-w") || e.classList.contains("shown"); });
+    if (!tail && (fin || endNow) && r && (htv.ptr >= n - 1 || allSh)) {
       setTimeout(donateSend, 1000);
       // «قلب تلقائي» on and more ayat in the surah: score this part and open the next ones with the mic still on
       if (htv.more) {
@@ -4876,7 +5352,7 @@
     document.getElementById("mtOpen").onclick = function () { if (mode === "pages") openAyahPage(q.s, q.a, ""); else location.hash = "#/s/" + q.s + "/" + q.a; };
     var mb = document.getElementById("mtMic");
     if (mb) mb.onclick = function () {
-      if (mtv.on) { var L0 = mtv.last; mtvOff(); if (L0 && L0.ok) pick(L0.best); else toast("مش واضح، جرّب تاني"); return; }
+      if (mtv.on) { var L0 = mtv.last; mtvOff(); mtv.stopAt = Date.now(); if (L0 && L0.ok) pick(L0.best); else toast("مش واضح، جرّب تاني"); return; }
       if (answered) return;
       if (!micGate(function () { mb.click(); })) return;
       reciteStop(); player.stop(); if (htv.on) { htv.on = false; Mic.stop(); }
@@ -4886,8 +5362,11 @@
   }
   var mtvPrev = window.onRecite;
   window.onRecite = function (text, kind) {
-    if (!mtv.on) return mtvPrev(text, kind);
-    if (!document.body.contains(mtv.btn)) { mtv.on = false; Mic.stop(); return; }
+    // NvAsr's flush final right after the stop button: it may still decide the answer (pick ignores a second call)
+    var tail = !mtv.on && kind === "final" && mtv.stopAt && Date.now() - mtv.stopAt < 3000;
+    if (!mtv.on && !tail) return mtvPrev(text, kind);
+    if (tail) { mtv.stopAt = 0; if (!mtv.btn || !document.body.contains(mtv.btn)) return; }
+    else if (!document.body.contains(mtv.btn)) { mtv.on = false; Mic.stop(); return; }
     if (kind.indexOf("state:") === 0) {
       var st = kind.slice(6);
       if (st === "busy") toast("بيجهّز الموديل…");
@@ -4907,7 +5386,7 @@
     mtv.last = { best: best, ok: ok };
     // a partial decides as soon as one whole choice was heard (fast); a final once one choice is clearly ahead
     if (kind === "partial") { if (sc[best] === 1 && !tie && !opens) mtv.pick(best); return; }
-    if (!ok) return toast("مش واضح، كمّل التكملة");   // the opening only, or too little heard: keep listening
+    if (!ok) return tail ? 0 : toast("مش واضح، كمّل التكملة");   // the opening only, or too little heard: keep listening
     mtv.pick(best);
   };
 
@@ -4967,7 +5446,7 @@
         document.getElementById("tqRe").onclick = function () { go(1); listen(); };
         var m = document.getElementById("tqMic");
         if (m) m.onclick = function () {
-          if (htv.on) return htvOff();
+          if (htv.on) { htvOff(); htv.stopAt = Date.now(); return; }
           if (!micGate(function () { m.click(); })) return;
           reciteStop(); player.stop(); mtvOff();
           htvOn(m); Mic.start(); m.classList.add("rec"); m.innerHTML = ic("astop") + " إيقاف";
@@ -5331,7 +5810,18 @@
     else if (tab === "mutash") mutashTab(body, s, a);
     else if (tab === "tajweed") needLessons(function () { if (document.body.contains(body)) tajweedTab(body, s, a); });
     else bookTab(body, s, a, tab);
-    var on = view.querySelector(".ay-tabs .on"); if (on && on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest" });
+    // Centre the active tab. Run again after layout and after the web fonts load: tab widths change when the font arrives,
+    // which left the strip scrolled to the wrong end on the phone (the active tab off-screen).
+    var tabsEl = view.querySelector(".ay-tabs");
+    function showOnTab() {
+      var on = tabsEl && tabsEl.isConnected && tabsEl.querySelector(".on");
+      if (!on) return;
+      var y = window.scrollY;   // scrollIntoView on the tab must not move the page
+      if (on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest" });
+      window.scrollTo(window.scrollX, y);
+    }
+    showOnTab(); requestAnimationFrame(showOnTab);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(showOnTab);
   }
   function showOnChip(box) { var on = box.querySelector(".chips .on"); if (on) on.scrollIntoView({ inline: "center", block: "nearest" }); }
   function chips(list, cur, attr) {
@@ -5583,7 +6073,7 @@
   var fsT = 0;
   function fsSet(on) {
     clearTimeout(fsT);
-    if (on) fsAuto = false;
+    if (on) { fsAuto = false; hzFs = false; }
     if (document.body.classList.contains("fs") === on) return;
     var bar = document.querySelector(".bar"), h = bar ? bar.offsetHeight : 0, vr = document.body.classList.contains("vread");
     if (h) root.style.setProperty("--barh", h + "px");   // the bar's height, so its space can shrink with the slide (style.css body.fs .bar)
@@ -5605,7 +6095,7 @@
     }
     document.body.classList.toggle("fs", on);
     // (the --fsdy shift that makes up for the WebView's move is not undone by the scroll)
-    if (anc) { var fix = function () { var d = anc.getBoundingClientRect().top - t0 - (fsDy - dy0); if (Math.abs(d) > 1) window.scrollBy(0, d); }; fix(); requestAnimationFrame(fix); setTimeout(fix, 320); }
+    if (anc) { var fix = function () { if (!anc.isConnected || !document.body.classList.contains("vread")) return; var d = anc.getBoundingClientRect().top - t0 - (fsDy - dy0); if (Math.abs(d) > 1) window.scrollBy(0, d); }; fix(); requestAnimationFrame(fix); setTimeout(fix, 320); }
     if (fl) fsFlip(fl);
     // the system bars go (or come back) together with the glide: with the insets known the resize no longer moves the page
     clearTimeout(fsImmT);
@@ -5626,8 +6116,12 @@
   ["pointerdown", "wheel", "touchmove"].forEach(function (ev) {
     document.addEventListener(ev, function () { if (fsAuto && /^#\/p\//.test(location.hash) && !document.body.classList.contains("fs")) fsLater(5000); }, { passive: true, capture: true });
   });
+  // Sprint 2 #26: a hifz test / hifz mode on the mushaf pages goes full screen after 3 s (and again 3 s after the mic starts);
+  // the hifz bar is not one of the bars body.fs hides, so it stays usable; any tap leaves full screen (the capture handler above)
+  var hzFs = false, hzFsPend = false;
+  function hifzFsLater(ms) { hzFs = true; fsAuto = false; fsLater(ms); }
   function fsLater(ms) {
-    clearTimeout(fsT); fsT = setTimeout(function () { if (/^#\/p\//.test(location.hash) && !window.QA_NOFS && !hifz.on && !document.getElementById("ayahBar") && !rd.on) fsSet(true); }, ms);
+    clearTimeout(fsT); fsT = setTimeout(function () { if (/^#\/p\//.test(location.hash) && !window.QA_NOFS && (!hifz.on || hzFs) && !document.getElementById("ayahBar") && !rd.on) fsSet(true); }, ms);
   }
   var wasPage = false, htRecNow = null;   // htRecNow: the hifz test's MediaRecorder while it records
   // The mic sessions of the hifz / mutashabihat tests and the test recorder end when the view goes (a carried hifz test keeps its session)
@@ -5637,6 +6131,7 @@
     if (htRecNow) { try { htRecNow.stop(); } catch (e) {} }
   }
   function route() {
+    var wasHome = homeShown; homeShown = false;   // only the home branch below restores it, so entering home from another screen resets the scroll
     testMicOff();
     // the backup reminder (S10): home, then Settings opened at the backup row
     if (location.hash === "#/backup") { history.replaceState(null, "", "#/"); setTimeout(function () {
@@ -5645,6 +6140,7 @@
     var isPage = /^#\/p\//.test(location.hash);
     if (!isPage) fsSet(false);
     else if (!wasPage) { fsAuto = true; fsLater(5000); }   // opening the mushaf goes full screen after 5 s without a touch
+    if (isPage && hzFsPend && hifz.on) { hzFsPend = false; hifzFsLater(3000); } else if (!isPage) hzFsPend = false;
     var pageToPage = isPage && wasPage;   // a page turn: no view-entry fade (it dimmed and nudged the page as it settled, 5.11 G2)
     wasPage = isPage;
     autoSet(false); zikrSpeech.stop();
@@ -5660,7 +6156,8 @@
     currentSurah = 0;
     var h = location.hash, m;
     if ((m = h.match(/^#\/p\/(\d+)/))) {
-      var am = h.match(/[?&]a=(\d+):(\d+)/), hm = h.match(/[?&]h=([^&]*)/), hl = null;
+      var am = h.match(/[?&]a=(\d+):(\d+)/), hm = h.match(/[?&]h=([^&]*)/), hl = null, rm = h.match(/[?&]r=(\d+):(\d+)-(\d+)/);
+      hmR = rm && +rm[1] >= 1 && +rm[1] <= 114 && +rm[2] >= 1 && +rm[3] >= +rm[2] && +rm[3] <= Q.s[+rm[1] - 1][3] ? { s: +rm[1], a1: +rm[2], a2: +rm[3] } : null;
       if (am && +am[1] >= 1 && +am[1] <= 114 && +am[2] >= 1 && +am[2] <= Q.s[+am[1] - 1][3]) {
         var pq = hm ? hm[1] : "";
         try { pq = decodeURIComponent(pq); } catch (e) {}
@@ -5720,10 +6217,11 @@
       try { q = decodeURIComponent(q); } catch (e) {}
       showSearch(q);
     } else {
-      showHome();
+      homeShown = wasHome; showHome();
     }
     // The home screen already is the index, so the button shows only elsewhere.
     document.getElementById("btnIndex").hidden = btnBack.hidden;
+    mkPaint();
   }
   window.addEventListener("hashchange", route);
   sunCheck();   // here, not up with applySettings(): sunDark() needs the prayer-time code below it, which only exists once the script has run this far
