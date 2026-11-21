@@ -1004,3 +1004,4 @@ Rules learned this session (follow them)
 - Phone: check `mCallState=0` before install, never tap.
 - Every release: bump manifest + web/index.html (2 places) + web/sw.js; build-win.py; verify signer 7d8b31d2 and that the new code is inside assets/web/app.js; PLAY=1 build overwrites the GitHub APK name -> rebuild the GitHub APK after the AAB.
 Resume: ask the user for the 5.30-5.33 phone checklist results -> start Sprint 3 group A (scout -> analogical reasoning -> qk-dev) -> 5.34.
+- 2026-11-21: user uploaded quran-karim-v5.33-play.aab to Play closed test Alpha (release notes Arabic only: store/release-notes-5.33.txt; Play rejects en because the listing has no en-US translation). Resume: 5.30-5.33 phone checklist results -> Sprint 3 group A -> 5.34.
