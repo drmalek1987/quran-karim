@@ -1,0 +1,12 @@
+<ar>
+• مراجعة الحفظ بقت بجدول علمي: كل ربع (وكل سورة في آخر 3 أجزاء) ليه موعد مراجعة، والفاصل يكبر مع الإتقان لحد 30 يوم، ويرجع يوم واحد لو النتيجة أقل من 80٪.
+• ورد مراجعة يومي على قدّك، من غير تراكم.
+• خريطة حفظ جديدة: 30 كارت للأجزاء، اضغط أي خانة تعرف اسمها وحالتها وتختبر نفسك فيها.
+• تصليح: الاختبار بقى يسجّل الآيات اللي في الربع أو السورة بس.
+</ar>
+<en-US>
+• Hifz review now follows a spaced schedule: each quarter (and each surah in the last 3 juz) gets its own review date; the gap grows up to 30 days as you master it and drops to 1 day below 80%.
+• A daily review portion sized for you, so it never piles up.
+• New memorisation map: 30 juz cards; tap any cell to see its name and status and test yourself.
+• Fix: a test now records only the ayat of the quarter or surah you chose.
+</en-US>
