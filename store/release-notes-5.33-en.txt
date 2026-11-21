@@ -1,0 +1,9 @@
+# Not for Play yet: the Play store listing has only Arabic (ar). Play rejects release notes in a language
+# the listing does not have ("unsupported language translation found: en"). Paste this block only after
+# adding the en-US translation to the store listing in Play Console.
+<en-US>
+• Hifz review now follows a spaced schedule: each quarter (and each surah in the last 3 juz) gets its own review date; the gap grows up to 30 days as you master it and drops to 1 day below 80%.
+• A daily review portion sized for you, so it never piles up.
+• New memorisation map: 30 juz cards; tap any cell to see its name and status and test yourself.
+• Fix: a test now records only the ayat of the quarter or surah you chose.
+</en-US>
