@@ -976,3 +976,31 @@ Resume: user phone check (tap card, «اختبرني» marks only the unit, page
   - 5.32 CSS column change came after its full QA (only the S4 group rerun).
 - Audit follow-ups DONE: backup round trip keeps q.hzSched (new ui.js T21, S4 group 21/0); QK2 = last test result only, does not need the schedule; matrix 40/0, fs-motion 9/9, recite_sim exit 0; impeccable detect: 5 findings all pre-sprint (style.css lines from 2026-11-08), none in the new map/card CSS; QA-checklist.md section 5.30-5.33 added (automated done + phone items open); design note section 10 «اللي اتنفّذ فعلًا» added.
 Resume: phone checklist 5.30-5.33 (QA-checklist.md) -> Play AAB 5.33 upload by the user -> Sprint 3 (plans/sprint3.md).
+
+## ===== NEXT SESSION: START HERE (handoff written 2026-11-21, end of the Sprint 4 session) =====
+State of the app
+- Latest version: **5.33** (versionCode 81, sw quran-v77). Code on `main` at 06f37ed (feature commit 4ad3fc0 + progress/audit commits). Local branch name is `chore/backlog-cleanup` but it tracks origin/main; push with `git push origin HEAD:main`.
+- GitHub APK: builds repo release v5.33 (quran-karim-v5.33.apk, 70,102,448 bytes, com.quran.karim, signer 7d8b31d2). Installed on the phone bee81250.
+- Play: quran-karim-v5.33-play.aab built and verified (com.lawh.quran, versionCode 81, minSdk 24, upload key 71:18:F1…, no harmain/adhan, ORT .so in). **The user uploads it to Play Alpha** (not done by Claude). Previous Play upload was 5.29.
+- QA at 5.33: run-parallel ui.js 325/0 x4 editions (+ T21 added after: S4 group 21/0), data.py 28/0, matrix 40/0, fs-motion 9/9, recite_sim ok, impeccable detect clean for the new CSS.
+
+What Sprint 4 (#51) shipped (details: plans/sprint4-review-schedule-design.html, section 10)
+- q.hzSched = review schedule, written ONLY by hzRecord (app.js ~4034); ladder 1/3/7/14/30, PASS 80; units = juz 1-27 by rub' (216) + juz 28-30 by surah (57) = 273 (hzUnits ~3861); idempotent upgrade in hzSchedData; weighted daily budget (hzWard).
+- Hifz map = 30 juz cards, one cell per unit; tap -> card (first words / surah, status, «افتح في المصحف», «اختبرني»); juz list #/hifzmap?j=N (showHifzJuz); hint behind ⓘ; no ward card on the map. Ward lives in home «النهارده» + «المراجعة».
+- Fix: hzInTest (app.js:2633) — a test records only ayat inside its own range.
+- QA group «نسخة 5.30 S4» T1-T21 in tools/qa/ui.js (incl. 273-unit sweep, backup round trip).
+
+Open items (not blocking Sprint 3)
+1. Phone checklist 5.30-5.33 in QA-checklist.md (bottom section): card tap, «اختبرني» on a rub' over two surahs, **ayat lost right after a page turn inside a rub'** (seen only in the simulation), 360 px, backup restore on the phone. Ask the user for results; fix in 5.34 if needed.
+2. Play AAB 5.33 upload (user).
+3. Uncommitted files NOT from Sprint 4, left on purpose: store/fg-options/* (modified), tools/qa/ui-results.json, many untracked tools/ and plans files. Do not commit them without asking.
+
+Next work: **Sprint 3 = plans/sprint3.md** (mushaf screen + settings: #10 #13 #14 #15 #19 #20 #41 #39 #46; groups A (#10 #46 #41 #20 #13) -> B (#15 #14 #39) -> C (#19)). Nothing of Sprint 3 is coded yet. Next version = 5.34.
+
+Rules learned this session (follow them)
+- First reply: restate the session rules (SessionStart hook), goal check before every step, analogical reasoning shown BEFORE every non-trivial edit (this session missed it for 5.32/5.33), check usage between every checkpoint (missed 5.31-5.33), full QA after the LAST code change before a build.
+- Offer choices as an interactive show_widget form AND a copyable numbered text list (memory options-copyable-text); never the AskUserQuestion dialog.
+- Delegate code to qk-dev (one agent per batch so full QA runs once); Opus reviews screenshots + root causes. qk-dev can drop on network errors: resume it with SendMessage, do not restart.
+- Phone: check `mCallState=0` before install, never tap.
+- Every release: bump manifest + web/index.html (2 places) + web/sw.js; build-win.py; verify signer 7d8b31d2 and that the new code is inside assets/web/app.js; PLAY=1 build overwrites the GitHub APK name -> rebuild the GitHub APK after the AAB.
+Resume: ask the user for the 5.30-5.33 phone checklist results -> start Sprint 3 group A (scout -> analogical reasoning -> qk-dev) -> 5.34.
