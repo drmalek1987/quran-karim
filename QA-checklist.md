@@ -731,3 +731,19 @@ New checks to run every release from now on (phone/emulator + headless):
 
 ## 5.29 (phone feedback 5.28)
 - [ ] Random review, vertical reading: after «الموضع اللي بعده» the page stays at the new place with mic results (ui.js «نسخة 5.29»); following resumes on the first recited ayah.
+
+## 5.30–5.33 release QA (Sprint 4 #51, 2026-11-21, quran-karim-v5.33.apk, versionCode 81, sw quran-v77, signer 7d8b31d2)
+Automated (headless):
+- [x] data.py 28/0; ui.js run-parallel 325/0 on kfgqpc, kfold, shamarly, harmain (13.3 min); matrix 40/0; fs-motion 9/9; recite_sim exit 0 (judged in ui.js «نسخة 5.11»).
+- [x] «نسخة 5.30 S4» T1–T21: ladder 1/3/7/14/30 (cap 30); 79 fail / 80 pass; lapse -> 1 day, next pass = half the gap; same-day pass no step; migration hzRev 90/56/28/1 -> 30/30/14/1; overdue ratio order; weighted budget + late; < 50% coverage leaves the schedule; partial al-Baqarah pass does not schedule untested rub's (nf); juz 1–27 by rub' (216) + juz 28–30 by surah (9/11/37 = 273 units); 5.30/5.31 key upgrades; map = ward; tap card; ⓘ hint; juz list; 273-unit test-range sweep; marks stay inside the unit; backup round trip keeps q.hzSched.
+- [x] impeccable detect: 5 findings, all in style.css lines from 2026-11-08 (pre-sprint); none in the map/card CSS.
+- [x] QK2 teacher code carries only the last test result (not app state), so it does not need q.hzSched.
+On the phone (bee81250, 5.33 installed):
+- [ ] «المراجعة» › «عليك مراجعة»: lines «الربع q من الحزب N · سورة X · من آية Y» / «سورة X», «ورد النهارده: N ربع/سورة · P صفحة», «متأخر» when the budget is full.
+- [ ] Old review data migrated on first open (no huge ward on day one; intervals over 30 shown as 30).
+- [ ] Hifz map: 30 juz cards, juz 1–27 header «جزء N» only, juz 30 full width; cells readable at 360 px.
+- [ ] Tap a cell: card (first words / «سورة X», status, «افتح في المصحف», «اختبرني»); tap outside only closes it; no navigation by accident; long press shows no system callout.
+- [ ] Card «اختبرني» / juz-list row «اختبرني»: only the unit's ayat are masked and marked, also for a rub' that runs over two surahs.
+- [ ] A rub' with a page turn inside: ayat recited right after the turn are marked (simulation lost some at 300 ms per ayah; unconfirmed on the phone).
+- [ ] Home «النهارده» card and the hifz alarm text use «ربع/سورة»; the map has no ward card.
+- [ ] Backup -> restore on the phone keeps the map colours and the ward.

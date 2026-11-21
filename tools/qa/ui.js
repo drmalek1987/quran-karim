@@ -1742,6 +1742,15 @@ async function fresh(ctx, vp) {
     const b = await run('s111', 0, [[110, 2], [110, 3], [111, 1], [111, 2], [111, 3], [111, 4], [111, 5], [112, 1]]);
     await hzBack(k); await go('#/', 200);
     assert(a.every(x => /^112:/.test(x)) && a.length >= 3 && b.every(x => /^111:/.test(x)) && b.length >= 3, JSON.stringify([a, b])); return JSON.stringify([a, b]); });
+  await check(G530, 'T21: النسخة الاحتياطية بتشيل الجدولة: q.hzSched جوه الملف، ولما يترجّع بعد المسح الورد والخريطة زي الأول', async () => { const k = await hzKeep();
+    const r = await ev(() => { const d = n => { const t = new Date(Date.now() - n * 864e5); return t.getFullYear() + '-' + (t.getMonth() + 1) + '-' + t.getDate(); };
+      localStorage.setItem('q.hzRev', '{}'); localStorage.removeItem('q.hifzAyat'); localStorage.setItem('q.hifzScores', '{}');
+      localStorage.setItem('q.hzSched', JSON.stringify({ 5: { r: d(10), iv: 7, res: 95, lp: 0 }, 40: { r: d(1), iv: 14, res: 90, lp: 1 }, s112: { r: d(4), iv: 3, res: 85, lp: 0 } }));
+      const w0 = hzWard().list.map(x => x.id).join(','), sched0 = localStorage.getItem('q.hzSched'), keys = QA_bk.collect(), inFile = 'q.hzSched' in keys;
+      localStorage.removeItem('q.hzSched'); const wGone = hzWard().list.length;
+      QA_bk.restore(JSON.parse(JSON.stringify(keys)));
+      return [inFile, wGone, localStorage.getItem('q.hzSched') === sched0, hzWard().list.map(x => x.id).join(','), w0]; });
+    await hzBack(k); assert(r[0] && r[1] === 0 && r[2] && r[3] === r[4] && r[4].length > 0, JSON.stringify(r)); return JSON.stringify(r); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
