@@ -1601,7 +1601,7 @@
   window.QA_pageWordAt = pageWordAt;
   window.QA_wb = function (p, cb) { wbNeed(p, function () { cb(wbRows(p)); }); };
   window.QA_rect = function (s, a) { return Q.r[s - 1][a - 1]; };
-  window.QA_pageOf = pageOf;
+  window.QA_pageOf = pageOf; window.QA_ix = function (s, a) { return gIdx(s, a); };
   // Long press (480 ms, one finger, no move) on a mushaf page opens the word's meaning. Taps, swipes, the page curl,
   // pinch zoom, the hifz reveal and reciting are left as they are.
   var lpPageAt = 0;
@@ -1895,12 +1895,12 @@
   }
   function hmHlDraw(boxOf) {
     if (!hmR) return;
-    for (var a = hmR.a1; a <= hmR.a2; a++) ((Q.r && Q.r[hmR.s - 1] && Q.r[hmR.s - 1][a - 1]) || []).forEach(function (b) {
+    for (var i = gIdx(hmR.s, hmR.a1), e = gIdx(hmR.s2, hmR.a2); i <= e; i++) { var x = gAy(i); ((Q.r && Q.r[x[0] - 1] && Q.r[x[0] - 1][x[1] - 1]) || []).forEach(function (b) {
       var bx = boxOf(b[0]); if (!bx) return;
       var d = document.createElement("div"); d.className = "hm-hl";
       d.style.cssText = "left:" + b[1] / 10 + "%;top:" + b[2] / 10 + "%;width:" + (b[3] - b[1]) / 10 + "%;height:" + (b[4] - b[2]) / 10 + "%";
       bx.appendChild(d);
-    });
+    }); }
   }
 
   function go(s, a) {
@@ -2627,6 +2627,14 @@
   // where the reader started, went back or repeated. recite.V keeps every judged word ("s:a:w" -> 1 right, 0 wrong); an
   // ayah shows once its last word is judged, and its wrong words are marked red. While an utterance is still being
   // heard only right words count, so nothing turns red (or shows) ahead of the reader.
+  // 5.33: a mushaf test marks / counts only its own ayat (the place's first..last ayah, or ayat of an earlier place already seen). The matcher aligns the
+  // heard words against ALL ayat of the page (+ the next page's first ayah), so a reading that went on past the unit's end, or an alignment that landed on the
+  // context ayat before its start, used to mark those ayat (and add them to seen / the score / the unit tallies of hzRecord).
+  function hzInTest(k) {
+    var T = hifz.test; if (!T || T.seen[k]) return true;
+    var p = k.split(":"), g = gIdx(+p[0], +p[1]);
+    return g >= gIdx(T.s, T.a || 1) && (!T.end || g <= gIdx.apply(null, T.end.split(":").map(Number)));
+  }
   function reciteHear(text, fin) {
     // NvAsr flushes the piece open when the mic stopped as one last final (just after state:stopped): judge it once
     var tail = fin && !recite.on && recite.stopAt && Date.now() - recite.stopAt < 3000; if (tail) recite.stopAt = 0;
@@ -2661,7 +2669,7 @@
       if (r) { touched = {}; Object.keys(r.v).forEach(function (i) { var pk = keys[i].split(":"); touched[pk[0] + ":" + pk[1]] = 1; }); }
       Object.keys(disp).forEach(function (x) { var sa = x.split(":"), k = sa[0] + ":" + sa[1]; (by[k] = by[k] || []).push([+sa[2], disp[x]]); });
       Object.keys(by).forEach(function (k) {
-        if (!((k + ":" + (rWords(k).length - 1)) in disp)) return;
+        if (!((k + ":" + (rWords(k).length - 1)) in disp) || !hzInTest(k)) return;
         var ws = rWords(k), bad = by[k].filter(function (x) { return x[1] === 0; });
         recite.words += by[k].length; recite.ok += by[k].length - bad.length;
         bad.sort(function (x, y) { return x[0] - y[0]; }).forEach(function (x) { recite.wrong.push([k, ws[x[0]]]); });
@@ -2995,7 +3003,7 @@
   document.addEventListener("click", function (e) {
     if (!e.target.closest("#rdTest") || !hmR) return;
     var r = hmR; rdStop(); hzAutoMic = true;
-    hzTestStart({ k: "a", s: r.s, a1: r.a1, a2: r.a2, w: "o" }, "m");
+    hzTestStart(r.s2 === r.s ? { k: "a", s: r.s, a1: r.a1, a2: r.a2, w: "o" } : { k: "g", i0: gIdx(r.s, r.a1), i1: gIdx(r.s2, r.a2), w: "o" }, "m");
   });
   window.addEventListener("hashchange", function () { if (rd.on && !/^#\/p\//.test(location.hash)) rdStop(); else { setTimeout(rdPaint, 50); if (rd.on) rdHints(); } });
 
@@ -3520,9 +3528,9 @@
   // 5.15 S7: «النهارده» on home: the khatma ward and the review ward in one place, the test one tap away.
   // Shown once there is a memorised surah (the khatma card above stays for readers who do not memorise).
   function todayCard() {
-    if (!Object.keys(hzRevData()).length) return "";
+    if (!Object.keys(hzRevData()).length && !Object.keys(hzSchedData()).length) return "";
     var P = plan(), W = hzWard(), kh = !P || P.finished ? "" : P.left ? "ورد الختمة: " + ar(P.left) + " صفحة" : "ورد الختمة خلص ✓";
-    var rv = W.list.length ? "مراجعة: " + ar(W.list.length) + " سورة (" + ar(W.pages) + " صفحة)" : "مفيش مراجعة مستحقة ✓";
+    var rv = W.list.length ? "مراجعة: " + ar(W.list.length) + " ربع/سورة ("+ ar(W.pages) + " صفحة)" : "مفيش مراجعة مستحقة ✓";
     // 5.16 U5: the reading goal is the card's ring (tap: set the goal); the lines: reading, khatma ward, review ward
     var g = goalCfg(), n = todayPages(), pct = g.pages ? Math.min(100, Math.round(n / g.pages * 100)) : 0, ok = g.pages && n >= g.pages;
     var ring = '<button class="td-goal g-ring' + (ok ? " done" : "") + '" id="tGoal" style="--p:' + pct + '" aria-label="هدف القراءة اليومي"><b>' + (!g.pages ? ic("target") : ok ? "✓" : ar(pct) + "٪") + "</b></button>";
@@ -3828,35 +3836,187 @@
   }
   window.hzRevData = hzRevData;   // QA
   function hifzSummary() { return "المراجعة واختبار الحفظ"; }   // 5.13 P2.10: no numbers outside More › Stats
-  // 5.15 S1: spaced review. Each memorised surah keeps its own interval q.hifzLog[s].iv (days): 7 at first; after a test
-  // >= 90% doubles it (at most 90), 70-89% keeps it, < 70% sets 1 day. The surah is due when its last review is iv days old.
-  // Old entries with no iv: 7, or 1 if the last score was under 70 (the old «< 70%» rule).
+  // Sprint 4 (#51): spaced review by rub' al-hizb (240 units, Q.h), not by surah: a long surah no longer swells the ward and a pass on
+  // one quarter does not postpone the rest. q.hzSched = {unit id (rub index, or "s<n>" for a short surah, 5.31): {r: "Y-M-D" last review, iv: days, res: last score, lp: lapses, piv: gap before the
+  // last lapse}}, written only by hzRecord (and the one-time fill from q.hzRev in hzSchedData). Ladder 1, 3, 7, 14, 30: the cap is a monthly
+  // cycle for everything memorised. One pass line for the whole app: 80 passes, 79 fails.
+  var HZ_LADDER = [1, 3, 7, 14, 30], HZ_PASS = 80;
+  function hzFloorStep(x) { var r = 1; HZ_LADDER.forEach(function (v) { if (v <= x) r = v; }); return r; }
+  // the rub' an ayah (index in the whole Quran) falls in, from the 240 starts
+  var RUBOF = null;
+  function rubOf(i) {
+    if (!RUBOF) { RUBOF = []; for (var k = 0; k < 240; k++) for (var x = rubIdx(k), e = rubIdx(k + 1); x < e; x++) RUBOF[x] = k; }
+    return RUBOF[i];
+  }
+  // pages (current edition) a rub' covers
+  function hzRubPages(k) { var a = gAy(rubIdx(k)), b = gAy(rubIdx(k + 1) - 1), r = []; for (var p = pageOf(a[0], a[1]); p <= pageOf(b[0], b[1]); p++) r.push(p); return r; }
+  // the new entry after a pass of score p on a rub' (e = its entry or null; age = days since e.r, default from e.r); null = not added (a rub' joins
+  // on its first pass). >= 90: the next step above max(gap, real age) (a late pass counts the longer time); 80-89: same gap; < 80: 1 day and a lapse;
+  // first pass after a lapse: half the gap before it (not back to zero); a second pass the same day is not spacing, so no step
+  function hzNextIv(e, p, age) {
+    var t = todayStr();
+    if (!e) return p >= 90 ? { r: t, iv: 3, res: p, lp: 0 } : p >= HZ_PASS ? { r: t, iv: 1, res: p, lp: 0 } : null;
+    var iv = e.iv || 1, lp = e.lp || 0, piv = e.piv, r0 = e.r || e.m;
+    if (age == null) age = dayNum(new Date()) - parseDay(r0);
+    if (p < HZ_PASS) { if (iv > 1) piv = iv; lp++; iv = 1; }
+    else if (r0 === t) { /* same day */ }
+    else if (iv === 1 && piv) { iv = hzFloorStep(Math.max(3, piv / 2)); piv = 0; }
+    else if (p >= 90) { var m = Math.max(iv, age); iv = 30; for (var i = 0; i < HZ_LADDER.length; i++) if (HZ_LADDER[i] > m) { iv = HZ_LADDER[i]; break; } }
+    var n = { r: t, iv: iv, res: p, lp: lp }; if (piv) n.piv = piv; return n;
+  }
+  window.hzNextIv = hzNextIv; window.hzRubOf = rubOf;   // QA
+  function hzScoreOf(sc, s) { return sc[s] && sc[s].score != null ? sc[s].score : null; }
+  // 5.31 scheduling units. Letters of an ayah = Arabic letters only (U+0621-063A, U+0641-064A, U+0671; no spaces, diacritics, tatweel or marks), counted
+  // from Q.t. avg = all letters / 240 = the letters of an average rub'. Juz 1-27 are scheduled ONLY by rub' (unit id = the rub' index as a string, 216 units);
+  // juz 28-30 ONLY by surah (surah >= 58: ONE unit "s<n>", one map square, 57 units; those juz have no rub' units, hzShort(s) = s >= 58). w = unit letters / avg (its weight in rub's).
+  var HZ_P = null, HZ_SH = null, HZ_U = null, HZ_UB = null;
+  function hzLetP() {
+    if (HZ_P) return HZ_P;
+    var re = /[ء-غف-يٱ]/g, P = [0];
+    for (var s = 0; s < 114; s++) for (var a = 0; a < Q.s[s][3]; a++) { var m = Q.t[s][a].match(re); P.push(P[P.length - 1] + (m ? m.length : 0)); }
+    return (HZ_P = P);
+  }
+  function hzAvg() { return hzLetP()[6236] / 240; }
+  function hzShortMap() {
+    if (HZ_SH) return HZ_SH;
+    HZ_SH = {};
+    // 5.31: juz 1-27 go ONLY by rub', juz 28-30 (Al-Mujadila 58 .. An-Nas 114; juz 28 starts exactly at 58:1) ONLY by surah, whatever its length
+    for (var s = 1; s <= 114; s++) HZ_SH[s] = s >= 58;
+    return HZ_SH;
+  }
+  // the units in mushaf order: {id, kind "r"|"s", s0, a0, s1, a1 (range), n (ayat), w, juz, rub (rub' index of the first ayah), st (index of the first ayah)}
+  function hzUnits() {
+    if (HZ_U) return HZ_U;
+    var P = hzLetP(), avg = hzAvg(), sh = hzShortMap(), U = [], A = ayStart();
+    for (var k = 0; k < 240; k++) {
+      var s = Q.h[k][0], a = Q.h[k][1], f = null, l = null, n = 0, lt = 0;
+      for (var i = rubIdx(k), e = rubIdx(k + 1); i < e; i++) {
+        if (!sh[s]) { if (!f) f = [s, a]; l = [s, a]; n++; lt += P[i + 1] - P[i]; }
+        if (++a > Q.s[s - 1][3]) { s++; a = 1; }
+      }
+      if (f) U.push({ id: String(k), kind: "r", s0: f[0], a0: f[1], s1: l[0], a1: l[1], n: n, w: lt / avg, juz: Math.floor(k / 8) + 1, rub: k, st: gIdx(f[0], f[1]) });
+    }
+    for (var t = 1; t <= 114; t++) if (sh[t]) { var i0 = A[t - 1], r = rubOf(i0); U.push({ id: "s" + t, kind: "s", s0: t, a0: 1, s1: t, a1: Q.s[t - 1][3], n: Q.s[t - 1][3], w: (P[A[t]] - P[i0]) / avg, juz: Math.floor(r / 8) + 1, rub: r, st: i0 }); }
+    U.sort(function (x, y) { return x.st - y.st; });
+    HZ_UB = {}; U.forEach(function (u) { HZ_UB[u.id] = u; });
+    return (HZ_U = U);
+  }
+  function hzUnit(id) { hzUnits(); return HZ_UB[id]; }
+  // the "s:a" keys of the unit's ayat (a rub' unit skips short surahs lying inside its range)
+  function hzUAyat(u) {
+    if (u.ks) return u.ks;
+    var ks = [], sh = hzShortMap();
+    for (var s = u.s0; s <= u.s1; s++) {
+      if (u.kind === "r" && sh[s]) continue;
+      for (var a = s === u.s0 ? u.a0 : 1, hi = s === u.s1 ? u.a1 : Q.s[s - 1][3]; a <= hi; a++) ks.push(s + ":" + a);
+    }
+    return (u.ks = ks);
+  }
+  function hzUnitOf(s, a) { return hzShortMap()[s] ? "s" + s : String(rubOf(gIdx(s, a))); }
+  function hzURange(u) { return [gIdx(u.s0, u.a0), gIdx(u.s1, u.a1)]; }
+  function hzUPages(u) { var r = []; for (var p = pageOf(u.s0, u.a0), e = pageOf(u.s1, u.a1); p <= e; p++) r.push(p); return r; }
+  window.hzShort = function (s) { return !!hzShortMap()[s]; }; window.hzUnits = hzUnits; window.hzAvg = hzAvg;   // QA
+  // q.hzSched, with the idempotent fill from the old data (no flag; nothing old is deleted from hzRev / hifzLog / hifzAyat):
+  // (1) 5.30 upgrade: an existing rub' key whose rub' holds short surahs copies its entry to each of those short-surah units that has no entry and
+  //     whose surah is in hzRev (not nf) or has every ayah reviewed (rv); then a rub' key with no rub' unit is dropped.
+  // (2) a short-surah unit with no entry takes its surah's hzRev entry (not nf): last review, gap = largest ladder step <= min(gap, 30), 1 if its
+  //     score was < 80; else, with every ayah reviewed >= 80% (rv): the latest rv, gap 7.
+  // (3) a rub' unit with no entry and >= 50% of its ayat in hzRev surahs (not nf) takes the older review and the smaller gap of those surahs; else
+  //     the same rv rule. Short surahs no longer add up to fill a rub'.
+  function hzSchedData() {
+    var S = load("hzSched", {}), RV = hzRevData(), sc = load("hifzScores", {}), HA = load("hifzAyat", {}), U = hzUnits(), sh = hzShortMap(), ch = false;
+    var dstr = function (n) { var d = new Date(n * 864e5); return d.getUTCFullYear() + "-" + (d.getUTCMonth() + 1) + "-" + d.getUTCDate(); };
+    var allRv = function (u) { var last = -1, ks = hzUAyat(u); for (var i = 0; i < ks.length; i++) { var h = HA[ks[i]]; if (!h || !h.rv) return -1; last = Math.max(last, parseDay(h.rv)); } return last; };
+    Object.keys(S).forEach(function (key) {
+      if (!/^\d+$/.test(key) || +key > 239) return;
+      var k = +key, g0 = gAy(rubIdx(k)), g1 = gAy(rubIdx(k + 1) - 1);
+      for (var s = g0[0]; s <= g1[0]; s++) {
+        if (!sh[s] || S["s" + s]) continue;
+        var r = RV[s], ok = r && !r.nf && (r.r || r.m);
+        if (ok || allRv(HZ_UB["s" + s]) >= 0) { S["s" + s] = JSON.parse(JSON.stringify(S[key])); ch = true; }
+      }
+      if (!HZ_UB[key]) { delete S[key]; ch = true; }
+    });
+    // (0) 5.31: an "s<n>" key of a surah < 58 (s1, s52, ...) moves to the rub' units covering its ayat that have no entry (older r / smaller iv when
+    //     several such keys feed one unit), then the key is dropped (idempotent; hzRev / hifzLog / hifzAyat untouched)
+    var fresh = {};
+    Object.keys(S).forEach(function (key) {
+      var m = /^s(\d+)$/.exec(key), n = m ? +m[1] : 0;
+      if (!n || n > 114 || HZ_UB[key]) return;
+      var e = S[key], A = ayStart();
+      for (var i = A[n - 1]; i < A[n]; i++) {
+        var id = String(rubOf(i)); if (!HZ_UB[id]) continue;
+        if (!S[id]) { S[id] = JSON.parse(JSON.stringify(e)); fresh[id] = 1; }
+        else if (fresh[id]) { var c0 = S[id]; if (parseDay(e.r) < parseDay(c0.r)) c0.r = e.r; if ((e.iv || 1) < (c0.iv || 1)) c0.iv = e.iv; }
+      }
+      delete S[key]; ch = true;
+    });
+    U.forEach(function (u) {
+      if (S[u.id]) return;
+      if (u.kind === "s") {
+        var e = RV[u.s0], r0 = e && !e.nf && (e.r || e.m);
+        if (r0) {
+          var sv = hzScoreOf(sc, u.s0), n = { r: r0, iv: sv != null && sv < HZ_PASS ? 1 : hzFloorStep(Math.min(e.iv || 7, 30)), lp: 0 };
+          if (sv != null) n.res = sv; S[u.id] = n; ch = true; return;
+        }
+      } else {
+        var ov = 0, c = null;
+        for (var s = u.s0; s <= u.s1; s++) {
+          var e2 = RV[s], q0 = e2 && !e2.nf && (e2.r || e2.m); if (sh[s] || !q0) continue;
+          var sv2 = hzScoreOf(sc, s), iv = sv2 != null && sv2 < HZ_PASS ? 1 : hzFloorStep(Math.min(e2.iv || 7, 30));
+          ov += (s === u.s1 ? u.a1 : Q.s[s - 1][3]) - (s === u.s0 ? u.a0 : 1) + 1;
+          if (!c) c = { r: q0, iv: iv, res: sv2 };
+          else { if (parseDay(q0) < parseDay(c.r)) c.r = q0; if (iv < c.iv) c.iv = iv; if (sv2 != null && (c.res == null || sv2 < c.res)) c.res = sv2; }
+        }
+        if (c && ov * 2 >= u.n) { var n2 = { r: c.r, iv: c.iv, lp: 0 }; if (c.res != null) n2.res = c.res; S[u.id] = n2; ch = true; return; }
+      }
+      var last = allRv(u); if (last >= 0) { S[u.id] = { r: dstr(last), iv: 7, lp: 0 }; ch = true; }
+    });
+    if (ch) save("hzSched", S);
+    return S;
+  }
+  window.hzSchedData = hzSchedData;   // QA
+  // the legacy surah-level info (map colour of a surah with no rub' entry and no tested ayah)
   function hzDueInfo(e, sc) {
-    var age = dayNum(new Date()) - parseDay(e.r || e.m), iv = e.iv || (sc != null && sc < 70 ? 1 : 7);
+    var age = dayNum(new Date()) - parseDay(e.r || e.m), iv = e.iv || (sc != null && sc < HZ_PASS ? 1 : 7);
     return { age: age, iv: iv, due: age >= iv, over: age - iv };
   }
-  function hzScoreOf(sc, s) { return sc[s] && sc[s].score != null ? sc[s].score : null; }
-  // a test of the surah ended with score p: next interval, review date today (a second test the same day does not double it)
+  // a test of the surah (q.hzRev, the «السور المراجعة» list) ended with score p: the same ladder, review date today
   function hzReviewed(e, p) {
-    var iv = e.iv || 7;
-    if (p < 70) iv = 1; else if (p >= 90 && e.r !== todayStr()) iv = Math.min(90, iv * 2);
-    e.iv = iv; e.r = todayStr(); e.score = p;
+    var n = hzNextIv({ r: e.r || e.m, iv: e.iv || 7, lp: 0 }, p);
+    e.iv = n.iv; e.r = n.r; e.score = p;
   }
   window.hzDueInfo = hzDueInfo; window.hzReviewed = hzReviewed;   // QA
-  // the due surahs, most overdue first; d = days from today (for the alarms of the coming days)
-  function hzDueList(d) {
-    var L = hzRevData(), sc = load("hifzScores", {}), out = [];
-    Object.keys(L).forEach(function (s) { var x = hzDueInfo(L[s], hzScoreOf(sc, s)); x.age += d || 0; x.over += d || 0; if (x.over >= 0) out.push({ s: +s, age: x.age, over: x.over, iv: x.iv, sc: hzScoreOf(sc, s) }); });
-    return out.sort(function (a, b) { return b.over - a.over || a.s - b.s; });
+  // the due units (age >= gap), unsorted; d = days from today (for the alarms of the coming days). ratio = age / gap: a 1-day unit 2 days
+  // late is more urgent than a 30-day one 2 days late. Items: {id, kind, k (rub' of the first ayah), s, a (first ayah), u (the unit), age, over, iv, sc, ratio}
+  function hzDueList(d, S) {
+    var today = dayNum(new Date()) + (d || 0), out = [];
+    hzUnits().forEach(function (u) {
+      var e = S[u.id]; if (!e) return;
+      var iv = e.iv || 1, age = today - parseDay(e.r);
+      if (age >= iv) out.push({ id: u.id, kind: u.kind, k: u.rub, s: u.s0, a: u.a0, u: u, age: age, over: age - iv, iv: iv, sc: e.res != null ? e.res : null, ratio: age / iv });
+    });
+    return out;
   }
-  // 5.15 S1: the daily review ward q.hzDaily = pages a day (0 = all that is due): the most overdue surahs until the pages are reached
+  // the daily review ward. q.hzDaily = pages a day; 0 = auto: budget = ceil(sum of w over the scheduled units / 30) + 2 rub's (w = unit letters / an
+  // average rub's letters, so a short surah costs a fraction of a rub'), units added in priority order while the summed w stays <= budget (always at
+  // least one; the first unit that does not fit ends the list). The failed (gap 1) first, up to half the budget, then by ratio. What does not fit
+  // waits for tomorrow, no penalty (late). With a pages budget (> 0) units are added while the pages counted so far are under it (a page shared
+  // by two units counts once).
   function hzWard(d) {
-    var all = hzDueList(d), n = +load("hzDaily", 0) || 0, out = [], pg = 0, seen = {};   // a page shared by two surahs counts once
-    for (var i = 0; i < all.length && (!n || pg < n); i++) { out.push(all[i]); var p = Q.p[all[i].s - 1]; for (var x = p[0]; x <= p[p.length - 1]; x++) if (!seen[x]) { seen[x] = 1; pg++; } }
-    return { list: out, pages: pg, all: all.length, per: n };
+    var S = hzSchedData(), all = hzDueList(d, S), n = +load("hzDaily", 0) || 0, W = 0;
+    hzUnits().forEach(function (u) { if (S[u.id]) W += u.w; });
+    var cap = Math.ceil(W / 30) + 2;
+    all.sort(function (a, b) { return b.ratio - a.ratio || a.u.st - b.u.st; });
+    var out = [], pg = 0, ws = 0, seen = {}, used = {}, half = n ? Math.ceil(n / 2) : cap / 2;
+    var full = function (x, lim) { return out.length && (n ? pg >= lim : ws + x.u.w > lim); };
+    var take = function (x) { out.push(x); used[x.id] = 1; ws += x.u.w; hzUPages(x.u).forEach(function (p) { if (!seen[p]) { seen[p] = 1; pg++; } }); };
+    for (var i = 0; i < all.length; i++) { if (all[i].iv !== 1) continue; if (full(all[i], half)) break; take(all[i]); }
+    for (i = 0; i < all.length; i++) { if (used[all[i].id]) continue; if (full(all[i], n || cap)) break; take(all[i]); }
+    return { list: out, pages: pg, all: all.length, per: n, late: all.length - out.length, budget: cap, w: ws };
   }
   window.hzWard = hzWard;   // QA
-  function hifzDue(d) { var w = hzWard(d); return w.list.length ? { s: w.list[0].s, n: w.list.length } : null; }
+  function hifzDue(d) { var w = hzWard(d); return w.list.length ? { s: w.list[0].s, n: w.list.length, kind: w.list[0].kind } : null; }
   // 5.11 G6: the hifz test, the map and the log, one tap from each other (the test is the main tool)
   function hzNav(cur) {
     return '<nav class="z-sort hz-nav">' + [["#/hifztest", "اختبار الحفظ"], ["#/hifzmap", "خريطة الحفظ"], ["#/hifzlog", "المراجعة"]].map(function (x) {
@@ -3884,7 +4044,9 @@
   // and comes back tomorrow (Sprint 2 #47: iv = 1); a surah on the list gets its next review date (hzReviewed)
   function hzSetRev(s, p) {
     var R = hzRevData();
-    if (p >= 80 && !R[s]) R[s] = { m: todayStr(), r: todayStr(), iv: 7 };
+    // nf: a surah added from 5.30 on never feeds the hzSched fill (only its tested rub's are scheduled, by hzRecord), else a pass on one
+    // range of al-Baqarah would mark all its quarters as reviewed today
+    if (p >= 80 && !R[s]) R[s] = { m: todayStr(), r: todayStr(), iv: 7, nf: 1 };
     if (R[s]) { hzReviewed(R[s], p); if (p < 80) R[s].iv = 1; }
     save("hzRev", R); return R;
   }
@@ -3893,7 +4055,7 @@
   // only here; the map colours read it (hifzPageColors). o = {rev: bool, memo: fn(s) -> whole surah covered, sp: {s: surah score}}
   function hzRecord(marks, p, o) {
     o = o || {};
-    var H = load("hifzAyat", {}), t = todayStr(), ss = {};
+    var S = hzSchedData(), H = load("hifzAyat", {}), t = todayStr(), ss = {};   // S first: the fill must not see this session's own rv
     Object.keys(marks).forEach(function (k) {
       var h = H[k] || {}, n = { d: t, ok: marks[k] ? 1 : 0 };
       Object.keys(h).forEach(function (f) { if (!(f in n)) n[f] = h[f]; });
@@ -3901,6 +4063,15 @@
       H[k] = n; ss[k.split(":")[0]] = 1;
     });
     save("hifzAyat", H);
+    // Sprint 4 #51 / 5.31: each unit the session touched (a rub' unit or a short surah) is scheduled only if it tested >= 50% of the unit's ayat
+    // (3 ayat must not postpone a whole quarter); its score = right / tested
+    var cn = {}, okn = {}, sch = false;
+    Object.keys(marks).forEach(function (k) { var x = k.split(":"), r = hzUnitOf(+x[0], +x[1]); cn[r] = (cn[r] || 0) + 1; if (marks[k]) okn[r] = (okn[r] || 0) + 1; });
+    Object.keys(cn).forEach(function (k) {
+      var u = hzUnit(k); if (!u || cn[k] * 2 < u.n) return;
+      var nx = hzNextIv(S[k], Math.round((okn[k] || 0) * 100 / cn[k])); if (nx) { S[k] = nx; sch = true; }
+    });
+    if (sch) save("hzSched", S);
     Object.keys(ss).forEach(function (x) {
       var s = +x, sp = o.sp && o.sp[x] != null ? o.sp[x] : p;
       if (sp >= 80) { if (o.rev) hzSetRev(s, sp); else if (o.memo && o.memo(x)) hzSetMemo(s, sp); }
@@ -3922,6 +4093,9 @@
     var j = (c.n - 1) * 8;
     if (c.k === "s") return [gIdx(c.s, 1), gIdx(c.s, Q.s[c.s - 1][3])];
     if (c.k === "a") { var n = Q.s[c.s - 1][3], a1 = Math.min(n, c.a1), a2 = Math.min(n, Math.max(a1, c.a2)); return [gIdx(c.s, a1), gIdx(c.s, a2)]; }
+    if (c.k === "rb") return [rubIdx(c.n), rubIdx(c.n + 1) - 1];   // one rub' (the whole rub')
+    if (c.k === "u") return hzURange(hzUnit(c.id));   // one scheduling unit (the review ward, 5.31)
+    if (c.k === "g") return [c.i0, c.i1];   // ayat from index i0 to i1 (a map unit over two surahs)
     if (c.k === "j") return [rubIdx(j), rubIdx(j + 8) - 1];
     if (c.k === "jq") return [rubIdx(j + (c.q - 1) * 2), rubIdx(j + c.q * 2) - 1];
     if (c.k === "jh") return [rubIdx(j + (c.q - 1) * 4), rubIdx(j + c.q * 4) - 1];
@@ -3985,6 +4159,7 @@
     }
     return P.sort(function (x, y) { return x[0] - y[0]; });
   }
+  window.hzTestInfo = function () { var T = hifz.test; return T ? { s: T.s, a: T.a, end: T.end, pc: T.pc, pn: T.pn, pt: T.pt, masked: (hifz.items || []).filter(function (k) { return !hifz.shown[k]; }) } : null; };   // QA: the running mushaf test (its first/last ayah, the next places, the ayat masked on the mounted page(s))
   window.hzParts = hzParts; window.hzLines = hzLines; window.hzCap = hzCap; window.hzTestStart = function (c, how, P) { hzTestStart(c, how, P); };   // QA
   function hzTestStart(c, how, P0) {
     var P = P0 || hzParts(c);
@@ -3996,18 +4171,22 @@
     save("hifzTest", { lv: st.lv || 25, s: b[0], from: b[1], n: c.w === "r" || c.w === "x" || P0 ? P[0][1] - P[0][0] + 1 : 10, end: P[0][1], acc: { h: 0, m: 0 }, pc: pc, pn: 1, pt: tot });
     if (location.hash === "#/hifztest/" + b[0]) route(); else location.hash = "#/hifztest/" + b[0];
   }
-  // the daily review ward as one mushaf test: each due surah a place, in Quran order (5.15 S1 / S7)
+  // the daily review ward as one mushaf test: each due unit a place, in Quran order (5.15 S1 / S7; rub' units since Sprint 4, short surahs 5.31)
   function hzWardTest() {
-    var w = hzWard().list.map(function (x) { return x.s; }).sort(function (a, b) { return a - b; });
+    var w = hzWard().list.slice().sort(function (a, b) { return a.u.st - b.u.st; }).map(function (x) { return x.id; });
     if (!w.length) return toast("مفيش مراجعة مستحقة النهارده");
     var way = load("hzWardWay", "o");
-    hzTestStart({ k: "s", s: w[0], w: way }, "m", hzWardPlan(w, way));
+    hzTestStart({ k: "u", id: w[0], w: way }, "m", hzWardPlan(w, way));
   }
-  // 5.16 U2: «بالسرد» = each due surah whole; «عشوائي» = random parts (3–12 ayat, at most half a page) inside each due surah, in Quran order
+  // 5.16 U2: «بالسرد» = each due unit whole (units that follow each other are one place); «عشوائي» = random parts (3–12 ayat, at most half a page)
+  // inside each due unit, in Quran order. w = unit ids (a number = a rub' index) in Quran order
   function hzWardPlan(w, way) {
     var P = [];
-    if (way === "r") w.forEach(function (s) { P = P.concat(hzParts({ k: "s", s: s, w: "r" })); });
-    else P = w.map(function (s) { return [gIdx(s, 1), gIdx(s, Q.s[s - 1][3])]; });
+    w.forEach(function (id) {
+      var u = hzUnit(String(id)); if (!u) return;
+      if (way === "r") P = P.concat(hzParts({ k: "u", id: u.id, w: "r" }));
+      else { var R = hzURange(u), l = P[P.length - 1]; if (l && l[1] + 1 === R[0]) l[1] = R[1]; else P.push(R); }
+    });
     return P;
   }
   window.hzWardTest = hzWardTest; window.hzWardPlan = hzWardPlan;   // QA
@@ -4060,16 +4239,19 @@
       '<button data-w="x"' + (c.w === "x" ? ' class="on"' : "") + ">أخطائي بس (" + ar(nW) + ")</button></div>" +
       (c.w === "x" ? '<p class="hint">' + (nW ? "الاختبار بيبقى على الآيات اللي غلطت فيها قبل كده، مع آية قبلها وآية بعدها." : "مفيش آيات غلط في المدى ده لسه.") + "</p>" : "") +
       '<div class="hz-go"><button class="continue" id="hzGoM">' + ic("book") + ' على المصحف</button><button class="continue" id="hzGoW">' + ic("eyeoff") + " بالكلمات</button></div></section>";
-    // «عليك مراجعة» (5.15 S1): the daily ward of due surahs (spaced review, the map's yellow rule), most overdue first
+    // «عليك مراجعة» (5.15 S1): the daily ward of due units (spaced review, the map's yellow rule), most overdue first
     var W = hzWard(), due = W.list, per = W.per;
     html += '<section class="hz-due" id="hzDue"><h3 class="hz-h">' + ic("rep") + "عليك مراجعة</h3>" +
       '<div class="hz-row hz-daily"><span>ورد المراجعة اليومي</span>' + sel("hzDaily", "ورد المراجعة اليومي", [[0, "كل المستحق"], [1, "صفحة واحدة"], [2, "صفحتين"], [3, "٣ صفحات"], [5, "٥ صفحات"], [10, "١٠ صفحات"], [20, "٢٠ صفحة"]], per) + "</div>" +
-      (due.length ? '<p class="hint hz-wsum">ورد النهارده: ' + ar(due.length) + " سورة · " + ar(W.pages) + " صفحة" + (W.all > due.length ? " · وفيه " + ar(W.all - due.length) + " سورة تانية مستنية" : "") + "</p>" +
+      (due.length ? '<p class="hint hz-wsum">ورد النهارده: ' + ar(due.length) + " ربع/سورة · " + ar(W.pages) + " صفحة" + "</p>" +
+        (W.late ? '<p class="hint hz-late">متأخر: ' + ar(W.late) + " ربع/سورة (يزيد الورد من الإعدادات)</p>" : "") +
         '<div class="z-sort hz-wway">' + [["o", "بالسرد"], ["r", "اختبار عشوائي"]].map(function (x) { return '<button data-ww="' + x[0] + '"' + (load("hzWardWay", "o") === x[0] ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div>" +
-        '<button class="continue hz-wgo" id="hzWardGo">' + ic("book") + " اختبرني في ورد النهارده</button>" + due.map(function (x) {
-      return '<div class="hl-due"><div><b>سورة ' + Q.s[x.s - 1][0] + "</b><small>آخر مراجعة من " + ar(x.age) + " يوم · كل " + ar(x.iv) + " يوم" + (x.sc != null && x.sc < 70 ? " · آخر نتيجة " + ar(x.sc) + "٪" : "") +
-        '</small></div><button data-test="' + x.s + '">اختبرني</button></div>';
-    }).join("") : '<p class="hint">مفيش مراجعة مستحقة النهارده. كل سورة ليها ميعاد: أول مرة بعد ٧ أيام. ولو جبت ٩٠٪ أو أكتر، المدة بتتضاعف لحد ٩٠ يوم. ولو جبت أقل من ٧٠٪، بترجعلك تاني يوم.</p>') + "</section>";
+        '<button class="continue hz-wgo" id="hzWardGo">' + ic("book") + " اختبرني في ورد النهارده</button>" + due.slice().sort(function (u, v) { return u.u.st - v.u.st; }).map(function (x) {
+      // one line per due unit (in mushaf order): a short surah = «سورة X»; a rub' = its place in the hizb, where it starts, then how long since the last review, the gap, and the last score if it failed
+      var nm = Q.s[x.s - 1][0], t = x.kind === "s" ? "سورة " + nm : "الربع " + ar(x.k % 4 + 1) + " من الحزب " + ar(Math.floor(x.k / 4) + 1);
+      return '<div class="hl-due"><div><b>' + t + "</b><small>" + (x.kind === "s" ? "" : "سورة " + nm + " · من آية " + ar(x.a) + " · ") + "آخر مراجعة من " + ar(x.age) + " يوم · كل " + ar(x.iv) + " يوم" + (x.sc != null && x.sc < HZ_PASS ? " · آخر نتيجة " + ar(x.sc) + "٪" : "") +
+        '</small></div><button data-test="' + x.id + '">اختبرني</button></div>';
+    }).join("") : '<p class="hint">مفيش مراجعة مستحقة النهارده. كل ربع ليه ميعاد: ' + [1, 3, 7, 14, 30].map(ar).join(" ثم ") + " يوم. " + ar(90) + "٪ أو أكتر بيطوّل الفاصل، وأقل من " + ar(HZ_PASS) + "٪ بيرجعلك تاني يوم.</p>") + "</section>";
     html += '<section><details class="hl-fold" id="hlFold"' + (hzFoldOpen ? " open" : "") + '><summary class="continue hl-sbtn">' + ic("check") + ' السور المراجعة</summary><p class="hint">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتفضل فيها وبترجع لك في المراجعة بكرة.</p><ul class="hl-list">';
     for (var s = 1; s <= 114; s++) {
       var e = L[s], pc = hifzPct(s, HA);
@@ -4092,9 +4274,8 @@
     document.getElementById("hzDaily").onchange = function () { save("hzDaily", +this.value); var y = window.scrollY; showHifzLog(); window.scrollTo(0, y); };
     var wg = document.getElementById("hzWardGo"); if (wg) wg.onclick = function () { hzWardTest(); };
     var tcs = document.getElementById("tcSend"); if (tcs) tcs.onclick = function () { teacherSend(); };
-    // a due surah's «اختبرني»: the card above gets that surah (the list of memorised surahs is only to look at, 5.15b)
-    // 5.16 U1: a due surah's «اختبرني» starts the mushaf test on that surah at once (the way of the ward above)
-    view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { var s1 = +b.dataset.test; hzTestStart({ k: "s", s: s1, w: load("hzWardWay", "o") }, "m"); }; });
+    // 5.16 U1: a due unit's «اختبرني» starts the mushaf test on that unit at once (the way of the ward above); the list of memorised surahs is only to look at (5.15b)
+    view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { hzTestStart({ k: "u", id: b.dataset.test, w: load("hzWardWay", "o") }, "m"); }; });   // data-test = the unit id (rub' index or s<n>)
     view.querySelectorAll(".hz-wway button").forEach(function (b) { b.onclick = function () { save("hzWardWay", b.dataset.ww); var y = window.scrollY; showHifzLog(); window.scrollTo(0, y); }; });
   }
 
@@ -4275,7 +4456,7 @@
       if (rc.kahf.on && day.getDay() === 5) ev.push({ at: at(rc.kahf.t), kind: "rem", title: "سورة الكهف", text: "من قرأ سورة الكهف يوم الجمعة أضاء له من النور ما بين الجمعتين. اضغط لتقرأها.", hash: "#/s/18/1" });
       if (rc.fast.on) { var tmr = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1), why = fastOf(tmr);
         if (why) ev.push({ at: at(rc.fast.t), kind: "rem", title: "صيام الغد", text: "غدًا يُستحب صيامه: " + why + ". لا تنسَ السحور.", hash: "#/prayer" }); }
-      if (rc.hifz && rc.hifz.on) { var hd = hifzDue(d); if (hd) ev.push({ at: at(rc.hifz.t), kind: "rem", title: "مراجعة الحفظ", text: "راجع اليوم سورة " + Q.s[hd.s - 1][0] + (hd.n > 1 ? " و" + ar(hd.n - 1) + " سور تانية" : "") + ".", hash: "#/hifzlog" }); }
+      if (rc.hifz && rc.hifz.on) { var hd = hifzDue(d); if (hd) ev.push({ at: at(rc.hifz.t), kind: "rem", title: "مراجعة الحفظ", text: (hd.kind === "s" ? "راجع اليوم سورة " : "راجع اليوم ربعًا من سورة ") + Q.s[hd.s - 1][0] + (hd.n > 1 ? " و" + ar(hd.n - 1) + " ربع/سورة تانيين" : "") + ".", hash: "#/hifzlog" }); }
       if (rc.stat && rc.stat.on) {
         var isToday = d === 0, sp = isToday ? dayPages(load("stats", {})[todayStr()]) : 0, sw = isToday ? wlSum(dayNum(base), 1) : [0, 0];
         ev.push({ at: at(rc.stat.t), kind: "rem", title: "قراءتك النهارده", hash: "#/khatma",
@@ -4483,40 +4664,56 @@
   }
 
   // ---------- خريطة الحفظ ----------
-  // Every page of the current edition as a square, coloured from hifzLog (memorised surahs and when they were last revised).
-  // Colour 0..3 of every mushaf page (c[pageNo]) and how many pages have each; shared by the hifz map and the hifz test's mini map.
-  // ONE colour rule per surah segment (a surah's ayat on one page); the page colour and the map boxes both use it (5.23 #37):
-  // on = memorised (hifzLog) or reviewed (hzRev). on: 2 if the review is due, a tested ayah is wrong or older than 14 days, else 3
-  // (never raised by the ayah colour). not on: 0 if no ayah of it was tested, else 1 (<80%, never complete).
+  // 5.31: the map is a juz grid: one square per scheduling unit (hzUnits: a rub' of the long surahs, or a whole short surah), coloured from the
+  // unit's state, ONE rule for the map, the page colours and the review ward: scheduled (hzSched) and not due with last score >= 80 -> 3; scheduled and
+  // (due or last score < 80) -> 2; not scheduled but an ayah tested -> 1; none -> 0. So yellow on the map == in the review ward (due). Only a unit
+  // with no entry and no tested ayah keeps the old surah rule (old users without data look the same): on = memorised (hifzLog) or reviewed (hzRev):
+  // 2 if its review is due, else 3; not on: 0.
+  function hzUnitStates() {
+    var U = hzUnits(), S = hzSchedData(), HA = load("hifzAyat", {}), L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), today = dayNum(new Date()), sh = hzShortMap();
+    var tc = {}, s = {}, cnt = [0, 0, 0, 0], lg = {};
+    Object.keys(HA).forEach(function (k) { if (!HA[k]) return; var x = k.split(":"), id = hzUnitOf(+x[0], +x[1]); tc[id] = (tc[id] || 0) + 1; });
+    var leg = function (n) { if (lg[n] == null) { var on = !!(L[n] || RV[n]), due = !!(RV[n] && hzDueInfo(RV[n], hzScoreOf(sc, n)).due); lg[n] = on ? (due ? 2 : 3) : 0; } return lg[n]; };
+    U.forEach(function (u) {
+      var e = S[u.id], c, known = true;
+      if (e) c = today - parseDay(e.r) >= (e.iv || 1) || (e.res != null && e.res < HZ_PASS) ? 2 : 3;
+      else if (tc[u.id]) c = 1;
+      else { known = false; var m = 9; for (var n = u.s0; n <= u.s1; n++) { if (u.kind === "r" && sh[n]) continue; var x = leg(n); if (x && x < m) m = x; } c = m === 9 ? 0 : m; }
+      s[u.id] = { c: c, known: known }; cnt[c]++;
+    });
+    return { s: s, cnt: cnt };
+  }
+  window.hzUnitStates = hzUnitStates;   // QA
+  // Colour 0..3 of every mushaf page (c[pageNo]) and how many pages have each; shared by the hifz test's mini map and the ring of the map.
+  // ONE colour rule per surah segment (a surah's ayat on one page): the worst state of the units its ayat fall in (units with an entry or a tested ayah
+  // only); a segment with none keeps the old surah rule (5.23 #37, Sprint 4 #51, 5.31).
   function hifzPageColors() {
-    var L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), today = dayNum(new Date()), cnt = [0, 0, 0, 0], col = [], HA = load("hifzAyat", {}), SG = [], PT = {};
+    var L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), cnt = [0, 0, 0, 0], col = [], SG = [], PT = {}, us = hzUnitStates();
     for (var s0 = 1; s0 <= 114; s0++) {
       var g = SG[s0] = {}, on = !!(L[s0] || RV[s0]), due = !!(RV[s0] && hzDueInfo(RV[s0], hzScoreOf(sc, s0)).due);
       Q.p[s0 - 1].forEach(function (pg, i) {
-        var e = g[pg] = g[pg] || { n: 0, got: 0, age: 0, bad: false, on: on, due: due, rv: 0, rvAge: 0 }, h = HA[s0 + ":" + (i + 1)]; e.n++; PT[pg] = (PT[pg] || 0) + 1;
-        if (h) { e.got++; e.age = Math.max(e.age, today - parseDay(h.d)); if (!h.ok) e.bad = true; if (h.rv) { e.rv++; e.rvAge = Math.max(e.rvAge, today - parseDay(h.rv)); } }
+        var e = g[pg] = g[pg] || { n: 0, on: on, due: due, uk: {} }; e.n++; PT[pg] = (PT[pg] || 0) + 1; e.uk[hzUnitOf(s0, i + 1)] = 1;
       });
     }
     function segc(s, n) {
       var e = SG[s] && SG[s][n]; if (!e) return 0;
-      // Sprint 2 #47/#49: review results (rv, written only by hzRecord) decide first: every ayah reviewed >= 80% -> 3 (2 after 14 days),
-      // some -> 1, none -> the legacy rule below
-      if (e.rv) return e.rv === e.n ? (e.rvAge <= 14 ? 3 : 2) : 1;
-      if (e.on) return e.due || e.bad || e.age > 14 ? 2 : 3;
-      return e.got || e.bad ? 1 : 0;
+      var w = 9, any = false;
+      Object.keys(e.uk).forEach(function (id) { var x = us.s[id]; if (x && x.known) { any = true; w = Math.min(w, x.c); } });
+      if (any) return w;
+      return e.on ? (e.due ? 2 : 3) : 0;
     }
     var done = 0;
     for (var n = Q.first; n <= Q.last; n++) {
-      var ss = [], c, on = 0, a3 = 0, a2 = 0, a0 = 0, onAy = 0;
+      var ss = [], c, on2 = 0, a3 = 0, a2 = 0, a0 = 0, onAy = 0;
       for (var s = 1; s <= 114; s++) { var ps = Q.p[s - 1]; if (ps[0] <= n && ps[ps.length - 1] >= n) ss.push(s); }
-      ss.forEach(function (s) { var k = segc(s, n); if (k === 3) a3++; if (k === 2) a2++; if (k === 0) a0++; if (k >= 2) { on++; onAy += SG[s][n].n; } });
-      c = !ss.length ? 0 : a3 === ss.length ? 3 : on === ss.length && a2 ? 2 : a0 === ss.length ? 0 : 1;
+      ss.forEach(function (s) { var k = segc(s, n); if (k === 3) a3++; if (k === 2) a2++; if (k === 0) a0++; if (k >= 2) { on2++; onAy += SG[s][n].n; } });
+      c = !ss.length ? 0 : a3 === ss.length ? 3 : on2 === ss.length && a2 ? 2 : a0 === ss.length ? 0 : 1;
       if (ss.length === 1) c = segc(ss[0], n);
       if (PT[n]) done += onAy / PT[n];
       cnt[c]++; col[n] = c;
     }
     var tot = Q.last - Q.first + 1;
-    return { c: col, cnt: cnt, done: done, pct: Math.round(done * 1000 / tot) / 10, p2: Math.round(done * 10000 / tot) / 100, segc: segc };
+    return { c: col, cnt: cnt, done: done, pct: Math.round(done * 1000 / tot) / 10, p2: Math.round(done * 10000 / tot) / 100, segc: segc, us: us };
   }
   window.hifzPageColors = hifzPageColors;   // QA
   // Small hifz-map card for the top of the hifz test: ring of memorised pages + ayat waiting for review; links to the map.
@@ -4525,35 +4722,98 @@
     Object.keys(HA).forEach(function (k) { if (HA[k] && HA[k].ok === 0) rv++; });
     return '<a class="ht-mini hl-top" href="#/hifzmap"><div class="hl-ring" style="--p:' + pc.p2 + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(pct) + "٪ محفوظ · " + ar(rv) + " آية للمراجعة</b><small>خريطة الحفظ ←</small></div></a>";
   }
+  // a unit opened in the mushaf, all its ayat lit (?r=S:A1-A2, or S1:A1-S2:A2 for a rub' unit that spans two surahs)
+  function hzOpenUnit(u) {
+    if (u.s0 === u.s1) openAyahRange(u.s0, u.a0, u.a1);
+    else location.hash = "#/p/" + pageOf(u.s0, u.a0) + "?r=" + u.s0 + ":" + u.a0 + "-" + u.s1 + ":" + u.a1;
+  }
+  // 5.31: the name of a map square: «سورة X», or «الربع q من الحزب N» + the first 4 words of the unit's first ayah (plain text) + «سورة X آية Y»
+  function hzUnitTip(u) {
+    var nm = Q.s[u.s0 - 1][0];
+    if (u.kind === "s") return ["سورة " + nm];
+    var w = plain(Q.q[u.s0 - 1][u.a0 - 1].replace(/\u06DE/g, "")).split(" ").filter(function (x) { return x; }).slice(0, 4).join(" ");
+    return ["الربع " + ar(u.rub % 4 + 1) + " من الحزب " + ar(Math.floor(u.rub / 4) + 1), w, "سورة " + nm + " آية " + ar(u.a0)];
+  }
+  // 5.33: the card of a map square (tap or long press): rub' = first words + «سورة X آية Y», surah = «سورة X», with two small buttons («افتح في المصحف»,
+  // «اختبرني»). It stays until the next tap anywhere outside it, and THAT tap is swallowed (no navigation, no card-tap to the juz list).
+  // the status line of a unit (juz list row and card): last review / gap, «مستحقة» when due, or «لسه»
+  function hzUnitInfo(u) {
+    var e = hzSchedData()[u.id], today = dayNum(new Date()); if (!e) return "لسه";
+    return "آخر مراجعة من " + ar(today - parseDay(e.r)) + " يوم · كل " + ar(e.iv || 1) + " يوم" + (today - parseDay(e.r) >= (e.iv || 1) ? " · مستحقة" : "");
+  }
+  function hzCardLines(u) { var t = hzUnitTip(u); return u.kind === "s" ? [t[0]] : [t[1], t[2]]; }
+  var hzTipEl = null, hzTipY = 0;
+  function hzTipClose() { if (hzTipEl) hzTipEl.remove(); hzTipEl = null; }
+  document.addEventListener("click", function (e) {
+    if (!hzTipEl || hzTipEl.contains(e.target)) return;
+    e.stopPropagation(); e.preventDefault(); hzTipClose();
+  }, true);
+  window.addEventListener("hashchange", hzTipClose); window.addEventListener("scroll", function () { if (hzTipEl && Math.abs(window.scrollY - hzTipY) > 8) hzTipClose(); }, { passive: true });   // the card is fixed: a real scroll closes it (the late scroll event of a scrollIntoView before the tap does not)
+  function hzShowTip(c, u) {
+    hzTipClose();
+    var t = hzTipEl = document.createElement("div"); t.className = "hm-tip"; t.setAttribute("role", "dialog");
+    hzCardLines(u).forEach(function (l, i) { var d = document.createElement("div"); d.className = i || u.kind === "s" ? "hm-tn" : "hm-tw"; d.textContent = l; t.appendChild(d); });
+    var st = document.createElement("div"); st.className = "hm-ts"; st.textContent = hzUnitInfo(u); t.appendChild(st);
+    var bs = document.createElement("div"); bs.className = "hm-tbs";
+    [["hmOpen", "افتح في المصحف", function () { hzTipClose(); hzOpenUnit(u); }], ["hmTest", "اختبرني", function () { hzTipClose(); hzTestStart({ k: "u", id: u.id, w: load("hzWardWay", "o") }, "m"); }]].forEach(function (x) {
+      var b = document.createElement("button"); b.id = x[0]; b.textContent = x[1]; b.onclick = function (e) { e.stopPropagation(); x[2](); }; bs.appendChild(b);
+    });
+    t.appendChild(bs); document.body.appendChild(t); hzTipY = window.scrollY;
+    var r = c.getBoundingClientRect(), w = t.offsetWidth, h = t.offsetHeight;
+    t.style.left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2)) + "px";
+    t.style.top = (r.top - h - 8 < 6 ? r.bottom + 8 : r.top - h - 8) + "px";
+  }
+  var hzMapY = null;
+  function hzUnitName(u) { return u.kind === "s" ? "سورة " + Q.s[u.s0 - 1][0] : "الربع " + ar(u.rub % 4 + 1) + " من الحزب " + ar(Math.floor(u.rub / 4) + 1); }
+  function hzCell(u, c) {
+    return '<span class="hm-c' + (u.kind === "s" ? " hm-s" : "") + " c" + c + '" role="button" tabindex="0" data-u="' + u.id + '" data-s="' + u.s0 + '" data-p="' + pageOf(u.s0, u.a0) + '" aria-label="' + hzUnitName(u) + '"></span>';
+  }
+  // 5.31 B2: the juz list (#/hifzmap?j=N): a row per unit in mushaf order: colour chip, name (+ first words of a rub'), last review / gap, and «اختبرني» (the test of that unit)
+  function showHifzJuz(j) {
+    j = Math.min(30, Math.max(1, j)); titleEl.textContent = "جزء " + ar(j); btnBack.hidden = false;
+    var us = hzUnitStates(), S = hzSchedData(), today = dayNum(new Date());
+    var rows = hzUnits().filter(function (u) { return u.juz === j; }).map(function (u) {
+      var t = hzUnitTip(u), inf = hzUnitInfo(u);
+      var sub = u.kind === "s" ? ar(u.n) + " آية · " + inf : t[2] + " · " + inf;
+      return '<div class="hm-row"><i class="hm-c hm-s c' + us.s[u.id].c + '"></i><div><b>' + (u.kind === "s" ? t[0] : t[0] + " · " + t[1]) + "</b><small>" + sub + '</small></div><button class="hm-tb" data-test="' + u.id + '">اختبرني</button></div>';
+    }).join("");
+    view.innerHTML = '<div class="hm hm-j">' + hzNav("#/hifzmap") + '<h3 class="hz-h">جزء ' + ar(j) + "</h3>" + rows + "</div>";
+    view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { hzTestStart({ k: "u", id: b.dataset.test, w: load("hzWardWay", "o") }, "m"); }; });
+    window.scrollTo(0, 0);
+  }
   function showHifzMap() {
     titleEl.textContent = "خريطة الحفظ";
     btnBack.hidden = false;
-    var pc = hifzPageColors(), cnt = pc.cnt, cells = "", L = hifzLogData(), RV = hzRevData(), sc = load("hifzScores", {}), HA = load("hifzAyat", {}), today = dayNum(new Date());
-    // a page holding more than one surah gets one box per surah (5.11 G6): the colour rules of hifzPageColors, for that
-    // surah's ayat on that page
-    function segCol(s, n) { return pc.segc(s, n); }
-    for (var n = Q.first; n <= Q.last; n++) {
-      var ss = []; for (var s = 1; s <= 114; s++) { var ps = Q.p[s - 1]; if (ps[0] <= n && ps[ps.length - 1] >= n) ss.push(s); }
-      if (ss.length < 2) cells += '<span class="hm-c c' + pc.c[n] + '" role="button" tabindex="0" data-p="' + n + '" data-s="' + (ss[0] || surahOfPage(n)) + '" aria-label="' + ar(n) + '"></span>';
-      else ss.forEach(function (s) { cells += '<span class="hm-c hm-s c' + segCol(s, n) + '" role="button" tabindex="0" data-p="' + n + '" data-s="' + s + '" aria-label="' + Q.s[s - 1][0] + " · " + ar(n) + '"></span>'; });
+    var pc = hifzPageColors(), us = pc.us, cnt = us.cnt, L = hifzLogData(), U = hzUnits();
+    // 5.31 B2: one card per juz (3 per row, juz 30 full width): a cell per unit (8 rub's in juz 1-27, the surahs in juz 28-30); tap a cell = open it, tap the card = the juz list
+    var rows = "";
+    for (var j = 1; j <= 30; j++) {
+      var uj = U.filter(function (u) { return u.juz === j; });
+      var sq = uj.map(function (u) { return hzCell(u, us.s[u.id].c); }).join("");
+      rows += '<div class="hm-jc j' + j + (j === 30 ? " hm-wide" : "") + '" role="button" tabindex="0" data-j="' + j + '" aria-label="جزء ' + ar(j) + '"><div class="hm-jh"><b>جزء ' + ar(j) + "</b>" + (j >= 28 ? "<small>" + ar(uj.length) + " سورة</small>" : "") + '</div><div class="hm-jb n' + uj.length + '">' + sq + "</div></div>";
     }
     var tot = Q.last - Q.first + 1, pct = pc.pct;
     var lg = [["c3", "محفوظة ومراجَعة", cnt[3]], ["c2", "محتاجة مراجعة", cnt[2]], ["c1", "محفوظة جزئيًا", cnt[1]], ["c0", "لسه", cnt[0]]];
     view.innerHTML = '<div class="hm">' + hzNav("#/hifzmap") + '<div class="hl-top"><div class="hl-ring" style="--p:' + pc.p2 + '"><b>' + ar(pct) + "٪</b></div><div><b>" + ar(pc.done < 10 ? Math.round(pc.done * 10) / 10 : Math.round(pc.done)) + " صفحة محفوظة</b><small>من " + ar(tot) + " صفحة</small><small>" + EDS[edition].name + "</small></div></div>" +
-      '<div class="hm-lg">' + lg.map(function (l) { return '<span><i class="hm-c ' + l[0] + '"></i>' + l[1] + " (" + ar(l[2]) + ")</span>"; }).join("") + "</div>" +
-      '<div class="hm-grid">' + cells + "</div>" +
-      '<p class="hint">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع تفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» جنب المايك عشان تختبر نفسك فيها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من ١٤ يوم أو نتيجة الاختبار أقل من ٧٠٪.</p>' +
+      '<div class="hm-lg">' + lg.map(function (l) { return '<span><i class="hm-c ' + l[0] + '"></i>' + l[1] + " (" + ar(l[2]) + ")</span>"; }).join("") + '<button class="hm-i" id="hmInfoBtn" aria-label="معلومات" aria-expanded="false" aria-controls="hmInfo">i</button></div>' +
+      '<p class="hint hm-info" id="hmInfo" hidden>كل مربع ربع، والسورة مربع لوحدها في الأجزاء ٢٨–٣٠. اضغط على المربع يظهر اسمه، ومنه «افتح في المصحف» تفتح آياته مظلّلة، أو «اختبرني» تختبر نفسك فيه. اضغط في أي مكان بره الكارت يتقفل. واضغط على الجزء تشوف وحداته وتختبر أي واحدة. «محتاجة مراجعة» لو المربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من ٨٠٪.</p>' +
+      '<div class="hm-grid">' + rows + "</div>" +
       hzMemoList(L) + "</div>";
     document.getElementById("hmFold").ontoggle = function () { hzMemoOpen = this.open; };
-    // 5.26 #47: tap = open the box's ayat in the mushaf, highlighted; the «اختبرني» button there starts the test on exactly these ayat
+    var ib = document.getElementById("hmInfoBtn"); ib.onclick = function () { var h = document.getElementById("hmInfo"); h.hidden = !h.hidden; ib.setAttribute("aria-expanded", h.hidden ? "false" : "true"); };
+    view.querySelectorAll(".hm-jc").forEach(function (c) {
+      var go = function () { hzMapY = window.scrollY; location.hash = "#/hifzmap?j=" + c.dataset.j; };
+      c.onclick = function (e) { if (e.target.closest(".hm-c")) return; go(); };
+      c.onkeydown = function (e) { if (e.target === c && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(); } };
+    });
+    if (hzMapY != null) { var my = hzMapY; hzMapY = null; window.scrollTo(0, my); requestAnimationFrame(function () { window.scrollTo(0, my); }); setTimeout(function () { window.scrollTo(0, my); }, 60); }
+    // 5.26 #47: tap = open the unit's ayat in the mushaf, highlighted; the «اختبرني» button there starts the test on exactly these ayat
     view.querySelectorAll(".hm-grid .hm-c").forEach(function (c) {
-      var s = +c.dataset.s, n = +c.dataset.p;
+      var u = hzUnit(c.dataset.u);
       // 5.27 #1: the box is a role=button span (not an <a href>): a long press on the phone showed the WebView's «file:///» link preview
-      c.onclick = function (e) {
-        e.preventDefault();
-        var ay = []; Q.p[s - 1].forEach(function (pg, i) { if (pg === n) ay.push(i + 1); });
-        if (ay.length) openAyahRange(s, ay[0], ay[ay.length - 1]); else location.hash = "#/p/" + n;
-      };
+      // 5.33: a tap shows the card (no long-press code: a hold just acts as a tap when the finger lifts)
+      c.oncontextmenu = function (e) { e.preventDefault(); };
+      c.onclick = function (e) { e.preventDefault(); hzShowTip(c, u); };
       c.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); c.click(); } };
     });
   }
@@ -6145,8 +6405,10 @@
     currentSurah = 0;
     var h = location.hash, m;
     if ((m = h.match(/^#\/p\/(\d+)/))) {
-      var am = h.match(/[?&]a=(\d+):(\d+)/), hm = h.match(/[?&]h=([^&]*)/), hl = null, rm = h.match(/[?&]r=(\d+):(\d+)-(\d+)/);
-      hmR = rm && +rm[1] >= 1 && +rm[1] <= 114 && +rm[2] >= 1 && +rm[3] >= +rm[2] && +rm[3] <= Q.s[+rm[1] - 1][3] ? { s: +rm[1], a1: +rm[2], a2: +rm[3] } : null;
+      var am = h.match(/[?&]a=(\d+):(\d+)/), hm = h.match(/[?&]h=([^&]*)/), hl = null, rm = h.match(/[?&]r=(\d+):(\d+)-(\d+)(?::(\d+))?/);
+      // r=S:A1-A2 (one surah) or r=S1:A1-S2:A2 (a map unit over two surahs, 5.31): hmR = {s, a1, s2, a2}
+      var rs2 = rm ? (rm[4] ? +rm[3] : +rm[1]) : 0, ra2 = rm ? (rm[4] ? +rm[4] : +rm[3]) : 0;
+      hmR = rm && +rm[1] >= 1 && rs2 >= +rm[1] && rs2 <= 114 && +rm[2] >= 1 && +rm[2] <= Q.s[+rm[1] - 1][3] && ra2 >= 1 && ra2 <= Q.s[rs2 - 1][3] && (rs2 > +rm[1] || ra2 >= +rm[2]) ? { s: +rm[1], a1: +rm[2], s2: rs2, a2: ra2 } : null;
       if (am && +am[1] >= 1 && +am[1] <= 114 && +am[2] >= 1 && +am[2] <= Q.s[+am[1] - 1][3]) {
         var pq = hm ? hm[1] : "";
         try { pq = decodeURIComponent(pq); } catch (e) {}
@@ -6169,6 +6431,8 @@
       showQiraat();
     } else if (h === "#/khatma") {
       showKhatma();
+    } else if ((m = h.match(/^#\/hifzmap\?j=(\d+)$/))) {
+      showHifzJuz(+m[1]);
     } else if (h === "#/hifzmap") {
       showHifzMap();
     } else if (h === "#/family") {

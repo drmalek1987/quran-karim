@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Sprint 4 (#51): جدولة ورد المراجعة، design note</title>
+<style>
+  body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;max-width:960px;margin:24px auto;padding:0 18px;line-height:1.8;color:#1d2a2a;background:#fbfaf6}
+  h1{color:#0f5c4d;font-size:1.6em}
+  h2{color:#0f5c4d;border-bottom:2px solid #cfe3dc;padding-bottom:4px;margin-top:2em}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.95em;background:#fff}
+  th,td{border:1px solid #cfd8d4;padding:6px 8px;vertical-align:top}
+  th{background:#e7f2ee}
+  code{direction:ltr;unicode-bidi:embed;background:#eef3f1;padding:1px 5px;border-radius:4px;font-size:.9em}
+  .box{background:#fff;border:1px solid #cfd8d4;border-radius:8px;padding:10px 14px;margin:10px 0}
+  .warn{background:#fff6e0;border-color:#f0c96a}
+  .ok{background:#eaf7ef;border-color:#9fd3b3}
+  .q{background:#eef0ff;border-color:#a9b2f0}
+  .ltr{direction:ltr;text-align:left}
+  small{color:#5b6b67}
+</style>
+</head>
+<body>
+<h1>Sprint 4 (#51): جدولة ورد المراجعة اليومي على أساس علمي</h1>
+<p><small>Design note، Phase 1. التاريخ 2026-11-21. الأساس: 5.29 (code 162e120). المتطلب #49 خلص في 5.25، و <code>hzRecord</code> هو المكان الوحيد اللي بيكتب نتيجة المراجعة.</small></p>
+
+<div class="box warn"><b>ملاحظة مهمة قبل أي حاجة:</b> الكود الحالي <b>مافيهوش حد 30 يوم</b>. الفاصل بيتضاعف لحد <b>90 يوم</b> (<code>web/app.js:3842</code>). الرقم الوحيد القريب هو <b>14 يوم</b>، وده موجود في ألوان الخريطة بس (<code>web/app.js:4503</code>). يعني الخريطة والجدولة بيستخدموا قاعدتين مختلفتين لنفس البيانات. الـ design ده بيصلّح ده.</div>
+
+<h2>1. المنطق الحالي (file:line)</h2>
+<table>
+<tr><th>المكان</th><th>بيعمل إيه</th></tr>
+<tr><td><code>web/app.js:3824</code> <code>hzRevData()</code></td><td>بيقرا <code>q.hzRev = {surah: {m, r, iv, score}}</code>. أول مرة بينسخه من <code>q.hifzLog</code>.</td></tr>
+<tr><td><code>web/app.js:3834</code> <code>hzDueInfo()</code></td><td><code>age = النهارده − r</code>. السورة بتبقى مستحقة لما <code>age ≥ iv</code>. لو مفيش iv: يبقى 7، أو 1 لو آخر نتيجة أقل من 70.</td></tr>
+<tr><td><code>web/app.js:3840</code> <code>hzReviewed()</code></td><td>&lt;70% → iv = 1، من 70 لـ 89% → iv زي ما هو، ≥90% → iv × 2 (<b>بحد أقصى 90</b>). المراجعة التانية في نفس اليوم مش بتضاعف.</td></tr>
+<tr><td><code>web/app.js:3885</code> <code>hzSetRev()</code></td><td>≥80% → السورة بتدخل القايمة بـ iv = 7، وأي نتيجة &lt;80% بتخلي iv = 1. <b>يعني حد الـ 70 جوه hzReviewed مالوش لازمة عمليًا</b>، لأن شرط الـ 80 بيغطّي عليه.</td></tr>
+<tr><td><code>web/app.js:3894</code> <code>hzRecord()</code></td><td>المصدر الوحيد (#49): بيكتب علامة كل آية في <code>q.hifzAyat</code>، وبيكتب <code>rv</code> عند ≥80%، وبعدين بيحسب الجدولة <b>على مستوى السورة</b>.</td></tr>
+<tr><td><code>web/app.js:3853</code> <code>hzWard()</code></td><td>الورد اليومي: السور الأكتر تأخيرًا الأول، لحد ما يوصل لـ <code>q.hzDaily</code> صفحة (0 = كل المستحق). <b>السورة بتدخل بكل صفحاتها</b>، فالبقرة لوحدها 48 صفحة.</td></tr>
+<tr><td><code>web/app.js:4503</code> <code>segc()</code></td><td>لون الخريطة: كل آيات الجزء ≥80% → أخضر (3) لحد 14 يوم، وبعدها أصفر (2). القاعدة دي مستقلة عن iv.</td></tr>
+</table>
+<p><b>المشاكل:</b> (1) الوحدة هي السورة، فالسور الطويلة بتنفخ الورد، ونجاحك في ربع واحد بيأجّل البقرة كلها. (2) الحد الأقصى 90 يوم طويل جدًا على الحفظ (تحت). (3) الخريطة بتقول «أصفر» بعد 14 يوم، والجدولة ممكن تقول «مش مستحقة» لحد 90. (4) في حدّين (70 و 80) لنفس المعنى.</p>
+
+<h2>2. مقارنة الطرق</h2>
+<table>
+<tr><th>الطريقة</th><th>إزاي شغالة</th><th>مميزات</th><th>عيوب بالنسبة لنا</th></tr>
+<tr><td><b>SM-2</b> (Woźniak 1990)</td><td>درجة من 0 لـ 5. الفاصل: 1، بعدين 6، بعدين I × EF. الـ EF بيبدأ 2.5 وبيتعدّل حسب الدرجة.</td><td>بسيطة ومجرّبة (Anki استخدمها سنين).</td><td>معمولة للـ flashcards. الـ EF ممكن ينزل وما يطلعش تاني (ease hell). مافيهاش حد أقصى، فالفواصل بتوصل لشهور وسنين.</td></tr>
+<tr><td><b>FSRS</b> (Ye, Su, Cao، KDD 2022 / TKDE 2023)</td><td>model للذاكرة (Difficulty / Stability / Retrievability) بـ parameters متدرّبة على logs. بيجدول على retention مستهدف (مثلًا 90%).</td><td>الأدق علميًا للـ flashcards، وبيتعامل كويس مع المراجعة المتأخرة.</td><td>الـ parameters متدرّبة على بطاقات قصيرة بإجابة صح/غلط، مش على نص طويل متسلسل بنتيجة %. الـ personalization محتاجة مئات المراجعات لكل مستخدم. هدف 90% retention قليل على القرآن.</td></tr>
+<tr><td><b>Leitner</b> (1972)</td><td>صناديق، وكل صندوق ليه فاصل ثابت. النجاح بينقلك للصندوق اللي بعده، والرسوب بيرجّعك لأول صندوق.</td><td>أبسط حاجة، وسهل تشرحها للمستخدم، وثابتة (deterministic) وسهل تتختبر.</td><td>الرجوع لأول صندوق مع كل غلطة قاسي على جزء متقن.</td></tr>
+<tr><td><b>Retrieval practice</b> (Karpicke &amp; Roediger 2008)</td><td>مبدأ مش جدول: الاسترجاع من الذاكرة (الاختبار) بيثبّت أكتر بكتير من إعادة القراية.</td><td>التطبيق أصلًا بيعمل كده: التسميع بالصوت.</td><td>بيحدد <i>نوع</i> المراجعة، مش <i>توقيتها</i>.</td></tr>
+<tr><td><b>Spacing / ridgeline</b> (Cepeda et al. 2008؛ Kang 2016)</td><td>أحسن فاصل بيكبر مع مدة الاحتفاظ المطلوبة، لكن كنسبة منها بيصغر (من 20–40% لأسبوع لحد 5–10% لسنة).</td><td>أساس الفواصل المتزايدة.</td><td>Kang et al. 2014 وKarpicke &amp; Roediger 2007: الفواصل المتزايدة مش دايمًا أحسن من المتساوية على المدى الطويل، فمحتاجين حد أقصى ثابت بعد فترة.</td></tr>
+<tr><td><b>النظام التقليدي في الحفظ</b></td><td><b>الجديد</b> (سبق): ورد الحفظ الجديد، و<b>القريب</b> (سبقي): مراجعة المحفوظ حديثًا كل يوم، و<b>القديم</b> (المنزل): دورة على المحفوظ كله. تحزيب «فمي بشوق» بيقسم القرآن 7 منازل، والختم في شهر يعني جزء في اليوم.</td><td>مجرّب قرون، والحفّاظ بيعرفوه. فيه حد أقصى صريح: كل المحفوظ لازم يتراجع في كل دورة.</td><td>مفيش دراسات منضبطة بتقارن بينه وبين غيره (الأبحاث بتأكد على أهمية المراجعة المنتظمة بشكل عام). الفاصل واحد للمتقن والضعيف.</td></tr>
+</table>
+
+<div class="box ok"><b>الطريقة المختارة: Leitner متدرّج + حد أقصى «المنزل» 30 يوم (hybrid).</b>
+<ul>
+<li><b>من Leitner و SM-2:</b> فواصل بتكبر مع النجاح (سلّم ثابت: 1، 3، 7، 14، 30 يوم). القواعد ثابتة، والمستخدم يقدر يفهمها، والـ tests مضمونة.</li>
+<li><b>من النظام التقليدي:</b> حد أقصى 30 يوم = المحفوظ كله بيتراجع مرة على الأقل كل شهر (ختمة الشهر، يعني جزء في اليوم للحافظ الكامل). والجزء الضعيف بيرجع للمراجعة اليومية (القريب).</li>
+<li><b>من FSRS:</b> الرسوب مش بيرجّعك للصفر خالص (الذاكرة بتحتفظ بجزء من الـ stability)، والنجاح بعد تأخير بيتحسب على المدة الفعلية.</li>
+<li><b>ليه مش FSRS:</b> مافيش عندنا data تدريب لنص قرآني متسلسل، والـ default params مش مناسبة لهدف قريب من 100% retention. ممكن نرجعله بعدين (P6) لما يبقى عندنا logs كفاية من الـ <code>hifzAyat</code>.</li>
+</ul></div>
+
+<h2>3. القواعد المقترحة</h2>
+<h3>3.1 وحدة الجدولة: الربع (ربع الحزب، 240 ربع)</h3>
+<ul>
+<li>بدل السورة. الربع حوالي 2.5 صفحة، وهو تقسيم الحفّاظ التقليدي، و<b>مش بيتغيّر مع الطبعة</b> (الشمرلي والحرمين وKing Fahd)، وموجود أصلًا في <code>QURAN.h</code>.</li>
+<li>نتيجة الربع في الجلسة = الآيات الصح ÷ الآيات اللي اتختبرت منه. وبتتحسب في الجدولة <b>بس لو الجلسة غطّت ≥50% من آيات الربع</b>. لو أقل من كده، علامات الآيات بتتكتب في <code>hifzAyat</code> عادي، لكن جدول الربع مش بيتغيّر. السبب: اختبار 3 آيات مايصحّش يأجّل ربع كامل.</li>
+<li>مخزن جديد <code>q.hzSched = {rub: {r: "Y-M-D", iv, res, lp}}</code> (r آخر مراجعة، iv الفاصل، res آخر نتيجة، lp عدد مرات الرسوب). <b><code>hzRecord</code> هو الوحيد اللي بيكتب فيه.</b></li>
+</ul>
+<h3>3.2 الفواصل وأثر النتيجة</h3>
+<table>
+<tr><th>نتيجة الربع</th><th>الفاصل الجاي</th><th>ليه</th></tr>
+<tr><td><b>≥ 90%</b> (نجاح متقن)</td><td>الدرجة اللي بعدها في السلّم 1 → 3 → 7 → 14 → 30، وبتتحسب من <code>max(iv, التأخير الفعلي)</code></td><td>Spacing. والنجاح بعد تأخير معناه إن الذاكرة استحملت مدة أطول (FSRS).</td></tr>
+<tr><td><b>80–89%</b> (نجاح ضعيف)</td><td>نفس الفاصل، ويبدأ من النهارده</td><td>زي «Hard» في SM-2: نجح لكن مايستاهلش يتأجل أكتر.</td></tr>
+<tr><td><b>&lt; 80%</b> (رسوب)</td><td>1 يوم (يرجع للمراجعة اليومية)، و <code>lp += 1</code></td><td>الضعيف يرجع للقريب (التقليدي). شرط الـ 80% هو اللي المشروع متفق عليه.</td></tr>
+<tr><td>أول نجاح بعد رسوب</td><td><code>max(3, نص الفاصل قبل الرسوب)</code> مقرّبة لأقرب درجة في السلّم</td><td>مايرجعش من الصفر (lapse new interval في Anki، و stability في FSRS).</td></tr>
+<tr><td>مراجعة تانية في نفس اليوم</td><td>مش بتكبّر الفاصل (القاعدة الحالية مكمّلة). لكن الرسوب بيتسجّل.</td><td>التكرار في نفس اليوم مش spacing.</td></tr>
+</table>
+<p><b>مكان شرط الـ 80%:</b> في مكان واحد بس، وهو <code>hzRecord</code> عند حساب نتيجة كل ربع (<code>PASS = 80</code> ثابت واحد). <b>80 بالظبط نجاح، و79 رسوب.</b> حد الـ 70 القديم هيتشال.</p>
+
+<h3>3.3 حد الـ 30 يوم: يفضل ولا يزيد للأجزاء المتقنة؟</h3>
+<div class="box q"><b>التوصية: يفضل 30 يوم لكل الأجزاء، بما فيها المتقنة (أقل من الـ 90 اللي في الكود دلوقتي).</b>
+<ul>
+<li>الحديث «تعاهدوا القرآن فوالذي نفسي بيده لهو أشد تفصيًا من الإبل في عقلها» (البخاري 5033، مسلم 791)، ووصية «اقرأ القرآن في شهر» (البخاري 5054) = دورة شهرية كحد أدنى.</li>
+<li>هدف الحفظ retention قريب من 100%، مش 90% زي الـ flashcards. وده معناه فواصل أقصر (Cepeda 2008: الفاصل الأمثل نسبة من مدة الاحتفاظ، ومدة الاحتفاظ عندنا «طول العمر»، فالدورة الثابتة هي الأأمن).</li>
+<li>الحساب: لو المحفوظ كله (240 ربع) على 30 يوم = 8 أرباع في اليوم ≈ جزء في اليوم، وده بالظبط ورد الحافظ التقليدي. يعني مقبول.</li>
+<li>الجزء المتقن تسميعه أسرع، فتكلفته الفعلية أقل حتى لو اتراجع كل شهر.</li>
+<li><b>Data gate لبعدين:</b> لو طلع إن نسبة النجاح عند فاصل 30 أكتر من 97% على عدد كافي من المراجعات، نفكّر في 45 يوم للأرباع اللي عدّت 3 مرات متتالية ≥95%. ده مش في Sprint 4 (start simple).</li>
+</ul></div>
+
+<h3>3.4 الأيام المتأخرة من غير مراجعة</h3>
+<ul>
+<li>مفيش عقاب على التأخير لوحده. الربع بيفضل مستحق لحد ما يتراجع.</li>
+<li>الأولوية في الورد بنسبة التأخير <code>age / iv</code> (ربع فاصله 1 ومتأخر يومين أخطر من ربع فاصله 30 ومتأخر يومين). ده بيقرّب من فكرة retrievability في FSRS من غير model.</li>
+<li>لو النتيجة بعد التأخير ≥90%، الفاصل الجاي بيتحسب من التأخير الفعلي (3.2). ولو رسب، بيرجع يوم واحد زي أي رسوب.</li>
+</ul>
+
+<h2>4. حجم الورد اليومي (عشان مايتضخمش)</h2>
+<table>
+<tr><th>القاعدة</th><th>التفاصيل</th></tr>
+<tr><td>Budget</td><td><code>q.hzDaily</code> (صفحات) يفضل زي ما هو. القيمة 0 («كل المستحق») تبقى <b>auto</b> = <code>ceil(M / 30) + 2</code> ربع، و M = عدد الأرباع المجدولة. مثلًا: المحفوظ كله 240 ربع → 10 أرباع ≈ 25 صفحة. 3 أجزاء (24 ربع) → 3 أرباع.</td></tr>
+<tr><td>الترتيب</td><td>(1) الأرباع الراسبة (iv = 1) الأول، بحد أقصى نص الـ budget. (2) الباقي بنسبة التأخير. (3) جوه الورد بيتعرض بترتيب المصحف (زي دلوقتي).</td></tr>
+<tr><td>الزيادة عن الـ budget</td><td>بتستنى لبكرة من غير عقاب. والكارت بيعرض «متأخر: N ربع» عشان المستخدم يعرف، ويقدر يزوّد الورد بنفسه.</td></tr>
+<tr><td>Steady state</td><td>ربع جديد بيتكلّف 5 مراجعات في أول 55 يوم (1، 3، 7، 14، 30)، وبعد كده مرة في الشهر. فالورد بيستقر عند حوالي M/30 + الجديد.</td></tr>
+<tr><td>تقدير تقريبي</td><td>حافظ 5 أجزاء (40 ربع)، كلها مستقرة: حوالي 1.3 ربع في اليوم + الراسب. الـ 90 يوم الحالية كانت هتدّي 0.4، لكن على حساب الإتقان. ومع وحدة السورة، يوم البقرة كان بيدخل 48 صفحة مرة واحدة، ومع الربع ده مش هيحصل تاني.</td></tr>
+</table>
+
+<h2>5. Migration لبيانات المستخدمين الموجودة</h2>
+<ol>
+<li>مرة واحدة، بـ flag <code>q.hzSchedV = 1</code>. <b>مفيش حاجة قديمة بتتمسح</b> (<code>hzRev</code> و <code>hifzLog</code> و <code>hifzAyat</code> بيفضلوا موجودين، عشان نقدر نرجع لو احتجنا).</li>
+<li>كل سورة في <code>hzRev</code>: كل ربع بيغطّي ≥50% من آياته من السورة دي بياخد <code>r</code> بتاع السورة، و <code>iv</code> = أكبر درجة في السلّم ≤ <code>min(iv, 30)</code>: يعني 90 أو 56 → 30، و28 → 14، و14 → 14، و7 → 7، و1 → 1.</li>
+<li>الربع المشترك بين سورتين: بياخد <b>الأقدم r والأصغر iv</b> (الاختيار المحافظ).</li>
+<li>أرباع ماعندهاش سورة في <code>hzRev</code>، لكن كل آياتها ليها <code>rv</code> في <code>hifzAyat</code>: بتدخل بـ <code>r</code> = أحدث rv، و iv = 7.</li>
+<li>آخر score للسورة &lt;80 → الربع iv = 1.</li>
+<li>زحمة أول يوم: الأرباع اللي هتبقى مستحقة كلها مرة واحدة بيتحكم فيها الـ budget (4)، والباقي بيستنى بالأولوية. مفيش ورد 200 صفحة يوم التحديث.</li>
+<li>بعد الـ migration، <code>hzRev</code> بيتقرا للعرض القديم بس لو احتجنا. والمصدر الجديد هو <code>hzSched</code>.</li>
+</ol>
+
+<h2>6. الخريطة (#49) والجدولة من نفس النتيجة</h2>
+<div class="box ok">
+<ul>
+<li><b>كاتب واحد:</b> <code>hzRecord</code> بيكتب <code>hifzAyat</code> (لكل آية) و <code>hzSched</code> (لكل ربع) <b>في نفس الـ call</b>. ومفيش مكان تاني بيكتب فيهم.</li>
+<li><b>الخريطة بتقرا الجدولة:</b> قاعدة الـ 14 يوم في <code>segc</code> هتتشال. لون جزء السورة في الصفحة هيبقى من الربع (أو الربعين) اللي فيه: نجح ومش مستحق → أخضر (3)، مستحق أو متأخر أو آخر نتيجة &lt;80 → أصفر (2)، اتختبر ولسه ماعدّاش → 1، ما اتختبرش → 0. ولو الجزء على ربعين، بياخد الأسوأ.</li>
+<li>يعني «أصفر على الخريطة» = «موجود في ورد المراجعة»، بالظبط ومن غير استثناءات.</li>
+</ul></div>
+
+<h2>7. Offline على الجهاز</h2>
+<p>كله JavaScript في <code>web/app.js</code> و localStorage (<code>q.*</code>). مفيش network، ولا model، ولا تدريب. الحساب O(240) في كل مرة بيتعرض فيها الورد أو الخريطة (أقل من 1 ms). والـ backup و QK2 (المحفّظ والطالب) بيشملوا <code>hzSched</code> تلقائي لو بيصدّروا كل الـ <code>q.*</code>، وده هيتأكد في Phase 2.</p>
+
+<h2>8. خطة Phase 2 (بعد موافقتك)</h2>
+<ol>
+<li>Analogical reasoning: الـ precedent هو <code>hzRecord</code> / <code>hzReviewed</code> (<code>web/app.js:3840–3913</code>) و <code>pageRub</code> للأرباع.</li>
+<li>qk-dev (Sonnet): <code>hzSched</code> + السلّم + <code>hzRecord</code> + الـ migration + <code>hzWard</code> بالأرباع + <code>segc</code> + نصوص كارت «عليك مراجعة» («ربع … من سورة …»).</li>
+<li>Tests بتواريخ simulated (hook <code>window.__today</code>): نجاح متكرر 1→3→7→14→30→30، ورسوب يرجّعه 1 وبعدين نص الفاصل، و79 / 80 / 81 / 89 / 90، والـ migration (iv 90 و56 و28 و1 + ربع مشترك)، والتأخير (20 يوم من غير مراجعة: الـ budget والأولوية)، وتغطية أقل من 50%، والخريطة = الورد.</li>
+<li>Full QA (run-parallel 4 editions + data.py)، و 5.30 APK، و signer 7d8b31d2، و <code>progress.md</code>.</li>
+</ol>
+
+<h2>9. محتاج قرارك في</h2>
+<div class="box q"><ol>
+<li><b>الوحدة: الربع</b> (مقترح) ولا تفضل السورة؟</li>
+<li><b>الحد الأقصى 30 يوم للكل</b> (مقترح) ولا 45 للمتقن من دلوقتي؟</li>
+<li><b>السلّم 1 / 3 / 7 / 14 / 30</b> و 80–89 = نفس الفاصل: موافق؟</li>
+<li><b>Budget auto</b> = <code>ceil(M/30)+2</code> ربع لما الإعداد يكون 0: موافق؟</li>
+</ol></div>
+
+<h2>المصادر</h2>
+<ul class="ltr">
+<li>Woźniak, P. (1990). <i>Optimization of learning</i> (MSc thesis), SM-2 algorithm. <a href="https://www.gwern.net/docs/www/www.supermemo.com/89c4aa4e8e1fada3b52b9f6ceccda5a327f56037.html">thesis web copy</a>; <a href="https://en.wikipedia.org/wiki/SuperMemo">SuperMemo</a></li>
+<li>Ye, J., Su, J., Cao, Y. (2022). A Stochastic Shortest Path Algorithm for Optimizing Spaced Repetition Scheduling. <i>KDD '22</i>, 4381–4390. doi:10.1145/3534678.3539081. <a href="https://scholar.hit.edu.cn/en/publications/a-stochastic-shortest-path-algorithm-for-optimizing-spaced-repeti/">HIT record</a></li>
+<li>Su, J., Ye, J., Nie, L., Cao, Y., Chen, Y. (2023). Optimizing Spaced Repetition Schedule by Capturing the Dynamics of Memory. <i>IEEE TKDE</i> 35(10), 10085–10097. doi:10.1109/TKDE.2023.3251721. <a href="https://dblp1.uni-trier.de/rec/journals/tkde/SuYNCC23.html">dblp</a> (the line of work behind FSRS)</li>
+<li>Leitner, S. (1972). <i>So lernt man lernen</i>. Freiburg: Herder.</li>
+<li>Karpicke, J. D., Roediger, H. L. (2008). The critical importance of retrieval for learning. <i>Science</i> 319, 966–968. <a href="https://pubmed.ncbi.nlm.nih.gov/18276894/">PubMed</a></li>
+<li>Karpicke, J. D., Roediger, H. L. (2007). Expanding retrieval practice promotes short-term retention, but equally spaced retrieval enhances long-term retention. <i>JEP: LMC</i> 33(4), 704–719.</li>
+<li>Cepeda, N. J., Vul, E., Rohrer, D., Wixted, J. T., Pashler, H. (2008). Spacing effects in learning: a temporal ridgeline of optimal retention. <i>Psychological Science</i> 19(11), 1095–1102. <a href="https://pubmed.ncbi.nlm.nih.gov/19076480/">PubMed</a></li>
+<li>Kang, S. H. K. (2016). Spaced repetition promotes efficient and effective learning. <i>Policy Insights from the Behavioral and Brain Sciences</i> 3(1), 12–19. <a href="https://findanexpert.unimelb.edu.au/scholarlywork/1402004-spaced-repetition-promotes-efficient-and-effective-learning--policy-implications-for-instruction">record</a></li>
+<li>Kang, S. H. K., Lindsey, R. V., Mozer, M. C., Pashler, H. (2014). Retrieval practice over the long term: should spacing be expanding or equal-interval? <i>Psychonomic Bulletin &amp; Review</i>. <a href="https://home.cs.colorado.edu/~mozer/Research/Selected%20Publications/reprints/KangLindseyMozerPashler2014.pdf">PDF</a></li>
+<li>Hifz revision studies (murajaah as the key retention factor): <a href="https://spaj.ukm.my/jalhikmah/index.php/jalhikmah/article/download/530/306">Al-Hikmah (UKM) 2024</a>; <a href="https://ejournal.upsi.edu.my/index.php/ALMAKRIFAH/article/download/11659/6173/62296">Al-Makrifah (UPSI) 2025</a>; <a href="https://journal.uinsgd.ac.id/index.php/jpi/article/view/44968">JPI (UIN SGD) 2025</a>; Saleem, A., <a href="https://orca.cardiff.ac.uk/id/eprint/75307/1/A.%20Saleem%20PhD%20thesis.pdf">PhD thesis, Cardiff</a></li>
+<li>صحيح البخاري 5033 و5054، وصحيح مسلم 791 (التعاهد، والختم في شهر وفي سبع). وتحزيب المنازل السبعة «فمي بشوق» عن حديث أوس بن حذيفة (سنن أبي داود 1393، وفي إسناده كلام).</li>
+<li>Sabaq / sabqi / manzil as practised: <a href="https://www.quransheikh.com/quran-hifz-revision-schedule/">quransheikh.com</a> (practitioner guide, not peer-reviewed). No controlled study comparing it with other schemes was found.</li>
+</ul>
+</body>
+</html>

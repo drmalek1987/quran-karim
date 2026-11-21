@@ -928,7 +928,17 @@ body.has-tabs .player { bottom: 70px; }
 .hm, .fam, .tp { padding: 12px 16px 24px; }
 .hm-lg { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin: 12px 0; }
 .hm-lg span { display: flex; align-items: center; gap: 6px; }
-.hm-grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; }
+.hm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hm-jc { border: 1px solid rgba(127,127,127,.35); border-radius: 10px; padding: 5px; cursor: pointer; min-width: 0; }
+.hm-jc.hm-wide { grid-column: 1 / -1; }
+.hm-jh { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font-size: 12px; margin-bottom: 4px; } .hm-jh small { opacity: .6; font-size: 11px; }
+.hm-jb { display: grid; gap: 2px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.hm-jb.n9, .hm-jb.n11 { grid-template-columns: repeat(4, minmax(0, 1fr)); }   /* same cell size as juz 1-27 (3 rows) */ .hm-jb.n37 { grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 3px; }
+.hm-ward { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; padding: 8px 12px; border: 1px solid rgba(127,127,127,.35); border-radius: 12px; }
+.hm-ward .continue { width: auto; min-height: 44px; padding: 0 18px; margin: 0; } .hm-done { opacity: .8; justify-content: center; }
+.hm-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid rgba(127,127,127,.2); }
+.hm-row > i { flex: 0 0 18px; } .hm-row > div { flex: 1; min-width: 0; } .hm-row b, .hm-row small { display: block; } .hm-row small { opacity: .65; font-size: 12px; }
+.hm-tb { min-height: 44px; min-width: 70px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: inherit; font-size: 14px; cursor: pointer; }
 .hm-grid, .hm-c, .hm a, .hz-nav a, .ht-mini, .hifz-bar { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .hm-c { cursor: pointer; display: block; aspect-ratio: 1; border-radius: 3px; background: rgba(127,127,127,.18); }
 .hm-lg .hm-c { width: 14px; }
@@ -1157,7 +1167,8 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 /* Sprint 2 #48: the hifz-map box's ayat in the mushaf (soft teal, not the yellow search/ayah colour) */
 .hm-hl { position: absolute; background: rgba(20, 160, 160, .22); box-shadow: inset 0 0 0 1.5px rgba(10, 120, 130, .6); mix-blend-mode: multiply; border-radius: 4px; pointer-events: none; }
 :root.pdark .hm-hl { background: rgba(60, 220, 220, .22); box-shadow: inset 0 0 0 1.5px rgba(90, 230, 230, .7); mix-blend-mode: normal; }
-.hm-c.hm-s { box-shadow: inset 0 0 0 1.5px rgba(127,127,127,.35); }
+.hm-tip { position: fixed; z-index: 30; max-width: 80vw; background: rgba(20, 30, 26, .94); color: #fff; padding: 7px 12px; border-radius: 12px; font-size: 13px; line-height: 1.6; pointer-events: none; box-shadow: var(--shadow-lg); }
+.hm-c.hm-s {box-shadow: inset 0 0 0 1.5px rgba(127,127,127,.35); }
 .hz-pick b { display: block; margin-bottom: 10px; }
 .hz-from { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 14px; } .hz-from select { flex: 1; }
 .hz-acts { display: grid; gap: 8px; } .hz-acts .continue { margin: 0; justify-content: center; }
@@ -1268,3 +1279,11 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 p.wel-err { margin: 0; } .wel-retry { display: block; margin-top: 4px; font-size: 13px; text-decoration: underline; }
 .wel-card .dl-p { width: 80%; margin: 6px auto 2px; } .wel-pc { display: block; color: var(--muted); }
 .wel-card p.wel-err { color: #d64541; font-weight: 600; }
+/* 5.33: the map square's card (name + two buttons) and the ⓘ button beside the legend */
+.hm-tip { pointer-events: auto; padding: 8px 10px; text-align: center; }
+.hm-tip .hm-tw { font-weight: 700; } .hm-tip .hm-tn { opacity: .9; }
+.hm-tbs { display: flex; gap: 6px; margin-top: 7px; justify-content: center; }
+.hm-tip .hm-ts { font-size: 12px; opacity: .8; margin-top: 4px; }
+.hm-tbs button { min-height: 40px; padding: 0 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,.55); background: transparent; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+.hm-i { margin-inline-start: auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(127,127,127,.6); background: transparent; color: inherit; font: italic 700 14px/1 serif; cursor: pointer; padding: 0; }
+.hm-info[hidden] { display: none; }
