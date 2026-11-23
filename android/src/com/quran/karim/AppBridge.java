@@ -33,7 +33,13 @@ class AppBridge {
         });
     }
 
-    /** Full screen while reading the mushaf: hides the status and navigation bars (a swipe from the edge shows them for a moment). */
+    /** 5.34 #14: full screen keeps the phone's status bar (clock, battery) when the reader chose so (Settings). Set before
+     *  immersive() and insets(), which both follow it; the page sends it at launch and again before every full screen. */
+    @JavascriptInterface
+    public void fsStatus(boolean keep) { MainActivity.fsKeepStatus = keep; }
+
+    /** Full screen while reading the mushaf: hides the navigation bar and, unless fsStatus(true), the status bar too
+     *  (a swipe from the edge shows them for a moment). */
     @JavascriptInterface
     public void immersive(final boolean on) {
         if (Build.VERSION.SDK_INT < 30) return;
@@ -41,21 +47,37 @@ class AppBridge {
             public void run() {
                 android.view.WindowInsetsController c = activity.getWindow().getInsetsController();
                 if (c == null) return;
+                // the bars to hide, by what was chosen; showing brings back all of them (a kept status bar is already there)
+                int bars = MainActivity.fsKeepStatus ? android.view.WindowInsets.Type.navigationBars() : android.view.WindowInsets.Type.systemBars();
                 if (on) {
                     c.setSystemBarsBehavior(android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-                    c.hide(android.view.WindowInsets.Type.systemBars());
+                    c.hide(bars);
                 } else c.show(android.view.WindowInsets.Type.systemBars());
             }
         });
     }
 
+    /** 5.34 #15: keeps the screen lit while the app is open (Settings: إبقاء الشاشة مضيئة). The window flag a video player uses. */
+    @JavascriptInterface
+    public void keepOn(final boolean on) {
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                android.view.Window w = activity.getWindow();
+                if (on) w.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                else w.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+    }
+
     /** "top,bottom,fsTop,fsBottom" in css px: the WebView's inset from the screen edges now, and with the system bars
-     *  hidden (the cutout only). Full screen uses it to glide the page once, straight to where it ends (5.11 G2). */
+     *  hidden (the cutout only, or the status bar too when it is kept). Full screen uses it to glide the page once, straight to where it ends (5.11 G2). */
     @JavascriptInterface
     public String insets() {
         if (Build.VERSION.SDK_INT < 30) return "";
         float d = activity.getResources().getDisplayMetrics().density;
-        return (MainActivity.insT / d) + "," + (MainActivity.insB / d) + "," + (MainActivity.cutT / d) + "," + (MainActivity.cutB / d);
+        // a kept status bar keeps the WebView's top where it is: the page must not glide to the cutout line (#14)
+        int fsTop = MainActivity.fsKeepStatus ? MainActivity.insT : MainActivity.cutT;
+        return (MainActivity.insT / d) + "," + (MainActivity.insB / d) + "," + (fsTop / d) + "," + (MainActivity.cutB / d);
     }
 
     /** A tap buzz at the strength chosen in Settings: 1 light, 2 medium, 3 strong. */

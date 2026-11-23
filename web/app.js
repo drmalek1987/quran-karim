@@ -228,6 +228,12 @@
   var tjOn = load("tajweed", true);
   // One switch for the tajweed colours everywhere: the text view and the pages of the editions that have them.
   var tjPg = tjOn;
+  var tapMark = load("tapMark", true);       // 5.34 #20: a tap on the page marks an ayah (off: reading only, ?a= highlights still show)
+  var fsFit = load("fsFit", "width");        // 5.35 #19: "width" = the page fits the screen in full screen, "stretch" = it fills the whole screen (not keeping its ratio)
+  var keepOn = load("keepOn", false);        // 5.34 #15: the screen stays lit while the app is open (AppBridge.keepOn)
+  var fsStatus = load("fsStatus", false);    // 5.34 #14: true = full screen keeps the phone's status bar (AppBridge.fsStatus), false = hides it as before
+  var micId = load("micId", 0);              // 5.34 #39: the recitation mic (NvBridge.mics() id), 0 = automatic
+  var openAt = load("openAt", "home");       // 5.34 #41: "home" | "last" (the mushaf at the last page, on launch only)
   var spreadPref = load("spread", true);  // Reading background: the chosen colour, or one that follows the light / dark theme.
   function luminance(hex) {
     var n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(function (v) {
@@ -273,6 +279,8 @@
       history.replaceState(null, "", "#/p/" + np + (hm[2] && /a=/.test(hm[2]) ? hm[2] : ""));
     }
   }
+  // Hands a setting to the Android shell; nothing happens in a plain browser or an older app without that method.
+  function bridgeSet(bridge, fn, v) { try { if (bridge && bridge[fn]) bridge[fn](v); } catch (e) {} }
   function applySettings() {
     root.style.setProperty("--quran-size", fontSize + "px");
     if (theme === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", theme === "sun" ? (sunDark() ? "dark" : "light") : theme);
@@ -285,7 +293,14 @@
     document.querySelectorAll("#trSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === trOn); });
     document.querySelectorAll("#langSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (window.LANG || "ar")); });
   document.querySelectorAll("#hapticSet button").forEach(function (b) { b.classList.toggle("on", +b.dataset.v === hapticLevel()); });
-    document.querySelectorAll("#spreadSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spreadPref); });    root.classList.toggle("tjpg", tjPg);
+    document.querySelectorAll("#spreadSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spreadPref); });
+    document.querySelectorAll("#tapSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === tapMark); });
+    document.querySelectorAll("#fsFitSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === fsFit); });
+    root.classList.toggle("fsfit-stretch", fsFit === "stretch");
+    document.querySelectorAll("#keepSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === keepOn); });
+    document.querySelectorAll("#fsStatSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === fsStatus); });
+    bridgeSet(window.AppBridge, "keepOn", keepOn); bridgeSet(window.AppBridge, "fsStatus", fsStatus); bridgeSet(window.NvBridge, "setMic", micId);
+    document.querySelectorAll("#openSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === openAt); });    root.classList.toggle("tjpg", tjPg);
     var bg = pageBg, dark = luminance(bg) < 0.18;
     root.style.setProperty("--pbg", bg);
     root.style.setProperty("--pink", dark ? "#ece6d8" : "#1d1a14");
@@ -429,6 +444,7 @@
   }
   // 2 s quiet -> noise floor, 4 s reciting -> speech level (RMS dBFS, WebAudio, nothing leaves the phone); SNR rates it.
   function micTest(out, btn) {
+    if (window.NvBridge && NvBridge.micTest) return micTestNative(out, btn);
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { out.textContent = "المايك مش متاح هنا"; return; }
     if (btn) btn.disabled = true;
     navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) {
@@ -443,15 +459,44 @@
         if (noise === null && dt >= 2000) { lv.sort(function (a, b) { return a - b; }); noise = lv[Math.floor(lv.length / 2)]; lv = []; out.textContent = "اقرا آية بصوتك العادي ٤ ثواني…"; }
         if (dt >= 6000) {
           clearInterval(iv); st.getTracks().forEach(function (k) { k.stop(); }); try { ac.close(); } catch (e2) {}
-          lv.sort(function (a, b) { return a - b; }); var sp = lv.length ? lv[Math.floor(lv.length * 0.8)] : noise, snr = Math.round(sp - noise);
-          save("micTest", { snr: snr, noise: Math.round(noise), speech: Math.round(sp), t: Date.now() });
-          var r = snr >= 25 ? "ممتاز" : snr >= 15 ? "كويس" : "ضعيف";
-          out.textContent = "النتيجة: " + r + " (" + ar(snr) + " dB)" + (r === "ضعيف" ? (noise > -45 ? " · المكان فيه دوشة، جرّب مكان أهدى" : " · قرّب الموبايل أو ارفع صوتك شوية") : "");
-          out.dataset.snr = snr; if (btn) btn.disabled = false; micTestRow();
+          micTestScore(out, btn, noise, lv);
         }
       }, 50);
     }).catch(function () { out.textContent = "ما قدرتش أفتح المايك، اتأكد من الإذن"; if (btn) btn.disabled = false; });
   }
+  // noise: the quiet level (dBFS), lv: the levels while reciting. Saves and shows the verdict.
+  function micTestScore(out, btn, noise, lv) {
+    lv.sort(function (a, b) { return a - b; }); var sp = lv.length ? lv[Math.floor(lv.length * 0.8)] : noise, snr = Math.round(sp - noise);
+    save("micTest", { snr: snr, noise: Math.round(noise), speech: Math.round(sp), t: Date.now() });
+    var r = snr >= 25 ? "ممتاز" : snr >= 15 ? "كويس" : "ضعيف";
+    out.textContent = "النتيجة: " + r + " (" + ar(snr) + " dB)" + (r === "ضعيف" ? (noise > -45 ? " · المكان فيه دوشة، جرّب مكان أهدى" : " · قرّب الموبايل أو ارفع صوتك شوية") : "");
+    out.dataset.snr = snr; if (btn) btn.disabled = false; micTestRow();
+  }
+  // 5.34 #39: in the app the test records natively (NvAsr.micTest) from the mic chosen in Settings, the same routing as the
+  // recitation, and shows which device the recorder really got. The WebView's getUserMedia above stays for the plain browser.
+  var micTestCb = null;
+  function micTestNative(out, btn) {
+    if (btn) btn.disabled = true;
+    out.textContent = "اسكت ثانيتين…";
+    var t = setTimeout(function () { out.textContent = "اقرا آية بصوتك العادي ٤ ثواني…"; }, 2000);
+    micTestCb = function (kind, text) {
+      if (kind === "testretry") return NvBridge.micTest(micId);   // the permission was just granted
+      clearTimeout(t); micTestCb = null;
+      if (kind === "testfail") { out.textContent = text === "busy" ? "المايك شغال دلوقتي، وقّف التسميع الأول" : "ما قدرتش أفتح المايك، اتأكد من الإذن"; if (btn) btn.disabled = false; return; }
+      var r = {}; try { r = JSON.parse(text); } catch (e) {}
+      var lv = r.levels || [], quiet = lv.slice(0, 40).sort(function (a, b) { return a - b; });
+      micTestScore(out, btn, quiet.length ? quiet[Math.floor(quiet.length / 2)] : -90, lv.slice(40));
+      var d = document.createElement("div"), lab = document.createElement("span"), nm = document.createElement("span");
+      lab.textContent = "المايك المستخدم:"; nm.textContent = micRoutedLabel(r.routed);
+      d.appendChild(lab); d.appendChild(document.createTextNode(" ")); d.appendChild(nm);
+      if (r.gone) { var g = document.createElement("div"); g.textContent = "المايك المختار مش متوصل، اتسجّل من مايك الهاتف"; d.appendChild(g); }
+      out.appendChild(d);
+      console.log("[mic] test routed=" + r.routed + " gone=" + r.gone + " note=" + r.note + " asked=" + micId);
+    };
+    NvBridge.micTest(micId);
+  }
+  // the kind only (the user asked for no device model names such as "sdk_gphone…" in the result line)
+  function micRoutedLabel(routed) { var k = (routed || "").split(":")[0]; return k ? MIC_KIND[k] || k : "?"; }
   function micTestRow() {
     var b = document.getElementById("micTestSum"); if (!b) return; var m = load("micTest", null);
     b.textContent = m ? (m.snr >= 25 ? "ممتاز" : m.snr >= 15 ? "كويس" : "ضعيف") + " · " + ar(m.snr) + " dB" : "";
@@ -693,10 +738,28 @@
       if (/^#\/p\//.test(location.hash)) routeKeepSheet();
     });
   });
+  document.querySelectorAll("#tapSet button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      tapMark = b.dataset.v === "on"; save("tapMark", tapMark); applySettings();
+      if (/^#\/p\//.test(location.hash)) routeKeepSheet();   // the tip under the page depends on it
+    });
+  });
+  document.querySelectorAll("#fsFitSet button").forEach(function (b) {
+    b.addEventListener("click", function () { fsFit = b.dataset.v; save("fsFit", fsFit); applySettings(); });
+  });
+  document.querySelectorAll("#keepSet button").forEach(function (b) {
+    b.addEventListener("click", function () { keepOn = b.dataset.v === "on"; save("keepOn", keepOn); applySettings(); });
+  });
+  document.querySelectorAll("#fsStatSet button").forEach(function (b) {
+    b.addEventListener("click", function () { fsStatus = b.dataset.v === "on"; save("fsStatus", fsStatus); applySettings(); });
+  });
+  document.querySelectorAll("#openSet button").forEach(function (b) {
+    b.addEventListener("click", function () { openAt = b.dataset.v; save("openAt", openAt); applySettings(); });
+  });
   // Every button and link answers a tap with the chosen buzz, except page turns (asked) and the azkar counter (its own vibration).
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest("button, a, select, label.row, .swatches label");
-    if (t && !t.closest(".z-count, #pNext, #pPrev, #tsbBtn")) tick();
+    if (t && !t.closest(".z-count, #tsbBtn")) tick();
   });
   var sheet = document.getElementById("settings");
   // Open drop-downs (downloads, colour key, about) fold again whenever Settings closes; the page mic hides under it.
@@ -704,7 +767,7 @@
     document.body.classList.toggle("sheet-open", !sheet.hidden);
     if (sheet.hidden) sheet.querySelectorAll("details[open]").forEach(function (d) { d.open = false; });
   }).observe(sheet, { attributes: true, attributeFilter: ["hidden"] });
-  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); paintBk(); };
+  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); paintBk(); micPaint(); };
   document.getElementById("closeSettings").onclick = function () { sheet.hidden = true; };
   sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.hidden = true; });
   document.getElementById("btnSearch").onclick = function () { location.hash = "#/search"; };
@@ -1125,7 +1188,7 @@
       // taps and masks stay aligned (the same crop as showPage, 5.6)
       var vc = ed.crop && p >= (ed.cropFrom || 0) ? ed.crop : null, vl = vc ? (ed.mirror && p % 2 ? vc[1] : vc[3]) : 0, vr = vc ? (ed.mirror && p % 2 ? vc[3] : vc[1]) : 0;
       var cw = vc ? 1 - (vl + vr) / 100 : 1, ch = vc ? 1 - (vc[0] + vc[2]) / 100 : 1;
-      html += '<div class="vp-c" style="padding-top:' + ratio * ch / cw + '%"><div class="page-box vp" data-p="' + p + '" style="width:' + 100 / cw + "%;height:" + 100 / ch + "%;left:" + (-vl / cw) + "%;top:" + (vc ? -vc[0] / ch : 0) + '%"><img loading="lazy" alt="صفحة ' + p + '" src="' + ed.dir + pad(p) + '.avif">' + tjLayer(p) + "</div></div>";
+      html += '<div class="vp-c" style="padding-top:' + ratio * ch / cw + '%"><div class="page-box vp ' + pgSide(p) + '" data-p="' + p + '" style="width:' + 100 / cw + "%;height:" + 100 / ch + "%;left:" + (-vl / cw) + "%;top:" + (vc ? -vc[0] / ch : 0) + '%"><img loading="lazy" alt="صفحة ' + p + '" src="' + ed.dir + pad(p) + '.avif">' + tjLayer(p) + "</div></div>";
     }
     view.innerHTML = html + "</div>" + rdMicHtml() + rdTestHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
       '</button><button id="vDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>";
@@ -1194,7 +1257,7 @@
     }
     pageWordPress(list);
     list.addEventListener("click", function (e) {
-      if (Date.now() - lpPageAt < 700) return;   // the click that ends a long press (word meaning)
+      if (Date.now() - lpPageAt < 700 || Date.now() - pinchAt < 500 || !tapMark) return;   // the click that ends a long press (word meaning); marking is off
       var bx = e.target.closest(".page-box"); if (!bx) return;
       var r = bx.getBoundingClientRect(), hit = ayahAt(+bx.dataset.p, (e.clientX - r.left) / r.width * 1000, (e.clientY - r.top) / r.height * 1000);
       if (!hit || (hl0 && hl0.s === hit[0] && hl0.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
@@ -1401,6 +1464,9 @@
     var sa = k.split(":"); return lhMax > +sa[0] * 1000 + +sa[1];
   }
   var shownPage = 0;
+  // 5.34 #13: the printed book's sides (same rule as the spread below): the first page is the right one, then they alternate.
+  // pg-r / pg-l drive the spine shadow, in every mode.
+  function pgSide(p) { return ((p - Q.first) % 2 + 2) % 2 === 0 ? "pg-r" : "pg-l"; }
   function showPage(n, hl) {
     if (turnMode === "v") return showPagesV(n, hl);
     shownPage = n;
@@ -1420,18 +1486,18 @@
     view.innerHTML = cap + '<div class="page-wrap' + (sp ? " spread" : "") + (cv ? " crop" : "") + '"' +
       (cv ? ' style="--ct:' + cv[0] / 100 + ";--cr:" + cv[1] / 100 + ";--cb:" + cv[2] / 100 + ";--cl:" + cv[3] / 100 + ";--R:" + ced.ar + '"' : "") + ">" + (sp ? '<div class="spread-row">' : "") + pages.map(function (p) {
         var cs = cv && ced.mirror && p % 2 ? ' style="--cl:' + cv[1] / 100 + ";--cr:" + cv[3] / 100 + '"' : "";
-        return '<div class="page-box" data-p="' + p + '"' + cs + '><img' + (p === n ? ' id="pg"' : "") + ' alt="صفحة ' + p + '" src="' + EDS[edition].dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
+        return '<div class="page-box ' + pgSide(p) + '" data-p="' + p + '"' + cs + '><img' + (p === n ? ' id="pg"' : "") + ' alt="صفحة ' + p + '" src="' + EDS[edition].dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
       }).join("") + (sp ? "</div>" : "") + "</div>" +
-      '<div class="page-tools"><button id="pMark">' + ic("mark") + 'علامة على هذه الصفحة</button><a class="tj-key" href="#/tajweed">' + ic("book") + "دليل ألوان التجويد</a></div>" +
-      '<p class="page-info">' + info + "</p>" +
-      '<div class="page-nav"><button id="pPrev">' + ic("right") + 'السابقة</button><input id="pNum" type="number" inputmode="numeric" min="' + Q.min + '" max="' + (Q.count - 1) +
-      '" value="' + n + '"><button id="pNext">التالية' + ic("left") + '</button>' +
+      // the surah / juz line leads the row (it was a line of its own below); the page is marked from the corner #qMk or the ayah bar
+      '<div class="page-tools"><span class="page-info">' + info + '</span><a class="tj-key" href="#/tajweed">' + ic("book") + "دليل ألوان التجويد</a></div>" +
+      '<div class="page-nav"><input id="pNum" type="number" inputmode="numeric" min="' + Q.min + '" max="' + (Q.count - 1) +
+      '" value="' + n + '">' +
       '<button id="pPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") + "</button>" +
       '<button id="pDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>" +
-      (cap || rdTestHtml() ? "" : '<p class="hint page-tip">اضغط على أي آية في الصفحة لتظليلها ونسخها.</p>') + rdMicHtml() + rdTestHtml();
+      (cap || rdTestHtml() || !tapMark ? "" : '<p class="hint page-tip">اضغط على أي آية في الصفحة لتظليلها ونسخها.</p>') + rdMicHtml() + rdTestHtml();
     var box = view.querySelector('.page-box[data-p="' + n + '"]'), boxes = view.querySelectorAll(".page-box");
     function boxOf(p) { return view.querySelector('.page-box[data-p="' + p + '"]'); }
-    rdPage = { pages: pages, mark: function (s, a) { mark(s, a); ayahBar(null); }, box: boxOf, turn: function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); } };
+    rdPage = { pages: pages, mark: function (s, a) { mark(s, a); ayahBar(null); }, box: boxOf, turn: function () { if (n + (sp ? 2 : 1) < Q.count) turn(1); }, turnBy: turn };
     // reading by voice went on to this page (turned with the page effect): light the ayah being read
     if (rd.on && rd.s && ((Q.r[rd.s - 1] && Q.r[rd.s - 1][rd.a - 1]) || []).some(function (b) { return pages.indexOf(b[0]) >= 0; })) setTimeout(function () { if (rdPage && rdPage.pages === pages) { rdPage.mark(rd.s, rd.a); rdPaint(); } }, 0);
     function mark(s, a, q) {
@@ -1488,10 +1554,11 @@
     // Tapping the scan picks the ayah under the finger, using the same measured boxes.
     boxes.forEach(function (bx) {
       bx.addEventListener("click", function (e) {
-        if (Date.now() - dragEnd < 400 || Date.now() - lpPageAt < 700) return;
+        if (Date.now() - dragEnd < 400 || Date.now() - lpPageAt < 700 || Date.now() - pinchAt < 500) return;
         var r = bx.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
         var hit = ayahAt(+bx.dataset.p, x, y);
         if (hifz.on) { hzTap(+bx.dataset.p, x, y, hit); return; }
+        if (!tapMark) return;
         if (!hit || (hl && hl.s === hit[0] && hl.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
       });
     });
@@ -1500,10 +1567,6 @@
       // Revealing the page's last ayah turns to the next page by itself.
       hifz.next = function () { if (n + (sp ? 2 : 1) <= Q.last) turn(1); };   // Q.last, not Q.count: no turning into the du'a/index pages after the Quran (Haramain, Shamarly)
     }
-    document.getElementById("pMark").onclick = function () {
-      var f = hl ? [hl.s, hl.a] : firstAyahOfPage(pages[0]) || firstAyahOfPage(n);
-      if (f) addBookmark(f[0], f[1]); else toast("لا توجد آيات في هذه الصفحة");
-    };
 
     // The highlight follows when an ayah runs onto the next page.
     function goTo(k) { history.replaceState(null, "", "#/p/" + k + qs); route(); }
@@ -1513,8 +1576,6 @@
       var c = flipMode !== "off" && pageTurnFx(box, n, k, function () { goTo(k); });
       if (c) { c.grab(box.getBoundingClientRect().height); c.finish(null); } else goTo(k);
     }
-    document.getElementById("pPrev").onclick = function () { turn(-1); };
-    document.getElementById("pNext").onclick = function () { turn(1); };
     document.getElementById("pPlay").onclick = function () {
       if (hl) { var t = hl; mark(null); player.play(t.s, t.a); return; }
       var f = firstAyahOfPage(n); if (f) player.play(f[0], f[1]);
@@ -1532,13 +1593,14 @@
     // With the page-turn effect on, the sheet follows the finger; otherwise a swipe turns the page when lifted.
     var wrap = view.querySelector(".page-wrap"), g = null;
     pageWordPress(wrap);
+    pageFitPinch(wrap);
     if (EDS[edition].w) pages.forEach(function (p) { wbNeed(p, function () {}); });   // exact word boxes for this page, ahead of use
     wrap.addEventListener("pointerdown", function (e) {
       var zoomed = window.visualViewport && window.visualViewport.scale > 1.05;
-      g = e.isPrimary && !zoomed && !curling ? { x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, v: 0, c: null } : null;
+      g = e.isPrimary && !zoomed && !curling && !pinching ? { x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, v: 0, c: null } : null;
     });
     wrap.addEventListener("pointermove", function (e) {
-      if (!g || !e.isPrimary) return;
+      if (!g || !e.isPrimary || pinching) return;
       var dx = e.clientX - g.x, dy = e.clientY - g.y;
       if (!g.c) {
         if (flipMode === "off" || sp || Math.abs(dx) < 12 || Math.abs(dx) < 1.3 * Math.abs(dy)) return;
@@ -1555,6 +1617,7 @@
     });
     function release(e, cancel) {
       if (!g) return;
+      if (pinching || Date.now() - pinchAt < 500) { g = null; return; }   // a pinch (or its last finger lifting) is not a swipe
       var dx = e.clientX - g.x, dy = e.clientY - g.y;
       if (g.c) { dragEnd = Date.now(); g.c.finish(cancel ? false : e.timeStamp - g.lt > 120 ? 0 : g.v); }
       else if (!cancel && (flipMode === "off" || sp) && Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) turn(dx > 0 ? 1 : -1);
@@ -1565,6 +1628,46 @@
     wrap.addEventListener("pointercancel", function (e) { release(e, true); });
   }
   function pad(n) { return ("00" + n).slice(-3); }
+
+  // ---------- 5.35 #19: pinch in = switch the full screen page size ----------
+  // In full screen on a mushaf page, two fingers coming together (distance below 80% of the start) while the page is not
+  // zoomed natively switch fit width <-> stretch once per pinch. Zooming in stays the WebView's own zoom (not blocked here).
+  // `pinching` keeps the one-finger swipe from turning the page, `pinchAt` keeps the click that ends the pinch from marking an ayah.
+  var pinching = false, pinchAt = 0;
+  function pageFitPinch(wrap) {
+    var pts = {}, d0 = 0, last = 0, armed = false;
+    function nativeZoomed() { return window.visualViewport && window.visualViewport.scale > 1.05; }
+    function gap() { var k = Object.keys(pts); return Math.hypot(pts[k[0]].x - pts[k[1]].x, pts[k[0]].y - pts[k[1]].y); }
+    function closed() { return armed && d0 > 0 && last / d0 < 0.8 && !nativeZoomed(); }
+    function toggle() {
+      armed = false;   // one pinch, at most one switch
+      fsFit = fsFit === "stretch" ? "width" : "stretch"; save("fsFit", fsFit); applySettings();
+      toast(fsFit === "stretch" ? "ملء الشاشة" : "على عرض الشاشة");
+    }
+    wrap.addEventListener("pointerdown", function (e) {
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (Object.keys(pts).length !== 2) return;
+      pinching = true; pinchAt = Date.now();
+      d0 = last = gap(); armed = document.body.classList.contains("fs") && !nativeZoomed() && !curling;
+    });
+    wrap.addEventListener("pointermove", function (e) {
+      if (!pts[e.pointerId]) return;
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (!pinching || Object.keys(pts).length !== 2) return;
+      last = gap(); pinchAt = Date.now();
+      if (closed()) toggle();
+    });
+    function lift(e) {
+      if (!pts[e.pointerId]) return;
+      // the WebView may take the gesture over (pointercancel) before the fingers have moved much: judge by the last distance seen
+      if (pinching && Object.keys(pts).length === 2 && closed()) toggle();
+      if (pinching) pinchAt = Date.now();
+      delete pts[e.pointerId];
+      if (!Object.keys(pts).length) pinching = false;
+    }
+    wrap.addEventListener("pointerup", lift);
+    wrap.addEventListener("pointercancel", lift);
+  }
 
   // ---------- معنى الكلمة على صفحات المصحف (5.19) ----------
   // Word boxes measured on the scan (tools/page_geometry/word_boxes.py): editions/<id>-w/NNN.js calls QWB(id, page, rows),
@@ -1690,7 +1793,7 @@
     var fwd = k > n, GAP = 16;
     var layer = document.createElement("div"); layer.className = "curl slide";
     layer.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;width:" + W + "px;height:" + H + "px" + cropClip(box);
-    var cur = box.cloneNode(true), nxt = el('<div class="page-box"><img alt="" src="' + EDS[edition].dir + pad(k) + '.avif">' + tjLayer(k) + "</div>").firstChild;
+    var cur = box.cloneNode(true), nxt = el('<div class="page-box ' + pgSide(k) + '"><img alt="" src="' + EDS[edition].dir + pad(k) + '.avif">' + tjLayer(k) + "</div>").firstChild;
     cur.classList.add("curl-page"); nxt.classList.add("curl-page");
     var cdx = cropDx(box, k, W); curlShift(nxt, cdx);
     // each page is clipped to its own frame, so the cut-off white margins never slide into view between the pages;
@@ -1741,7 +1844,7 @@
     curling = true;
     var fwd = k > n;
     function sheetOf(m) {
-      var b = m === n ? box.cloneNode(true) : el('<div class="page-box"><img alt="" src="' + EDS[edition].dir + pad(m) + '.avif">' + tjLayer(m) + '</div>').firstChild;
+      var b = m === n ? box.cloneNode(true) : el('<div class="page-box ' + pgSide(m) + '"><img alt="" src="' + EDS[edition].dir + pad(m) + '.avif">' + tjLayer(m) + '</div>').firstChild;
       b.classList.add("curl-page"); if (m !== n) curlShift(b, cropDx(box, m, W)); return b;
     }
     function shade(cls, parent) { var d = document.createElement("div"); d.className = "curl-shade " + cls; parent.appendChild(d); return d; }
@@ -2977,6 +3080,32 @@
     start: function () { recite.stopAt = htv.stopAt = mtv.stopAt = 0; Mic.last = null; Mic.cur = Mic.nv() ? "nv" : "phone"; if (Mic.cur === "nv") NvBridge.start(); else ReciteBridge.start(); },
     stop: function () { var c = Mic.cur; Mic.last = c || Mic.last; Mic.cur = null; try { if (c === "nv") NvBridge.stop(); else if (window.ReciteBridge) ReciteBridge.stop(); } catch (e) {} }
   };
+  // ---------- 5.34 #39: the recitation mic. Only NvAsr records from a chosen input; the phone's own recogniser (ReciteBridge,
+  // Google) takes whatever the system gives it, and the mic test uses the WebView's default mic. ----------
+  var MIC_KIND = { builtin: "مايك الهاتف", wired: "سماعة سلكية", usb: "مايك USB", bt: "سماعة بلوتوث" };
+  function micDevices() { try { var l = JSON.parse(NvBridge.mics()); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
+  function micLabel(d) { return (MIC_KIND[d.type] || d.type) + (d.type !== "builtin" && d.name ? " · " + d.name : ""); }
+  // Rebuilt each time Settings opens: a headset plugged in a minute ago shows up. A saved mic that is gone goes back to automatic.
+  function micPaint() {
+    var row = document.getElementById("micRow"), sel = document.getElementById("micSel");
+    if (!row || !sel) return;
+    row.hidden = !(window.NvBridge && NvBridge.mics);
+    if (row.hidden) return;
+    var list = micDevices();
+    if (micId && !list.some(function (d) { return d.id === micId; })) { micId = 0; save("micId", 0); applySettings(); }
+    sel.innerHTML = "";
+    [{ id: 0, type: "auto", name: "" }].concat(list).forEach(function (d) {
+      var o = document.createElement("option"); o.value = d.id; o.textContent = d.id === 0 ? "تلقائي" : micLabel(d); o.selected = d.id === micId; sel.appendChild(o);
+    });
+  }
+  document.getElementById("micSel").onchange = function () { micId = +this.value || 0; save("micId", micId); applySettings(); micPaint(); };
+  // NvAsr: "fallback" = the chosen mic is not connected (it records from the phone), "routed" = the input the recorder really got
+  window.onMicInfo = function (kind, text) {
+    console.log("[mic] " + kind + " " + text);
+    if (kind.indexOf("test") === 0) { if (micTestCb) micTestCb(kind, text); return; }   // read over CDP on a phone: what was asked, how it was routed, what the recorder got
+    if (kind === "fallback") toast("المايك المختار مش متوصل، هستخدم مايك الهاتف");
+    else if (kind === "routed") window.micRouted = text;
+  };
   function rdStop() { if (!rd.on) return; rd.on = false; try { if (window.Asr) Asr.stop(); } catch (e) {} Mic.stop(); rdPaint(); }
   function rdToggle() {
     if (rd.on) return rdStop();
@@ -3039,6 +3168,7 @@
     }
     return best;
   }
+  window.voiceRun = function (t) { return voiceRun(t); };   // QA: page turns by voice command
   function voiceRun(raw) {
     var t = norm(raw).replace(/[إأآ]/g, "ا").replace(/ة/g, "ه").replace(/\s+/g, " ").trim(), w = t.split(" ");
     var has = function (re) { return re.test(t); }, num = voiceNum(w), go = function (h, msg) { toast(msg); location.hash = h; return true; };
@@ -3049,8 +3179,10 @@
       toast("بيشغّل التلاوة"); return true;
     }
     if (has(/^(وقف|اسكت|ايقاف|اقف)/)) { player.stop(); toast("وقف"); return true; }
-    if (has(/(الصفحه )?(التاليه|اللي بعدها|بعدها|الجايه)$/) && document.getElementById("pNext")) { document.getElementById("pNext").click(); return true; }
-    if (has(/(الصفحه )?(السابقه|اللي قبلها|قبلها)$/) && document.getElementById("pPrev")) { document.getElementById("pPrev").click(); return true; }
+    // page turns go through the page view's own turn(), the same path as a swipe (rdPage.turnBy is only set by the single / spread view)
+    var pgTurn = /^#\/p\//.test(location.hash) && rdPage && rdPage.turnBy;
+    if (has(/(الصفحه )?(التاليه|اللي بعدها|بعدها|الجايه)$/) && pgTurn) { pgTurn(1); return true; }
+    if (has(/(الصفحه )?(السابقه|اللي قبلها|قبلها)$/) && pgTurn) { pgTurn(-1); return true; }
     if (has(/ايه الكرسي/)) return go("#/p/" + pageOf(2, 255) + "?a=2:255", "آية الكرسي");
     if (has(/صفح/) && num) { if (num >= Q.min && num < Q.count) return go("#/p/" + num, "صفحة " + ar(num)); toast(window.LANG === "en" ? "This edition has pages up to " + (Q.count - 1) : "الطبعة دي صفحاتها لحد " + ar(Q.count - 1)); return true; }
     if (has(/(جزء|الجزء)/) && num >= 1 && num <= 30) {
@@ -4481,11 +4613,8 @@
     if (bd >= 0) { bd = Math.max(bd, dayNum(base) + (base.getHours() >= 20 ? 1 : 0)); var bt = new Date(bd * 864e5);
       ev.push({ at: new Date(bt.getUTCFullYear(), bt.getUTCMonth(), bt.getUTCDate(), 20, 0).getTime(), kind: "rem", title: "نسخة احتياطية",
         text: "عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.", hash: "#/backup" }); }
-    // «جرّب الأذان»: one adhan a minute from now, with the Fajr muezzin, to check the phone lets it through.
-    if (testAlarmAt > Date.now()) ev.push({ at: testAlarmAt, kind: "adhan", v: voiceOf(cfg, "fajr"), title: "تجربة الأذان", text: "لو سامع ده، تنبيه الأذان شغال على موبايلك.", hash: "#/prayer" });
     try { AppBridge.setAlarms(JSON.stringify(ev.filter(function (e) { return e.at > Date.now(); }))); } catch (e) {}
   }
-  var testAlarmAt = 0;
   // Ayah of the day: from a list of well-known ayat that read complete on their own, picked by the date.
   var DAY_AYAT = [[2, 152], [2, 186], [2, 286], [3, 8], [3, 26], [3, 139], [3, 173], [3, 200], [7, 23], [9, 51], [11, 88], [13, 28], [14, 7], [15, 49],
     [16, 97], [17, 80], [18, 10], [20, 25], [20, 114], [21, 87], [23, 118], [25, 74], [28, 24], [29, 69], [33, 41], [33, 56], [39, 53], [40, 44], [40, 60],
@@ -4538,9 +4667,7 @@
           '<button class="pv-play" data-p="' + k + '" aria-label="استمع">' + ic("aplay") + "</button></div>" +
           '<label>تذكير قبل الأذان</label><div class="pv-chips">' + [0, 5, 10, 15, 30, 60].map(function (m) { return '<button class="pv-pre' + (m === pm ? " on" : "") + '" data-p="' + k + '" data-m="' + m + '">' + (m ? ar(m) + " د" : "بدون") + "</button>"; }).join("") + "</div></div></div>";
       }).join("") + "</div>" +
-        '<div class="pr-tiles"><button id="prMonth">' + ic("calendar") + "إمساكية رمضان</button><button id=\"prQibla\">" + ic("compass") + "اتجاه القبلة</button></div>" +
-        (window.AppBridge && AppBridge.setAlarms ? '<button class="continue" id="prTest">' + ic("bell") + ' جرّب الأذان بعد دقيقة</button>' +
-          '<p class="hint">لو التجربة ماوصلتش: افتح إعدادات الموبايل › التطبيقات › لوح، وخلّي الإشعارات شغالة، والبطارية «بلا قيود». وفي موبايلات شاومي وأوبو وريلمي فعّل كمان «التشغيل التلقائي» (Autostart).</p>' : "");
+        '<div class="pr-tiles"><button id="prMonth">' + ic("calendar") + "إمساكية رمضان</button><button id=\"prQibla\">" + ic("compass") + "اتجاه القبلة</button></div>";
     } else html += '<p class="hint">حدّد موقعك أو اختر مدينتك لحساب مواقيت الصلاة على الجهاز (بدون إنترنت).</p>';
     html += '<details class="pr-set"' + (loc ? "" : " open") + "><summary>" + ic("pin") + "الموقع وطريقة الحساب</summary>" +
       '<div class="q-loc"><button class="continue" id="prGps">' + ic("pin") + ' استخدم موقعي الحالي</button><select class="input" id="prCity">' + opts + "</select></div>" +
@@ -4577,10 +4704,6 @@
       document.getElementById("prMonth").onclick = function () { location.hash = "#/imsakia"; }; }
     if (document.getElementById("prExact")) document.getElementById("prExact").onclick = function () { AppBridge.askExactAlarms(); };
     if (document.getElementById("prNotif")) document.getElementById("prNotif").onclick = function () { AppBridge.askNotifications(); AppBridge.openAppSettings(); };
-    if (document.getElementById("prTest")) document.getElementById("prTest").onclick = function () {
-      testAlarmAt = Date.now() + 60000; syncAlarms();
-      toast("اقفل التطبيق واستنى دقيقة. لو الأذان ماجاش، شوف الملاحظة اللي تحت الزرار.");
-    };
     document.getElementById("prGps").onclick = function () {
       var st = this; st.textContent = "جارٍ تحديد موقعك…";
       function got(lat, lon) { save("qiblaLoc", [lat, lon, ""]); if (!st.isConnected) return; askNotif(); changed(); }
@@ -6334,7 +6457,7 @@
     if (vr) { var vb = document.querySelectorAll(".vp-c"); for (var i = 0; i < vb.length; i++) { var r = vb[i].getBoundingClientRect(); if (r.bottom > 80 && !anc) { anc = vb[i]; t0 = r.top; } if (r.bottom > 0 && r.top < innerHeight) vis.push([vb[i], r]); else if (anc) break; } }
     var fl = vr ? (vis.length ? vis : null) : fsFlipStart();
     var dy0 = fsDy;
-    if (on) { var ins = fsInsets(); if (ins) fsNorm = ins; }
+    if (on) { bridgeSet(window.AppBridge, "fsStatus", fsStatus); var ins = fsInsets(); if (ins) fsNorm = ins; }   // the insets depend on whether the status bar stays
     var sg = fsNorm && window.AppBridge && AppBridge.immersive ? fsNorm : null;
     if (sg && (sg[0] || sg[1])) {
       // vertical: the list keeps its place, so only the WebView's move is made up for (by S while the bars are hidden)
@@ -6356,6 +6479,7 @@
     // While auto-scroll runs in full screen a tap anywhere (but on its own bar) brings the bars back; the scrolling goes on.
     if (auto.on && autoFs && document.body.classList.contains("fs") && !e.target.closest("#autoBar")) { e.stopPropagation(); e.preventDefault(); autoFs = false; fsSet(false); return; }
     if (!/^#\/p\//.test(location.hash) || !e.target.closest(".page-box")) return;
+    if (Date.now() - pinchAt < 500) { e.stopPropagation(); e.preventDefault(); return; }   // the click a pinch leaves behind
     if (document.body.classList.contains("fs")) { e.stopPropagation(); e.preventDefault(); fsSet(false); return; }
     clearTimeout(fsT); fsT = setTimeout(function () { if (/^#\/p\//.test(location.hash) && !window.QA_NOFS && !hifz.on && !document.getElementById("ayahBar")) fsSet(true); }, 1200);   // not while an ayah is chosen
   }, true);
@@ -6477,8 +6601,15 @@
     mkPaint();
   }
   window.addEventListener("hashchange", route);
+  // 5.34 #41: «عند فتح التطبيق» = the mushaf at the last page. Launch only (no hash), and the same way as the home «كمّل» card:
+  // a hash move from home, so the pgFromHome path makes Back return to home. Deep links and alarm routes carry a hash, so they never get here.
+  function openAtLaunch() {
+    var lp = load(edKey("lastPage"), null);
+    if (openAt !== "last" || mode !== "pages" || !lp || (location.hash && location.hash !== "#" && location.hash !== "#/")) return false;
+    openPage(lp); return true;
+  }
   sunCheck();   // here, not up with applySettings(): sunDark() needs the prayer-time code below it, which only exists once the script has run this far
-  route();
+  if (!openAtLaunch()) route();   // when it opens the mushaf, the hashchange it causes renders it
   // First run: a short welcome (edition, city, reminders). Skipped under automated tests.
   if (!load("onboarded", false) && !navigator.webdriver) { if (load("last", null)) save("onboarded", true); else setTimeout(showWelcome, 300); }
   // Hand the phone the coming reminders / prayer alarms and the widget's content: now, and shortly after each screen change

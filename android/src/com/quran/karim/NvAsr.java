@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
  * 512-point FFT every 10 ms, 80 slaney mel bands, log, each band normalised over the piece.
  */
 class NvAsr {
-    static final int PERMISSION_REQUEST = 79;
+    static final int PERMISSION_REQUEST = 79, TEST_PERMISSION_REQUEST = 80;
     private static final int SR = 16000, NF = 512, WIN = 400, HOP = 160, NB = 257, NM = 80;
     private static final int PRE = SR * 3 / 10; private static final double QUIET_END = 0.5;
     // 5.21 VAD: speech blocks raise the room floor 10x more slowly (RISE_SPEECH; it used to climb to the voice mid-ayah and
@@ -59,6 +59,7 @@ class NvAsr {
     private OrtSession session;
     private String[] vocab;
     private volatile Thread rec;
+    private volatile int micId = 0;   // 5.34 #39: the input the reader chose (AudioDeviceInfo id), 0 = the phone decides
     // One number per mic session: a stop() then a quick start() must not let the old recording thread (or a decode
     // queued for it) carry on beside the new one. start/stop bump it; the thread and emit() check theirs.
     private final java.util.concurrent.atomic.AtomicInteger gen = new java.util.concurrent.atomic.AtomicInteger();
@@ -116,6 +117,74 @@ class NvAsr {
         } });
     }
 
+    /** 5.34 #39: the inputs to choose from, JSON [{id, type, name}] (see MicRoute); [] below Android 6. */
+    @JavascriptInterface
+    public String mics() { return android.os.Build.VERSION.SDK_INT >= 23 ? MicRoute.list(act) : "[]"; }
+
+    /** The mic for the next recordings (an id from mics()); 0 = automatic. */
+    @JavascriptInterface
+    public void setMic(int id) { micId = id; }
+
+    // Tells the page about the mic route: window.onMicInfo(kind, text), kind "fallback" (chosen mic gone) or "routed" (what the
+    // recorder really got). Not an onRecite state: the page's mic handlers stop on any state they do not know.
+    private void micInfo(String kind, String text) {
+        final String js = "window.onMicInfo && onMicInfo(" + org.json.JSONObject.quote(kind) + "," + org.json.JSONObject.quote(text) + ")";
+        act.runOnUiThread(new Runnable() { public void run() { web.evaluateJavascript(js, null); } });
+    }
+
+    private volatile boolean testing = false;
+
+    /**
+     * 5.34 #39: the mic test (اختبار المايك): 6 s from the chosen mic (id from mics(), 0 = automatic), the same recorder and
+     * routing as listen(). The answer comes as window.onMicInfo("testdone", JSON {levels: dBFS per 50 ms, routed: "kind:name",
+     * gone: chosen mic missing}) or ("testfail", why); the page scores it (noise = first 2 s, speech = the rest).
+     */
+    @JavascriptInterface
+    public void micTest(final int id) {
+        act.runOnUiThread(new Runnable() { public void run() {
+            if (android.os.Build.VERSION.SDK_INT >= 23 && act.checkSelfPermission("android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+                act.requestPermissions(new String[] { "android.permission.RECORD_AUDIO" }, TEST_PERMISSION_REQUEST); return;
+            }
+            if (on || testing) { micInfo("testfail", "busy"); return; }
+            testing = true;
+            new Thread(new Runnable() { public void run() { try { micTestRun(id); } finally { testing = false; } } }).start();
+        } });
+    }
+
+    private void micTestRun(int id) {
+        AudioRecord ar = null; MicRoute route = null;
+        try {
+            int min = AudioRecord.getMinBufferSize(SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            ar = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, Math.max(min, SR));
+            if (ar.getState() != AudioRecord.STATE_INITIALIZED) { micInfo("testfail", "init"); return; }
+            boolean gone = false;
+            if (android.os.Build.VERSION.SDK_INT >= 23) {
+                route = new MicRoute(act);
+                try { gone = route.open(ar, id) == MicRoute.MISSING; } catch (Exception e) { gone = true; }
+            }
+            ar.startRecording();
+            org.json.JSONArray levels = new org.json.JSONArray();
+            short[] blk = new short[SR / 20];
+            long end = android.os.SystemClock.elapsedRealtime() + 6000;
+            String routed = "";
+            while (android.os.SystemClock.elapsedRealtime() < end) {
+                int n = ar.read(blk, 0, blk.length);
+                if (n < 0) { micInfo("testfail", "read"); return; }
+                if (n == 0) continue;
+                double e = 0; for (int i = 0; i < n; i++) { double x = blk[i] / 32768.0; e += x * x; }
+                levels.put(Math.round(10 * Math.log10(e / n + 1e-10) * 10) / 10.0);
+                if (routed.isEmpty() && route != null) routed = MicRoute.routed(ar);   // known once the recorder runs
+            }
+            org.json.JSONObject o = new org.json.JSONObject();
+            o.put("levels", levels); o.put("routed", routed); o.put("gone", gone); o.put("note", route == null ? "" : route.note);
+            micInfo("testdone", o.toString());
+        } catch (Throwable t) { micInfo("testfail", String.valueOf(t.getMessage()));
+        } finally {
+            if (ar != null) { try { ar.stop(); } catch (Exception ex) { } ar.release(); }
+            if (route != null) route.close();   // the Bluetooth link goes back as soon as the test ends
+        }
+    }
+
     @JavascriptInterface
     public void stop() { stoppedGen = gen.get(); on = false; gen.incrementAndGet(); tell("", "state:stopped"); }
 
@@ -131,6 +200,9 @@ class NvAsr {
             session = null;
         } });
     }
+
+    /** The mic test asked for the permission: on a yes the page runs the test again. */
+    void onTestPermission(int[] r) { micInfo(r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED ? "testretry" : "testfail", "noperm"); }
 
     void onPermissionResult(int[] r) { if (r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) start(); else tell("", "state:noperm"); }
 
@@ -272,6 +344,11 @@ class NvAsr {
         catch (Exception e) { micError(g); return; }
         if (ar.getState() != AudioRecord.STATE_INITIALIZED) { ar.release(); micError(g); return; }
         final AudioRecord mic = ar;
+        final MicRoute route = android.os.Build.VERSION.SDK_INT >= 23 ? new MicRoute(act) : null;   // always closed when the session ends
+        if (route != null) {
+            try { if (route.open(mic, micId) == MicRoute.MISSING) micInfo("fallback", "id " + micId); else if (micId != 0) micInfo("route", route.note); }
+            catch (Exception e) { micInfo("fallback", ""); }   // e.g. no Bluetooth link: record from the phone instead
+        }
         rec = new Thread(new Runnable() { public void run() {
             short[] blk = new short[SR / 10];
             float[] seg = new float[SR * 12]; int len = 0, lastPartial = 0, frz = 0;
@@ -283,6 +360,7 @@ class NvAsr {
                 mic.startRecording();   // throws when the microphone cannot be taken (inside the try: this is a bare thread)
                 frozen = "";
                 tell("", "state:listening");
+                if (route != null && micId != 0) micInfo("routed", MicRoute.routed(mic) + " (asked id " + micId + ")");   // so a phone test can see where the sound comes from
                 while (on && gen.get() == g) {
                     int n = mic.read(blk, 0, blk.length);
                     if (n < 0) { bad = true; break; }   // the recorder died (ERROR_DEAD_OBJECT...): end, do not spin
@@ -314,7 +392,7 @@ class NvAsr {
                     }
                 }
             } catch (Throwable t) { bad = !(t instanceof java.util.concurrent.RejectedExecutionException);   // rejected = the activity is closing
-            } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); }
+            } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); if (route != null) route.close(); }
             // The mic stopped mid-piece: judge what was heard instead of dropping it (same 0.3 s voiced threshold as a normal end).
             if (!bad && len > 0 && voiced > 0.3) {
                 final float[] y = java.util.Arrays.copyOf(seg, len);

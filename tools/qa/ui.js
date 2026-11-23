@@ -36,6 +36,10 @@ async function recAyat(s, a1, a2) {
   if (!(await ev(() => document.querySelector('#hifzBar [data-c=mic]').classList.contains('rec')))) { await p.click('#hifzBar [data-c=mic]'); await wait(200); await ev(() => window.onRecite('', 'state:listening')); }
   for (let a = a1; a <= a2; a++) { const t = await ev(([s, a]) => window.QURAN.t[s - 1][a - 1].split(' ').filter(w => /[ء-يٱ]/.test(w)).join(' '), [s, a]); await ev(t => window.onRecite(t, 'final'), t); await wait(350); }
 }
+// A horizontal swipe on the page (5.34 #10: no prev/next buttons any more): d = +1 drags right = next page (RTL book). Plain swipe path: needs q.flipMode off.
+async function swipe(d, ms = 600) { const y = 420, x0 = d > 0 ? 120 : 270; await p.mouse.move(x0, y); await p.mouse.down(); for (let i = 1; i <= 6; i++) await p.mouse.move(x0 + d * i * 30, y + 2); await p.mouse.up(); await wait(ms); }
+// The voice command goes through the page view's own turn(), the same path as a swipe or the old buttons
+const voiceTurn = d => ev(d => voiceRun(d > 0 ? 'الصفحة التالية' : 'الصفحة السابقة'), d);
 async function go(h, ms = 700) { await ev(h => { location.hash = h; }, h); await wait(ms); }
 async function fresh(ctx, vp) {
   p = await ctx.newPage(); await p.setViewportSize(vp || { width: 390, height: 844 }); await p.addInitScript(() => { window.QA_NOFS = true; try { if (!localStorage.getItem('q.micTips') && !window.QA_TIPS) localStorage.setItem('q.micTips', '1'); } catch (e) {} });
@@ -68,8 +72,8 @@ async function fresh(ctx, vp) {
   const G2 = 'قراءة صفحات المصحف';
   await check(G2, 'صفحة المصحف تتحمل (صورة AVIF)', async () => { await go('#/p/50', 1200); return ev(d => { const i = document.getElementById('pg'); return i.complete && i.naturalWidth > 500 && i.src.endsWith('050.avif') && i.src.includes(d); }, EDDIR); });
   if (ED === 'harmain') await check(G2, 'ألوان التجويد فوق الصفحة ظاهرة', () => ev(() => { const t = document.querySelector('.tjo'); return t && t.naturalWidth > 0 && getComputedStyle(t).display !== 'none'; }));
-  await check(G2, 'زر التالية والسابقة (بدون تأثير القلب)', async () => { await ev(() => localStorage.setItem('q.flip', 'false')); await p.reload(); await wait(800); await p.click('#pNext'); await wait(500); const a = await ev(() => location.hash); await p.click('#pPrev'); await wait(500); const c = await ev(() => location.hash); return assert(a === '#/p/51' && c === '#/p/50', a + ' ' + c); });
-  await check(G2, 'تأثير قلب الصفحة بالزر', async () => { await ev(() => localStorage.setItem('q.flip', 'true')); await p.reload(); await wait(900); await p.click('#pNext'); await wait(150); const mid = await ev(() => !!document.querySelector('.curl')); await wait(1300); const h = await ev(() => [location.hash, !!document.querySelector('.curl')]); return assert(mid && h[0] === '#/p/51' && !h[1], JSON.stringify([mid, h])); });
+  await check(G2, 'التقليب بالسحب للتالية والسابقة (بدون تأثير القلب)', async () => { await ev(() => localStorage.setItem('q.flip', 'false')); await p.reload(); await wait(800); await swipe(1); const a = await ev(() => location.hash); await swipe(-1); const c = await ev(() => location.hash); return assert(a === '#/p/51' && c === '#/p/50', a + ' ' + c); });
+  await check(G2, 'تأثير قلب الصفحة بأمر التقليب', async () => { await ev(() => localStorage.setItem('q.flip', 'true')); await p.reload(); await wait(900); await voiceTurn(1); await wait(150); const mid = await ev(() => !!document.querySelector('.curl')); await wait(1300); const h = await ev(() => [location.hash, !!document.querySelector('.curl')]); return assert(mid && h[0] === '#/p/51' && !h[1], JSON.stringify([mid, h])); });
   await check(G2, 'قلب الصفحة بالسحب بالإصبع', async () => { const r = await ev(() => { const b = document.querySelector('.page-box').getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; }); await p.mouse.move(r[0] + r[2] * 0.2, r[1] + r[3] * 0.8); await p.mouse.down(); for (let i = 1; i <= 12; i++) { await p.mouse.move(r[0] + r[2] * 0.2 + i * 25, r[1] + r[3] * 0.8 - i * 2); await wait(16); } await p.mouse.up(); await wait(1200); return assert(await ev(() => location.hash) === '#/p/52', await ev(() => location.hash)); });
   await check(G2, 'كتابة رقم صفحة', async () => { await p.fill('#pNum', '300'); await p.dispatchEvent('#pNum', 'change'); await wait(600); return ev(() => location.hash === '#/p/300'); });
   await check(G2, 'الضغط على آية يظللها ويظهر شريط الآية', async () => { const r = await ev(() => { const b = document.querySelector('.page-box').getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; }); await p.mouse.click(r[0], r[1]); await wait(300); return ev(() => document.querySelectorAll('.ayah-box').length > 0 && !!document.getElementById('ayahBar') && /\?a=\d+:\d+/.test(location.hash)); });
@@ -161,12 +165,12 @@ async function fresh(ctx, vp) {
 
   // ---------- العلامات والختمة ----------
   const G8 = 'العلامات والختمة';
-  await check(G8, 'إضافة علامة باسم من تحت الصفحة', async () => { await go('#/p/200'); await p.click('#pMark'); await p.fill('.dlg input', 'ورد الفجر'); await p.click('.dlg-ok'); await wait(200); return ev(() => JSON.parse(localStorage.getItem('q.marks'))[0].n === 'ورد الفجر'); });
+  await check(G8, 'إضافة علامة باسم من تحت الصفحة', async () => { await go('#/p/200', 900); const c0 = await ev(() => { const b = document.querySelector('.page-box').getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; }); await p.mouse.click(c0[0], c0[1]); await wait(400); await p.click('#ayahBar button[data-c=b]'); await p.fill('.dlg input', 'ورد الفجر'); await p.click('.dlg-ok'); await wait(200); return ev(() => JSON.parse(localStorage.getItem('q.marks'))[0].n === 'ورد الفجر'); });
   await check(G8, 'إضافة علامة من شريط الآية', async () => { await go('#/p/250', 900); const r = await ev(() => { let k; QURAN.r.forEach(s => s.forEach(rs => rs.forEach(x => { if (x[0] === 250 && !k) k = x; }))); const bx = document.querySelector('.page-box').getBoundingClientRect(); return [bx.left + bx.width * (k[1] + k[3]) / 2000, bx.top + bx.height * (k[2] + k[4]) / 2000]; }); await p.mouse.click(r[0], r[1]); await wait(200); await p.click('#ayahBar button[data-c=b]'); await p.click('.dlg-ok'); await wait(200); return ev(() => JSON.parse(localStorage.getItem('q.marks')).length === 2); });
   await check(G8, 'العلامات تظهر في شاشة الختمة وتفتح مكانها', async () => { await go('#/khatma'); const n = await ev(() => document.querySelectorAll('.marks li').length); await p.click('.marks li:last-child .mk-go'); await wait(800); return assert(n === 2 && await ev(() => location.hash.startsWith('#/p/200')), n + ' ' + await ev(() => location.hash)); });
   await check(G8, 'إعادة تسمية وحذف علامة', async () => { await go('#/khatma'); await p.click('.marks li:first-child .mk-ed'); await p.fill('.dlg input', 'اسم جديد'); await p.click('.dlg-ok'); await wait(200); const a = await ev(() => document.querySelector('.marks li b').textContent); await p.click('.marks li:first-child .mk-del'); await wait(200); return assert(a === 'اسم جديد' && await ev(() => document.querySelectorAll('.marks li').length === 1), a); });
   await check(G8, 'بدء ختمة في 30 يوم', async () => { await p.click('#kStart'); await wait(200); return ev(ks => { const k = JSON.parse(localStorage.getItem('q.khatma' + ks)); return k.days === 30 && !!document.getElementById('kRead') && document.querySelector('.kh-wird').textContent.includes('صفحة'); }, KSUF); });
-  await check(G8, 'قراءة الورد بتقليب الصفحات بيحسب التقدم', async () => { await p.click('#kRead'); await wait(800); await ev(() => localStorage.setItem('q.flip', 'false')); for (let i = 0; i < 4; i++) { await ev(() => document.getElementById('pNext').click()); await wait(1300); } return ev(ks => JSON.parse(localStorage.getItem('q.khatma' + ks)).done >= QURAN.first + 3, KSUF); });
+  await check(G8, 'قراءة الورد بتقليب الصفحات بيحسب التقدم', async () => { await p.click('#kRead'); await wait(800); await ev(() => localStorage.setItem('q.flip', 'false')); for (let i = 0; i < 4; i++) { await voiceTurn(1); await wait(1300); } return ev(ks => JSON.parse(localStorage.getItem('q.khatma' + ks)).done >= QURAN.first + 3, KSUF); });
   await check(G8, 'كارت الختمة في الرئيسية يعرض الورد', async () => { await go('#/'); return ev(() => document.querySelector('#kCard small').textContent.includes('ورد اليوم') && !!document.querySelector('#kCard .kbar')); });
   await check(G8, 'زر «قرأت ورد اليوم»', async () => { await go('#/khatma'); await p.click('#kDone'); await wait(200); return ev(() => document.querySelector('.kh-wird').textContent.includes('أنهيت')); });
   await check(G8, 'تعديل الموضع يدويًا', async () => { await p.click('#kAt'); await p.fill('.dlg input', '100'); await p.click('.dlg-ok'); await wait(200); return ev(ks => JSON.parse(localStorage.getItem('q.khatma' + ks)).done === 100, KSUF); });
@@ -213,7 +217,7 @@ async function fresh(ctx, vp) {
   // The Fatiha page sits on the right: pairs 50-51 in the scans (Fatiha on page 2), 51-52 in the King Fahd print (page 1).
   const PAIR = (ED === 'kfgqpc' || ED === 'kfold') ? ['51,52', '53,54'] : ['50,51', '52,53'];
   await check(G11, 'صفحتين جنب بعض على التابلت بالعرض', async () => { await go('#/p/51', 1000); return ev(pr => { const bx = [...document.querySelectorAll('.page-box')], b = bx.map(x => x.dataset.p); return b.join() === pr && bx[0].getBoundingClientRect().left > bx[1].getBoundingClientRect().left; }, PAIR[0]); });
-  await check(G11, 'التقليب في وضع الصفحتين بيقلب صفحتين', async () => { await ev(() => document.getElementById('pNext').click()); await wait(700); return ev(pr => [...document.querySelectorAll('.page-box')].map(x => x.dataset.p).join() === pr, PAIR[1]); });
+  await check(G11, 'التقليب في وضع الصفحتين بيقلب صفحتين', async () => { await voiceTurn(1); await wait(700); return ev(pr => [...document.querySelectorAll('.page-box')].map(x => x.dataset.p).join() === pr, PAIR[1]); });
   await check(G11, 'لف الشاشة يرجّع صفحة واحدة', async () => { await p.setViewportSize({ width: 800, height: 1280 }); await wait(700); return ev(() => document.querySelectorAll('.page-box').length === 1); });
   await check(G11, 'الفولد 841×673: «صفحتان متجاورتان» مشغّلة = صفحتين، ومطفية = صفحة واحدة', async () => {
     await p.setViewportSize({ width: 841, height: 673 }); const sp = () => ev(() => !!document.querySelector('.page-wrap.spread'));
@@ -252,7 +256,7 @@ async function fresh(ctx, vp) {
     return ev(() => /^#\/p\/\d+/.test(location.hash) && document.getElementById('settings').hidden && !!document.getElementById('pg')); });
   await check(G12, 'الاهتزاز: 4 درجات، بيشتغل مع الأزرار ومش مع تقليب الصفحة', async () => {
     await p.click('#btnSettings'); const n = await ev(() => document.querySelectorAll('#hapticSet button').length); await p.click('#hapticSet button[data-v="2"]'); await closeS();
-    await ev(() => AppBridge.buzzes = []); await ev(() => document.getElementById('pNext').click()); await wait(1300); const turn = await ev(() => AppBridge.buzzes.length);
+    await ev(() => AppBridge.buzzes = []); await voiceTurn(1); await wait(1300); const turn = await ev(() => AppBridge.buzzes.length);
     await p.click('#btnSettings'); await wait(100); const btn = await ev(() => AppBridge.buzzes.slice()); await closeS();
     return assert(n === 4 && turn === 0 && btn.length && btn[0] === 2, JSON.stringify([n, turn, btn])); });
   await check(G12, 'سرعة القارئ من 0.25× لـ 4×', async () => { await go('#/s/112/1', 900); await ev(() => document.getElementById('a1').click()); await wait(300); await p.click('#ayahBar button[data-c=l]'); await wait(800);
@@ -731,10 +735,10 @@ async function fresh(ctx, vp) {
       if (b) b.click(); window.EdBridge = eb; window.NvBridge = nb; window.ReciteBridge = rb; if (!eb) delete window.EdBridge; if (!nb) delete window.NvBridge; if (!rb) delete window.ReciteBridge; return t; });
     return assert(r === 'ليس الآن', String(r)); });
   await check(G513, 'P2.8 + P2.11: مفيش زرار وضع الحفظ ولا هامش المصحف الموضوعي تحت الصفحات (أفقي وعمودي)', async () => { await ev(() => localStorage.setItem('q.thematic', 'true')); await p.reload(); await go('#/p/27', 900);
-    const a = await ev(() => [!!document.getElementById('pHifz'), !!document.getElementById('thmNotes'), !!document.getElementById('pMark')]);
+    const a = await ev(() => [!!document.getElementById('pHifz'), !!document.getElementById('thmNotes'), !!document.getElementById('pMark')]);   // 5.34: the page-bottom mark button is gone
     await ev(() => localStorage.setItem('q.turn', '"v"')); await p.reload(); await go('#/p/27', 1200); const v = await ev(() => [!!document.getElementById('thmNotes'), !!document.querySelector('.page-thm')]);
     await ev(() => { localStorage.setItem('q.thematic', 'false'); localStorage.setItem('q.turn', '"h"'); }); await p.reload(); await wait(600);
-    return assert(!a[0] && !a[1] && a[2] && !v[0] && !v[1], JSON.stringify([a, v])); });
+    return assert(!a[0] && !a[1] && !a[2] && !v[0] && !v[1], JSON.stringify([a, v])); });
   await check(G513, 'P2.9: مفيش بند تحميل هامش المصحف الموضوعي في الإعدادات › التحميلات، ونسخته القديمة بتتمسح', async () => { await go('#/', 600);
     const r = await ev(async () => { const eb = window.EdBridge; let gone = ''; window.EdBridge = { state: k => k === 'thmnotes' ? 'ready' : 'none', remove(k) { gone += k; }, get() {}, pause() {} };
       document.getElementById('btnSettings').click(); await new Promise(z => setTimeout(z, 400)); const box = document.getElementById('edDl'); const t = box ? box.textContent : 'nobox'; document.getElementById('closeSettings').click();
@@ -1751,6 +1755,144 @@ async function fresh(ctx, vp) {
       QA_bk.restore(JSON.parse(JSON.stringify(keys)));
       return [inFile, wGone, localStorage.getItem('q.hzSched') === sched0, hzWard().list.map(x => x.id).join(','), w0]; });
     await hzBack(k); assert(r[0] && r[1] === 0 && r[2] && r[3] === r[4] && r[4].length > 0, JSON.stringify(r)); return JSON.stringify(r); });
+  // ---------- نسخة 5.34 (Sprint 3 أ) ----------
+  const G534 = 'نسخة 5.34';
+  const lastKey = 'q.lastPage' + KSUF, shown = () => ev(() => document.querySelectorAll('.ayah-box:not(.play)').length);
+  // a fresh launch: the given q.* values (null removes), then the app loaded with that hash
+  const boot534 = async (ls, hash = '') => {
+    await ev(ls => { for (const k in ls) ls[k] === null ? localStorage.removeItem(k) : localStorage.setItem(k, ls[k]); }, ls);
+    await p.goto('about:blank'); await p.goto(W + hash); await wait(1000); };
+  const base534 = { 'q.mode': '"pages"', 'q.turn': '"h"', 'q.flipMode': '"off"', 'q.openAt': null, 'q.tapMark': null, 'q.spread': 'true' };
+  await p.setViewportSize({ width: 390, height: 844 });
+  await check(G534, '#10: مفيش زر السابقة/التالية في صفحة المصحف، ورقم الصفحة والتشغيل والليلي موجودين', async () => { await boot534(base534, '#/p/50');
+    return assert(await ev(() => !document.getElementById('pPrev') && !document.getElementById('pNext') && ['pNum', 'pPlay', 'pDark'].every(i => document.querySelector('.page-nav #' + i))), 'nav'); });
+  await check(G534, '#10: أمر الصوت «الصفحة التالية/السابقة» بيقلب بنفس مسار التقليب', async () => { await go('#/p/50', 900);
+    await voiceTurn(1); await wait(900); const a = await ev(() => location.hash); await voiceTurn(-1); await wait(900); const c = await ev(() => location.hash); return assert(a === '#/p/51' && c === '#/p/50', a + ' ' + c); });
+  await check(G534, '#10: السحب بيقلب (أفقي بدون تأثير)', async () => { await go('#/p/50', 900); await swipe(1); const a = await ev(() => location.hash); await swipe(-1); const c = await ev(() => location.hash); return assert(a === '#/p/51' && c === '#/p/50', a + ' ' + c); });
+  await check(G534, '#10: تأثير ثني الورقة لسه شغال (الأمر بيعمل .curl أثناء التقليب)', async () => { await ev(() => localStorage.setItem('q.flipMode', '"curl"')); await p.reload(); await wait(900);
+    await voiceTurn(1); await wait(150); const mid = await ev(() => !!document.querySelector('.curl')); await wait(1300); const h = await ev(() => [location.hash, !!document.querySelector('.curl')]);
+    await ev(() => localStorage.setItem('q.flipMode', '"off"')); return assert(mid && h[0] === '#/p/51' && !h[1], JSON.stringify([mid, h])); });
+  await check(G534, '#46: شاشة المواقيت من غير «جرّب الأذان بعد دقيقة» وملاحظة «لو التجربة ماوصلتش»', async () => { await ev(() => { localStorage.setItem('q.qiblaLoc', '[30.04,31.24,"x"]'); window.AppBridge = window.AppBridge || {}; window.AppBridge.setAlarms = window.AppBridge.setAlarms || (() => {}); });
+    await go('#/prayer', 900); return assert(await ev(() => !document.getElementById('prTest') && !/لو التجربة ماوصلتش|جرّب الأذان بعد دقيقة/.test(document.body.innerText) && !!document.querySelector('.pv-play')), 'prayer'); });
+  await check(G534, '#41: الافتراضي «الواجهة الرئيسية»: الفتح من غير هاش بيفضل على الرئيسية', async () => { await boot534(Object.assign({}, base534, { [lastKey]: '123' }));
+    return assert(await ev(() => !/^#\/p\//.test(location.hash) && !!document.getElementById('kCard')), await ev(() => location.hash)); });
+  await check(G534, '#41: «آخر موضع في المصحف» بيفتح آخر صفحة عند التشغيل، والرجوع بيرجّع للرئيسية', async () => { await boot534(Object.assign({}, base534, { [lastKey]: '123', 'q.openAt': '"last"' }));
+    const a = await ev(() => location.hash); await p.click('#btnBack'); await wait(700); const c = await ev(() => [location.hash, !!document.getElementById('kCard')]);
+    return assert(a === '#/p/123' && c[1] && !/^#\/p\//.test(c[0]), a + ' ' + JSON.stringify(c)); });
+  await check(G534, '#41: الرابط العميق مش بيتغيّر، ولا زيارة الرئيسية بعد كده في نفس التشغيل', async () => { await boot534(Object.assign({}, base534, { [lastKey]: '123', 'q.openAt': '"last"' }), '#/p/60'); const a = await ev(() => location.hash);
+    await go('#/', 700); const c = await ev(() => [location.hash, !!document.getElementById('kCard')]); return assert(a === '#/p/60' && c[1] && !/^#\/p\//.test(c[0]), a + JSON.stringify(c)); });
+  await check(G534, '#41/#20: أزرار الإعدادات بتحفظ q.openAt و q.tapMark', async () => { await go('#/', 300); await p.click('#btnSettings'); await wait(200);
+    await p.click('#openSet button[data-v=last]'); await p.click('#tapSet button[data-v=off]'); const r = await ev(() => [localStorage.getItem('q.openAt'), localStorage.getItem('q.tapMark'), document.querySelector('#openSet .on').dataset.v, document.querySelector('#tapSet .on').dataset.v]);
+    await p.click('#openSet button[data-v=home]'); await p.click('#tapSet button[data-v=on]'); const r2 = await ev(() => [localStorage.getItem('q.openAt'), localStorage.getItem('q.tapMark')]); await closeS();
+    return assert(r.join() === '"last",false,last,off' && r2.join() === '"home",true', r.join() + ' | ' + r2.join()); });
+  const tapMid = async sel => { const b = await p.locator(sel).first().boundingBox(); await p.mouse.click(b.x + b.width * 0.5, b.y + b.height * 0.5); await wait(400); };
+  await check(G534, '#20: التعليم عند اللمس شغال (افتراضي): لمسة على الصفحة بتعمل .ayah-box', async () => { await boot534(base534, '#/p/50'); await tapMid('.page-box'); return assert((await shown()) > 0, 'no ayah-box'); });
+  await check(G534, '#20: لما يتقفل: اللمس مش بيعمل .ayah-box ولا شريط الآية، والرابط ?a= لسه بيظلل', async () => { await boot534(Object.assign({}, base534, { 'q.tapMark': 'false' }), '#/p/50'); await tapMid('.page-box');
+    const t = await shown(), bar = await ev(() => !!document.querySelector('#ayahBar button')); await go('#/p/' + P255 + '?a=2:255', 900); const u = await shown();
+    return assert(t === 0 && !bar && u > 0, JSON.stringify([t, bar, u])); });
+  await check(G534, '#20: نفس الشيء في العرض العمودي', async () => { await boot534(Object.assign({}, base534, { 'q.tapMark': 'false', 'q.turn': '"v"' }), '#/p/50'); await wait(600); await tapMid('.vpages .page-box[data-p="50"]'); const off = await shown();
+    await boot534(Object.assign({}, base534, { 'q.turn': '"v"' }), '#/p/50'); await wait(600); await tapMid('.vpages .page-box[data-p="50"]'); const on = await shown(); return assert(off === 0 && on > 0, off + ',' + on); });
+  const sideOf = n => ev(n => { const b = document.querySelector('.page-box[data-p="' + n + '"]'); return b ? (b.classList.contains('pg-r') ? 'r' : b.classList.contains('pg-l') ? 'l' : '-') : '?'; }, n);
+  await check(G534, '#13: pg-r/pg-l بالتبادل (الصفحة الأولى يمين) في الصفحة الواحدة', async () => { await boot534(base534, '#/p/50'); const first = await ev(() => QURAN.first), exp = n => ((n - first) % 2 + 2) % 2 === 0 ? 'r' : 'l', got = [];
+    for (const n of [first, first + 1, 50, 51, 101]) { await go('#/p/' + n, 500); got.push([n, await sideOf(n), exp(n)]); } return assert(got.every(g => g[1] === g[2]), JSON.stringify(got)); });
+  await check(G534, '#13: في وضع الصفحتين: اليمين pg-r واليسار pg-l وعلى حافة الكعب ظل', async () => { await p.setViewportSize({ width: 1100, height: 700 }); await boot534(base534, '#/p/51'); await wait(600);
+    const r = await ev(() => [...document.querySelectorAll('.page-box')].map(b => [b.dataset.p, (b.className.match(/pg-[rl]/) || ['-'])[0], getComputedStyle(b, '::after').backgroundImage.includes('gradient'), b.getBoundingClientRect().left]));
+    await p.setViewportSize({ width: 390, height: 844 }); r.sort((a, b) => b[3] - a[3]); const x = r[0] || [], y = r[1] || [];
+    return assert(r.length === 2 && x[1] === 'pg-r' && y[1] === 'pg-l' && x[2] && y[2], JSON.stringify(r)); });
+  await check(G534, '#13: العرض العمودي: كل صفحات القائمة عليها pg-r/pg-l بالتبادل', async () => { await boot534(Object.assign({}, base534, { 'q.turn': '"v"' }), '#/p/50'); await wait(600);
+    const r = await ev(() => [...document.querySelectorAll('.vpages .page-box')].map(b => [+b.dataset.p, b.classList.contains('pg-r')])), first = await ev(() => QURAN.first);
+    return assert(r.length >= 2 && r.every(([n, isR]) => isR === (((n - first) % 2 + 2) % 2 === 0)), JSON.stringify(r.slice(0, 6))); });
+  // ---- #15 / #14 / #39: keep screen on, status bar in full screen, recitation mic (the Android bridges are stubbed) ----
+  // __br records every call the page makes to the shell. The stub insets() answers like AppBridge.insets(): status bar 24, nav bar 48;
+  // with the status bar kept the full-screen top stays 24 (fsTop = insT), else the cutout (0).
+  const stub534 = (devices, ready) => ev(([devs, rdy]) => { window.__br = []; const keep = () => !!window.__keep;
+    window.AppBridge = { keepOn: v => __br.push(['keepOn', v]), fsStatus: v => { window.__keep = v; __br.push(['fsStatus', v]); }, immersive: v => __br.push(['immersive', v]), insets: () => '24,48,' + (keep() ? 24 : 0) + ',0' };
+    window.NvBridge = { mics: () => devs, setMic: id => __br.push(['setMic', id]), micTest: id => __br.push(['micTest', id]), ready: () => rdy }; }, [devices, !!ready]);
+  const calls534 = () => ev(() => JSON.stringify(window.__br));
+  const DEVS534 = JSON.stringify([{ id: 3, type: 'builtin', name: 'Built-in' }, { id: 7, type: 'bt', name: 'Buds' }, { id: 9, type: 'usb', name: 'Dev' }]);
+  await check(G534, '#15/#14/#39: صفوف الإعدادات الجديدة بتحفظ q.keepOn و q.fsStatus و q.micId وبتبعت للشِل', async () => { await boot534(base534, '#/'); await stub534(DEVS534, false);
+    await p.click('#btnSettings'); await wait(200);
+    const d0 = await ev(() => [document.querySelector('#keepSet .on').dataset.v, document.querySelector('#fsStatSet .on').dataset.v, document.getElementById('micSel').value]);   // defaults: off, off (hide), auto
+    await p.click('#keepSet button[data-v=on]'); await p.click('#fsStatSet button[data-v=on]'); await p.selectOption('#micSel', '7');
+    const r = await ev(() => [localStorage.getItem('q.keepOn'), localStorage.getItem('q.fsStatus'), localStorage.getItem('q.micId'), document.querySelector('#keepSet .on').dataset.v, document.querySelector('#fsStatSet .on').dataset.v]);
+    const c = await calls534(); await p.click('#keepSet button[data-v=off]'); await p.click('#fsStatSet button[data-v=off]'); await p.selectOption('#micSel', '0'); const r2 = await ev(() => [localStorage.getItem('q.keepOn'), localStorage.getItem('q.fsStatus'), localStorage.getItem('q.micId')]); await closeS();
+    return assert(d0.join() === 'off,off,0' && r.join() === 'true,true,7,on,on' && r2.join() === 'false,false,0' && c.includes('["keepOn",true]') && c.includes('["fsStatus",true]') && c.includes('["setMic",7]'), d0 + ' | ' + r + ' | ' + r2 + ' | ' + c); });
+  await check(G534, '#39: قائمة المايكات بتتبني من NvBridge.mics() (تلقائي ثم الأجهزة بأسماء عربي)', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534(DEVS534, true);
+    await p.click('#btnSettings'); await wait(200); const r = await ev(() => [[...document.querySelectorAll('#micSel option')].map(o => o.textContent), document.getElementById('micSel').value, document.getElementById('micRow').hidden, !!document.getElementById('micHint')]); await closeS();
+    return assert(r[0].join('|') === 'تلقائي|مايك الهاتف|سماعة بلوتوث · Buds|مايك USB · Dev' && r[1] === '9' && !r[2] && !r[3], JSON.stringify(r)); });
+  await check(G534, '#39: القائمة فاضية أو المايك المحفوظ اتفصل: تلقائي ومحدش بيتحفظ q.micId قديم؛ ومن غير NvBridge الصف مخفي؛ ومفيش أي جملة توضيحية', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534('[]', false);
+    await p.click('#btnSettings'); await wait(200); const r = await ev(() => [[...document.querySelectorAll('#micSel option')].map(o => o.textContent).join('|'), document.getElementById('micSel').value, localStorage.getItem('q.micId'), !!document.getElementById('micHint')]);
+    const c = await calls534(); await closeS(); await boot534(base534, '#/'); await p.click('#btnSettings'); await wait(200); const hid = await ev(() => document.getElementById('micRow').hidden); await closeS();
+    return assert(r[0] === 'تلقائي' && r[1] === '0' && r[2] === '0' && !r[3] && c.includes('["setMic",0]') && hid, JSON.stringify([r, c, hid])); });
+  await check(G534, '#39: onMicInfo("fallback") بيطلع تنبيه «المايك المختار مش متوصل»', async () => { await boot534(base534, '#/'); await ev(() => window.onMicInfo('fallback', '')); await wait(100);
+    return assert(await ev(() => [...document.querySelectorAll('.toast')].some(t => t.textContent.includes('المايك المختار مش متوصل'))), 'no toast'); });
+  await check(G534, '#39: الصف اسمه «اختيار الميكروفون» وتحته على طول «اختبار المايك»، ومفيش جملة «بيجرّب مايك الهاتف العادي»', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534(DEVS534, false);
+    await p.click('#btnSettings'); await wait(200); const r = await ev(() => { const row = document.getElementById('micRow'), nx = row.nextElementSibling; return [row.firstChild.textContent.trim(), document.getElementById('micSel').getAttribute('aria-label'), !!nx.querySelector('#micTestBtn'), nx.firstChild.textContent.trim(), row.textContent.includes('العادي')]; }); await closeS();
+    return assert(r[0] === 'اختيار الميكروفون' && r[1] === 'اختيار الميكروفون' && r[2] && r[3] === 'اختبار المايك' && !r[4], JSON.stringify(r)); });
+  await check(G534, '#39: «اختبار المايك» بيروح للتسجيل الأصلي بالمايك المختار (NvBridge.micTest(id)) وبيعرض الجهاز اللي اتسجّل منه', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534(DEVS534, false);
+    await p.click('#btnSettings'); await wait(200); await p.click('#micTestBtn'); await wait(200); const c = await calls534();
+    const lv = [...Array(40).fill(-60), ...Array(80).fill(-30)]; await ev(lv => window.onMicInfo('testdone', JSON.stringify({ levels: lv, routed: 'usb:Dev', gone: false, note: '' })), lv); await wait(100);
+    const r = await ev(() => [document.getElementById('micTestSum').textContent, document.getElementById('micTestBtn').disabled]); await closeS();
+    return assert(c.includes('["micTest",9]') && r[0].includes('ممتاز') && r[0].includes('المايك المستخدم:') && r[0].includes('مايك USB') && !r[0].includes('Dev') && !r[1], c + ' | ' + r); });
+  await check(G534, 'تحت الصفحة: مفيش #pMark، وسطر السورة/الجزء جوه .page-tools (مرة واحدة) قبل دليل التجويد، ومخفي في ملء الشاشة', async () => { await boot534(Object.assign({}, base534, { 'q.tajweed': 'true' }), '#/p/50'); await wait(400); await ev(() => { window.QA_NOFS = true; });
+    const r = await ev(() => { const t = document.querySelector('.page-tools'), i = t && t.querySelector('.page-info'); return [!!document.getElementById('pMark'), document.querySelectorAll('.page-info').length, !!i && i.textContent.includes('سورة') && i.textContent.includes('الجزء'), !!i && !!i.nextElementSibling && i.nextElementSibling.classList.contains('tj-key'), t && t.firstElementChild === i]; });
+    const fsOff = await ev(() => { const t = document.querySelector('.page-tools'); t.style.transition = 'none'; document.body.classList.add('fs'); const o = getComputedStyle(t).visibility, mh = getComputedStyle(t).maxHeight; document.body.classList.remove('fs'); t.style.transition = ''; return [o, mh]; });
+    return assert(!r[0] && r[1] === 1 && r[2] && r[3] && r[4] && fsOff[0] === 'hidden', JSON.stringify([r, fsOff])); });
+  // full screen by a tap on the page (QA_NOFS off), then back; reads what the page told the shell and how it planned the glide
+  const fs534 = async (keep) => { await boot534(Object.assign({}, base534, { 'q.fsStatus': keep ? 'true' : 'false' }), '#/p/50'); await stub534('[]', false); await ev(() => { window.QA_NOFS = false; });
+    await ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await wait(1350);
+    const r = await ev(() => [document.body.classList.contains('fs'), document.documentElement.style.getPropertyValue('--fsdy'), JSON.stringify(window.__br)]);
+    await ev(() => { window.QA_NOFS = true; }); return r; };
+  await check(G534, '#14: ملء الشاشة مع «إظهار» شريط الهاتف: fsStatus(true) قبل immersive(true) والانزلاق على نفس الأعلى (--fsdy=0)', async () => { const r = await fs534(true);
+    return assert(r[0] && r[2].indexOf('["fsStatus",true]') >= 0 && r[2].indexOf('["fsStatus",true]') < r[2].indexOf('["immersive",true]') && parseFloat(r[1]) === 0, JSON.stringify(r)); });
+  await check(G534, '#14: مع «إخفاء» (الافتراضي): fsStatus(false) والانزلاق لسه بيعوّض ٢٤ (--fsdy=-24px) زي قبل كده', async () => { const r = await fs534(false);
+    return assert(r[0] && r[2].indexOf('["fsStatus",false]') >= 0 && r[2].indexOf('["fsStatus",false]') < r[2].indexOf('["immersive",true]') && r[1] === '-24px', JSON.stringify(r)); });
+  // #qMk is fixed in the viewport in every mode: the same box in normal, full screen (status shown / hidden) and hifz
+  await check(G534, '#qMk: نفس المكان في العادي وملء الشاشة (شريط الهاتف ظاهر/مخفي) والحفظ', async () => { const box = () => ev(() => { const r = document.getElementById('qMk').getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map(v => Math.round(v * 10) / 10).join(','); });
+    const out = {}; for (const keep of [true, false]) { await boot534(Object.assign({}, base534, { 'q.fsStatus': keep ? 'true' : 'false' }), '#/p/50'); await stub534('[]', false); await ev(() => { window.QA_NOFS = false; });
+      if (keep) out.normal = await box();
+      await ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await wait(1500); const fsOn = await ev(() => document.body.classList.contains('fs')); out[keep ? 'fsStatus' : 'fsHidden'] = fsOn ? await box() : 'no-fs'; }
+    await boot534(base534, '#/p/50'); await ev(() => { window.QA_NOFS = false; hifzToggle(); }); await wait(400); out.hifz = await box(); await go('#/p/51', 400); await wait(3600); out.hifzFs = (await ev(() => document.body.classList.contains('fs'))) ? await box() : 'no-fs';
+    await ev(() => { window.QA_NOFS = true; });
+    return assert(new Set(Object.values(out)).size === 1, JSON.stringify(out)); });
+  // 5.35 #19: full screen page size: «على عرض الشاشة» (width, default) or «ملء الشاشة» (stretch), also switched by a two-finger pinch in
+  const fsFit = () => ev(() => { try { return JSON.parse(localStorage.getItem('q.fsFit')); } catch (e) { return 'bad'; } });
+  const fsOn534 = async () => { await ev(() => document.body.classList.add('fs')); await wait(500); };
+  // the visible part of each page box (the box minus its crop fractions) in viewport px: [left, top, right, bottom]
+  const visRects = () => ev(() => [...document.querySelectorAll('.page-wrap .page-box')].map(b => { const r = b.getBoundingClientRect(), cs = getComputedStyle(b), f = k => parseFloat(cs.getPropertyValue(k)) || 0;
+    return [r.left + f('--cl') * r.width, r.top + f('--ct') * r.height, r.right - f('--cr') * r.width, r.bottom - f('--cb') * r.height].map(v => Math.round(v * 10) / 10); }).sort((a, b) => a[0] - b[0]));
+  const near = (a, b) => Math.abs(a - b) <= 2;
+  const pinch534 = (x1, x2, a, b) => ev(([x1, x2, a, b]) => { const t = document.querySelector('.page-box'), y = 400;
+    const mk = (type, id, x) => t.dispatchEvent(new PointerEvent(type, { pointerId: id, isPrimary: id === 1, pointerType: 'touch', clientX: x, clientY: y, bubbles: true }));
+    mk('pointerdown', 1, x1); mk('pointerdown', 2, x2);
+    for (let i = 1; i <= 5; i++) { mk('pointermove', 1, x1 + (a - x1) * i / 5); mk('pointermove', 2, x2 + (b - x2) * i / 5); }
+    mk('pointerup', 2, b); mk('pointerup', 1, a); t.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: a, clientY: y })); }, [x1, x2, a, b]);
+  await check(G534, '#19: صف «حجم الصفحة في ملء الشاشة» في الإعدادات: الافتراضي «على عرض الشاشة» والأزرار بتحفظ q.fsFit وبتغيّر class على html', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/'); await p.click('#btnSettings'); await wait(200);
+    const d = await ev(() => [document.querySelector('#fsFitSet .on').dataset.v, localStorage.getItem('q.fsFit'), document.documentElement.classList.contains('fsfit-stretch')]);
+    await p.click('#fsFitSet button[data-v=stretch]'); const s = await ev(() => [localStorage.getItem('q.fsFit'), document.querySelector('#fsFitSet .on').dataset.v, document.documentElement.classList.contains('fsfit-stretch')]);
+    await p.click('#fsFitSet button[data-v=width]'); const w = await ev(() => [localStorage.getItem('q.fsFit'), document.documentElement.classList.contains('fsfit-stretch')]); await closeS();
+    return assert(d[0] === 'width' && d[1] === null && !d[2] && s[0] === '"stretch"' && s[1] === 'stretch' && s[2] && w[0] === '"width"' && !w[1], JSON.stringify([d, s, w])); });
+  await check(G534, '#19: ملء الشاشة + stretch: الجزء الظاهر من الصفحة = الشاشة كلها (±2px)؛ «على عرض الشاشة» بيرجع لنفس القياس القديم', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await fsOn534();
+    const w0 = await visRects(); await boot534(Object.assign({}, base534, { 'q.fsFit': '"stretch"' }), '#/p/50'); await fsOn534();
+    const s = await visRects(), vp = await ev(() => [innerWidth, innerHeight]); await ev(() => document.documentElement.classList.remove('fsfit-stretch')); await wait(200); const w1 = await visRects();
+    return assert(s.length === 1 && near(s[0][0], 0) && near(s[0][1], 0) && near(s[0][2], vp[0]) && near(s[0][3], vp[1]) && JSON.stringify(w0) === JSON.stringify(w1), JSON.stringify([w0, s, w1, vp])); });
+  await check(G534, '#19: stretch في وضع الصفحتين (١٠٠٠×٧٠٠): كل صفحة نص الشاشة وبارتفاعها', async () => { await p.setViewportSize({ width: 1000, height: 700 }); await boot534(Object.assign({}, base534, { 'q.fsFit': '"stretch"' }), '#/p/51'); await wait(500); await fsOn534();
+    const s = await visRects(); await p.setViewportSize({ width: 390, height: 844 });
+    return assert(s.length === 2 && near(s[0][0], 0) && near(s[0][2], 500) && near(s[1][0], 500) && near(s[1][2], 1000) && s.every(r => near(r[1], 0) && near(r[3], 700)), JSON.stringify(s)); });
+  await check(G534, '#19: stretch: الصورة بتملا الصندوق، وتظليل الآية (.ayah-box) بنفس النسب وجوه حدود الصفحة زي «على عرض الشاشة»', async () => {
+    const probe = () => ev(() => { const b = document.querySelector('.page-box'), r = b.getBoundingClientRect(), i = b.querySelector('img:not(.tjo)').getBoundingClientRect(), a = [...b.querySelectorAll('.ayah-box:not(.play)')];
+      const f = a.map(x => [x.style.left, x.style.top, x.style.width, x.style.height].join()), c = a[0] ? a[0].getBoundingClientRect() : null;
+      return { same: Math.abs(i.width - r.width) < 1 && Math.abs(i.height - r.height) < 1, n: a.length, f, hit: !!c && c.left >= r.left - 1 && c.right <= r.right + 1 && c.top >= r.top - 1 && c.bottom <= r.bottom + 1 }; });
+    const out = []; for (const fit of ['width', 'stretch']) { await boot534(Object.assign({}, base534, { 'q.fsFit': JSON.stringify(fit) }), '#/p/' + P255 + '?a=2:255'); await wait(500); await fsOn534(); out.push(await probe()); }
+    return assert(out[1].same && out[1].n > 0 && out[1].hit && JSON.stringify(out[0].f) === JSON.stringify(out[1].f), JSON.stringify(out)); });
+  await check(G534, '#19: قرصة تقريب الإصبعين (نسبة < 0.8) في ملء الشاشة بتبدّل width ↔ stretch وتحفظ q.fsFit من غير ما تقلب الصفحة ولا تعلّم آية', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await fsOn534();
+    await pinch534(50, 350, 130, 270); await wait(200); const a = await ev(() => [JSON.parse(localStorage.getItem('q.fsFit')), document.documentElement.classList.contains('fsfit-stretch'), location.hash, document.querySelectorAll('.ayah-box:not(.play)').length, document.body.classList.contains('fs'), (document.querySelector('.toast') || {}).textContent]);
+    await wait(600); await pinch534(50, 350, 130, 270); await wait(200); const b = await ev(() => [JSON.parse(localStorage.getItem('q.fsFit')), document.documentElement.classList.contains('fsfit-stretch'), location.hash, document.querySelectorAll('.ayah-box:not(.play)').length, document.body.classList.contains('fs')]);
+    return assert(a[0] === 'stretch' && a[1] && a[2] === '#/p/50' && a[3] === 0 && a[4] && /ملء الشاشة/.test(a[5] || '') && b[0] === 'width' && !b[1] && b[2] === '#/p/50' && b[3] === 0 && b[4], JSON.stringify([a, b])); });
+  await check(G534, '#19: قرصة التباعد (تكبير) مش بتبدّل، وبره ملء الشاشة القرصة مش بتبدّل برضه', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await fsOn534();
+    await pinch534(150, 250, 50, 350); await wait(200); const out = await fsFit(); await ev(() => document.body.classList.remove('fs')); await wait(300); await pinch534(50, 350, 130, 270); await wait(200); const nofs = await fsFit();
+    return assert(out === null && nofs === null, JSON.stringify([out, nofs])); });
+  await ev(() => { for (const k of ['q.openAt', 'q.tapMark', 'q.turn', 'q.flipMode', 'q.qiblaLoc', 'q.keepOn', 'q.fsStatus', 'q.micId', 'q.fsFit']) localStorage.removeItem(k); localStorage.setItem('q.spread', 'true'); }); await p.goto('about:blank'); await p.goto(W); await wait(500);
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

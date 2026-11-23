@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
     private SpeechBridge speech;
     /** The WebView's padding now (system bars + cutout) and the cutout alone (what is left in full screen), in px. */
     static volatile int insT, insB, cutT, cutB;
+    static volatile boolean fsKeepStatus;   // 5.34 #14: full screen leaves the status bar (AppBridge.fsStatus)
 
     @Override
     protected void onCreate(Bundle state) {
@@ -232,6 +233,7 @@ public class MainActivity extends Activity {
         if (code == QiblaBridge.PERMISSION_REQUEST) qibla.onPermissionResult(results);
         if (code == ReciteBridge.PERMISSION_REQUEST) recite.onPermissionResult(results);
         if (code == NvAsr.PERMISSION_REQUEST) nv.onPermissionResult(results);
+        if (code == NvAsr.TEST_PERMISSION_REQUEST) nv.onTestPermission(results);
         if (code == 77 && micReq != null) {
             if (results.length > 0 && results[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) micReq.grant(new String[] { PermissionRequest.RESOURCE_AUDIO_CAPTURE });
             else micReq.deny();

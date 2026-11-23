@@ -208,7 +208,7 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
 .page-nav { display: flex; gap: 6px; align-items: center; margin-top: 10px; padding: 5px; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); }
 .page-nav button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 10px; border-radius: 14px; border: 0;
   background: var(--soft); color: var(--accent); cursor: pointer; font-weight: 600; }
-.page-nav input { width: 70px; text-align: center; padding: 9px 4px; font-size: 16px; font-family: inherit; font-weight: 700; border-radius: 14px;
+.page-nav input { flex: 1; min-width: 70px; text-align: center; padding: 9px 4px; font-size: 16px; font-family: inherit; font-weight: 700; border-radius: 14px;
   border: 0; background: var(--bg); color: var(--text); outline: none; }
 
 /* index (فهرس) */
@@ -392,7 +392,7 @@ body.reading .quran, body.reading .basmala, body.reading .page-info { color: var
   main { padding-left: 12px; padding-right: 12px; }
   .page-nav { gap: 4px; }
   .page-nav button { padding: 10px 6px; min-width: 0; font-size: 14px; }
-  .page-nav input { width: 54px; }
+  .page-nav input { min-width: 54px; }
   .page-nav .dark-btn { width: 40px; }
   .tile { flex-direction: column; text-align: center; }
   .ab-btns button { font-size: 12px; }
@@ -509,6 +509,9 @@ body.has-player.has-bar .player { display: none; }
 .page-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin: 10px 0 0; }
 .page-tools > * { display: flex; align-items: center; gap: 6px; font: inherit; font-size: 12.5px; color: var(--accent); background: none; border: 0; padding: 4px 2px; cursor: pointer; text-decoration: none; }
 .page-tools .ic { width: 15px; height: 15px; }
+.page-tools > .page-info { margin: 0; padding: 4px 2px; font-size: 13px; color: var(--muted); cursor: default; }   /* 5.34: the surah / juz line leads the row */
+.page-tools > .page-info:empty { display: none; }
+:root:not(.tjpg) .page-tools:has(> .page-info:empty) { display: none; }   /* no surah and no tajweed key: no empty row */
 .page-tools .tj-key { margin: 0; display: none; }
 :root.tjpg .page-tools .tj-key { display: flex; }
 
@@ -516,8 +519,14 @@ body.has-player.has-bar .player { display: none; }
 .page-wrap.spread { margin-inline: calc(50% - 50vw); }
 .spread-row { display: flex; justify-content: center; }
 .spread-row .page-box { margin: 0; width: min(50%, calc((var(--vh, 100vh) - 130px) * .624)); }
-.spread-row .page-box:first-child { box-shadow: inset -14px 0 18px -16px rgba(0, 0, 0, .45); }
-.spread-row .page-box:last-child { box-shadow: inset 14px 0 18px -16px rgba(0, 0, 0, .45); }
+/* 5.34 #13: the binding. pg-r (right page) is shadowed on its left edge, pg-l on its right edge, in every mode (single, spread, scroll list).
+   An overlay, not an inset box-shadow: the page image multiplies over the box (night mode inverts it), and a cropped page clips the box edge,
+   so the shadow sits at the visible edge (--cl / --cr are the crop fractions; unset = 0 for uncropped editions). */
+.page-box.pg-r::after, .page-box.pg-l::after { content: ""; position: absolute; top: 0; bottom: 0; width: min(9%, 40px); pointer-events: none; z-index: 1; }
+.page-box.pg-r::after { left: calc(var(--cl, 0) * 100%); background: linear-gradient(to right, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)); }
+.page-box.pg-l::after { right: calc(var(--cr, 0) * 100%); background: linear-gradient(to left, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)); }
+:root.pdark .page-box.pg-r::after { background: linear-gradient(to right, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0)); }
+:root.pdark .page-box.pg-l::after { background: linear-gradient(to left, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0)); }
 
 /* Khatma and bookmarks. */
 .kcard { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0 0 12px; border: 0; border-radius: 18px;
@@ -1016,6 +1025,19 @@ body.fs .page-wrap.crop .spread-row .page-box { --W: min(50%, calc(var(--vh, 100
   margin: calc(var(--F) * var(--ct) * var(--R) * -1) calc(var(--F) * var(--cr) * -1) calc(var(--F) * var(--cb) * var(--R) * -1) calc(var(--F) * var(--cl) * -1);
   clip-path: inset(calc(var(--ct) * 100%) calc(var(--cr) * 100%) calc(var(--cb) * 100%) calc(var(--cl) * 100%)); }
 .page-wrap.crop .spread-row .page-box { --W: min(50%, calc((var(--vh, 100vh) - 130px) * var(--asp))); }
+
+/* 5.35 #19: full screen "stretch" (setting q.fsFit, class fsfit-stretch on <html>): the visible page fills the whole screen, width and height
+   scaled separately (the ratio is not kept). The .page-box keeps the image's coordinate system, so the image and every overlay (ayah boxes, tajweed layer,
+   word boxes, spine shadow) just fill the box, which is stretched. --SW is the visible width of one page (the wrap, or half the spread row).
+   Cropped pages: the box is made so that its visible part (the box minus the crop) is exactly --SW x the screen height, with no 640px floor.
+   The page-turn layers copy the box's rectangle and fill it (.curl-page), so they stretch with it. */
+html.fsfit-stretch body.fs.pgview .page-wrap .page-box { --SW: 100%; margin: 0; }
+html.fsfit-stretch body.fs.pgview .page-wrap .spread-row .page-box { --SW: 50%; }
+html.fsfit-stretch body.fs.pgview .page-wrap:not(.crop) .page-box { width: var(--SW); height: var(--vh, 100vh); }
+html.fsfit-stretch body.fs.pgview .page-wrap.crop .page-box { --F: calc(var(--SW) / var(--cw)); --H: calc(var(--vh, 100vh) / var(--ch));
+  width: var(--F); height: var(--H); aspect-ratio: auto;
+  margin: calc(var(--H) * var(--ct) * -1) calc(var(--F) * var(--cr) * -1) calc(var(--H) * var(--cb) * -1) calc(var(--F) * var(--cl) * -1); }
+html.fsfit-stretch body.fs.pgview .page-wrap .page-box > img:not(.tjo) { width: 100%; height: 100%; object-fit: fill; }
 
 /* «التفصيل الموضوعي» topic colours over the page (app.js thmLayer) */
 .page-box .thm { position: absolute; mix-blend-mode: multiply; pointer-events: none; opacity: .9; }

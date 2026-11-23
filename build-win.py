@@ -102,7 +102,8 @@ def main():
     run(bt("aapt2"), "link", "-o", unsigned, "-I", ajar,
         "--manifest", os.path.join(OUT, "AndroidManifest.xml"), "--rename-manifest-package", APP_ID,
         "-0", "br", "--min-sdk-version", MIN_SDK, "--target-sdk-version", "36",
-        "-A", os.path.join(OUT, "assets"), "--java", os.path.join(OUT, "gen"), os.path.join(OUT, "res.zip"))
+        "-A", os.path.join(OUT, "assets"), "--java", os.path.join(OUT, "gen"), os.path.join(OUT, "res.zip"),
+        *(["--debug-mode"] if os.environ.get("DEBUGGABLE") else []))   # DEBUGGABLE=1: android:debuggable (run-as + WebView CDP on a phone); never for a release
 
     # Donation relay key + address (DONATE_KEY/DONATE_URL, or keys/donate-key.txt); never in git. No key: no uploads.
     kf = os.path.join(HERE, "keys", "donate-key.txt")
@@ -140,7 +141,8 @@ def main():
             "-dname", "CN=Android Debug,O=Android,C=US", stdout=subprocess.DEVNULL)
     manifest = open(os.path.join(HERE, "android", "AndroidManifest.xml"), encoding="utf-8").read()
     ver = re.search(r'android:versionName="([^"]*)"', manifest).group(1)
-    apk = os.path.join(HERE, "quran-karim-v%s.apk" % ver)
+    # APK_SUFFIX=-mictest2 names a test build quran-karim-v<ver>-mictest2.apk so it never overwrites the release file
+    apk = os.path.join(HERE, "quran-karim-v%s%s.apk" % (ver, os.environ.get("APK_SUFFIX", "")))
     run(bt("apksigner"), "sign", "--ks", KEYSTORE, "--ks-pass", "pass:android", "--key-pass", "pass:android",
         "--out", apk, aligned)
     run(bt("apksigner"), "verify", apk)

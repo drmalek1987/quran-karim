@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تجربة 5.34 على الموبايل</title>
+<style>
+  body { font-family: system-ui, 'Segoe UI', Tahoma; margin: 0; padding: 14px; background: #f6f6f2; color: #1b2430; line-height: 1.7; }
+  h1 { color: #1f3a5f; font-size: 22px; margin: 4px 0 8px; }
+  h2 { color: #1f3a5f; font-size: 18px; margin: 22px 0 8px; border-bottom: 2px solid #1f3a5f22; }
+  .note { background: #fff7e0; border: 1px solid #e8c766; border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+  .card { background: #fff; border-radius: 12px; padding: 12px 14px; margin: 10px 0; box-shadow: 0 1px 3px #0001; }
+  .card b.n { color: #fff; background: #1f3a5f; border-radius: 6px; padding: 0 7px; margin-left: 6px; font-size: 13px; }
+  .card .t { font-weight: bold; font-size: 16px; }
+  ol { margin: 6px 0; padding-right: 22px; }
+  .ok { color: #0a7a3a; font-size: 15px; }
+  .ok::before { content: "✓ المفروض: "; font-weight: bold; }
+  .btns { display: flex; gap: 8px; margin-top: 8px; }
+  .btns button { flex: 1; padding: 9px; border-radius: 9px; border: 1px solid #ccd; background: #f2f3f5; font-size: 15px; font-family: inherit; }
+  .card.pass { border-right: 6px solid #0a7a3a; } .card.fail { border-right: 6px solid #c0392b; }
+  .card.pass .p { background: #0a7a3a; color: #fff; } .card.fail .f { background: #c0392b; color: #fff; }
+  textarea { width: 100%; box-sizing: border-box; margin-top: 8px; border-radius: 8px; border: 1px solid #ccd; padding: 6px; font-family: inherit; display: none; }
+  .card.fail textarea { display: block; }
+  #sum { position: sticky; top: 0; background: #1f3a5f; color: #fff; border-radius: 10px; padding: 8px 12px; z-index: 2; font-size: 15px; }
+</style>
+</head><body><h1>تجربة نسخة 5.34 على الموبايل</h1>
+<div id="sum"></div>
+
+<div class="note">
+  <b>قبل ما تبدأ:</b><br>
+  • نزّل <b>quran-karim-v5.34.apk</b> واتأكد إن النسخة <b>5.34</b>: «المزيد» ← «حول التطبيق».<br>
+  • جهّز سماعة البلوتوث لبنود المايك.<br>
+  • بعد كل بند دوس <b>نجح</b> أو <b>فيه مشكلة</b>. لو فيه مشكلة اكتب اللي حصل وخد screenshot. اختياراتك بتتحفظ في الصفحة دي، وفي الآخر دوس «انسخ النتيجة وابعتها».
+</div>
+
+<div id="list"></div>
+
+<script>
+// Each item: [number, title, steps[], expected]
+var G = [
+ ["شاشة المصحف (Group A)", [
+  ["#10", "مفيش «السابقة / التالية»", ["افتح أي صفحة في المصحف وبص تحت الصفحة.", "قلّب الصفحة بالسحب يمين وشمال."], "تحت الصفحة فيه رقم الصفحة وزرار الاستماع والهلال بس، والتقليب بالسحب شغال."],
+  ["عام", "اسم السورة مكان «علامة على هذه الصفحة»", ["بص على السطر اللي تحت الصفحة على طول.", "المس آية ← من شريط الآية اختار «علامة» واكتب اسم."], "مفيش زرار «علامة على هذه الصفحة»، ومكانه «سورة … · الجزء …» مرة واحدة بس. والعلامة باسم بتتحفظ من شريط الآية، وزرار العلامة اللي في الركن فوق شغال."],
+  ["#13", "الصفحة اليمين غير الشمال", ["افتح صفحة 2 وبعدين صفحة 3 (أو أي صفحتين ورا بعض).", "جرّب كمان القراءة الليلية."], "فيه ظل خفيف على ناحية الكعب: الصفحة اليمين ظلها على حافتها الشمال، والشمال ظلها على حافتها اليمين."],
+  ["#20", "تعليم الآية عند اللمس", ["الإعدادات ← «القراءة» ← «تعليم الآية عند اللمس» ← إيقاف.", "المس آية في الصفحة.", "اضغط ضغطة طويلة على كلمة.", "رجّعها تشغيل والمس آية."], "وهي مقفولة: اللمس مش بيعلّم ولا بيفتح شريط الآية، ومعنى الكلمة بالضغطة الطويلة شغال. ولما ترجّعها: اللمس بيعلّم عادي."],
+  ["#41", "الفتح على آخر موضع", ["الإعدادات ← «عند فتح التطبيق» ← «آخر موضع في المصحف».", "افتح صفحة معيّنة (مثلًا 100) واقفل التطبيق خالص من قايمة التطبيقات المفتوحة.", "افتحه تاني، وبعدين دوس رجوع."], "بيفتح على نفس الصفحة، والرجوع بيوديك للواجهة الرئيسية."],
+  ["#41", "الفتح على الواجهة الرئيسية", ["رجّعها «الواجهة الرئيسية»، واقفل التطبيق خالص وافتحه."], "بيفتح على الواجهة الرئيسية زي الأول."],
+  ["#46", "مفيش تجربة الأذان", ["افتح شاشة الصلاة وانزل لآخرها."], "مفيش زرار «جرّب الأذان بعد دقيقة» ولا الجملة اللي تحته، وإعدادات الأذان وأصواته موجودة."]
+ ]],
+ ["الشاشة والمايك (Group B)", [
+  ["#15", "إبقاء الشاشة مضيئة", ["الإعدادات ← «إبقاء الشاشة مضيئة» ← تشغيل.", "افتح صفحة وسيب الموبايل من غير لمس أكتر من مدة قفل الشاشة.", "رجّعها إيقاف وكرّر."], "وهي شغالة الشاشة مش بتطفي. وهي مقفولة بتطفي في معادها العادي."],
+  ["#14", "شريط الهاتف في ملء الشاشة: إظهار", ["الإعدادات ← «شريط الهاتف في ملء الشاشة» ← إظهار.", "افتح صفحة وادخل ملء الشاشة."], "الساعة والبطارية فاضلين ظاهرين، وشريط التنقل تحت مخفي، والصفحة ماتنطّش وهي داخلة ملء الشاشة."],
+  ["#14", "زرار العلامة في نفس المكان", ["بص على زرار العلامة اللي في الركن فوق في: العادي، وملء الشاشة، والحفظ.", "دوس عليه أول ما تدخل ملء الشاشة."], "في نفس المكان بالظبط في كل الأوضاع، ومش تحت شريط الهاتف، وأول ضغطة بتعلّم الصفحة (مش بتلمس الصفحة)."],
+  ["#14", "شريط الهاتف: إخفاء", ["رجّعها «إخفاء» وادخل ملء الشاشة."], "زي الأول: الشريطين مخفيين."],
+  ["#39", "اختيار الميكروفون", ["وصّل سماعة البلوتوث.", "الإعدادات ← «الصوت والتلاوة» ← «اختيار الميكروفون» ← سماعة بلوتوث."], "السماعة ظاهرة في القايمة، ومفيش أي جملة توضيحية تحت الاختيار، و«اختبار المايك» تحته على طول."],
+  ["#39", "اختبار المايك بالسماعة", ["دوس «اختبر» واتكلم."], "النتيجة مكتوب فيها «المايك المستخدم: سماعة بلوتوث» من غير اسم موديل."],
+  ["#39", "التسميع بالسماعة", ["افتح صفحة وسمّع آيتين بمايك السماعة."], "الكلمات بتتعلّم صح ومفيش تأخير في أول كلمة."],
+  ["#39", "السماعة مفصولة", ["اقفل البلوتوث وابدأ التسميع والاختيار لسه على السماعة."], "يطلع تنبيه إن المايك المختار مش متوصل، والتسميع يكمّل من مايك الهاتف."]
+ ]],
+ ["حجم الصفحة في ملء الشاشة (Group C)", [
+  ["#19", "ملء الشاشة (Stretch)", ["الإعدادات ← «حجم الصفحة في ملء الشاشة» ← «ملء الشاشة».", "ادخل ملء الشاشة على صفحة."], "الصفحة مالية الشاشة كلها من فوق لتحت، مفيش فراغ."],
+  ["#19", "التظليل على الصفحة الممطوطة", ["وانت في «ملء الشاشة» سمّع آية أو افتح آية من البحث."], "التظليل الأصفر فوق الآية الصح بالظبط."],
+  ["#19", "التبديل بالقرص (pinch)", ["في ملء الشاشة قرّب صباعين من بعض على الصفحة.", "كرّرها تاني.", "بعّد الصباعين عن بعض."], "كل قرصة بتبدّل بين «على عرض الشاشة» و«ملء الشاشة» وبيطلع تنبيه، ومفيش تقليب صفحة ولا تعليم آية. وتبعيد الصباعين لسه بيكبّر الصفحة."],
+  ["#19", "التقليب في الوضعين", ["قلّب كذا صفحة في كل وضع."], "التقليب ناعم والصفحة الجديدة بنفس الحجم من غير نطّة."]
+ ]],
+ ["حاجات عامة", [
+  ["عام", "النسخة", ["«المزيد» ← «حول التطبيق»."], "مكتوب 5.34."],
+  ["عام", "باقي التطبيق شغال", ["افتح الأذكار والصلاة والبحث والفهرس والمراجعة بسرعة."], "مفيش حاجة باظت."]
+ ]]
+];
+var KEY = "pt534", S = {}; try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+var L = document.getElementById("list"), id = 0;
+G.forEach(function (g) {
+  var h = document.createElement("h2"); h.textContent = g[0]; L.appendChild(h);
+  g[1].forEach(function (it) {
+    var k = "i" + (++id), st = S[k] || {}, c = document.createElement("div");
+    c.className = "card" + (st.v ? " " + st.v : "");
+    c.innerHTML = '<div class="t"><b class="n">' + it[0] + "</b>" + it[1] + "</div><ol>" + it[2].map(function (s) { return "<li>" + s + "</li>"; }).join("") +
+      '</ol><div class="ok">' + it[3] + '</div><div class="btns"><button class="p">نجح ✓</button><button class="f">فيه مشكلة ✗</button></div><textarea rows="2" placeholder="اكتب اللي حصل…"></textarea>';
+    var ta = c.querySelector("textarea"); ta.value = st.n || "";
+    function set(v) { S[k] = { v: S[k] && S[k].v === v ? "" : v, n: ta.value }; c.className = "card" + (S[k].v ? " " + S[k].v : ""); save(); }
+    c.querySelector(".p").onclick = function () { set("pass"); };
+    c.querySelector(".f").onclick = function () { set("fail"); };
+    ta.oninput = function () { S[k] = { v: (S[k] || {}).v || "fail", n: ta.value }; save(); };
+    L.appendChild(c);
+  });
+});
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} sum(); }
+function sum() { var p = 0, f = 0; Object.keys(S).forEach(function (k) { if (S[k].v === "pass") p++; if (S[k].v === "fail") f++; });
+  document.getElementById("sum").textContent = "نجح " + p + " · فيه مشكلة " + f + " · فاضل " + (id - p - f) + " من " + id; }
+sum();
+// Export: results live in this browser's storage, not in the file, so give the user text to paste in the chat.
+function report() { var n = 0, out = [];
+  G.forEach(function (g) { g[1].forEach(function (it) { var st = S["i" + (++n)] || {};
+    out.push(n + ". " + it[1] + ": " + (st.v === "pass" ? "نجح" : st.v === "fail" ? "مشكلة" + (st.n ? " ← " + st.n : "") : "—")); }); });
+  return document.getElementById("sum").textContent + "\n" + out.join("\n"); }
+var B = document.createElement("button"), T = document.createElement("textarea");
+B.textContent = "📋 انسخ النتيجة وابعتها"; B.style.cssText = "width:100%;padding:14px;margin:18px 0 6px;font-size:17px;border-radius:10px;border:0;background:#1f3a5f;color:#fff;font-family:inherit";
+T.rows = 10; T.style.display = "none";
+B.onclick = function () { var r = report(); T.value = r; T.style.display = "block"; T.select();
+  if (navigator.share) { navigator.share({ text: r }).catch(function () {}); }
+  else if (navigator.clipboard) { navigator.clipboard.writeText(r).then(function () { B.textContent = "✓ اتنسخت – الصقها في الشات"; }, function () {}); } };
+document.body.appendChild(B); document.body.appendChild(T);
+</script>
+</body></html>

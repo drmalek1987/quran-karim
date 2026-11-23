@@ -747,3 +747,14 @@ On the phone (bee81250, 5.33 installed):
 - [ ] A rub' with a page turn inside: ayat recited right after the turn are marked (simulation lost some at 300 ms per ayah; unconfirmed on the phone).
 - [ ] Home «النهارده» card and the hifz alarm text use «ربع/سورة»; the map has no ward card.
 - [ ] Backup -> restore on the phone keeps the map colours and the ward.
+
+## 5.34 release QA (Sprint 3: mushaf screen + settings, 2026-11-23, quran-karim-v5.34.apk, versionCode 82, sw quran-v78, signer 7d8b31d2)
+Automated (headless, after the last code change):
+- [x] ui.js run-parallel 357/0 on kfgqpc, kfold, shamarly, harmain (15.9 min); data.py 28/0; matrix 40/0; fs-motion 9/9; recite_sim exit 0.
+- [x] «نسخة 5.34» group: #10 no prev/next (voice turn + swipe + curl), #46 no adhan test, #41 q.openAt (last/home, Back -> home), #20 q.tapMark (single + vertical, ?a= still shows), #13 pg-r/pg-l parity (single, spread, vertical), #15 q.keepOn, #14 q.fsStatus (immersive keeps status, --fsdy), #qMk one rect in normal/fs/fs+status/hifz, #39 mic list/fallback/label/order/mic test with chosen id, no #pMark + surah line in .page-tools, #19 q.fsFit stretch = viewport (crop, harmain, spread), overlays aligned, pinch-in toggles without turn/mark.
+- [x] Emulator Phone_API35: FLAG_KEEP_SCREEN_ON on/off; #qMk [8,64,32,32] css px in 5 modes; native mic test routed builtin; fallback when id gone. (API 37 AVDs crash surfaceflinger on this PC.)
+- [x] APK: assets app.js/style.css/index.html/i18n.js byte-identical to web/, MicRoute in dex, not debuggable.
+On the phone (bee81250, API 31):
+- [x] #39 Bluetooth mic during recitation (mictest build): HAL input bt-sco-mic-wb, routing released on stop; words marked right, no first-word delay (user).
+- [x] «اختبار المايك» with the BT headset shows «سماعة بلوتوث» (mictest2, user); model name since removed.
+- [ ] The rest: plans/phone-test-5.34.html (21 items, copy-results button).
