@@ -522,11 +522,13 @@ body.has-player.has-bar .player { display: none; }
 /* 5.34 #13: the binding. pg-r (right page) is shadowed on its left edge, pg-l on its right edge, in every mode (single, spread, scroll list).
    An overlay, not an inset box-shadow: the page image multiplies over the box (night mode inverts it), and a cropped page clips the box edge,
    so the shadow sits at the visible edge (--cl / --cr are the crop fractions; unset = 0 for uncropped editions). */
-.page-box.pg-r::after, .page-box.pg-l::after { content: ""; position: absolute; top: 0; bottom: 0; width: min(9%, 40px); pointer-events: none; z-index: 1; }
-.page-box.pg-r::after { left: calc(var(--cl, 0) * 100%); background: linear-gradient(to right, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)); }
-.page-box.pg-l::after { right: calc(var(--cr, 0) * 100%); background: linear-gradient(to left, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)); }
-:root.pdark .page-box.pg-r::after { background: linear-gradient(to right, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0)); }
-:root.pdark .page-box.pg-l::after { background: linear-gradient(to left, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0)); }
+.page-box.pg-r::after, .page-box.pg-l::after { content: ""; position: absolute; top: 0; bottom: 0; width: min(18%, 92px); pointer-events: none; z-index: 1; }
+.page-box.pg-r::after { left: calc(var(--cl, 0) * 100%); background: linear-gradient(to right, rgba(0, 0, 0, .55), rgba(0, 0, 0, .24) 38%, rgba(0, 0, 0, 0)); }
+.page-box.pg-l::after { right: calc(var(--cr, 0) * 100%); background: linear-gradient(to left, rgba(0, 0, 0, .55), rgba(0, 0, 0, .24) 38%, rgba(0, 0, 0, 0)); }
+:root.pdark .page-box.pg-r::after { background: linear-gradient(to right, rgba(255, 255, 255, .2), rgba(255, 255, 255, .08) 38%, rgba(255, 255, 255, 0)); }
+:root.pdark .page-box.pg-l::after { background: linear-gradient(to left, rgba(255, 255, 255, .2), rgba(255, 255, 255, .08) 38%, rgba(255, 255, 255, 0)); }
+/* 5.35: the setting «ظل الكعب» (q.spine) off = class nospine on <html> */
+html.nospine .page-box.pg-r::after, html.nospine .page-box.pg-l::after { content: none; }
 
 /* Khatma and bookmarks. */
 .kcard { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0 0 12px; border: 0; border-radius: 18px;
@@ -1038,6 +1040,23 @@ html.fsfit-stretch body.fs.pgview .page-wrap.crop .page-box { --F: calc(var(--SW
   width: var(--F); height: var(--H); aspect-ratio: auto;
   margin: calc(var(--H) * var(--ct) * -1) calc(var(--F) * var(--cr) * -1) calc(var(--H) * var(--cb) * -1) calc(var(--F) * var(--cl) * -1); }
 html.fsfit-stretch body.fs.pgview .page-wrap .page-box > img:not(.tjo) { width: 100%; height: 100%; object-fit: fill; }
+
+/* 5.35 #19: full screen "text only" (html.fsfit-text, always together with fsfit-stretch): stretch with a deeper crop, so the block of text lines (inside the
+   decorative frame) fills the screen and the frame is pushed off it. The same mechanism as the edition crop: --ct/--cr/--cb/--cl are replaced by the text block's
+   insets --tt/--tr/--tb/--tl (app.js textBlock; one rectangle per edition, mirrored on odd pages of a mirrored edition through the box's own --tl/--tr), the box keeps
+   the whole image's coordinate system and is cut by clip-path and negative margins. !important: the crop vars are also set inline on the wrap and the odd boxes.
+   An uncropped edition (Haramain) gets the same box rules, so they are not limited to .crop. */
+html.fsfit-text body.fs.pgview .page-wrap, html.fsfit-text body.fs.pgview .page-wrap .page-box {
+  --ct: var(--tt) !important; --cr: var(--tr) !important; --cb: var(--tb) !important; --cl: var(--tl) !important; }
+html.fsfit-text body.fs.pgview .page-wrap { --cw: calc(1 - var(--cl) - var(--cr)); --ch: calc(1 - var(--ct) - var(--cb)); overflow: hidden; }
+html.fsfit-text.fsfit-stretch body.fs.pgview .page-wrap .page-box { --F: calc(var(--SW) / var(--cw)); --H: calc(var(--vh, 100vh) / var(--ch));
+  flex: none; width: var(--F); height: var(--H); aspect-ratio: auto;
+  margin: calc(var(--H) * var(--ct) * -1) calc(var(--F) * var(--cr) * -1) calc(var(--H) * var(--cb) * -1) calc(var(--F) * var(--cl) * -1);
+  clip-path: inset(calc(var(--ct) * 100%) calc(var(--cr) * 100%) calc(var(--cb) * 100%) calc(var(--cl) * 100%)); }
+
+/* 5.35 #19: in full screen on a mushaf page the app takes the two-finger pinch itself (the page size steps, app.js pageFitPinch): no native pinch zoom there,
+   or the WebView takes the gesture and the pointer events are cancelled. Outside full screen the page keeps pan-y pinch-zoom (.page-wrap above). */
+body.fs.pgview .page-wrap { touch-action: pan-y; }
 
 /* «التفصيل الموضوعي» topic colours over the page (app.js thmLayer) */
 .page-box .thm { position: absolute; mix-blend-mode: multiply; pointer-events: none; opacity: .9; }

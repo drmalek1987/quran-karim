@@ -41,7 +41,7 @@
     <div class="row row-col">المصحف
       <div class="seg seg-wrap" id="mode">
         <button data-v="kfgqpc">طبعة الملك فهد</button>
-        <button data-v="kfold">طبعة الملك فهد القديمة</button>
+        <button data-v="kfold">مصحف المدينة</button>
         <button data-v="shamarly">طبعة الشمرلي</button>
         <button data-v="harmain" data-ed="harmain">طبعة الحرمين</button>
         <button data-v="text">نص</button>
@@ -71,6 +71,7 @@
       <div class="seg" id="fsFitSet">
         <button data-v="width">على عرض الشاشة</button>
         <button data-v="stretch">ملء الشاشة</button>
+        <button data-v="text">النص فقط</button>
       </div>
     </div>
     <div class="row">إبقاء الشاشة مضيئة
@@ -83,12 +84,6 @@
       <div class="seg" id="fsStatSet">
         <button data-v="on">إظهار</button>
         <button data-v="off">إخفاء</button>
-      </div>
-    </div>
-    <div class="row">عند فتح التطبيق
-      <div class="seg" id="openSet">
-        <button data-v="home">الواجهة الرئيسية</button>
-        <button data-v="last">آخر موضع في المصحف</button>
       </div>
     </div>
     <div class="row">الترجمة الإنجليزية تحت الآيات
@@ -119,6 +114,12 @@
     </div>
     <div class="row">ألوان التجويد
       <div class="seg" id="tjSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
+    <div class="row">ظل الكعب
+      <div class="seg" id="spineSet">
         <button data-v="on">تشغيل</button>
         <button data-v="off">إيقاف</button>
       </div>
@@ -155,7 +156,25 @@
     <div class="row">اختبار المايك<small class="hint" id="micTestSum"></small>
       <button class="sel-field" id="micTestBtn">اختبر</button>
     </div>
+    <div class="row row-col" id="paceRow" hidden>سرعة القراءة
+      <div class="seg" id="paceSet">
+        <button data-v="normal">عادي</button>
+        <button data-v="slow">مجوّد</button>
+      </div>
+    </div>
+    <div class="row row-col" id="errAlertRow">تنبيه الأخطاء<small class="hint">اهتزاز وصوت قصير عند 5 كلمات غلط ورا بعض في التسميع</small>
+      <div class="seg" id="errAlertSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
     <h3 class="set-group">التطبيق</h3>
+    <div class="row">عند فتح التطبيق
+      <div class="seg" id="openSet">
+        <button data-v="home">الواجهة الرئيسية</button>
+        <button data-v="last">آخر موضع في المصحف</button>
+      </div>
+    </div>
     <div class="row row-col">اهتزاز عند الضغط على الأزرار والآيات
       <div class="seg" id="hapticSet">
         <button data-v="0">إيقاف</button>
@@ -198,7 +217,7 @@
     </details>
     <details class="about-box ar-only">
       <summary>حول التطبيق</summary>
-      <p class="about"><b>لوح</b> · الإصدار 5.34<br>
+      <p class="about"><b>لوح</b> · الإصدار 5.37<br>
       تطبيق مجاني بدون إعلانات، يعمل بدون إنترنت (ما عدا تحميل صفحات الطبعة وصوت القارئ أول مرة).</p>
       <p class="about"><b>الخصوصية</b><br>
       التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة إلا تسجيلات التلاوة لو وافقت عليها (التفاصيل تحت)، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» والقراءة بالصوت يستخدمان نموذج التعرّف على التلاوة الذي يعمل على الموبايل نفسه بدون إنترنت.
@@ -237,7 +256,7 @@
     </details>
     <details class="about-box en-only">
       <summary>About the app</summary>
-      <p class="about"><b>Lawh</b> · version 5.34<br>
+      <p class="about"><b>Lawh</b> · version 5.37<br>
       A free app with no ads. It works offline, except for downloading an edition's pages and the reciter's audio the first time.</p>
       <p class="about"><b>Privacy</b><br>
       The app collects no data and sends nothing anywhere, except recitation clips if you agree to donate them (see below); it needs no account and has no ads. Your location is used and kept on the phone only, for the qibla and prayer times. Reminders and adhan alerts are prepared on the phone itself. The microphone is used only if you choose «Record yourself» in the memorisation test; the recording stays on the phone and is not saved or sent. «Recite aloud» and voice reading use the recitation recognition model, which runs on the phone itself without internet.

@@ -45,6 +45,12 @@ class NvAsr {
     // kept. The FINAL piece is decoded whole as before (same verdicts). tools/asr/eval/stream_cut.py, 52 continuous
     // streams: mean partial decode 5.3 -> 3.7 s of audio (p90 10 -> 6 s), finals unchanged (89.5% words right).
     private static final int BLK = SR / 10; private static final double FREEZE = 6.0;
+    // 5.36 reading pace (q.asrPace): 0 normal = today's rules exactly; 1 slow = a piece is held through up to SLOW_Q s of quiet
+    // and joined with the next one (up to MCAP), then emitted as one final. bench.py speed_post --slowq 2.0 --mcap 30: ALL 97.3 -> 97.8.
+    private static final double SLOW_Q = 2.0; private static final int MCAP = SR * 30;
+    private volatile int pace = 0;
+    @JavascriptInterface
+    public void setPace(String p) { pace = "slow".equals(p) ? 1 : 0; }
     private volatile String frozen = "";                                       // the frozen text of the piece being heard (worker thread)
     private final Activity act;
     private final WebView web;
@@ -344,6 +350,7 @@ class NvAsr {
         catch (Exception e) { micError(g); return; }
         if (ar.getState() != AudioRecord.STATE_INITIALIZED) { ar.release(); micError(g); return; }
         final AudioRecord mic = ar;
+        final int pz = pace;   // read once: the pace cannot change in the middle of a session
         final MicRoute route = android.os.Build.VERSION.SDK_INT >= 23 ? new MicRoute(act) : null;   // always closed when the session ends
         if (route != null) {
             try { if (route.open(mic, micId) == MicRoute.MISSING) micInfo("fallback", "id " + micId); else if (micId != 0) micInfo("route", route.note); }
@@ -351,8 +358,8 @@ class NvAsr {
         }
         rec = new Thread(new Runnable() { public void run() {
             short[] blk = new short[SR / 10];
-            float[] seg = new float[SR * 12]; int len = 0, lastPartial = 0, frz = 0;
-            float[] be = new float[121];                                     // each 100 ms block's level in the piece
+            float[] seg = new float[pz == 0 ? SR * 12 : MCAP]; int len = 0, lastPartial = 0, frz = 0, heldAt = 0;
+            float[] be = new float[seg.length / BLK + 1];                                    // each 100 ms block's level in the piece
             float[] pre = new float[PRE]; int preN = 0;                       // the last 0.3 s before speech
             double floor = 0.004, quiet = 0, voiced = 0; int run = 0;      // run: speech blocks in a row
             boolean bad = false;
@@ -379,10 +386,11 @@ class NvAsr {
                     { int k = Math.min(n, PRE); System.arraycopy(pre, k, pre, 0, PRE - k);     // always keep the newest PRE samples
                       for (int i = 0; i < k; i++) pre[PRE - k + i] = blk[n - k + i] / 32768f; preN = Math.min(PRE, preN + k); }
                     if (speech) { voiced += dt; quiet = 0; } else if (len > 0) quiet += dt;
-                    boolean end = len > 0 && (quiet > QUIET_END || len >= seg.length);
+                    if (pz == 1) { if (speech) heldAt = 0; else if (len > 0 && quiet > QUIET_END && heldAt == 0) heldAt = len; }   // slow: where the held piece's speech ended
+                    boolean end = len > 0 && (quiet > (pz == 1 ? SLOW_Q : QUIET_END) || len >= seg.length);
                     if (end) {
-                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, len); work.execute(new Runnable() { public void run() { emit(y, "final", g, false); } }); }
-                        len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0;
+                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, pz == 1 && heldAt > 0 ? heldAt : len); work.execute(new Runnable() { public void run() { emit(y, "final", g, false); } }); }
+                        len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0; heldAt = 0;
                     } else if (len - lastPartial >= Math.max(SR / 2, partMs * 2 * SR / 1000) && voiced > 0.5 && !decoding) {
                         lastPartial = len; decoding = true;
                         final int cut = freezeAt(be, frz, len);
@@ -395,7 +403,7 @@ class NvAsr {
             } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); if (route != null) route.close(); }
             // The mic stopped mid-piece: judge what was heard instead of dropping it (same 0.3 s voiced threshold as a normal end).
             if (!bad && len > 0 && voiced > 0.3) {
-                final float[] y = java.util.Arrays.copyOf(seg, len);
+                final float[] y = java.util.Arrays.copyOf(seg, pz == 1 && heldAt > 0 ? heldAt : len);
                 try { work.execute(new Runnable() { public void run() { emit(y, "final", g, true); } }); } catch (java.util.concurrent.RejectedExecutionException e) { }
             }
             if (bad) micError(g);

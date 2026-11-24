@@ -1,4 +1,4 @@
-# P3 CP3-CP6: curriculum fine-tune of the phone model (NVIDIA Arabic FastConformer hybrid, CTC branch only) on the user's
+﻿# P3 CP3-CP6: curriculum fine-tune of the phone model (NVIDIA Arabic FastConformer hybrid, CTC branch only) on the user's
 # long recordings (qtrain/long/all/clips.json + extra_train.json), one level per run (plans/P3-train-protocol.md C/D/H).
 #   LEVEL=L1|L2|L3  INIT=<.nemo of the previous level> (default: stock NVIDIA base)  DRY=1 (2 tiny steps, memory check)
 # Mix per batch (share of picks): L1 70% L1 + 30% replay; L2 50/20 L1 +30; L3 45 L3/15 L2/10 L1 +30. Replay = tlog train
@@ -15,9 +15,15 @@ ROOT = os.environ.get('QROOT', r'D:\Quran App')
 QT = os.path.join(ROOT, 'qtrain')
 LEVEL = os.environ.get('LEVEL', 'L1'); DRY = os.environ.get('DRY') == '1'
 INIT = os.environ.get('INIT', '')
-STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000, 'G10b': 3000, 'G10c': 3000}[LEVEL]))
+STEPS = int(os.environ.get('STEPS', {'L1': 1000, 'L2': 3000, 'L3': 3000, 'G10': 3000, 'G10b': 3000, 'G10c': 3000, 'G10s': 1200, 'G10d': 1200}[LEVEL]))
 EVAL = int(os.environ.get('EVAL', 200 if LEVEL == 'L1' else 400))
-G10B = LEVEL in ('G10b', 'G10c')   # G10c (2026-11-13) = G10b recipe + DEMAND/MUSAN noise sampled by source
+G10B = LEVEL in ('G10b', 'G10c', 'G10s', 'G10d')
+# G10d (2026-11-24, item #2 phase 3): G10b recipe, init G10b best, + real hadr Deban ayah clips (qtrain/deban/train_deban.json,
+# forced-aligned to the verified text) at DEB_P of each batch, the rest = G10b replay mix. Pick = deban_ho CER (held-out surahs).
+G10D = LEVEL == 'G10d'; DEB_P = float(os.environ.get('DEB_P', 0.2)); DEB_TEMPO = os.environ.get('DEB_TEMPO') == '1'
+# G10s (2026-11-24, ASR speed item #2): G10b recipe + mix, init G10b best, + pitch-preserving TEMPO perturbation (ffmpeg atempo
+# = WSOLA) on SPD_P of the train clips: 2/3 fast 1.3-2.2x, 1/3 slow 0.6-0.8x (slow only on clips <= 8 s, VRAM). Low LR, short.
+G10S = LEVEL == 'G10s'; SPD_P = float(os.environ.get('SPD_P', 0.3))   # G10c (2026-11-13) = G10b recipe + DEMAND/MUSAN noise sampled by source
 G10C = LEVEL == 'G10c'
 NOISE_W = {'user': .30, 'demand': .35, 'musan': .35}   # G10c: share of real-noise picks per source (not per file)
 HELDOUT = ('DLIVING', 'DKITCHEN', 'PCAFETER', 'TCAR')
@@ -37,8 +43,9 @@ MIX = {'L1': {'L1': .7, 'replay': .3}, 'L2': {'L2': .5, 'L1': .2, 'replay': .3},
        # G10b (2026-11-09 rethink, progress.md "G10 rethink"): only clips with trusted labels, noise/reverb/speed/gain
        # added on the fly (g10b_aug). replayT = tlog train clips whose whisper label check CER <= 5 (label_check_all.json);
        # the unfiltered tlog replay had ~40% misaligned labels (neighbouring ayah in the audio).
-       'G10b': {'L2': .4, 'L1': .2, 'replayT': .4}, 'G10c': {'L2': .4, 'L1': .2, 'replayT': .4}}[LEVEL]
-FREEZE = float(os.environ.get('FREEZE', 1 / 2 if LEVEL in ('L1', 'G10b', 'G10c') else 1 / 3))
+       'G10b': {'L2': .4, 'L1': .2, 'replayT': .4}, 'G10s': {'L2': .4, 'L1': .2, 'replayT': .4}, 'G10c': {'L2': .4, 'L1': .2, 'replayT': .4},
+       'G10d': {'L2': .4 * (1 - DEB_P), 'L1': .2 * (1 - DEB_P), 'replayT': .4 * (1 - DEB_P), 'deban': DEB_P}}[LEVEL]
+FREEZE = float(os.environ.get('FREEZE', 1 / 2 if LEVEL in ('L1', 'G10b', 'G10c', 'G10s', 'G10d') else 1 / 3))
 # retry knob (plan D: one retry per failed level): REPLAY=0.4 scales the other shares down to fill 60%
 if os.environ.get('REPLAY'):
     r = float(os.environ['REPLAY']); o = {k: v for k, v in MIX.items() if k != 'replay'}; t = sum(o.values())
@@ -135,6 +142,14 @@ def data():
             tr[k] = [x for x in tr[k] if x['dur'] <= 14.4]
         pool = tr['L1'] + tr['L2'] + tr['replayT']
         ev['train_G10b'] = [dict(x, augseed=SEED * 1000 + i) for i, x in enumerate(random.Random(SEED).sample(pool, 150))]
+        if G10D:
+            tr['deban'] = J(os.path.join(QT, 'deban', 'train_deban.json'))
+            ho = J(os.path.join(QT, 'deban', 'ho_deban.json'))
+            ev['deban_ho'] = [dict(x, path=x['wav'], text=QW[(x['s'], x['a'])]) for x in random.Random(SEED + 7).sample(ho, min(150, len(ho)))]
+            ev['hadr_other'] = [dict(x, path=x['wav'], text=x.get('text') or QW[(x['s'], x['a'])]) for x in J(os.path.join(QT, 'speedbench', 'manifest.json')) if x['set'] == 'real_hadr']
+        if G10S:   # tempo copies of the held-out test_L2 clips (fixed): checkpoint pick by fast CER; the bench clips are not used
+            ev['fast18'] = [dict(x, tempo=1.8) for x in random.Random(SEED + 5).sample(ev['test_L2'], min(100, len(ev['test_L2'])))]
+            ev['slow07'] = [dict(x, tempo=0.7) for x in random.Random(SEED + 6).sample(ev['test_L2'], min(60, len(ev['test_L2'])))]
     else:
         ev['train_' + LEVEL] = random.Random(SEED).sample(tr[LEVEL], min(150, len(tr[LEVEL])))   # B6 overfit gap
     return tr, ev
@@ -190,7 +205,18 @@ def _fit(z, n, rnd):
     if len(z) < n: z = np.tile(z, n // len(z) + 1)
     o = rnd.randrange(0, len(z) - n + 1); return z[o:o + n]
 def _rms(y): return float(np.sqrt((y ** 2).mean())) + 1e-9
-def g10b_aug(y, rnd, p=0.75):
+def atempo(y, f):
+    import subprocess
+    r = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'f32le', '-ar', '16000', '-ac', '1', '-i', 'pipe:0', '-af', 'atempo=%.4f' % f,
+                        '-f', 'f32le', '-ar', '16000', '-ac', '1', 'pipe:1'], input=np.asarray(y, np.float32).tobytes(), capture_output=True, check=True)
+    return np.frombuffer(r.stdout, np.float32).copy()
+def tempo_aug(y, rnd):
+    if not G10S or rnd.random() > SPD_P: return y
+    if rnd.random() < 2 / 3 or len(y) > 16000 * 8: return atempo(y, rnd.uniform(1.3, 2.2))
+    return atempo(y, rnd.uniform(0.6, 0.8))
+def g10b_aug(y, rnd, p=0.75, deb=False):
+    y = tempo_aug(y, rnd)
+    if deb and DEB_TEMPO and rnd.random() < 0.3: y = atempo(y, rnd.uniform(0.9, 1.3))
     if rnd.random() > p: return augment(y, rnd)
     rng = np.random.default_rng(rnd.randrange(1 << 30))
     if rnd.random() < 0.5:   # speed perturbation (tempo + pitch), 0.9-1.1
@@ -258,6 +284,7 @@ def cer(m, items):
     with torch.no_grad(), torch.autocast('cuda', dtype=torch.float16, enabled=AMP):
         for x in items:   # eval through the phone pipeline: VAD pieces, each decoded alone, texts joined
             y = load(x['path'], 16000 * 60)
+            if x.get('tempo'): y = atempo(y, x['tempo'])
             if x.get('augseed') is not None: y = g10b_aug(y, random.Random(x['augseed']), p=1.0)   # fixed noisy copy
             ps = phone_pieces(y); hs = []
             for i in range(0, len(ps), 8):
@@ -326,22 +353,47 @@ def main():
             if b and (len(b) + 1) * max(mx, x['dur']) > PADCAP * BATCH_SEC: break
             b.append(x); t += x['dur']; mx = max(mx, x['dur'])
         return b
+    # G10d recipe knobs (recipe study 2026-11-24): KD = weight of KL(teacher G10b || student) on the CTC posteriors of the
+    # replay (non-Deban) clips (LwF); L2SP = weight of ||theta - theta_G10b||^2 over the trainable params; EMA = decay of an
+    # exponential moving average of the weights, used for eval/save. All 0 = plain fine-tune.
+    KD, L2SP, EMA = float(os.environ.get('KD', 0)), float(os.environ.get('L2SP', 0)), float(os.environ.get('EMA', 0))
+    teacher = None
+    if KD > 0:
+        teacher = A.models.ASRModel.restore_from(INIT, map_location='cuda'); teacher.eval()
+        for q in teacher.parameters(): q.requires_grad = False
+    p0 = [q.detach().clone() for q in params] if L2SP > 0 else None
+    ema = [q.detach().clone() for q in params] if EMA > 0 else None
+    def swap():
+        if ema is None: return
+        for q, e in zip(params, ema): t = q.data.clone(); q.data.copy_(e); e.copy_(t)
     best = None; train_mode(m); t0 = time.time()
     for step in range(1, steps + 1):
         for _ in range(ACC):
             b = batch(); tg = [m.tokenizer.text_to_ids(target(x['text'])) for x in b]
             with torch.autocast('cuda', dtype=torch.float16, enabled=AMP):
-                lp, el = forward(m, [(g10b_aug if G10B else augment)(load(x['path']), rnd) for x in b], True)
+                ys = [g10b_aug(load(x['path']), rnd, deb=str(x['id']).startswith('deban-')) if G10B else augment(load(x['path']), rnd) for x in b]
+                lp, el = forward(m, ys, True)
             T = torch.tensor([len(t) for t in tg]); Y = torch.tensor([i for t in tg for i in t])
             loss = torch.nn.functional.ctc_loss(lp.float().transpose(0, 1), Y, el.cpu(), T,
                                                 blank=m.tokenizer.vocab_size, zero_infinity=True) / ACC
+            if teacher is not None:
+                rep = [i for i, x in enumerate(b) if not str(x['id']).startswith('deban-')]
+                if rep:
+                    with torch.no_grad(): tl, _ = forward(teacher, [ys[i] for i in rep], False)
+                    mk = (torch.arange(lp.shape[1], device='cuda')[None] < el[rep][:, None]).float()
+                    sl = lp[rep][:, :tl.shape[1]].float(); kl = (tl.exp() * (tl - sl)).sum(-1)
+                    loss = loss + KD * (kl * mk[:, :tl.shape[1]]).sum() / mk.sum() / ACC
+            if p0 is not None: loss = loss + L2SP * sum(((q - q0) ** 2).sum() for q, q0 in zip(params, p0)) / ACC
             scaler.scale(loss).backward()
         scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(params, 1.0); scaler.step(opt); scaler.update(); opt.zero_grad(); sched.step()
+        if ema is not None:
+            with torch.no_grad():
+                for q, e in zip(params, ema): e.mul_(EMA).add_(q.detach(), alpha=1 - EMA)
         if step % 50 == 0 or DRY:
             log('step %d/%d loss %.3f lr %.2e %.1f s/step GPU %.2f GB' % (step, steps, loss.item() * ACC, sched.get_last_lr()[0],
                 (time.time() - t0) / step, torch.cuda.max_memory_allocated() / 1e9))
         if step % EVAL == 0 or step == steps:
-            r = {k: cer(m, v) for k, v in ev.items()}; R['step%d' % step] = r; log('MEASURE step %d %s' % (step, r))
+            swap(); r = {k: cer(m, v) for k, v in ev.items()}; R['step%d' % step] = r; log('MEASURE step %d %s' % (step, r))
             own = 'noisy10' if LEVEL == 'G10' else 'test_' + LEVEL   # G10 aims at noise; clean must not get worse
             clean_ok = all(r[k] <= ref[k] + 0.3 for k in ('ho_reciters', 'ho_retasy', 'tlog') if r.get(k) is not None)
             noisy_ok = all(r[k] <= ref[k] for k in ('noisy20', 'noisy10', 'noisy5') if r.get(k) is not None)
@@ -349,6 +401,14 @@ def main():
                 own = 'noisy_10_5'; r[own] = round((r['noisy10'] + r['noisy5']) / 2, 2); ref[own] = round((ref['noisy10'] + ref['noisy5']) / 2, 2)
                 clean_ok = all(r[k] <= ref[k] + 0.3 for k in ('test_L1', 'test_L2', 'ho_reciters', 'ho_retasy', 'tlog'))
                 noisy_ok = r['noisy20'] <= ref['noisy20'] + 0.2
+                if G10D:   # own = Deban held-out CER; clean/noisy +0.2 max; the other real hadr clips must not get worse
+                    own = 'deban_ho'
+                    clean_ok = all(r[k] <= ref[k] + 0.2 for k in ('test_L1', 'test_L2', 'ho_reciters', 'ho_retasy', 'tlog', 'hadr_other'))
+                    noisy_ok = all(r[k] <= ref[k] + 0.2 for k in ('noisy20', 'noisy10', 'noisy5'))
+                if G10S:   # speed own = fast18 CER; clean +0.2 max, every noisy set +0.2 max (shipped model must never get worse)
+                    own = 'fast18'
+                    clean_ok = all(r[k] <= ref[k] + 0.2 for k in ('test_L1', 'test_L2', 'ho_reciters', 'ho_retasy', 'tlog'))
+                    noisy_ok = all(r[k] <= ref[k] + 0.2 for k in ('noisy20', 'noisy10', 'noisy5'))
                 log('gate %s: clean_ok %s noisy_ok %s %s %.2f (ref %.2f)' % (step, clean_ok, noisy_ok, own, r[own], ref[own]))
             if clean_ok and noisy_ok and r[own] < ref[own] and (best is None or r[own] < best[1]):
                 best = (step, r[own])
@@ -356,7 +416,7 @@ def main():
                     p = os.path.join(OUT, 'best.nemo'); m.save_to(p); R['best_sha'] = sha(p)
                 log('best = step %d (%s CER %.2f, ref %.2f)' % (step, own, r[own], ref[own]))
             if SAVE_ALL and SAVE and not DRY: m.save_to(os.path.join(OUT, 'step%d.nemo' % step))
-            R['best'] = best
+            R['best'] = best; swap()
             if not DRY: json.dump(res, open(RES, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
     if not DRY and SAVE: m.save_to(os.path.join(OUT, 'last.nemo'))   # kept for diagnosis even when no step passed the proxy gate
     log('DONE %s%s: %s' % (LEVEL, TAG, 'best step %d -> %s; next: nv_gate (export int8 + bench)' % (best[0], OUT + '\\best.nemo')

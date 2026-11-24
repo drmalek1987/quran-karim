@@ -758,3 +758,27 @@ On the phone (bee81250, API 31):
 - [x] #39 Bluetooth mic during recitation (mictest build): HAL input bt-sco-mic-wb, routing released on stop; words marked right, no first-word delay (user).
 - [x] «اختبار المايك» with the BT headset shows «سماعة بلوتوث» (mictest2, user); model name since removed.
 - [ ] The rest: plans/phone-test-5.34.html (21 items, copy-results button).
+
+## 5.35 (phone feedback on 5.34, 2026-11-24, quran-karim-v5.35.apk, versionCode 83, sw quran-v79, signer 7d8b31d2)
+Automated (after the last code change):
+- [x] ui.js run-parallel 376/0 on kfgqpc, kfold, shamarly, harmain (17.5 min); data.py 28/0; matrix 40/0; fs-motion 17/17 (8 new: stretch/text enter/exit + pinch steps, FLIP monotonic, ends at the settled rect); recite_sim ok.
+- [x] «نسخة 5.35» G535 19 checks: spine row/alpha/off, openAt in «التطبيق», mic dedupe + twin id mapping, text-block rect fills viewport ±2px (pages 50/51/300, 4 editions), ?a= overlay same fractions, spread text, 3-button seg, pinch out/in steps, touch-action pan-y only in fs, FLIP.
+- [x] APK: web files byte-identical, not debuggable.
+On the phone:
+- [x] plans/phone-test-5.35.html 14/14 pass on bee81250 (2026-11-24), incl. real-WebView pinch out/in in fs and native zoom outside fs.
+
+## 5.36 release QA (Sprint 5: investigations #28 #27 #25 + #2 ASR pace, 2026-11-24, quran-karim-v5.36.apk, versionCode 84, sw quran-v80, signer 7d8b31d2)
+- run-parallel.js: kfgqpc 380/0, kfold 380/0, harmain 380/0, shamarly 380/1 (known flaky 5.35 FLIP pinch; ONLY=5.35 rerun 19/0). New group «نسخة 5.36» (G536, 4 checks: q.asrPace options/default/persist/setPace before start, shell without setPace).
+- data.py 28/0, matrix 40/0, fs-motion 17/17, recite_sim errs [].
+- tools/qa/sprint5/alert_repro.js (#28): a-h, j PASS; i accepted (a pure 6-word skip gives the error buzz: the final judges skipped words wrong).
+- tools/qa/sprint5/split_turn.js (#27): shamarly hz miss/skip 12/12 ok (was 2-4/12); harmain 10/12 (5:92 p/l pre-existing, also in normal).
+- tools/qa/sprint5/perf (#25): headless + emulator A/B under host load: p50 better at 1/3 pps, not conclusive -> phone CDP measure (run-cdp.py --serial bee81250 with a -cdp build).
+- ASR #2: plans/asr-speed-report.html; q.asrPace slow = gate ALL 97.8 (G10b 97.3), every gate >= G10b; normal unchanged.
+- APK: 70,118,832 bytes, signer 7d8b31d2, not debuggable, assets/web 2297 files byte-identical to web/, new code present (hzErrRun, vObs, asrPace, dex setPace).
+- Phone checklist: plans/phone-test-5.36.html (20 items). Not installed, not committed/pushed.
+
+## 5.37 release QA (phone feedback on 5.36, 2026-11-25, quran-karim-v5.37.apk, versionCode 85, sw quran-v81, signer 7d8b31d2)
+- Phone test 5.36: 19/21 (fails: no errAlert toggle; vertical hifz page end scrolled up then down). 5.36 also carried ASR model v5 (pack asrnv5/asrnvp5 on editions c73e5df, verified by download).
+- Fixes: vHifz next one scroll to capKeep's band (tools/qa/sprint5/vturn_scroll.js 6/6 monotonic); «تنبيه الأخطاء» toggle (q.errAlert); pace «مجوّد», hint removed; kfold shown as «مصحف المدينة».
+- run-parallel 383/0 x4, data 28/0, matrix 40/0, fs-motion 17/17, recite_sim ok, alert_repro ok (i accepted), split_turn shamarly hz ok.
+- APK 70,118,832 bytes, signer 7d8b31d2, not debuggable, assets/web 2297 byte-identical. Installed on bee81250 (call state 0, no taps). Phone checklist plans/phone-test-5.37.html (8 items).

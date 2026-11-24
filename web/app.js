@@ -28,16 +28,17 @@
     lastTick = now;
     try { if (window.AppBridge && AppBridge.buzz) AppBridge.buzz(lv); else if (window.AppBridge && AppBridge.tick) AppBridge.tick(); else if (navigator.vibrate) navigator.vibrate([0, 8, 15, 25][lv]); } catch (e) {}
   }
-  // More than 5 wrong words in one ayah while reciting: a long buzz plus a short beep (Settings: errAlert).
+  // 5 wrong / skipped words in a row (at least one of them wrong) while reciting: a long buzz plus a short beep (Settings: errAlert).
+  // AppBridge.buzzPattern prepends the 0 delay itself, so the CSV starts with the first ON duration.
   function errAlert() {
-    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("0,300,120,300"); else if (navigator.vibrate) navigator.vibrate([0, 300, 120, 300]); } catch (e) {}
+    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("300,120,300"); else if (navigator.vibrate) navigator.vibrate([300, 120, 300]); } catch (e) {}
     try { var C = window.AudioContext || window.webkitAudioContext, c = new C(), o = c.createOscillator(), g = c.createGain();
       o.frequency.value = 660; g.gain.value = 0.15; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.25);
       setTimeout(function () { c.close(); }, 600); } catch (e) {}
   }
   // 5.26 #29: a skip of 5 or more words at once in a hifz test / review: one buzz and a short soft beep
   function skipAlert() {
-    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("0,120,60,120"); else if (navigator.vibrate) navigator.vibrate([0, 120, 60, 120]); } catch (e) {}
+    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("120,60,120"); else if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) {}
     try { var C = window.AudioContext || window.webkitAudioContext, c = new C(), o = c.createOscillator(), g = c.createGain();
       o.frequency.value = 520; g.gain.value = 0.06; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.12);
       setTimeout(function () { c.close(); }, 400); } catch (e) {}
@@ -186,7 +187,7 @@
   // King Fahd edition's, so its ayah boxes were those boxes moved onto the scan's text frame (tools/kfold/make_edition.py);
   // since W5 they are laid out again between the medallions on the scan (tools/page_geometry/ayah_circles.py --rebuild),
   // as some lines break differently. w: measured word boxes (W5).
-  if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "طبعة الملك فهد القديمة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1, w: "editions/kfold-w/" }, window.ED_KFOLD);
+  if (window.ED_KFOLD) EDS.kfold = Object.assign({ name: "مصحف المدينة", dir: "editions/kfold/", tj: "editions/kfold-tj/", min: 1, w: "editions/kfold-w/" }, window.ED_KFOLD);
   // Shamarly: its ayah boxes too are laid out between the ayah-end marks on the scan since W5 (ayah_circles.py --rebuild);
   // w: measured word boxes (W5).
   if (window.ED_SHAMARLY) EDS.shamarly = Object.assign({ name: "طبعة الشمرلي", dir: "editions/shamarly/", tj: "editions/shamarly-tj/", min: 2, w: "editions/shamarly-w/" }, window.ED_SHAMARLY);
@@ -229,9 +230,14 @@
   // One switch for the tajweed colours everywhere: the text view and the pages of the editions that have them.
   var tjPg = tjOn;
   var tapMark = load("tapMark", true);       // 5.34 #20: a tap on the page marks an ayah (off: reading only, ?a= highlights still show)
-  var fsFit = load("fsFit", "width");        // 5.35 #19: "width" = the page fits the screen in full screen, "stretch" = it fills the whole screen (not keeping its ratio)
+  var FS_FITS = ["width", "stretch", "text"];   // smallest to biggest, the order of the pinch steps
+  var fsFit = load("fsFit", "width");        // 5.35 #19: "width" = the page fits the screen in full screen, "stretch" = it fills the whole screen (not keeping its ratio), "text" = the text block alone fills it
+  if (FS_FITS.indexOf(fsFit) < 0) fsFit = "width";
+  var spineOn = load("spine", true);         // 5.35 #13: the shadow along the page's binding edge
   var keepOn = load("keepOn", false);        // 5.34 #15: the screen stays lit while the app is open (AppBridge.keepOn)
   var fsStatus = load("fsStatus", false);    // 5.34 #14: true = full screen keeps the phone's status bar (AppBridge.fsStatus), false = hides it as before
+  var errAlertOn = load("errAlert", true);  // 5.36 #28: buzz + short beep on 5 wrong words in a row while reciting
+  var asrPace = load("asrPace", "normal") === "slow" ? "slow" : "normal";   // 5.36: "slow" = NvAsr holds a piece through 2 s of quiet (mujawwad, long madd)
   var micId = load("micId", 0);              // 5.34 #39: the recitation mic (NvBridge.mics() id), 0 = automatic
   var openAt = load("openAt", "home");       // 5.34 #41: "home" | "last" (the mushaf at the last page, on launch only)
   var spreadPref = load("spread", true);  // Reading background: the chosen colour, or one that follows the light / dark theme.
@@ -280,6 +286,7 @@
     }
   }
   // Hands a setting to the Android shell; nothing happens in a plain browser or an older app without that method.
+  function tailMs() { return asrPace === "slow" ? 5000 : 3000; }   // the flush judge window after stop: a held (slow) piece is up to 30 s to decode
   function bridgeSet(bridge, fn, v) { try { if (bridge && bridge[fn]) bridge[fn](v); } catch (e) {} }
   function applySettings() {
     root.style.setProperty("--quran-size", fontSize + "px");
@@ -296,8 +303,13 @@
     document.querySelectorAll("#spreadSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spreadPref); });
     document.querySelectorAll("#tapSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === tapMark); });
     document.querySelectorAll("#fsFitSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === fsFit); });
-    root.classList.toggle("fsfit-stretch", fsFit === "stretch");
+    root.classList.toggle("fsfit-stretch", fsFit !== "width");   // "text" is "stretch" with a deeper crop (style.css)
+    root.classList.toggle("fsfit-text", fsFit === "text");
+    root.classList.toggle("nospine", !spineOn);
+    document.querySelectorAll("#spineSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === spineOn); });
     document.querySelectorAll("#keepSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === keepOn); });
+    document.querySelectorAll("#paceSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === asrPace); });
+    document.querySelectorAll("#errAlertSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === errAlertOn); });
     document.querySelectorAll("#fsStatSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === fsStatus); });
     bridgeSet(window.AppBridge, "keepOn", keepOn); bridgeSet(window.AppBridge, "fsStatus", fsStatus); bridgeSet(window.NvBridge, "setMic", micId);
     document.querySelectorAll("#openSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === openAt); });    root.classList.toggle("tjpg", tjPg);
@@ -382,7 +394,7 @@
   // The recitation models (asr.js) are downloaded the same way, each as the shared runtime plus two packs.
   // Only NVIDIA's model is left (NvAsr.java, its own runtime in the pack). The whisper models (asrbase, asrft) and the
   // web runtime they needed (asrrt) were dropped in 5.4: their files are removed from phones that still have them.
-  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 93, ver: 4 } };   // v4 (5.22): G10b fine-tune, Z1 layout
+  var ASRM = { asrnv: { name: "نموذج التعرّف على التلاوة", mb: 93, ver: 5 } };   // v5 (5.36): G10d_f1s9w5 = G10b + Deban hadr fine-tune, WiSE 0.5 (plans/asr-speed-bench/phase4.md); v4 (5.22): G10b, Z1 layout
   function asrPacks(m) { return [m, m + "p"]; }
   // Model versions are separate files (asrnv2.zip …); v1 (asrnv.zip, the 5.7 model) stays on the server for rollback.
   // The pack carries asr/<m>/ver.txt; a phone without it has v1 and is offered «تحديث» in Settings › Downloads.
@@ -745,7 +757,16 @@
     });
   });
   document.querySelectorAll("#fsFitSet button").forEach(function (b) {
-    b.addEventListener("click", function () { fsFit = b.dataset.v; save("fsFit", fsFit); applySettings(); });
+    b.addEventListener("click", function () { fsFitSwitch(b.dataset.v); });
+  });
+  document.querySelectorAll("#spineSet button").forEach(function (b) {
+    b.addEventListener("click", function () { spineOn = b.dataset.v === "on"; save("spine", spineOn); applySettings(); });
+  });
+  document.querySelectorAll("#paceSet button").forEach(function (b) {
+    b.addEventListener("click", function () { asrPace = b.dataset.v === "slow" ? "slow" : "normal"; save("asrPace", asrPace); applySettings(); });
+  });
+  document.querySelectorAll("#errAlertSet button").forEach(function (b) {
+    b.addEventListener("click", function () { errAlertOn = b.dataset.v === "on"; save("errAlert", errAlertOn); applySettings(); });
   });
   document.querySelectorAll("#keepSet button").forEach(function (b) {
     b.addEventListener("click", function () { keepOn = b.dataset.v === "on"; save("keepOn", keepOn); applySettings(); });
@@ -1177,7 +1198,7 @@
     if (/^#\/p\//.test(location.hash) && lastSpread !== null && spreadOn() !== lastSpread) route();
   });
   // ---------- vertical reading: every page of the edition in one scroll ----------
-  var vCur = 0, vHold = false, vHz = null, vGen = 0;
+  var vCur = 0, vHold = false, vHz = null, vGen = 0, vObs = null;
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   function showPagesV(n, hl) {
     var ed = EDS[edition], ratio = edition === "harmain" ? 160.6 : edition === "kfgqpc" ? 143.7 : edition === "kfold" ? 143.5 : 141.4, html = '<div class="vpages">';
@@ -1193,7 +1214,20 @@
     view.innerHTML = html + "</div>" + rdMicHtml() + rdTestHtml() + '<div class="vbar"><button id="vPlay" class="dark-btn play-btn" aria-label="استماع">' + ic("aplay") +
       '</button><button id="vDark" class="dark-btn" aria-label="قراءة ليلية">' + ic(pageIsDark() ? "sun" : "moon") + "</button></div>";
     var list = view.querySelector(".vpages"), hl0 = hl;
-    var vbar = document.querySelector(".bar"); if (vbar) root.style.setProperty("--barh", vbar.offsetHeight + "px");
+    // 5.36 #25: loading="lazy" only fetches; the AVIF was still decoded at raster time (~60 ms), so fast scrolling showed blank pages.
+    // Decode each page (and its tajweed layer) while it is still about 1.5 screens away, once per box.
+    if (vObs) vObs.disconnect();
+    if ("IntersectionObserver" in window) {
+      vObs = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          vObs.unobserve(e.target);
+          e.target.querySelectorAll("img").forEach(function (im) { if (im.decode) im.decode().catch(function () {}); });
+        });
+      }, { rootMargin: "150% 0px" });
+      list.querySelectorAll(".vp-c").forEach(function (b) { vObs.observe(b); });
+    }
+    var vbar =document.querySelector(".bar"); if (vbar) root.style.setProperty("--barh", vbar.offsetHeight + "px");
     function boxOf(p) { return list.querySelector('.page-box[data-p="' + p + '"]'); }
     // An image that is not the usual page shape: set its real height, keeping the place being read still.
     list.addEventListener("load", function (e) {
@@ -1223,7 +1257,11 @@
       hifz.next = function () {
         var b = p + 1 <= Q.last && boxOf(p + 1); if (!b) return;
         hifz.vgo = p + 1;
-        window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - document.querySelector(".bar").offsetHeight, behavior: "smooth" });
+        var bar = document.querySelector(".bar").offsetHeight, gap = 0;
+        // 5.37 #27: while reciting / reading the line is kept in capKeep's band (30% of the free space under the bar); go straight there,
+        // so capKeep (700 ms later) finds the line in place and does not scroll back up: one scroll owner, one movement.
+        if (recite.on || rd.on) { var lim = capTop() - 12; gap = Math.max(0, (lim - bar - 8 - 40) * 0.3) + 8; capBusy = Date.now(); }
+        window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - bar - gap, behavior: "smooth" });
       };
     }
     // The scroll watcher found another page across the screen (5.11 phone #19: the page reached used to stay blank,
@@ -1467,6 +1505,32 @@
   // 5.34 #13: the printed book's sides (same rule as the spread below): the first page is the right one, then they alternate.
   // pg-r / pg-l drive the spine shadow, in every mode.
   function pgSide(p) { return ((p - Q.first) % 2 + 2) % 2 === 0 ? "pg-r" : "pg-l"; }
+  // 5.35 #19 «النص فقط»: ONE rectangle per edition = the block of text lines inside the decorative frame, as inset fractions
+  // [top, right, bottom, left] of the page image for an even page (an odd page of a mirrored edition swaps right and left, like ed.crop).
+  // Taken from the ayah line boxes (ed.r, per-mille of the page): each page's extent first, then the 2nd / 98th percentile over the pages, so
+  // a short page or a stray box does not move it, and the size does not jump from page to page. Pages up to the Fatiha / start of Baqarah
+  // spread and the ones after the Quran are left out. A little padding keeps the first and last lines off the screen edge.
+  function textBlock(ed) {
+    if (ed.tb) return ed.tb;
+    var ext = {}, PAD = 15;
+    (ed.r || []).forEach(function (sur) { (sur || []).forEach(function (bs) { (bs || []).forEach(function (b) {
+      var p = b[0]; if (p < ed.first + 2 || p > ed.last) return;
+      var odd = ed.mirror && p % 2, x0 = odd ? 1000 - b[3] : b[1], x1 = odd ? 1000 - b[1] : b[3], e = ext[p] || (ext[p] = [1e9, 1e9, -1e9, -1e9]);   // an odd page is mirrored onto an even one
+      e[0] = Math.min(e[0], x0); e[1] = Math.min(e[1], b[2]); e[2] = Math.max(e[2], x1); e[3] = Math.max(e[3], b[4]);
+    }); }); });
+    var pg = Object.keys(ext).map(function (k) { return ext[k]; });
+    function pct(i, q) { var a = pg.map(function (e) { return e[i]; }).sort(function (x, y) { return x - y; }); return a[Math.round(q * (a.length - 1))]; }
+    var c = ed.crop || [0, 0, 0, 0], l = pct(0, 0.02) - PAD, t = pct(1, 0.02) - PAD, r = pct(2, 0.98) + PAD, b = pct(3, 0.98) + PAD;
+    // never outside the edition's own crop (the text mode is a deeper crop of the same picture)
+    l = Math.max(l, c[3] * 10); t = Math.max(t, c[0] * 10); r = Math.min(r, 1000 - c[1] * 10); b = Math.min(b, 1000 - c[2] * 10);
+    return ed.tb = pg.length ? [t / 1000, (1000 - r) / 1000, (1000 - b) / 1000, l / 1000] : [0, 0, 0, 0];
+  }
+  window.QA_textBlock = function () { return textBlock(EDS[edition]); };
+  window.QA_edCrop = function () { return EDS[edition].crop || null; };
+  // --tt/--tr/--tb/--tl: the text block's insets, read by style.css in full screen «النص فقط»; odd = the mirrored side of a mirrored edition
+  function textVars(ed, odd) {
+    var t = textBlock(ed); return "--tt:" + t[0] + ";--tr:" + t[odd ? 3 : 1] + ";--tb:" + t[2] + ";--tl:" + t[odd ? 1 : 3] + ";";
+  }
   function showPage(n, hl) {
     if (turnMode === "v") return showPagesV(n, hl);
     shownPage = n;
@@ -1484,8 +1548,8 @@
       '</span></div><div class="txt">' + highlight(hl.s, hl.a, hl.q) + "</div></div>";
     var ced = EDS[edition], cv = ced.crop && pages.every(function (p) { return p >= (ced.cropFrom || 0); }) ? ced.crop : null;
     view.innerHTML = cap + '<div class="page-wrap' + (sp ? " spread" : "") + (cv ? " crop" : "") + '"' +
-      (cv ? ' style="--ct:' + cv[0] / 100 + ";--cr:" + cv[1] / 100 + ";--cb:" + cv[2] / 100 + ";--cl:" + cv[3] / 100 + ";--R:" + ced.ar + '"' : "") + ">" + (sp ? '<div class="spread-row">' : "") + pages.map(function (p) {
-        var cs = cv && ced.mirror && p % 2 ? ' style="--cl:' + cv[1] / 100 + ";--cr:" + cv[3] / 100 + '"' : "";
+      ' style="' + (cv ? "--ct:" + cv[0] / 100 + ";--cr:" + cv[1] / 100 + ";--cb:" + cv[2] / 100 + ";--cl:" + cv[3] / 100 + ";--R:" + ced.ar + ";" : "") + textVars(ced, false) + '">' + (sp ? '<div class="spread-row">' : "") + pages.map(function (p) {
+        var odd = ced.mirror && p % 2, cs = ' style="' + (cv && odd ? "--cl:" + cv[1] / 100 + ";--cr:" + cv[3] / 100 + ";" : "") + (odd ? textVars(ced, true) : "") + '"';
         return '<div class="page-box ' + pgSide(p) + '" data-p="' + p + '"' + cs + '><img' + (p === n ? ' id="pg"' : "") + ' alt="صفحة ' + p + '" src="' + EDS[edition].dir + pad(p) + '.avif">' + tjLayer(p) + "</div>";
       }).join("") + (sp ? "</div>" : "") + "</div>" +
       // the surah / juz line leads the row (it was a line of its own below); the page is marked from the corner #qMk or the ayah bar
@@ -1629,21 +1693,34 @@
   }
   function pad(n) { return ("00" + n).slice(-3); }
 
-  // ---------- 5.35 #19: pinch in = switch the full screen page size ----------
-  // In full screen on a mushaf page, two fingers coming together (distance below 80% of the start) while the page is not
-  // zoomed natively switch fit width <-> stretch once per pinch. Zooming in stays the WebView's own zoom (not blocked here).
-  // `pinching` keeps the one-finger swipe from turning the page, `pinchAt` keeps the click that ends the pinch from marking an ayah.
+  // ---------- 5.35 #19: pinch = the next full screen page size ----------
+  // In full screen on a mushaf page the page area is touch-action: pan-y (style.css), so the WebView's own pinch zoom does not take the
+  // two-finger gesture and its pointer events arrive: fingers apart (distance over 1.25 x the start) = the next bigger size
+  // (width > stretch > text, stops at text), together (under 0.8 x) = the next smaller one (stops at width), at most one step per gesture.
+  // Outside full screen the native zoom stays. `pinching` keeps the one-finger swipe from turning the page, `pinchAt` keeps the click that
+  // ends the pinch from marking an ayah.
   var pinching = false, pinchAt = 0;
+  var FS_NAMES = { width: "على عرض الشاشة", stretch: "ملء الشاشة", text: "النص فقط" };
+  // Switch the full screen page size; on screen in full screen the page glides to the new size (FLIP, see fsFlip).
+  function fsFitSwitch(v) {
+    if (v === fsFit || FS_FITS.indexOf(v) < 0) return false;
+    var fl = document.body.classList.contains("fs") ? fsFlipStart() : null;
+    fsFit = v; save("fsFit", fsFit); applySettings();
+    if (fl) fsFlip(fl);
+    return true;
+  }
   function pageFitPinch(wrap) {
     var pts = {}, d0 = 0, last = 0, armed = false;
     function nativeZoomed() { return window.visualViewport && window.visualViewport.scale > 1.05; }
     function gap() { var k = Object.keys(pts); return Math.hypot(pts[k[0]].x - pts[k[1]].x, pts[k[0]].y - pts[k[1]].y); }
-    function closed() { return armed && d0 > 0 && last / d0 < 0.8 && !nativeZoomed(); }
-    function toggle() {
-      armed = false;   // one pinch, at most one switch
-      fsFit = fsFit === "stretch" ? "width" : "stretch"; save("fsFit", fsFit); applySettings();
-      toast(fsFit === "stretch" ? "ملء الشاشة" : "على عرض الشاشة");
+    // the size step the fingers ask for: +1 apart, -1 together, 0 not yet
+    function wanted() { var q = d0 > 0 ? last / d0 : 1; return !armed || nativeZoomed() ? 0 : q > 1.25 ? 1 : q < 0.8 ? -1 : 0; }
+    function step(d) {
+      armed = false;   // one pinch, at most one step
+      var to = FS_FITS[Math.max(0, Math.min(FS_FITS.length - 1, FS_FITS.indexOf(fsFit) + d))];
+      if (fsFitSwitch(to)) toast(FS_NAMES[fsFit]);
     }
+    function judge() { var d = wanted(); if (d) step(d); }
     wrap.addEventListener("pointerdown", function (e) {
       pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       if (Object.keys(pts).length !== 2) return;
@@ -1655,12 +1732,12 @@
       pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       if (!pinching || Object.keys(pts).length !== 2) return;
       last = gap(); pinchAt = Date.now();
-      if (closed()) toggle();
+      judge();
     });
     function lift(e) {
       if (!pts[e.pointerId]) return;
-      // the WebView may take the gesture over (pointercancel) before the fingers have moved much: judge by the last distance seen
-      if (pinching && Object.keys(pts).length === 2 && closed()) toggle();
+      // the gesture may end (or be cancelled) before the fingers have moved much: judge by the last distance seen
+      if (pinching && Object.keys(pts).length === 2) judge();
       if (pinching) pinchAt = Date.now();
       delete pts[e.pointerId];
       if (!Object.keys(pts).length) pinching = false;
@@ -1762,23 +1839,29 @@
   // right (x = W) as in a right-to-left mushaf. t is how far the sheet has turned: 0 = lying flat, 1 = gone over the spine.
   // Going forward the sheet is the current page (t 0 → 1); going back it is the previous page laid back down (t 1 → 0).
   var curling = false, dragEnd = 0;
+  // The crop the pages are cut by right now, in % for an even page: the edition's, or the text block's in full screen «النص فقط»
+  // (which also exists on an uncropped edition). Null = the whole image.
+  function curCrop(box, k) {
+    var ed = EDS[edition];
+    if (fsFit === "text" && document.body.classList.contains("fs") && box.closest(".page-wrap")) return textBlock(ed).map(function (v) { return v * 100; });
+    return ed.crop && box.closest(".page-wrap.crop") && k >= (ed.cropFrom || 0) ? ed.crop : null;
+  }
   // The turning effect works on the whole image's rectangle; on a cropped page the layer is clipped to the same visible part.
   // The page turning in: its frame is put where the current page's frame is (mirrored margins differ on odd pages),
   // so the turn shows no margin and nothing moves when the new page settles.
   function cropDx(box, k, W) {
-    var ed = EDS[edition], c = ed.crop; if (!c || !box.closest(".page-wrap.crop") || k < (ed.cropFrom || 0)) return 0;
+    var ed = EDS[edition], c = curCrop(box, k); if (!c) return 0;
     var cl = function (p) { return (ed.mirror && p % 2 ? c[1] : c[3]) / 100; };
     return (cl(+box.dataset.p) - cl(k)) * W;
   }
   // The crop of page k inside its box, as fractions [top, right, bottom, left] (mirrored editions swap the sides).
   function cropIns(box, k) {
-    var ed = EDS[edition], c = ed.crop; if (!c || !box.closest(".page-wrap.crop") || k < (ed.cropFrom || 0)) return [0, 0, 0, 0];
+    var ed = EDS[edition], c = curCrop(box, k); if (!c) return [0, 0, 0, 0];
     var m = ed.mirror && k % 2; return [c[0] / 100, (m ? c[3] : c[1]) / 100, c[2] / 100, (m ? c[1] : c[3]) / 100];
   }
   function cropClip(box) {
-    var w = box.closest(".page-wrap.crop"); if (!w) return "";
-    function g(k) { return (parseFloat(box.style.getPropertyValue(k) || w.style.getPropertyValue(k)) || 0) * 100 + "%"; }
-    return ";clip-path:inset(" + g("--ct") + " " + g("--cr") + " " + g("--cb") + " " + g("--cl") + ")";
+    var ins = cropIns(box, +box.dataset.p); if (!ins.some(Boolean)) return "";
+    return ";clip-path:inset(" + ins.map(function (v) { return (v * 100) + "%"; }).join(" ") + ")";
   }
   // Shift a turning page sideways by dx px. Not margin-left: .curl-page is absolute with inset:0 and a fixed width, so in the
   // RTL document left/margin-left are dropped and the box sits on the right — the shift was ignored and the cut margin showed (5.11 G2).
@@ -2243,7 +2326,7 @@
   // and the bar shows the next one in order, shows all, or hides all. What is shown resets when the page changes.
   var hifz = { on: false, shown: {}, wsh: {}, items: [], paint: null, next: null };   // Sprint 2 #11/#42: wsh = words revealed by a tap / «فكّرني» ("s:a:w" -> 1)
   window.hifzToggle = function () { hifzToggle(); };
-  function hifzToggle() { hifz.on = !hifz.on; hzFsPend = hifz.on; if (!hifz.on) hzFs = false; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; recite.V = {}; recite.disp = null; recite.ptr = null; recite.ok = recite.words = 0; recite.wrong = []; if (!hifz.on) { hifz.test = null; reciteStop(); } var y = window.scrollY; route(); hifzBar(); window.scrollTo(0, y); }
+  function hifzToggle() { hifz.on = !hifz.on; hzFsPend = hifz.on; if (!hifz.on) hzFs = false; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; recite.skC = {}; recite.alerted = {}; recite.V = {}; recite.disp = null; recite.ptr = null; recite.ok = recite.words = 0; recite.wrong = []; if (!hifz.on) { hifz.test = null; reciteStop(); } var y = window.scrollY; route(); hifzBar(); window.scrollTo(0, y); }
   function hifzMount(items, paint) { hifz.items = items; hifz.shown = {}; hifz.fk = null;
     // a test that starts at a chosen ayah (map › «ابدأ من الآية», 5.11 G6): the ayat before it stay open as context
     // (and in a random test, 5.14, the ayat before the place being tested)
@@ -2264,7 +2347,7 @@
   // The hifz test on the pages of the chosen edition: whole ayat are hidden, and the score is the share remembered.
   function hifzTestPages(s, a) {
     hzResumeClear(); hzFsPend = true;   // Sprint 2 #1/#35 a new test replaces the old resume; #26 fullscreen
-    hifz.on = true; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; hifz.test = { s: s, a: a, seen: {}, miss: {} };
+    hifz.on = true; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; recite.skC = {}; recite.alerted = {}; hifz.test = { s: s, a: a, seen: {}, miss: {} };
     recite.ok = recite.words = 0; recite.wrong = []; recite.k = null; recite.base = null; recite.V = {}; recite.disp = null; recite.ptr = null;
     var h = mode === "pages" ? "#/p/" + pageOf(s, a) : "#/s/" + s + "/" + a;
     if (location.hash === h) setTimeout(route, 0); else location.hash = h;   // 5.26: the vertical reader already rewrote ?r= away: the same hash must still re-render, after the caller set hifz.test.end (async like a hashchange)
@@ -2300,17 +2383,37 @@
   }
   // Sprint 2 #29: the words of this page (keys, in reading order) that are unjudged but before the furthest judged one are the skipped
   // ones (recite.skp), kept per word until they are judged; the first time a short legend says what the violet words are
-  function hzSkips(disp, keys) {
-    var sk = recite.skp = recite.skp || {}, f = -1, l = -1, i, add = 0, T = hifz.test;
-    // only the ayat the test covers (its start to its end: a range / place test leaves the others open as context) are looked at
-    var lo = T ? gIdx(T.s, T.a) : 0, hi = T && T.end ? gIdx.apply(null, T.end.split(":").map(Number)) : 1e9;
-    keys = keys.filter(function (x) { var p = x.split(":"), g = gIdx(+p[0], +p[1]); return g >= lo && g <= hi; });
+  // only the ayat the test covers (its start to its end: a range / place test leaves the others open as context) are looked at
+  function hzScope(keys) {
+    var T = hifz.test, lo = T ? gIdx(T.s, T.a) : 0, hi = T && T.end ? gIdx.apply(null, T.end.split(":").map(Number)) : 1e9;
+    return keys.filter(function (x) { var p = x.split(":"), g = gIdx(+p[0], +p[1]); return g >= lo && g <= hi; });
+  }
+  // 5.36 #28: a run of 5+ consecutive error words (judged wrong or skipped), at least one of them judged wrong, in reading order up to the
+  // furthest judged word: one errAlert per run (remembered by the run's first word in recite.alerted). Skips alone are skipAlert's.
+  function hzErrRun(disp, keys) {
+    var ks = hzScope(keys), sk = recite.skp || {}, al = recite.alerted = recite.alerted || {}, l = -1, i, run = 0, bad = 0, first = null, fired = false;
+    for (i = 0; i < ks.length; i++) if (ks[i] in disp) l = i;
+    for (i = 0; i <= l; i++) {
+      var x = ks[i];
+      if (disp[x] === 0 || sk[x]) {
+        if (!run++) { first = x; bad = 0; }
+        if (disp[x] === 0) bad++;
+        if (run >= 5 && bad && !al[first]) { al[first] = 1; fired = true; }
+      } else run = 0;
+    }
+    return fired;
+  }
+  // returns the number of words newly skipped since the last final step (0 on a partial: it judges only right words, so wrong words look skipped)
+  function hzSkips(disp, keys, fin) {
+    var sk = recite.skp = recite.skp || {}, f = -1, l = -1, i, add = 0;
+    keys = hzScope(keys);
     for (i = 0; i < keys.length; i++) if (keys[i] in disp) { if (f < 0) f = i; l = i; }
     var was = {}; keys.forEach(function (x) { if (sk[x]) was[x] = 1; delete sk[x]; });
-    var fresh = 0;   // 5.26 #29: words newly skipped by this one step
-    for (i = f + 1; f >= 0 && i < l; i++) if (!(keys[i] in disp) && !hifz.wsh[keys[i]]) { sk[keys[i]] = 1; add++; if (!was[keys[i]]) fresh++; }
-    if (fresh >= 5 && hifz.on) skipAlert();
+    var fresh = 0, wc = recite.skC = recite.skC || {};   // 5.36 #29: words newly skipped since the last final step (wc = the skipped words as of then)
+    for (i = f + 1; f >= 0 && i < l; i++) if (!(keys[i] in disp) && !hifz.wsh[keys[i]]) { sk[keys[i]] = 1; add++; if (!wc[keys[i]]) fresh++; }
+    if (fin) keys.forEach(function (x) { if (sk[x]) wc[x] = 1; else delete wc[x]; });
     if (add && !load("skipTip", false)) { save("skipTip", true); toast("الكلمات اللي اتخطيتها متعلّمة بلون بنفسجي، ارجع اقراها"); }
+    return fin ? fresh : 0;
   }
   // Sprint 2 #42: «فكّرني» / a tap on a masked word reveals that ONE word and counts its ayah as forgotten; the ayah shows (and is
   // seen) once none of its words is hidden any more
@@ -2397,6 +2500,8 @@
     var k = items[items.length - 1], i = lastWordOnPages(k, hifz.pages);
     if (i >= 0 && disp[k + ":" + i] === 1) return true;
     if (i >= 0 && (k + ":" + i) in disp && disp[k + ":" + i] === 0) return true;
+    // 5.26 #27: an ayah that runs onto the next page: a word of it past the page end heard right means the reader is already there
+    for (var q = i + 1; i >= 0 && q < rWords(k).length; q++) if (disp[k + ":" + q] === 1) return true;
     var ahead = 0; for (var j = nOwn; keys && j < keys.length; j++) if (disp[keys[j]] === 1) ahead++;
     return ahead >= 2;
   }
@@ -2481,7 +2586,7 @@
     if (r.kind === "w") { save("hifzTest", r.state.ht); hzNoBtn = true; }
     else {
       var m = r.state;
-      hifz.on = true; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; hifz.test = { s: m.s, a: m.a, seen: m.seen || {}, miss: m.miss || {}, fg: m.fg || {}, end: m.end, pc: m.pc || [], pn: m.pn, pt: m.pt, rv: m.rv };
+      hifz.on = true; hifz.shown = {}; hifz.wsh = {}; recite.skp = {}; recite.skC = {}; recite.alerted = {}; hifz.test = { s: m.s, a: m.a, seen: m.seen || {}, miss: m.miss || {}, fg: m.fg || {}, end: m.end, pc: m.pc || [], pn: m.pn, pt: m.pt, rv: m.rv };
       recite.ok = recite.words = 0; recite.wrong = []; recite.k = null; recite.base = null; recite.V = {}; recite.disp = null; recite.ptr = null;
       hzFsPend = true;
     }
@@ -2740,7 +2845,7 @@
   }
   function reciteHear(text, fin) {
     // NvAsr flushes the piece open when the mic stopped as one last final (just after state:stopped): judge it once
-    var tail = fin && !recite.on && recite.stopAt && Date.now() - recite.stopAt < 3000; if (tail) recite.stopAt = 0;
+    var tail = fin && !recite.on && recite.stopAt && Date.now() - recite.stopAt < tailMs(); if (tail) recite.stopAt = 0;
     if ((!recite.on && !tail) || !hifz.on) return;
     if (!recite.base) recite.base = { shown: JSON.stringify(hifz.shown) };
     var shownBefore = JSON.parse(recite.base.shown), keys = [], E = [];
@@ -2759,8 +2864,9 @@
     if (r) Object.keys(r.v).forEach(function (i) { if (fin || r.v[i] === 1) disp[keys[i]] = r.v[i]; });
     hifz.items.forEach(function (k) { if (!hifz.shown[k] && (k + ":" + (rWords(k).length - 1)) in disp) { hifz.shown[k] = true; revealed.push(k); } });
     if (r) { var last = keys[r.b - 1].split(":"); recite.k = last[0] + ":" + last[1]; recite.pos = +last[2] + 1; }
-    recite.disp = disp; hzSkips(disp, keys);
+    var skFresh = (recite.disp = disp, hzSkips(disp, keys, fin)), errFired = false;
     if (fin) reciteCommit(disp, r, keys);
+    if (fin && skFresh >= 5 && hifz.on && !errFired) skipAlert();   // Android vibrate() replaces a running pattern: not both in one step
     function reciteCommit(disp, r, keys) {
       recite.V = disp; recite.base = null;
       if (r) recite.ptr = r.b < keys.length ? keys[r.b] : null;
@@ -2769,6 +2875,7 @@
       // only the ayat this piece judged are (re)marked and alerted: re-marking every ayah of the session on each piece
       // read and wrote the whole q.hifzAyat again and again, slower the longer the session (5.11 G7)
       var touched = null, marks = {};
+      if (load("errAlert", true) && hzErrRun(disp, keys)) { errFired = true; errAlert(); }   // 5.36 #28
       if (r) { touched = {}; Object.keys(r.v).forEach(function (i) { var pk = keys[i].split(":"); touched[pk[0] + ":" + pk[1]] = 1; }); }
       Object.keys(disp).forEach(function (x) { var sa = x.split(":"), k = sa[0] + ":" + sa[1]; (by[k] = by[k] || []).push([+sa[2], disp[x]]); });
       Object.keys(by).forEach(function (k) {
@@ -2777,7 +2884,6 @@
         recite.words += by[k].length; recite.ok += by[k].length - bad.length;
         bad.sort(function (x, y) { return x[0] - y[0]; }).forEach(function (x) { recite.wrong.push([k, ws[x[0]]]); });
         if (touched && !touched[k]) return;
-        if (bad.length > 5 && load("errAlert", true) && !(recite.alerted = recite.alerted || {})[k]) { recite.alerted[k] = 1; errAlert(); }
         var fg = !!(hifz.test && hifz.test.fg && hifz.test.fg[k]);   // Sprint 2 #42: a word revealed by «فكّرني» / a tap keeps its ayah forgotten
         if (hifz.test) { hifz.test.seen[k] = 1; if (bad.length || fg) hifz.test.miss[k] = 1; else delete hifz.test.miss[k]; }
         marks[k] = !bad.length && !fg;
@@ -3077,22 +3183,37 @@
     cur: null,
     nv: function () { return !!window.NvBridge && NvBridge.ready(); },
     last: null,          // the engine of the session just stopped: its flushed final is still judged on that engine (ctcJudge)
-    start: function () { recite.stopAt = htv.stopAt = mtv.stopAt = 0; Mic.last = null; Mic.cur = Mic.nv() ? "nv" : "phone"; if (Mic.cur === "nv") NvBridge.start(); else ReciteBridge.start(); },
+    start: function () { recite.stopAt = htv.stopAt = mtv.stopAt = 0; Mic.last = null; Mic.cur = Mic.nv() ? "nv" : "phone"; if (Mic.cur === "nv") { if (window.NvBridge && NvBridge.setPace) NvBridge.setPace(load("asrPace", "normal")); NvBridge.start(); } else ReciteBridge.start(); },
     stop: function () { var c = Mic.cur; Mic.last = c || Mic.last; Mic.cur = null; try { if (c === "nv") NvBridge.stop(); else if (window.ReciteBridge) ReciteBridge.stop(); } catch (e) {} }
   };
   // ---------- 5.34 #39: the recitation mic. Only NvAsr records from a chosen input; the phone's own recogniser (ReciteBridge,
   // Google) takes whatever the system gives it, and the mic test uses the WebView's default mic. ----------
   var MIC_KIND = { builtin: "مايك الهاتف", wired: "سماعة سلكية", usb: "مايك USB", bt: "سماعة بلوتوث" };
-  function micDevices() { try { var l = JSON.parse(NvBridge.mics()); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
+  // A phone has several built-in mics (bottom, back) that all read «مايك الهاتف»: one entry per kind + name, the first id kept;
+  // `ids` lists every id the entry stands for, so a saved id of the hidden twin still finds it (micPaint).
+  function micDevices() {
+    var raw = []; try { var l = JSON.parse(NvBridge.mics()); if (Array.isArray(l)) raw = l; } catch (e) {}
+    var seen = {}, out = [];
+    raw.forEach(function (d) {
+      var key = d.type + "|" + (d.type === "builtin" ? "" : d.name || "");   // a built-in mic's name is not shown, so it does not tell them apart
+      if (seen[key]) { seen[key].ids.push(d.id); return; }
+      seen[key] = { id: d.id, type: d.type, name: d.name, ids: [d.id] }; out.push(seen[key]);
+    });
+    return out;
+  }
   function micLabel(d) { return (MIC_KIND[d.type] || d.type) + (d.type !== "builtin" && d.name ? " · " + d.name : ""); }
   // Rebuilt each time Settings opens: a headset plugged in a minute ago shows up. A saved mic that is gone goes back to automatic.
   function micPaint() {
     var row = document.getElementById("micRow"), sel = document.getElementById("micSel");
     if (!row || !sel) return;
+    var paceRow = document.getElementById("paceRow"); if (paceRow) paceRow.hidden = !(window.NvBridge && NvBridge.setPace);   // 5.36: the reading pace needs the native recorder
     row.hidden = !(window.NvBridge && NvBridge.mics);
     if (row.hidden) return;
     var list = micDevices();
-    if (micId && !list.some(function (d) { return d.id === micId; })) { micId = 0; save("micId", 0); applySettings(); }
+    if (micId) {   // the saved id may be the hidden twin of a shown mic: use the shown one; a mic that is gone goes back to automatic
+      var own = list.filter(function (d) { return d.ids.indexOf(micId) >= 0; })[0], to = own ? own.id : 0;
+      if (to !== micId) { micId = to; save("micId", to); applySettings(); }
+    }
     sel.innerHTML = "";
     [{ id: 0, type: "auto", name: "" }].concat(list).forEach(function (d) {
       var o = document.createElement("option"); o.value = d.id; o.textContent = d.id === 0 ? "تلقائي" : micLabel(d); o.selected = d.id === micId; sel.appendChild(o);
@@ -4327,7 +4448,7 @@
   // 5.15b item 3: the phone buzzes when a random test moves to its next place
   function hzPlaceBuzz() {
     window.__hzBuzz = (window.__hzBuzz || 0) + 1;
-    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("0,70,90,70"); else if (navigator.vibrate) navigator.vibrate([70, 90, 70]); } catch (e) {}
+    try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("70,90,70"); else if (navigator.vibrate) navigator.vibrate([70, 90, 70]); } catch (e) {}
   }
   function hifzNextPlace() {
     hzPlaceBuzz();
@@ -5539,7 +5660,7 @@
   var htvPrev = window.onRecite;
   window.onRecite = function (text, kind) {
     // NvAsr's flush final right after the stop button: marks the words once (no mic restart, page turn or test end)
-    var tail = !htv.on && kind === "final" && htv.stopAt && Date.now() - htv.stopAt < 3000;
+    var tail = !htv.on && kind === "final" && htv.stopAt && Date.now() - htv.stopAt < tailMs();
     if (!htv.on && !tail) return htvPrev(text, kind);
     if (tail) { htv.stopAt = 0; if (!htv.btn || !document.body.contains(htv.btn)) return; }
     else if (!document.body.contains(htv.btn)) { htv.on = false; Mic.stop(); return; }
@@ -5735,7 +5856,7 @@
   var mtvPrev = window.onRecite;
   window.onRecite = function (text, kind) {
     // NvAsr's flush final right after the stop button: it may still decide the answer (pick ignores a second call)
-    var tail = !mtv.on && kind === "final" && mtv.stopAt && Date.now() - mtv.stopAt < 3000;
+    var tail = !mtv.on && kind === "final" && mtv.stopAt && Date.now() - mtv.stopAt < tailMs();
     if (!mtv.on && !tail) return mtvPrev(text, kind);
     if (tail) { mtv.stopAt = 0; if (!mtv.btn || !document.body.contains(mtv.btn)) return; }
     else if (!document.body.contains(mtv.btn)) { mtv.on = false; Mic.stop(); return; }
@@ -6394,21 +6515,35 @@
   // jumping; the WebView resize that follows (immersive system bars) gets one more glide (5.11 G2).
   var fsFlipUntil = 0, fsFlipRects = null;
   function fsBoxes() { return [].slice.call(document.querySelectorAll("#view .page-wrap .page-box")); }
-  function fsFlipStart() { var bs = fsBoxes(); return bs.length ? bs.map(function (b) { return [b, b.getBoundingClientRect()]; }) : null; }
+  // Where a page box is drawn now: its rect, and its crop as fractions [top, right, bottom, left] read from the computed clip-path (so a glide
+  // in progress is read as it is drawn). Page boxes only; the vertical list's rows have no crop.
+  function fsBoxState(b) {
+    var r = b.getBoundingClientRect(), v = [0, 0, 0, 0], m = b.classList.contains("page-box") && /^inset\((.*)\)$/.exec(getComputedStyle(b).clipPath);
+    if (m) { var n = m[1].split(/\s+/).map(function (x) { return (parseFloat(x) || 0) / 100; }); v = n.length === 1 ? [n[0], n[0], n[0], n[0]] : n.length === 2 ? [n[0], n[1], n[0], n[1]] : n.length === 3 ? [n[0], n[1], n[2], n[1]] : n; }
+    return { left: r.left, top: r.top, width: r.width, height: r.height, crop: v };
+  }
+  function fsFlipStart() { var bs = fsBoxes(); return bs.length ? bs.map(function (b) { return [b, fsBoxState(b)]; }) : null; }
+  function fsInset(c) { return "inset(" + c.map(function (v) { return (v * 100).toFixed(3) + "%"; }).join(" ") + ")"; }
+  // FLIP: the layout is already the new one; each element is drawn as it was (translate + scale of the box, the two axes separately, and
+  // its old crop) and glides to the new layout. Full screen size modes change the crop as well as the box, so the clip-path glides too:
+  // the visible page then starts exactly where it was and the picture does not pop. fl = [[element, old state], ...]
   function fsFlip(fl) {
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     var lay = [];
     fl.forEach(function (x) {
       var b = x[0], r0 = x[1]; if (!b.isConnected) return;
-      b.style.transition = "none"; b.style.transform = "";
-      var r1 = b.getBoundingClientRect(); lay.push([b, r1]); if (!r1.width || reduce) return;
-      var sc = r0.width / r1.width, dx = r0.left - r1.left, dy = r0.top - r1.top;
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sc - 1) < 0.005) return;
+      b.style.transition = "none"; b.style.transform = b.style.clipPath = "";
+      var r1 = fsBoxState(b); lay.push([b, r1]); if (!r1.width || !r1.height || reduce) return;
+      var sx = r0.width / r1.width, sy = r0.height / r1.height, dx = r0.left - r1.left, dy = r0.top - r1.top, c = (r0.crop || [0, 0, 0, 0]).some(function (v, i) { return Math.abs(v - r1.crop[i]) > 0.0005; });
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sx - 1) < 0.005 && Math.abs(sy - 1) < 0.005 && !c) return;
+      var box = b.classList.contains("page-box");
       b.style.transformOrigin = "0 0";
-      b.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px) scale(" + sc.toFixed(4) + ")";
+      b.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
+      if (box) b.style.clipPath = fsInset(r0.crop || [0, 0, 0, 0]);
       void b.offsetWidth;
-      b.style.transition = "transform .42s cubic-bezier(.4,0,.2,1)"; b.style.transform = "";
-      clearTimeout(b._fsT); b._fsT = setTimeout(function () { b.style.transition = b.style.transformOrigin = ""; }, 460);
+      var tr = " .42s cubic-bezier(.4,0,.2,1)";
+      b.style.transition = "transform" + tr + (box ? ", clip-path" + tr : ""); b.style.transform = ""; if (box) b.style.clipPath = fsInset(r1.crop);
+      clearTimeout(b._fsT); b._fsT = setTimeout(function () { b.style.transition = b.style.transformOrigin = b.style.clipPath = ""; }, 460);
     });
     fsFlipUntil = Date.now() + 900; fsFlipRects = lay;
   }
@@ -6419,7 +6554,7 @@
     // where each page is drawn right now: its layout before the resize moved by the running glide
     var fl = fsFlipRects.map(function (x) {
       var b = x[0], r = x[1], m = new DOMMatrix(getComputedStyle(b).transform === "none" ? undefined : getComputedStyle(b).transform);
-      return [b, { left: r.left + m.e, top: r.top + m.f, width: r.width * m.a }];
+      return [b, { left: r.left + m.e, top: r.top + m.f, width: r.width * m.a, height: r.height * m.d, crop: fsBoxState(b).crop }];
     });
     fsFlipRects = null; fsFlipUntil = 0; fsFlip(fl);
   });
@@ -6518,6 +6653,7 @@
     wasPage = isPage;
     autoSet(false); zikrSpeech.stop();
     document.body.classList.remove("vread");
+    if (vObs) { vObs.disconnect(); vObs = null; }   // 5.36 #25: the vertical view is being replaced
     document.body.classList.toggle("reading", /^#\/(p|s)\//.test(location.hash));
     document.body.classList.toggle("pgview", /^#\/p\//.test(location.hash));
     tabbar();

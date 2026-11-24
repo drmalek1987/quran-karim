@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تجربة 5.36 على الموبايل</title>
+<style>
+  body { font-family: system-ui, 'Segoe UI', Tahoma; margin: 0; padding: 14px; background: #f6f6f2; color: #1b2430; line-height: 1.7; }
+  h1 { color: #1f3a5f; font-size: 22px; margin: 4px 0 8px; }
+  h2 { color: #1f3a5f; font-size: 18px; margin: 22px 0 8px; border-bottom: 2px solid #1f3a5f22; }
+  .note { background: #fff7e0; border: 1px solid #e8c766; border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+  .card { background: #fff; border-radius: 12px; padding: 12px 14px; margin: 10px 0; box-shadow: 0 1px 3px #0001; }
+  .card b.n { color: #fff; background: #1f3a5f; border-radius: 6px; padding: 0 7px; margin-left: 6px; font-size: 13px; }
+  .card .t { font-weight: bold; font-size: 16px; }
+  ol { margin: 6px 0; padding-right: 22px; }
+  .ok { color: #0a7a3a; font-size: 15px; }
+  .ok::before { content: "✓ المفروض: "; font-weight: bold; }
+  .btns { display: flex; gap: 8px; margin-top: 8px; }
+  .btns button { flex: 1; padding: 9px; border-radius: 9px; border: 1px solid #ccd; background: #f2f3f5; font-size: 15px; font-family: inherit; }
+  .card.pass { border-right: 6px solid #0a7a3a; } .card.fail { border-right: 6px solid #c0392b; }
+  .card.pass .p { background: #0a7a3a; color: #fff; } .card.fail .f { background: #c0392b; color: #fff; }
+  textarea { width: 100%; box-sizing: border-box; margin-top: 8px; border-radius: 8px; border: 1px solid #ccd; padding: 6px; font-family: inherit; display: none; }
+  .card.fail textarea { display: block; }
+  #sum { position: sticky; top: 0; background: #1f3a5f; color: #fff; border-radius: 10px; padding: 8px 12px; z-index: 2; font-size: 15px; }
+</style>
+</head><body><h1>تجربة نسخة 5.36 على الموبايل</h1>
+<div id="sum"></div>
+
+<div class="note">
+  <b>قبل ما تبدأ:</b><br>
+  • نزّل <b>quran-karim-v5.36.apk</b> واتأكد إن النسخة <b>5.36</b>: «المزيد» ← «حول التطبيق».<br>
+  • جهّز مكان هادي للتسميع، ولو أمكن تلاوة مجوّدة على سماعة تانية.<br>
+  • بعد كل بند دوس <b>نجح</b> أو <b>فيه مشكلة</b>. لو فيه مشكلة اكتب اللي حصل وخد screenshot. اختياراتك بتتحفظ في الصفحة دي، وفي الآخر دوس «انسخ النتيجة وابعتها».
+</div>
+
+<div id="list"></div>
+
+<script>
+// Each item: [number, title, steps[], expected]
+var G = [
+ ["#28 الاهتزاز عند الأخطاء", [
+  ["#28", "5 أخطاء ورا بعض", ["افتح «اختبرني» على صفحة.", "اقرا 5 كلمات غلط ورا بعض (أو كلام مش من الآية) وبعدين اسكت ثانية."], "اهتزازة طويلة واضحة (300ms + 300ms) وصوت قصير، مرة واحدة."],
+  ["#28", "5 أخطاء بينهم سكتات قصيرة", ["في نفس الاختبار، اقرا كلمتين غلط واسكت، كلمتين غلط واسكت، كلمة غلط، وبعدين كمّل الآية صح."], "اهتزازة واحدة لما تكمّل."],
+  ["#28", "4 غلط + كلمة صح + غلط", ["اقرا 4 كلمات غلط، كلمة صح، وكلمة غلط."], "مفيش اهتزاز (العدّ بيبدأ من الأول بعد الكلمة الصح)."],
+  ["#28", "الغلط على آيتين", ["اقرا آخر 3 كلمات من آية غلط وأول 3 من اللي بعدها غلط."], "اهتزازة واحدة."],
+  ["#28", "اختبار تاني على نفس الصفحة", ["اقفل الاختبار وافتحه تاني على نفس الصفحة، واعمل 5 أخطاء."], "بيهتز تاني (مش مرة واحدة بس طول ما التطبيق مفتوح)."],
+  ["#29", "تخطّي كلمات", ["في الاختبار اتخطّى 6 كلمات وكمّل."], "تنبيه واحد بس (ممكن يكون الاهتزاز الطويل بتاع الغلط، لأن التطبيق مش بيفرّق بين كلمة متخطّاة وكلمة غلط). مش اهتزازتين ورا بعض."],
+  ["#28", "إيقاف التنبيه", ["الإعدادات ← اقفل تنبيه الأخطاء، واعمل 5 أخطاء."], "مفيش اهتزاز."]
+ ]],
+ ["#27 قلب الصفحة في الآية المقسومة (طبعة الشمرلي)", [
+  ["#27", "اختبار الحفظ: آية مقسومة", ["اختار طبعة الشمرلي، وافتح «اختبرني» على صفحة 115 (آية الأنعام 103 بتكمّل في 116).", "اقرا الآية لحد ما توصل لأول كلمة في الصفحة الجديدة."], "الصفحة بتتقلب أول ما تقرا أول كلمة في الصفحة الجديدة، مش لما الآية تخلص."],
+  ["#27", "آخر كلمة في الصفحة اتقرت غلط", ["نفس الكلام، بس اقرا آخر كلمة في الصفحة غلط أو اتخطّاها."], "الصفحة بتتقلب برضه أول ما تقرا كلمة صح من الصفحة الجديدة."],
+  ["#27", "وضع المتابعة + الوضع الأفقي", ["جرّب نفس الآية في القراءة بالصوت (المتابعة)، ومرة والموبايل أفقي."], "نفس السلوك، القلب على أول كلمة في الصفحة الجديدة."]
+ ]],
+ ["#25 تحميل الصفحات في القراءة الرأسية", [
+  ["#25", "سكرول بطيء وسريع", ["الإعدادات ← طريقة التقليب «رأسي» (سكرول).", "اسكرول بالراحة 10 صفحات، وبعدين بسرعة 20 صفحة.", "ارجع لفوق بسرعة."], "الصفحات بتظهر من غير ما تفضل بيضا (أو بياض قصير جدًا). قول لو لسه في بياض وقد إيه تقريبًا."],
+  ["#25", "الخروج والرجوع للرأسي", ["اخرج من القراءة وارجع لها كذا مرة."], "شغال عادي ومفيش بطء بيزيد."]
+ ]],
+ ["#2 نموذج التعرّف الجديد v5 (حدر)", [
+  ["#2", "تحديث النموذج", ["الإعدادات ← التنزيلات ← «نموذج التعرّف على التلاوة»."], "ظاهر «تحديث». بعد التحديث (93 ميجا) يبقى «✓ جاهز على الموبايل»."],
+  ["#2", "القراءة العادية زي الأول", ["سمّع صفحة بقراءتك العادية، واغلط في كلمتين بقصد."], "نفس دقة 5.35، والكلمتين الغلط اتعلّموا أحمر."],
+  ["#2", "الحدر", ["اقرا صفحة بسرعة (حدر)، أو شغّل حدر من سماعة قريبة."], "التطبيق لاحقك على الكلمة الصح، ومش بيتوه أكتر من الأول."]
+ ]],
+ ["#2 سرعة القراءة (الجديد)", [
+  ["#2", "إعداد «سرعة القراءة»", ["الإعدادات ← «الصوت والتلاوة» ← «سرعة القراءة»."], "فيه «عادي» (متختار) و«مجوّد / بطيء»."],
+  ["#2", "«عادي» زي الأول", ["على «عادي» سمّع صفحة بقراءتك العادية."], "التعرّف والسرعة زي 5.35 بالظبط."],
+  ["#2", "«مجوّد / بطيء»", ["اختار «مجوّد / بطيء» واقرا بتمهّل مع مدود طويلة وسكتات (أو شغّل تلاوة مجوّدة من سماعة قريبة).", "جرّب كمان توقف المايك في نص آية."], "المد الطويل مش بيتقطع والكلمات بتتعلّم صح؛ الحكم بيتأخر حوالي ثانية ونص بس. ولما توقف في النص، اللي اتقرا بيتحكم عليه."]
+ ]],
+ ["تأكيد إن الباقي شغال", [
+  ["عام", "النسخة", ["«المزيد» ← «حول التطبيق»."], "مكتوب 5.36."],
+  ["عام", "ملاحظات 5.35", ["ظل الكعب، ملء الشاشة و«النص فقط»، القرصة، «مايك الهاتف» مرة واحدة."], "كله زي ما كان في 5.35."],
+  ["عام", "باقي التطبيق", ["افتح الأذكار والصلاة والبحث والفهرس والمراجعة والسبحة (اهتزاز الهدف)."], "مفيش حاجة باظت، والسبحة بتهتز زي الأول."]
+ ]]
+];var KEY = "pt536", S = {}; try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+var L = document.getElementById("list"), id = 0;
+G.forEach(function (g) {
+  var h = document.createElement("h2"); h.textContent = g[0]; L.appendChild(h);
+  g[1].forEach(function (it) {
+    var k = "i" + (++id), st = S[k] || {}, c = document.createElement("div");
+    c.className = "card" + (st.v ? " " + st.v : "");
+    c.innerHTML = '<div class="t"><b class="n">' + it[0] + "</b>" + it[1] + "</div><ol>" + it[2].map(function (s) { return "<li>" + s + "</li>"; }).join("") +
+      '</ol><div class="ok">' + it[3] + '</div><div class="btns"><button class="p">نجح ✓</button><button class="f">فيه مشكلة ✗</button></div><textarea rows="2" placeholder="اكتب اللي حصل…"></textarea>';
+    var ta = c.querySelector("textarea"); ta.value = st.n || "";
+    function set(v) { S[k] = { v: S[k] && S[k].v === v ? "" : v, n: ta.value }; c.className = "card" + (S[k].v ? " " + S[k].v : ""); save(); }
+    c.querySelector(".p").onclick = function () { set("pass"); };
+    c.querySelector(".f").onclick = function () { set("fail"); };
+    ta.oninput = function () { S[k] = { v: (S[k] || {}).v || "fail", n: ta.value }; save(); };
+    L.appendChild(c);
+  });
+});
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} sum(); }
+function sum() { var p = 0, f = 0; Object.keys(S).forEach(function (k) { if (S[k].v === "pass") p++; if (S[k].v === "fail") f++; });
+  document.getElementById("sum").textContent = "نجح " + p + " · فيه مشكلة " + f + " · فاضل " + (id - p - f) + " من " + id; }
+sum();
+// Export: results live in this browser's storage, not in the file, so give the user text to paste in the chat.
+function report() { var n = 0, out = [];
+  G.forEach(function (g) { g[1].forEach(function (it) { var st = S["i" + (++n)] || {};
+    out.push(n + ". " + it[1] + ": " + (st.v === "pass" ? "نجح" : st.v === "fail" ? "مشكلة" + (st.n ? " ← " + st.n : "") : "—")); }); });
+  return document.getElementById("sum").textContent + "\n" + out.join("\n"); }
+var B = document.createElement("button"), T = document.createElement("textarea");
+B.textContent = "📋 انسخ النتيجة وابعتها"; B.style.cssText = "width:100%;padding:14px;margin:18px 0 6px;font-size:17px;border-radius:10px;border:0;background:#1f3a5f;color:#fff;font-family:inherit";
+T.rows = 10; T.style.display = "none";
+B.onclick = function () { var r = report(); T.value = r; T.style.display = "block"; T.select();
+  if (navigator.share) { navigator.share({ text: r }).catch(function () {}); }
+  else if (navigator.clipboard) { navigator.clipboard.writeText(r).then(function () { B.textContent = "✓ اتنسخت – الصقها في الشات"; }, function () {}); } };
+document.body.appendChild(B); document.body.appendChild(T);
+</script>
+</body></html>

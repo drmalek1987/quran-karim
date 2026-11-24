@@ -1885,14 +1885,142 @@ async function fresh(ctx, vp) {
       return { same: Math.abs(i.width - r.width) < 1 && Math.abs(i.height - r.height) < 1, n: a.length, f, hit: !!c && c.left >= r.left - 1 && c.right <= r.right + 1 && c.top >= r.top - 1 && c.bottom <= r.bottom + 1 }; });
     const out = []; for (const fit of ['width', 'stretch']) { await boot534(Object.assign({}, base534, { 'q.fsFit': JSON.stringify(fit) }), '#/p/' + P255 + '?a=2:255'); await wait(500); await fsOn534(); out.push(await probe()); }
     return assert(out[1].same && out[1].n > 0 && out[1].hit && JSON.stringify(out[0].f) === JSON.stringify(out[1].f), JSON.stringify(out)); });
-  await check(G534, '#19: قرصة تقريب الإصبعين (نسبة < 0.8) في ملء الشاشة بتبدّل width ↔ stretch وتحفظ q.fsFit من غير ما تقلب الصفحة ولا تعلّم آية', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await fsOn534();
+  await check(G534, '#19: قرصة تقريب الإصبعين (نسبة < 0.8) في ملء الشاشة بتنزّل خطوة (stretch ← width) وتحفظ q.fsFit من غير ما تقلب الصفحة ولا تعلّم آية', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': '"stretch"' }), '#/p/50'); await fsOn534();
     await pinch534(50, 350, 130, 270); await wait(200); const a = await ev(() => [JSON.parse(localStorage.getItem('q.fsFit')), document.documentElement.classList.contains('fsfit-stretch'), location.hash, document.querySelectorAll('.ayah-box:not(.play)').length, document.body.classList.contains('fs'), (document.querySelector('.toast') || {}).textContent]);
     await wait(600); await pinch534(50, 350, 130, 270); await wait(200); const b = await ev(() => [JSON.parse(localStorage.getItem('q.fsFit')), document.documentElement.classList.contains('fsfit-stretch'), location.hash, document.querySelectorAll('.ayah-box:not(.play)').length, document.body.classList.contains('fs')]);
-    return assert(a[0] === 'stretch' && a[1] && a[2] === '#/p/50' && a[3] === 0 && a[4] && /ملء الشاشة/.test(a[5] || '') && b[0] === 'width' && !b[1] && b[2] === '#/p/50' && b[3] === 0 && b[4], JSON.stringify([a, b])); });
-  await check(G534, '#19: قرصة التباعد (تكبير) مش بتبدّل، وبره ملء الشاشة القرصة مش بتبدّل برضه', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await fsOn534();
-    await pinch534(150, 250, 50, 350); await wait(200); const out = await fsFit(); await ev(() => document.body.classList.remove('fs')); await wait(300); await pinch534(50, 350, 130, 270); await wait(200); const nofs = await fsFit();
-    return assert(out === null && nofs === null, JSON.stringify([out, nofs])); });
-  await ev(() => { for (const k of ['q.openAt', 'q.tapMark', 'q.turn', 'q.flipMode', 'q.qiblaLoc', 'q.keepOn', 'q.fsStatus', 'q.micId', 'q.fsFit']) localStorage.removeItem(k); localStorage.setItem('q.spread', 'true'); }); await p.goto('about:blank'); await p.goto(W); await wait(500);
+    return assert(a[0] === 'width' && !a[1] && a[2] === '#/p/50' && a[3] === 0 && a[4] && /على عرض الشاشة/.test(a[5] || '') && b[0] === 'width' && !b[1] && b[2] === '#/p/50' && b[3] === 0 && b[4], JSON.stringify([a, b])); });
+  await check(G534, '#19: قرصة التباعد بتطلّع خطوة (width ← stretch)، وبره ملء الشاشة القرصة مش بتبدّل (التكبير الأصلي)', async () => { await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await fsOn534();
+    await pinch534(150, 250, 50, 350); await wait(200); const out = await fsFit(); await boot534(Object.assign({}, base534, { 'q.fsFit': null }), '#/p/50'); await wait(300); await pinch534(150, 250, 50, 350); await wait(200); await pinch534(50, 350, 130, 270); await wait(200); const nofs = await fsFit();
+    return assert(out === 'stretch' && nofs === null, JSON.stringify([out, nofs])); });
+  // ================= نسخة 5.35 =================
+  const G535 = 'نسخة 5.35';
+  const fm = require('./fs-motion/measure.js');
+  // the heading of the settings group that holds the element #id
+  const grp535 = id => ev(id => { for (const h of document.querySelectorAll('#settings h3.set-group')) { for (let e = h.nextElementSibling; e && !(e.tagName === 'H3' && e.classList.contains('set-group')); e = e.nextElementSibling) if (e.querySelector('#' + id) || e.id === id) return h.textContent.trim(); } return null; }, id);
+  await p.setViewportSize({ width: 390, height: 844 });
+  await check(G535, '#13: صف «ظل الكعب» في «الألوان والمظهر»: الافتراضي تشغيل، والزرار بيحفظ q.spine وبيحط class nospine على html ويشيل الظل', async () => { await boot534(Object.assign({}, base534, { 'q.spine': null }), '#/p/50'); await p.click('#btnSettings'); await wait(200);
+    const g = await grp535('spineSet'), d = await ev(() => [document.querySelector('#spineSet .on').dataset.v, localStorage.getItem('q.spine'), document.documentElement.classList.contains('nospine')]);
+    await p.click('#spineSet button[data-v=off]'); const off = await ev(() => [localStorage.getItem('q.spine'), document.documentElement.classList.contains('nospine'), getComputedStyle(document.querySelector('.page-box'), '::after').content, document.querySelector('#spineSet .on').dataset.v]);
+    await p.click('#spineSet button[data-v=on]'); const on = await ev(() => [localStorage.getItem('q.spine'), document.documentElement.classList.contains('nospine'), getComputedStyle(document.querySelector('.page-box'), '::after').content]); await closeS();
+    return assert(g === 'الألوان والمظهر' && d[0] === 'on' && d[1] === null && !d[2] && off[0] === 'false' && off[1] && off[2] === 'none' && off[3] === 'off' && on[0] === 'true' && !on[1] && on[2] !== 'none', JSON.stringify([g, d, off, on])); });
+  await check(G535, '#13: ظل الكعب أقوى وأعرض (ألفا ≥ .5 وعرض ≥ 60px)، وفي الليلي أخف (أبيض بألفا أقل)', async () => { await boot534(base534, '#/p/50');
+    const probe = () => ev(() => { const b = document.querySelector('.page-box'), cs = getComputedStyle(b, '::after'), al = [...cs.backgroundImage.matchAll(/rgba?\(([^)]*)\)/g)].map(m => m[1].split(',').map(Number)); return { w: parseFloat(cs.width), max: Math.max(...al.map(a => a.length > 3 ? a[3] : 1)), c: al[0] && al[0].slice(0, 3).join(), cls: b.className }; });
+    const day = await probe(); await ev(() => document.documentElement.classList.add('pdark')); const night = await probe(); await ev(() => document.documentElement.classList.remove('pdark'));
+    return assert(day.w >= 60 && day.max >= 0.5 && day.c === '0,0,0' && night.c === '255,255,255' && night.max > 0 && night.max < day.max && night.max <= 0.3, JSON.stringify([day, night])); });
+  await check(G535, '#41: صف «عند فتح التطبيق» جوه مجموعة «التطبيق» (مش «القراءة») وبيشتغل زي الأول', async () => { await boot534(base534, '#/'); await p.click('#btnSettings'); await wait(200);
+    const g = await grp535('openSet'), tj = await grp535('tapSet'); await p.click('#openSet button[data-v=last]'); const v = await ev(() => localStorage.getItem('q.openAt')); await p.click('#openSet button[data-v=home]'); const v2 = await ev(() => localStorage.getItem('q.openAt')); await closeS();
+    return assert(g === 'التطبيق' && tj === 'القراءة' && v === '"last"' && v2 === '"home"', JSON.stringify([g, tj, v, v2])); });
+  const DEVS535 = JSON.stringify([{ id: 3, type: 'builtin', name: 'Bottom' }, { id: 4, type: 'builtin', name: 'Back' }, { id: 7, type: 'bt', name: 'Buds' }, { id: 9, type: 'usb', name: 'Dev' }, { id: 10, type: 'usb', name: 'Dev' }, { id: 11, type: 'usb', name: 'Other' }]);
+  const micOpts535 = async (saved) => { await boot534(Object.assign({}, base534, { 'q.micId': saved === null ? null : String(saved) }), '#/'); await stub534(DEVS535, true); await p.click('#btnSettings'); await wait(200);
+    const r = await ev(() => [[...document.querySelectorAll('#micSel option')].map(o => o.textContent).join('|'), document.getElementById('micSel').value, localStorage.getItem('q.micId'), JSON.stringify(window.__br)]); await closeS(); return r; };
+  await check(G535, '#39: مايكين مدمجين (تحت وضهر) بيظهروا «مايك الهاتف» مرة واحدة، وكذلك أي جهازين بنفس النوع والاسم', async () => { const r = await micOpts535(null);
+    return assert(r[0] === 'تلقائي|مايك الهاتف|سماعة بلوتوث · Buds|مايك USB · Dev|مايك USB · Other' && r[1] === '0', JSON.stringify(r)); });
+  await check(G535, '#39: q.micId محفوظ على المايك المدمج التاني بيتحوّل للمايك المدمج الظاهر (مش تلقائي)، والمخفي من نفس الاسم برضه', async () => { const a = await micOpts535(4), b = await micOpts535(10), c = await micOpts535(99);
+    return assert(a[1] === '3' && a[2] === '3' && a[3].includes('["setMic",3]') && b[1] === '9' && b[2] === '9' && c[1] === '0' && c[2] === '0', JSON.stringify([a, b, c])); });
+  // text mode: the visible text block (box minus the text crop) is the whole viewport on every page; the picture, overlays and tajweed layer keep their coordinates
+  const fit535 = (fit, extra) => Object.assign({}, base534, { 'q.fsFit': fit ? JSON.stringify(fit) : null }, extra || {});
+  const vp535 = () => ev(() => [innerWidth, innerHeight]);
+  await check(G535, 'النص فقط: الجزء الظاهر (كتلة النص) = الشاشة كلها ±2px في صفحة زوجية وفردية ووسط المصحف (كل طبعة بتتجرب في تشغيلها)', async () => { const out = [];
+    for (const pg of ['50', '51', '300']) { await boot534(fit535('text'), '#/p/' + pg); await fsOn534(); const v = await visRects(), vp = await vp535(); out.push([pg, v, vp]); }
+    return assert(out.every(([pg, v, vp]) => v.length === 1 && near(v[0][0], 0) && near(v[0][1], 0) && near(v[0][2], vp[0]) && near(v[0][3], vp[1])), JSON.stringify(out)); });
+  await check(G535, 'النص فقط: مستطيل النص واحد للطبعة (مش لكل صفحة): نفس قياس الصندوق في كل الصفحات، وجوه كروب الطبعة', async () => { const out = [];
+    for (const pg of ['50', '51', '300']) { await boot534(fit535('text'), '#/p/' + pg); await fsOn534(); out.push(await ev(() => { const r = document.querySelector('.page-box').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })); }
+    const tb = await ev(() => QA_textBlock()), cr = await ev(() => QA_edCrop() || [0, 0, 0, 0]);
+    return assert(out.every(o => Math.abs(o[0] - out[0][0]) <= 2 && Math.abs(o[1] - out[0][1]) <= 2) && tb.every(v => v >= 0 && v < 0.4) && tb[0] >= cr[0] / 100 - 1e-6 && tb[2] >= cr[2] / 100 - 1e-6 && tb[3] >= cr[3] / 100 - 1e-6 && tb[1] >= cr[1] / 100 - 1e-6, JSON.stringify([out, tb, cr])); });
+  await check(G535, 'النص فقط: الصورة بتملا الصندوق، وتظليل ?a=2:255 (.ayah-box) بنفس النسب زي «على عرض الشاشة» وفي حدود الشاشة وفوق نفس النص', async () => {
+    const probe = () => ev(() => { const b = document.querySelector('.page-box'), r = b.getBoundingClientRect(), i = b.querySelector('img:not(.tjo)').getBoundingClientRect(), a = [...b.querySelectorAll('.ayah-box:not(.play)')];
+      const f = a.map(x => [x.style.left, x.style.top, x.style.width, x.style.height].join()), rs = a.map(x => x.getBoundingClientRect());
+      // each ayah-box in fractions of the picture: the same fractions = the same text under it
+      const fr = rs.map(c => [(c.left - r.left) / r.width, (c.top - r.top) / r.height, c.width / r.width, c.height / r.height].map(v => Math.round(v * 1000) / 1000).join());
+      return { same: Math.abs(i.width - r.width) < 1 && Math.abs(i.height - r.height) < 1, n: a.length, f, fr, inside: rs.every(c => c.left >= -2 && c.right <= innerWidth + 2 && c.top >= -2 && c.bottom <= innerHeight + 2) }; });
+    const out = []; for (const fit of ['width', 'text']) { await boot534(fit535(fit), '#/p/' + P255 + '?a=2:255'); await wait(500); await fsOn534(); out.push(await probe()); }
+    return assert(out[1].same && out[1].n > 0 && out[1].inside && JSON.stringify(out[0].f) === JSON.stringify(out[1].f) && JSON.stringify(out[0].fr) === JSON.stringify(out[1].fr), JSON.stringify(out)); });
+  await check(G535, 'النص فقط في وضع الصفحتين (١٠٠٠×٧٠٠): كل صفحة نص الشاشة وبارتفاعها', async () => { await p.setViewportSize({ width: 1000, height: 700 }); await boot534(fit535('text'), '#/p/51'); await wait(500); await fsOn534();
+    const s = await visRects(); await p.setViewportSize({ width: 390, height: 844 });
+    return assert(s.length === 2 && near(s[0][0], 0) && near(s[0][2], 500) && near(s[1][0], 500) && near(s[1][2], 1000) && s.every(r => near(r[1], 0) && near(r[3], 700)), JSON.stringify(s)); });
+  await check(G535, 'صف «حجم الصفحة في ملء الشاشة»: ٣ أزرار بالترتيب (على عرض الشاشة / ملء الشاشة / النص فقط) والزرار الجديد بيحفظ q.fsFit="text" وبيحط fsfit-text', async () => { await boot534(fit535(null), '#/'); await p.click('#btnSettings'); await wait(200);
+    const lab = await ev(() => [...document.querySelectorAll('#fsFitSet button')].map(b => b.dataset.v + ':' + b.textContent.trim()).join('|'));
+    await p.click('#fsFitSet button[data-v=text]'); const t = await ev(() => [localStorage.getItem('q.fsFit'), document.querySelector('#fsFitSet .on').dataset.v, document.documentElement.classList.contains('fsfit-text'), document.documentElement.classList.contains('fsfit-stretch')]);
+    await p.click('#fsFitSet button[data-v=width]'); const w = await ev(() => [document.documentElement.classList.contains('fsfit-text'), document.documentElement.classList.contains('fsfit-stretch')]); await closeS();
+    return assert(lab === 'width:على عرض الشاشة|stretch:ملء الشاشة|text:النص فقط' && t[0] === '"text"' && t[1] === 'text' && t[2] && t[3] && !w[0] && !w[1], JSON.stringify([lab, t, w])); });
+  const fitNow = () => ev(() => [JSON.parse(localStorage.getItem('q.fsFit') || '"width"'), location.hash, document.querySelectorAll('.ayah-box:not(.play)').length, document.body.classList.contains('fs'), (document.querySelector('.toast') || {}).textContent || '']);
+  await check(G535, 'قرصة التباعد: width ← stretch ← text ← (يقف عند text)، وقرصة التقريب: text ← stretch ← width ← (يقف عند width)، خطوة واحدة في القرصة، من غير قلب صفحة ولا تعليم آية، وتوست باسم الوضع', async () => {
+    await boot534(fit535(null), '#/p/50'); await fsOn534(); const seq = [];
+    for (const [x1, x2, a, b] of [[150, 250, 50, 350], [150, 250, 50, 350], [150, 250, 50, 350], [50, 350, 130, 270], [50, 350, 130, 270], [50, 350, 130, 270]]) { await ev(() => document.querySelectorAll('.toast').forEach(t => t.remove())); await pinch534(x1, x2, a, b); await wait(650); seq.push(await fitNow()); }
+    const want = [['stretch', 'ملء الشاشة'], ['text', 'النص فقط'], ['text', ''], ['stretch', 'ملء الشاشة'], ['width', 'على عرض الشاشة'], ['width', '']];
+    return assert(seq.every((r, i) => r[0] === want[i][0] && r[1] === '#/p/50' && r[2] === 0 && r[3] && (want[i][1] ? r[4].includes(want[i][1]) : !r[4])), JSON.stringify(seq)); });
+  await check(G535, 'القرصة الكبيرة جداً والصغيرة جداً لسه خطوة واحدة', async () => { await boot534(fit535(null), '#/p/50'); await fsOn534();
+    await pinch534(190, 200, 5, 385); await wait(300); const a = await fitNow(); await pinch534(5, 385, 190, 200); await wait(300); const b = await fitNow();
+    return assert(a[0] === 'stretch' && b[0] === 'width', JSON.stringify([a, b])); });
+  await check(G535, 'touch-action على .page-wrap: pan-y في ملء الشاشة، وبره ملء الشاشة زي ما كان (pan-y pinch-zoom)', async () => { await boot534(fit535(null), '#/p/50'); const ta = () => ev(() => getComputedStyle(document.querySelector('.page-wrap')).touchAction);
+    const n0 = await ta(); await fsOn534(); const f = await ta(); await ev(() => document.body.classList.remove('fs')); await wait(200); const n1 = await ta();
+    return assert(n0 === 'pan-y pinch-zoom' && f === 'pan-y' && n1 === 'pan-y pinch-zoom', JSON.stringify([n0, f, n1])); });
+  await check(G535, 'القرصة ما بتبوّظش السحب بإصبع (قلب الصفحة) ولا اللمسة (تعليم آية) بعدها', async () => { await boot534(fit535('stretch'), '#/p/50'); await fsOn534();
+    await pinch534(50, 350, 130, 270); await wait(700); await swipe(1, 700); const h = await ev(() => location.hash); await go('#/p/50', 500); await ev(() => document.body.classList.remove('fs')); await wait(300); await tapMid('.page-box'); await wait(300); const n = await shown();
+    return assert(h === '#/p/51' && n > 0, JSON.stringify([h, n])); });
+  // FLIP: the visible page rect sampled every frame while full screen comes in / goes out (the real fsSet path, a tap) and while the size steps.
+  // tools/qa/fs-motion/measure.js does the same with the emulator's resize (fake AppBridge) and the rules for "no jump".
+  const flip535 = async (fit, trigger, fromFs, expectFull) => { await boot534(fit535(fit), '#/p/50'); await wait(500);
+    if (fromFs) { await ev(() => { window.QA_NOFS = false; }); await tapIn535(); await wait(1900); }
+    await ev(fm.recorder); await ev(() => window.__rec.start()); await trigger(); await wait(1900);
+    const r = await ev(() => window.__rec.stop()), settled = await ev(() => window.__rec.vis()), vp = await vp535();
+    const a = fm.analyseRect(r, r.fsAt === null ? 0 : r.fsAt - 40, settled, expectFull ? [0, 0, vp[0], vp[1]] : null, 0, 0, 0); await ev(() => { window.QA_NOFS = true; });
+    return assert(a.ok, JSON.stringify({ moved: a.moved, end: a.endErr, exp: a.expErr, edges: a.edges.map(e => [e.one, e.jump, e.peak]) })); };
+  const tapIn535 = () => ev(() => document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  const tapFs535 = () => ev(() => { window.QA_NOFS = false; document.querySelector('.page-box').dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+  for (const fit of ['stretch', 'text']) {
+    await check(G535, 'FLIP: دخول ملء الشاشة (' + fit + '): كل حافة بتتحرك في اتجاه واحد من غير قفزة وتنتهي بالظبط على الشاشة', () => flip535(fit, tapFs535, false, true));
+    await check(G535, 'FLIP: خروج من ملء الشاشة (' + fit + '): بنفس الشروط وتنتهي على المستطيل المستقر', () => flip535(fit, tapIn535, true, false));
+  }
+  await check(G535, 'FLIP: تغيير الوضع جوه ملء الشاشة بالقرصة (width ← stretch ← text ← stretch ← width) بينزلق من غير قفزة', async () => {
+    await boot534(fit535(null), '#/p/50'); await fsOn534(); const bad = [];
+    for (const [x1, x2, a, b] of [[150, 250, 50, 350], [150, 250, 50, 350], [50, 350, 130, 270], [50, 350, 130, 270]]) { await wait(600);
+      await ev(fm.recorder); await ev(() => window.__rec.start()); await pinch534(x1, x2, a, b); await wait(900);
+      const r = await ev(() => window.__rec.stop()), settled = await ev(() => window.__rec.vis()), an = fm.analyseRect(r, 0, settled, null, 0, 0, 0); if (!(an.ok || (!an.moved && an.edges.every(e => e.one) && an.endErr <= 0.5))) bad.push(JSON.stringify(an.edges.map(e => [e.jump, e.peak]))); }
+    return assert(!bad.length, bad.join(' ; ')); });
+  // ================= نسخة 5.36 =================
+  const G536 = 'نسخة 5.36';
+  // NvBridge stub that logs setPace / start in call order (the real one is NvAsr.java)
+  const stub536 = () => ev(() => { window.__nv = []; window.NvBridge = { mics: () => [], setMic: () => {}, micTest: () => {}, ready: () => true, setPace: v => __nv.push(['setPace', v]), start: () => __nv.push(['start']), stop: () => __nv.push(['stop']) }; });
+  const micTap536 = async () => { await ev(() => { window.ReciteBridge = window.ReciteBridge || { start() {}, stop() {}, setHints() {} }; localStorage.setItem('q.asr', JSON.stringify('asrnv')); document.getElementById('rdMic').click(); }); await wait(200); await ev(() => document.getElementById('rdMic').click()); await wait(200); };
+  await p.setViewportSize({ width: 390, height: 844 });
+  await check(G536, '«سرعة القراءة»: صف بزرارين (عادي / مجوّد)، الافتراضي عادي من غير ما يتكتب q.asrPace، ومخفي لو مفيش NvBridge.setPace', async () => {
+    await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/'); const none = await ev(() => document.getElementById('paceRow').hidden); await stub536(); await p.click('#btnSettings'); await wait(200);
+    const r = await ev(() => [document.getElementById('paceRow').hidden, [...document.querySelectorAll('#paceSet button')].map(b => b.dataset.v + ':' + b.textContent.trim()).join('|'), document.querySelector('#paceSet .on').dataset.v, localStorage.getItem('q.asrPace')]); await closeS();
+    return assert(none && !r[0] && r[1] === 'normal:عادي|slow:مجوّد' && r[2] === 'normal' && r[3] === null, JSON.stringify([none, r])); });
+  await check(G536, '«سرعة القراءة»: الزرار بيحفظ q.asrPace ويفضل بعد إعادة التحميل، والرجوع لعادي بيحفظه', async () => {
+    await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/'); await stub536(); await p.click('#btnSettings'); await wait(200);
+    await p.click('#paceSet button[data-v=slow]'); const a = await ev(() => [localStorage.getItem('q.asrPace'), document.querySelector('#paceSet .on').dataset.v]); await closeS();
+    await p.reload(); await wait(900); await stub536(); await p.click('#btnSettings'); await wait(200); const b = await ev(() => document.querySelector('#paceSet .on').dataset.v);
+    await p.click('#paceSet button[data-v=normal]'); const c = await ev(() => [localStorage.getItem('q.asrPace'), document.querySelector('#paceSet .on').dataset.v]); await closeS();
+    return assert(a[0] === '"slow"' && a[1] === 'slow' && b === 'slow' && c[0] === '"normal"' && c[1] === 'normal', JSON.stringify([a, b, c])); });
+  await check(G536, 'زرار المايك: NvBridge.setPace(القيمة المحفوظة) بتتنادى قبل start في كل تشغيل، وعادي هو الافتراضي والباقي زي ما كان (start / stop)', async () => {
+    await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/p/2'); await stub536(); await micTap536(); const n = await ev(() => JSON.stringify(window.__nv));
+    await ev(() => { localStorage.setItem('q.asrPace', '"slow"'); window.__nv.length = 0; }); await micTap536(); const s = await ev(() => JSON.stringify(window.__nv)); await ev(() => localStorage.removeItem('q.asr'));
+    return assert(n === '[["setPace","normal"],["start"],["stop"]]' && s === '[["setPace","slow"],["start"],["stop"]]', n + ' ' + s); });
+  await check(G536, 'نسخة أقدم من الشِل (من غير setPace): زرار المايك لسه بيبدأ من غير خطأ، والصف مخفي', async () => {
+    await boot534(Object.assign({}, base534, { 'q.asrPace': '"slow"' }), '#/p/2'); await ev(() => { window.__nv = []; window.NvBridge = { mics: () => [], ready: () => true, start: () => __nv.push(['start']), stop: () => __nv.push(['stop']) }; });
+    await micTap536(); await p.click('#btnSettings'); await wait(200); const r = await ev(() => [JSON.stringify(window.__nv), document.getElementById('paceRow').hidden]); await closeS(); await ev(() => localStorage.removeItem('q.asr'));
+    return assert(r[0] === '[["start"],["stop"]]' && r[1] === true, JSON.stringify(r)); });
+  // #28 follow-up: the «تنبيه الأخطاء» toggle (q.errAlert, default on)
+  const errRun536 = async () => { await ev(() => { window.__v = 0; window.__ac0 = window.AudioContext; window.AudioContext = function () { this.destination = {}; this.currentTime = 0; this.createOscillator = () => ({ frequency: {}, connect() {}, start() { window.__v++; }, stop() {} }); this.createGain = () => ({ gain: {}, connect() {} }); this.close = () => {}; }; window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; });
+    await go('#/hifzmap', 500); await ev(() => window.hzTestStart({ k: 'a', s: 2, a1: 255, a2: 255, w: 'o' }, 'm')); await wait(1200); await p.click('#hifzBar [data-c="mic"]'); await wait(200); await ev(() => window.onRecite('', 'state:listening')); await ev(() => { window.__v = 0; });
+    await ev(() => { const w = window.QURAN.t[1][254].split(' ').filter(x => /[ء-يٱ]/.test(x)); window.onRecite(w.slice(0, 4).concat(Array(5).fill('زززز'), w.slice(9)).join(' '), 'final'); }); await wait(500);
+    const n = await ev(() => window.__v); await ev(() => { window.AudioContext = window.__ac0; delete window.ReciteBridge; }); return n; };
+  await check(G536, '«تنبيه الأخطاء»: صف بزرارين، الافتراضي تشغيل من غير ما يتكتب q.errAlert، والإيقاف بيتحفظ ويفضل بعد إعادة التحميل', async () => {
+    await boot534(Object.assign({}, base534, { 'q.errAlert': null }), '#/'); await p.click('#btnSettings'); await wait(200);
+    const a = await ev(() => [[...document.querySelectorAll('#errAlertSet button')].map(b => b.dataset.v).join('|'), document.querySelector('#errAlertSet .on').dataset.v, localStorage.getItem('q.errAlert'), document.getElementById('errAlertRow').textContent.includes('تنبيه الأخطاء')]);
+    await p.click('#errAlertSet button[data-v=off]'); const b = await ev(() => [localStorage.getItem('q.errAlert'), document.querySelector('#errAlertSet .on').dataset.v]); await closeS();
+    await p.reload(); await wait(900); await p.click('#btnSettings'); await wait(200); const c = await ev(() => document.querySelector('#errAlertSet .on').dataset.v); await closeS();
+    return assert(a[0] === 'on|off' && a[1] === 'on' && a[2] === null && a[3] && b[0] === 'false' && b[1] === 'off' && c === 'off', JSON.stringify([a, b, c])); });
+  await check(G536, '«تنبيه الأخطاء»: تشغيل = ٥ كلمات غلط ورا بعض بتهتز وتصفّر، وإيقاف = ولا اهتزاز ولا صوت', async () => {
+    await boot534(Object.assign({}, base534, { 'q.errAlert': null }), '#/'); const on = await errRun536();
+    await ev(() => localStorage.setItem('q.errAlert', 'false')); await p.reload(); await wait(900); const off = await errRun536(); await ev(() => localStorage.removeItem('q.errAlert'));
+    return assert(on >= 1 && off === 0, JSON.stringify([on, off])); });
+  await check(G536, '#27: اختبار حفظ في العرض الرأسي — آخر الصفحة والانتقال للتالية بحركة واحدة ناعمة (من غير طلوع ونزول) على kfgqpc', async () => {
+    let out = ''; try { out = require('child_process').execSync('node ' + JSON.stringify(require('path').join(__dirname, 'sprint5', 'vturn_scroll.js')), { env: Object.assign({}, process.env, { ED: 'kfgqpc', PAGES: '100,200' }), encoding: 'utf8' }); } catch (e) { out = 'FAIL ' + (e.stdout || e.message); }
+    return assert(/PASS/.test(out) && !/FAIL/.test(out), out.slice(0, 300)); });
+  await ev(() => { for (const k of ['q.openAt', 'q.tapMark', 'q.turn', 'q.flipMode', 'q.qiblaLoc', 'q.keepOn', 'q.fsStatus', 'q.micId', 'q.fsFit', 'q.spine', 'q.asrPace', 'q.asr']) localStorage.removeItem(k); localStorage.setItem('q.spread', 'true'); }); await p.goto('about:blank'); await p.goto(W); await wait(500);
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

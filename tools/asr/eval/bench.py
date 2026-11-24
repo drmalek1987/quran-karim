@@ -188,6 +188,40 @@ class Model:
             prev = t
         return re.sub(r'\s+', ' ', ''.join(out).replace('▁', ' ')).strip()
 
+
+# ---------- 2026-11-24 speed experiments (A1 slow-merge, A2 tempo normalisation); defaults off = the phone ----------
+def atempo(p, f):
+    """pitch-preserving time-stretch by ffmpeg atempo (WSOLA); f < 1 slows down (longer audio)."""
+    import subprocess
+    r = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'f32le', '-ar', str(SR), '-ac', '1', '-i', 'pipe:0', '-af', 'atempo=%.4f' % f,
+                        '-f', 'f32le', '-ar', str(SR), '-ac', '1', 'pipe:1'], input=np.asarray(p, np.float32).tobytes(), capture_output=True, check=True)
+    return np.frombuffer(r.stdout, np.float32).copy()
+
+def _cps(t, sec): return len(re.sub('[^ء-ي]', '', t)) / max(0.5, sec - 0.8)
+def _wps(t, sec): return len(t.split()) / max(0.5, sec - 0.8)
+
+def speed_post(y, rp, ends, M, pgain, cap_s=12.0, slowq=0.0, quiet=0.5, slow_wps=0.8, tcps=0.0, ttarget=5.0, tmax=2.0, stats=None):
+    """Decode VAD pieces like the phone, plus:
+    slowq > 0 (A1): a piece whose own decode is slow (< slow_wps words/s) is not closed at `quiet` s of quiet: it is held and
+      joined with the next piece if that starts within slowq - quiet s and the join stays <= cap_s (re-decoded, checked again).
+    tcps > 0 (A2): a piece whose decode runs faster than tcps letters/s is time-stretched (atempo 1/f, f = cps/ttarget in
+      [1.25, tmax]) and decoded again; the stretched decode replaces it. Returns (lps, plen_samples, extra_ms)."""
+    y = np.concatenate([y, np.zeros(2 * SR, np.float32)]).astype(np.float32)
+    starts = [e - len(p) for p, e in zip(rp, ends)]; out_l, out_n = [], []; k = 0; extra = 0.0
+    while k < len(rp):
+        a, b = starts[k], ends[k]; p = rp[k]; l = M.logprobs(louder(p, pgain)); t = M.greedy(l)
+        while slowq and t and _wps(t, len(p) / SR) < slow_wps and k + 1 < len(rp) and starts[k + 1] - b <= (slowq - quiet) * SR                 and ends[k + 1] - a <= cap_s * SR:
+            k += 1; b = ends[k]; p = y[max(0, a):b] if a >= 0 else np.concatenate([np.zeros(-a, np.float32), y[:b]])
+            t0 = time.perf_counter(); l = M.logprobs(louder(p, pgain)); extra += time.perf_counter() - t0; t = M.greedy(l)
+            if stats is not None: stats['merged'] = stats.get('merged', 0) + 1
+        if tcps and t and _cps(t, len(p) / SR) > tcps:
+            f = min(tmax, max(1.25, _cps(t, len(p) / SR) / ttarget)); t0 = time.perf_counter()
+            l2 = M.logprobs(louder(atempo(p, 1 / f), pgain)); extra += time.perf_counter() - t0
+            if stats is not None: stats['stretched'] = stats.get('stretched', 0) + 1
+            if M.greedy(l2): l = l2
+        out_l.append(l); out_n.append(len(p)); k += 1
+    return out_l, out_n, extra * 1000
+
 # ---------- Quran ----------
 class Quran:
     def __init__(self, words_json, simple_json):
@@ -274,6 +308,9 @@ def main():
     ap.add_argument('--dump_nonempty', action='store_true', help='dump only pieces with text (p1b_port_eval then skips no clip)')
     ap.add_argument('--threads', type=int, default=0, help='onnxruntime intra-op threads (0: all cores)')
     ap.add_argument('--ids', default='', help='json list of clip ids to run (dev/hold split)')
+    ap.add_argument('--slowq', type=float, default=0.0, help='A1: slow piece (< --slow_wps) joins the next one within slowq s of quiet (phone: 0 = off)')
+    ap.add_argument('--slow_wps', type=float, default=0.8); ap.add_argument('--tcps', type=float, default=0.0, help='A2: re-decode pieces faster than tcps letters/s time-stretched (phone: 0 = off)')
+    ap.add_argument('--ttarget', type=float, default=5.0); ap.add_argument('--tmax', type=float, default=2.0); ap.add_argument('--mcap', type=float, default=12.0)
     a = ap.parse_args()
     Qr = Quran(a.quran, a.simple); M = Model(a.model, a.vocab, a.threads); rnd = random.Random(1)
     os.makedirs(a.out, exist_ok=True)
@@ -307,6 +344,10 @@ def main():
         rp, pends = vad_pieces(y, a.preroll, a.quiet, a.vmin, a.pgain, a.kstart, a.kstay, a.frise_sp, a.minvoiced,
                                a.carry, a.capcut, raw=True, fwin=a.fwin, cap_s=a.cap, fmin=a.fmin, fcatch=a.fcatch)
         lps, plen, wdel, held, td = [], [], [], None, time.time()
+        if a.slowq or a.tcps:
+            lps, plen, _ = speed_post(y, rp, pends, M, a.pgain, a.mcap, a.slowq, a.quiet, a.slow_wps, a.tcps, a.ttarget, a.tmax)
+            for l, n in zip(lps, plen): wdel += word_delays(l, n, len(M.vocab), M.vocab)
+            rp = []
         for p in rp:
             if held is not None: p = np.concatenate([held, p]); held = None
             l = M.logprobs(louder(p, a.pgain))
