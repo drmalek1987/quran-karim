@@ -1159,3 +1159,31 @@ Resume: user word -> upload asrnv5/asrnvp5 to editions branch -> install 5.36 (c
 - Released (user «ارفع على GitHub»): code 01e294d on main (5.35-5.37, 40 files; store/fg-options, ui-results.json, .bak, build-src, launch.json and older untracked tools left out); builds repo release v5.37 (quran-karim-v5.37.apk 70,118,832 bytes). Model pack v5 on editions c73e5df. Play: last AAB 5.33 (no AAB for 5.34-5.37). Resume: Play AAB 5.37 on the user word (PLAY=1 + build-aab-win.py, then rebuild GitHub APK name); next sprint plan.
 - 2026-11-25 Play AAB quran-karim-v5.37-play.aab 40,769,159 bytes: com.lawh.quran, versionCode 85, minSdk 24, upload key SHA-256 71:18:F1…, no harmain/adhan/darwish/tanwir, ORT .so packaged, ver 5 + new code inside. GitHub APK rebuilt after PLAY=1: identical entries to the released v5.37 (excl. META-INF), signer 7d8b31d2. Release notes store/release-notes-5.37.txt (Arabic only). Not uploaded to Play (user does it). Resume: user uploads AAB 5.37 to Play closed test -> next sprint.
 - 2026-11-25 user uploaded quran-karim-v5.37-play.aab to Play closed test Alpha (release notes store/release-notes-5.37.txt). Sprint 5 CLOSED. Open: auto pace (probe + Java/Python parity), matcher rSame 0.6 accepts one-letter learner swaps (ض/د…), #25 phone CDP numbers (optional), harmain 5:92 split turn (li=1). Resume: plan next sprint with the user.
+
+## ===== NEXT SESSION: START HERE (handoff written 2026-11-25, end of the Sprint 5 session) =====
+State of the app
+- Latest version: **5.37** (versionCode 85, sw quran-v81). Installed on bee81250 (phone test 8/8, plans/phone-test-5.37.html; 5.36 test 19/21 -> fixed in 5.37).
+- Pushed: code 01e294d + progress cea056a and later on main (local branch chore/backlog-cleanup tracks origin/main). Builds repo release v5.37 (quran-karim-v5.37.apk 70,118,832 B, signer 7d8b31d2). Play: AAB 5.37 uploaded by the user to closed test Alpha (com.lawh.quran, upload key 71:18:F1…).
+- ASR model **v5** (G10d_f1s9w5 = G10b + Ahmed Deban hadr fine-tune, WiSE 0.5, sha b6856868…) is live: pack asrnv5.zip/asrnvp5.zip on the editions branch (commit c73e5df via worktree D:\Quran App\ed-wt), app ASRM.asrnv.ver 5 (web/app.js:395). v4 (G10b, sha e3294079) kept on editions for rollback (set ver 4 to roll back). v4 users get «تحديث» (opt-in).
+- Still uncommitted on purpose: store/fg-options/*, tools/qa/ui-results.json, nv_curr.py.bak_*, build-src/, .claude/launch.json, older untracked tools/page_geometry + tools/qa png/py files (ask before committing).
+
+What Sprint 5 shipped (details: QA-checklist.md 5.36 + 5.37, plans/asr-speed-report.html)
+- #28 error alert: buzzPattern CSV must start with the ON duration (AppBridge.java prepends 0); hzErrRun = 5 wrong/skipped in a row across ayat, once per run, reset per test; skipAlert only on finals, never with errAlert; toggle «تنبيه الأخطاء» (q.errAlert).
+- #27 hifzPageEnd turns on a right word past the page's last word; vertical view page end = one scroll (vHifz next goes to capKeep's band + capBusy).
+- #25 vertical view decode-ahead (vObs IntersectionObserver in showPagesV).
+- #2 «سرعة القراءة» q.asrPace normal|slow (label «عادي» / «مجوّد»); NvAsr slow = hold piece through 2 s quiet, cap 30 s; normal path unchanged. kfold shown as «مصحف المدينة».
+- QA tools: tools/qa/sprint5/{alert_repro.js, split_turn.js, vturn_scroll.js, perf/} (alert_repro case i FAIL is accepted: pure skip -> error buzz), ui.js group «نسخة 5.36»; ASR: tools/asr/speedbench/*, plans/asr-speed-bench/{plan-compare, recipe-study, runs, phase4}.md. Deban data/scripts only under D:\Quran App\qtrain\deban (licensed for training, never redistribute).
+
+Open / next candidates
+- auto pace (q.asrPace auto): needs a concurrent probe in the NvAsr recorder + Java/Python parity + phone test (bench: auto ALL 97.6, touches murattal 1%).
+- Matcher limit: rSame >= 0.6 (app.js:2631-2635) accepts one-letter learner swaps (ض/د, ص/س, ح/ه, ق/ك, ة/ه) in words of 3+ letters -> mistakes slip through regardless of the model. Worth its own item (letter-level check on the CTC posteriors).
+- ASR gate rule changed with the user's OK: ho_retasy_wrong judged by wrong_word_caught_% + near-miss TEST (qtrain/deban/p4/nm_items.json), not verify_acc.
+- #25 phone CDP numbers never taken (user passed it by eye): tools/qa/sprint5/perf/run-cdp.py --serial bee81250 with a DEBUGGABLE=1 APK_SUFFIX=-cdp build.
+- harmain 5:92 split turn early/late (li=1, pre-existing). 5.30-5.33 hifz phone items never reported. API 37 AVDs unstable (use Phone_API35). Sprint 3 «Later» list still open (17, 12, 24, 33, 3, 21, 22, 30, 18, 34, #32 hifz programme).
+- Phase-3/4 checkpoints tools/asr/gpu/nv_out/G10d_* (~0.5 GB each) and qtrain/gpu-train/phone_G10s etc. can be deleted (ask).
+
+Rules learned this session (follow them)
+- Agents drop on SSL/API errors and stream stalls: background jobs keep running; resume the agent with SendMessage (never start a second copy); brief long jobs to poll with short checks and checkpoint progress.md after each stage.
+- PowerShell: [IO.File] uses the process cwd, not Set-Location -> use full paths or [IO.Directory]::SetCurrentDirectory. Use Bash for gh --jq.
+- Model releases: verify model sha, join test a.bin+b.bin, vocab/libs identical, download back from raw URL before releasing an app that bumps ASRM ver.
+Resume: plan the next sprint with the user (start from «Open / next candidates»).
