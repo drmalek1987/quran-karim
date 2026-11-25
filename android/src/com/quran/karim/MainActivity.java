@@ -161,7 +161,7 @@ public class MainActivity extends Activity {
             });
         }
         setContentView(root);
-        if (Build.VERSION.SDK_INT >= 31) holdSplash(root);
+        if (Build.VERSION.SDK_INT >= 31) showSplash();
         // Android 13+ sends back here (enableOnBackInvokedCallback in the manifest; Android 16 no longer calls onBackPressed).
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, new OnBackInvokedCallback() {
@@ -175,22 +175,39 @@ public class MainActivity extends Activity {
         else web.loadUrl(START);
     }
 
-    private void holdSplash(final View content) {
-        content.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
-            public boolean onPreDraw() {
-                long dt = android.os.SystemClock.uptimeMillis() - t0;
-                if (dt < 3000 && !(contentDrawn && dt >= 1000)) {
-                    content.postInvalidateDelayed(50);   // look again soon: nothing else may trigger a draw
-                    return false;
-                }
-                content.getViewTreeObserver().removeOnPreDrawListener(this);
-                android.util.Log.i("QKStart", "contentDrawn=" + (contentDrawn ? drawnAt - t0 : -1) + " splashOff=" + dt + " api=" + Build.VERSION.SDK_INT);
-                return true;
-            }
+    // The splash is our own view, a copy of the system one (cream + round icon), laid over the whole window.
+    // 5.39 held the first draw instead, so the system splash stayed up; but MIUI shows no system splash at all,
+    // only its own blank (dark grey in dark mode) window, which then stayed for a full second.
+    // Drawing at once and covering the page works the same everywhere: on stock Android the system splash
+    // hands over to an identical picture.
+    private void showSplash() {
+        final android.view.ViewGroup decor = (android.view.ViewGroup) getWindow().getDecorView();
+        final FrameLayout splash = new FrameLayout(this);
+        splash.setBackgroundColor(0xFFF7F2E7);   // @color/bg
+        splash.setClickable(true);               // touches must not reach the page under it
+        float dp = getResources().getDisplayMetrics().density;
+        // Like the system splash: the adaptive icon's layers at 240dp, seen through a 160dp circle
+        // (not the AdaptiveIconDrawable itself: it applies the launcher's mask, a squircle on MIUI).
+        int size = Math.round(240 * dp);
+        final int inset = Math.round(40 * dp);
+        android.widget.ImageView icon = new android.widget.ImageView(this);
+        icon.setImageDrawable(new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[] {
+            getDrawable(R.drawable.ic_launcher_bg), getDrawable(R.mipmap.ic_launcher_fg) }));
+        icon.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            public void getOutline(View v, android.graphics.Outline o) { o.setOval(inset, inset, v.getWidth() - inset, v.getHeight() - inset); }
         });
-        getSplashScreen().setOnExitAnimationListener(new android.window.SplashScreen.OnExitAnimationListener() {
-            public void onSplashScreenExit(final android.window.SplashScreenView v) {
-                v.animate().alpha(0f).setDuration(200).withEndAction(new Runnable() { public void run() { v.remove(); } }).start();
+        icon.setClipToOutline(true);
+        splash.addView(icon, new FrameLayout.LayoutParams(size, size, android.view.Gravity.CENTER));
+        decor.addView(splash, new FrameLayout.LayoutParams(-1, -1));
+        final android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+        h.post(new Runnable() {
+            public void run() {
+                long dt = android.os.SystemClock.uptimeMillis() - t0;
+                if (dt < 3000 && !(contentDrawn && dt >= 1000)) { h.postDelayed(this, 50); return; }
+                android.util.Log.i("QKStart", "contentDrawn=" + (contentDrawn ? drawnAt - t0 : -1) + " splashOff=" + dt + " api=" + Build.VERSION.SDK_INT);
+                splash.animate().alpha(0f).setDuration(200).withEndAction(new Runnable() {
+                    public void run() { decor.removeView(splash); }
+                }).start();
             }
         });
     }

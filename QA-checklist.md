@@ -814,3 +814,8 @@ On the phone:
 - APK quran-karim-v5.39.apk 70,118,832 B, com.quran.karim 87 / 5.39, label «لوْح», signer 7d8b31d2, not debuggable; Sprint 6 code present in assets/web/app.js (q.tourDone, barTip, version.json, openStore, ذكِّرني) and QKStart in classes.dex.
 
 - Cold start 5.39 (Phone_API35, logcat QKStart, n=10 after warm-up): contentDrawn median 910 ms, splashOff median 1012 ms (splash adds ~100 ms over 'content ready' here; the 1 s floor rules), am start TotalTime median 1249 ms (= UI visible). 5.38 baseline TotalTime 733 ms was the first frame of a BLANK cream window, the web UI came ~content time later; same code path -> real user-visible cost ~ +100 ms on the emulator. On a fast phone (content < 1 s) the floor can add up to ~1 s - contentDrawn (what the user asked: logo ~1 s). screenrecord wedges the AVD (3x) -> use logcat timing.
+
+## 5.40 (2026-11-25) — splash fix
+- run-parallel ui.js: kfgqpc / kfold / shamarly / harmain 400/0 each.
+- Splash: phone bee81250 (MIUI 14, Android 12, dark mode) logo on cream (was blank grey in 5.39); emulator API 35 matches the system splash. Phone cold start x10 each, alternating 5.39/5.40: first frame ~1110 -> ~320 ms, splashOff ~1.0 s both, contentDrawn ~576 -> ~648 ms.
+- Check on every release: launch from the launcher on a MIUI phone in dark mode, the splash must show the logo.
