@@ -1275,3 +1275,11 @@ Resume: open for user: phone items 9 (offline model) + 10 (recitation); EN pre-e
 - QA 5.41: run-parallel 401/0 x4 (after test-only fixes: the new EN Hijri check runs in its own context with a seeded location; the backup check now waits for the restore and checks it survives the reopen, instead of a fixed 2.5 s that flaked under 4 parallel editions — restore takes ~250 ms, data kept after reload, 12/12). One harmain S3 «سمّع التكملة» fail in one run, passed in the next (flake).
 - PUSHED: main + builds release v5.41.
 Resume: open for user: phone items 9+10; other EN gaps (fasting reason, prayer card names, alerts); Play AAB; .set-group stripe.
+
+## 5.42 — English gaps from the phone pass (2026-11-25)
+- i18n.js: generated keys (prayer name + time, bell/muezzin labels, adhan voice names full/short/with «تذكير قبله # د», all fasting-reason combinations, countdown «#:# ص · بعد # س # د», «#/#/# · # آية نسيتها», «استمع»). Two catches: «الفجر»/«العصر»/«محمد» are surah names, so tr() turns them into @ first — the home tile now puts name and time in separate <bdi>, and voices starting «محمد» get an @ key.
+- app.js: prayer-screen place/date line uses en-GB + Latin coordinates in English.
+- Headless EN scan (home, prayer, hifzlog): no Arabic UI text left; new ui.js check. Bumped 5.42 (90), sw quran-v86; APK signer 7d8b31d2.
+- Phone disconnected (adb: device not found) — phone check pending.
+- QA 5.42: run-parallel 402/0 x4. Committed locally (not pushed: push needs the user's OK).
+Resume: phone EN check when connected -> on the user's OK push main + builds release v5.42.

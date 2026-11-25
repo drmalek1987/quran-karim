@@ -823,3 +823,7 @@ On the phone:
 ## 5.41 (2026-11-25) — English Hijri date
 - run-parallel ui.js 401/0 on all 4 editions (new check: EN Hijri date = Hijri month name + AH, no BC).
 - Phone bee81250: home «Wednesday 15 Jumada al-Akhirah 1448 AH», prayer screen the same (was «June 15, 1448 BC»).
+
+## 5.42 (2026-11-25) — English gaps
+- run-parallel ui.js 402/0 on all 4 editions; new check: English home/prayer/hifzlog show no Arabic UI text (fasting reason, prayer tile, muezzin + reminder, countdown, «آية نسيتها», bell labels).
+- Phone: pending (phone disconnected).

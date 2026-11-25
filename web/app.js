@@ -4688,7 +4688,8 @@
     var loc = load("qiblaLoc", null);
     if (!loc) return "مواقيت الصلاة";
     var n = nextPrayer(loc, prayerCfg());
-    return "مواقيت الصلاة<small class=\"tile-sub\">" + n.k + " " + hm(n.at) + "</small>";
+    // Name and time in their own elements: English translates each («الفجر» is also a surah name, so the joined line never matched).
+    return "مواقيت الصلاة<small class=\"tile-sub\"><bdi>" + n.k + "</bdi> <bdi>" + hm(n.at) + "</bdi></small>";
   }
   function untilText(ms) {
     var m = Math.max(0, Math.round(ms / 60000)), h = Math.floor(m / 60);
@@ -4794,7 +4795,9 @@
     if (loc) {
       var now = new Date(), t = prayerTimes(now, loc[0], loc[1], cfg.method, cfg.hanafi), nx = nextPrayer(loc, cfg), hj = hijri(now);
       html += '<div class="pr-next"><small>الصلاة القادمة</small><b>' + nx.k + "</b><span>" + hm(nx.at) + " · " + untilText(nx.at - now) + "</span>" +
-        '<em class="pr-where">' + ic("pin") + (loc[2] || ar(loc[0].toFixed(2)) + "، " + ar(loc[1].toFixed(2))) + " · " + now.toLocaleDateString("ar-EG", { weekday: "long", day: "numeric", month: "long" }) + (hj ? " · " + hj.text : "") + "</em></div>";
+        // English: Latin coordinates and an English weekday/month (this line stayed Arabic in English before 5.42).
+        '<em class="pr-where">' + ic("pin") + (loc[2] || (window.LANG === "en" ? loc[0].toFixed(2) + ", " + loc[1].toFixed(2) : ar(loc[0].toFixed(2)) + "، " + ar(loc[1].toFixed(2)))) + " · " +
+        now.toLocaleDateString(window.LANG === "en" ? "en-GB" : "ar-EG", { weekday: "long", day: "numeric", month: "long" }) + (hj ? " · " + hj.text : "") + "</em></div>";
       if (hj && hj.month === 9) html += '<div class="rm-times"><div><small>الإمساك</small><b>' + hm(new Date(t.fajr - 10 * 60000)) + '</b></div><div><small>الإفطار</small><b>' + hm(t.maghrib) + "</b></div></div>";
       if (window.AppBridge && AppBridge.notificationsOn && !AppBridge.notificationsOn())
         html += '<button class="pr-warn" id="prNotif">الإشعارات معطّلة للتطبيق، فلن يظهر الأذان. اضغط لتفعيلها.</button>';

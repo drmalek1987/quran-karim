@@ -2149,6 +2149,22 @@ async function fresh(ctx, vp) {
     await c.close();
     const ok = t => /\d{1,2} (Muharram|Safar|Rabi' al-Awwal|Rabi' al-Thani|Jumada al-Ula|Jumada al-Akhirah|Rajab|Sha'ban|Ramadan|Shawwal|Dhu al-Qa'dah|Dhu al-Hijjah) 1[45]\d\d AH/.test(t) && !/BC/.test(t);
     return assert(ok(h) && ok(pr), h + ' | ' + pr); });
+  // 5.42: lines built from parts (fasting reason, the home prayer tile, the muezzin + reminder, the countdown, «آية نسيتها», bell labels) are English too.
+  await check('عام', 'الواجهة الإنجليزي: سبب الصيام، الصلاة القادمة، المؤذن والتذكير، العدّ التنازلي، «آية نسيتها»، وأزرار التنبيه مترجمة', async () => {
+    const c = await b.newContext({ viewport: { width: 360, height: 780 } }); await fresh(c, { width: 360, height: 780 });
+    await p.addInitScript(() => { localStorage.setItem('q.lang', '"en"'); localStorage.setItem('q.qiblaLoc', JSON.stringify([30.06, 31.23]));
+      localStorage.setItem('q.prayer', JSON.stringify({ method: 'egypt', hanafi: false, adhan: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: false }, voice: { fajr: 'menshawy', dhuhr: 'chebae' }, pre: { fajr: 60, dhuhr: 5, isha: 5 } }));
+      localStorage.setItem('q.lastTest', JSON.stringify({ n: '', r: ['2:124', '2:286'], d: '2026-11-25', k: 'm', sc: 68, ay: 163, miss: ['2:130', '2:140'] }));
+      if (!localStorage.getItem('q.onboarded')) { localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.mode', '"text"'); localStorage.setItem('q.tourDone', '1'); } });
+    // Visible Arabic text and Arabic aria-labels in the view, Quran text aside (3+ vowel marks).
+    const arab = () => ev(() => { const o = [], w = document.createTreeWalker(document.getElementById('view'), NodeFilter.SHOW_TEXT); let n;
+      while ((n = w.nextNode())) { const t = n.textContent.trim(); if (/[ء-ي]/.test(t) && (t.match(/[ً-ْٰۡ]/g) || []).length < 3 && n.parentElement.offsetParent !== null) o.push(t.slice(0, 60)); }
+      document.querySelectorAll('#view [aria-label]').forEach(e => { if (/[ء-ي]/.test(e.getAttribute('aria-label'))) o.push('aria:' + e.getAttribute('aria-label')); }); return o; });
+    await p.goto(W + '#/'); await wait(3000); const home = await arab(), tile = await ev(() => (document.querySelector('.tile-sub') || {}).textContent || '');
+    await go('#/prayer', 1200); const pray = await arab(), rows = await ev(() => [...document.querySelectorAll('.pr-row small')].map(x => x.textContent).join(' | '));
+    await go('#/hifzlog', 1200); const lt = await ev(() => (document.querySelector('.tc-last') || {}).textContent || ''); await c.close();
+    return assert(!home.length && !pray.length && /^(Fajr|Sunrise|Dhuhr|Asr|Maghrib|Isha) \d{1,2}:\d\d [AP]M$/.test(tile) && /Muhammad Siddiq Al-Minshawi · reminder 60 min before/.test(rows) && / · 2 verses forgotten/.test(lt),
+      JSON.stringify({ home, pray, tile, rows, lt })); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

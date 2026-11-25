@@ -420,6 +420,39 @@
   var DUPD = { "يتوفر إصدار جديد من لوْح": "A new version of Lawh is available", "تحديث الآن": "Update now", "لاحقًا": "Later", "التحقق من التحديثات": "Check for updates", "تحقّق": "Check",
     "جارٍ التحقق…": "Checking…", "لديك أحدث إصدار (#)": "You have the latest version (#)", "يتوفر إصدار جديد (#)": "A new version is available (#)", "تعذّر الاتصال، حاول لاحقًا": "Couldn't connect, try again later" };
   for (var cUpd in DUPD) if (D[cUpd] === undefined) D[cUpd] = DUPD[cUpd];
+  // 5.42: lines built from parts that the phone pass found still in Arabic. Generated, so every combination matches.
+  (function () {
+    function put(k, v) { if (D[k] === undefined) D[k] = v; }
+    // Prayer names (the home tile «العشاء ٦:١٧ م», the bell / muezzin labels).
+    var PR = [["الفجر", "Fajr"], ["الشروق", "Sunrise"], ["الظهر", "Dhuhr"], ["العصر", "Asr"], ["المغرب", "Maghrib"], ["العشاء", "Isha"]];
+    PR.forEach(function (p) {
+      put(p[0] + " #:# ص", p[1] + " #:# AM"); put(p[0] + " #:# م", p[1] + " #:# PM"); put(p[0] + " #:#", p[1] + " #:#");
+      put("تنبيه " + p[0], p[1] + " alert"); put("مؤذن " + p[0], "Muezzin for " + p[1]);
+    });
+    // Adhan voices: the full names in the picker and the short name under each prayer, with or without the reminder.
+    var VO = [["الحرم المكي", "Makkah Haram", "السعودية"], ["حمدان المالكي", "Hamdan Al-Malki", "السعودية"], ["منصور الزهراني", "Mansour Al-Zahrani", "السعودية"],
+      ["ناصر القطامي", "Nasser Al-Qatami", "السعودية"], ["عبد الباسط عبد الصمد", "Abdul Basit Abdul Samad", "مصر"], ["محمد صديق المنشاوي", "Muhammad Siddiq Al-Minshawi", "مصر"],
+      ["محمد رفعت", "Muhammad Refaat", "مصر"], ["مشاري العفاسي", "Mishary Alafasy", "الكويت"], ["أذان الفجر", "Fajr adhan", ""],
+      ["نغمة المنبّه في الهاتف", "Phone alarm tone", ""], ["إشعار بدون صوت", "Silent notification", ""], ["الأذان معطّل", "Adhan off", ""]];
+    var CO = { "السعودية": "Saudi Arabia", "مصر": "Egypt", "الكويت": "Kuwait" };
+    VO.forEach(function (v) {
+      put(v[0], v[1]); if (v[2]) put(v[0] + " (" + v[2] + ")", v[1] + " (" + CO[v[2]] + ")");
+      put(v[0] + " · تذكير قبله # د", v[1] + " · reminder # min before");
+      // «محمد» is also a surah name: tr() has already turned it into @ when it looks the line up.
+      if (v[0].indexOf("محمد ") === 0) put("@ " + v[0].slice(5) + " · تذكير قبله # د", v[1] + " · reminder # min before");
+    });
+    put("أذان الفجر، مالك شيبة (المغرب)", "Fajr adhan, Malik Chebae (Morocco)");
+    // Why today is a sunnah fast: any of these, in the order app.js (fastOf) lists them, joined with « و».
+    var FA = [["يوم عرفة", "the Day of Arafah"], ["يوم عاشوراء", "the Day of Ashura"], ["تاسوعاء", "Tasu'a"], ["الأيام البيض", "the White Days"], ["الاثنين", "Monday"], ["الخميس", "Thursday"]];
+    for (var m = 1; m < 1 << FA.length; m++) {
+      var a = [], e = []; FA.forEach(function (f, i) { if (m & 1 << i) { a.push(f[0]); e.push(f[1]); } });
+      put("يُستحب صيامه: " + a.join(" و"), "Sunnah to fast today: " + e.join(" and "));
+    }
+    put("#/#/# · # آية نسيتها", "#/#/# · # verses forgotten");
+    // The next prayer's time and how long until it (prayer screen).
+    [["ص", "AM"], ["م", "PM"]].forEach(function (x) { put("#:# " + x[0] + " · بعد # س # د", "#:# " + x[1] + " · in # h # min"); put("#:# " + x[0] + " · بعد # د", "#:# " + x[1] + " · in # min"); });
+    put("استمع", "Listen");
+  })();
   for (var c in CITY) D[c] = CITY[c];
 
   var AR_DIGITS = /[٠-٩]/g;
