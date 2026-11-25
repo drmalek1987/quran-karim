@@ -1265,4 +1265,5 @@ Resume: fair cold-start report (qk-qa running) -> final report to the user. Open
 - Fix (MainActivity.showSplash): our own splash view on the decor view (cream #f7f2e7, adaptive-icon layers 240dp seen through a 160dp circle = system look), drawn at once; fades (200 ms) when contentDrawn && >=1 s (cap 3 s). Stock Android: system splash hands over to the identical picture (emulator API 35 shot 24-emu-2-a). Phone: logo on cream (23-fix-1-a); contentDrawn 629-776 ms, splashOff ~1.02-1.04 s, am start TotalTime ~330 ms (first frame now the splash).
 - Bumped 5.40 (88): manifest, index.html :227/:266, sw quran-v84. APK quran-karim-v5.40.apk signer 7d8b31d2 verified.
 - Phone A/B timing stopped: mCallState=2 (call in progress) — nothing touched. Emulator wedged again on install loop (killed).
-Resume: QA run-parallel result -> phone A/B timing when the call ends -> commit + push + builds release v5.40 (user said «صلّحه» for 5.40).
+- 5.40 DONE: QA 400/0 x4; phone A/B (n=10 each): first frame 1110->320 ms, splashOff ~1.0 s both, contentDrawn 576->648 ms. Pushed main 12cc279, builds release v5.40 (70,118,832 B). Installed on bee81250.
+Resume: open for user: phone items 9 (offline model) + 10 (recitation); EN pre-existing gaps (Hijri «BC» date); Play AAB; .set-group stripe.
