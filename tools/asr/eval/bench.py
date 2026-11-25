@@ -24,9 +24,20 @@ def lev(a, b):
             t = d[j]; d[j] = min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] != b[j - 1])); p = t
     return d[n]
 def rsame(a, b):
+    # 5.38 (Sprint 5b B): mirrors web/app.js rSim/rSame: a one-letter swap between the R_PAIRS letter pairs is a
+    # recitation mistake, not the same word (plans/sprint5b-B-swap-bench.md). Same DP as swap/strict.py (parity 0 diff).
     if not a or not b: return False
     if a == b: return True
-    return 1 - lev(a, b) / max(len(a), len(b)) >= 0.6
+    return _rsame_strict(a, b)
+
+def _make_strict():
+    import importlib.util, os
+    sp = importlib.util.spec_from_file_location('swap_strict', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'swap', 'strict.py'))
+    st = importlib.util.module_from_spec(sp); sp.loader.exec_module(st)
+    pairs = set()
+    for p in 'ضد صس حه قك ذز ثس ظض طت'.split(): pairs.add(p); pairs.add(p[::-1])
+    return st.make_rsame(pairs)
+_rsame_strict = _make_strict()
 
 REP = 0.2        # the word just matched, said again
 MERGE = 0.5      # two heard words read as one expected word: only when it beats aligning them one by one

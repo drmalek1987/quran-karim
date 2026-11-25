@@ -1,0 +1,106 @@
+{
+  "label": "5.39-splash-emu",
+  "serial": "emulator-5554",
+  "pkg": "com.quran.karim",
+  "runs_requested": 11,
+  "warmup_runs_dropped": 1,
+  "runs": [
+    {
+      "run": 1,
+      "total_ms": 1522,
+      "wait_ms": 1523,
+      "displayed_ms": 1522,
+      "am_output_ok": true
+    },
+    {
+      "run": 2,
+      "total_ms": 1320,
+      "wait_ms": 1322,
+      "displayed_ms": 1320,
+      "am_output_ok": true
+    },
+    {
+      "run": 3,
+      "total_ms": 1336,
+      "wait_ms": 1338,
+      "displayed_ms": 1336,
+      "am_output_ok": true
+    },
+    {
+      "run": 4,
+      "total_ms": 1448,
+      "wait_ms": 1463,
+      "displayed_ms": 1448,
+      "am_output_ok": true
+    },
+    {
+      "run": 5,
+      "total_ms": 1413,
+      "wait_ms": 1416,
+      "displayed_ms": 1413,
+      "am_output_ok": true
+    },
+    {
+      "run": 6,
+      "total_ms": 1372,
+      "wait_ms": 1373,
+      "displayed_ms": 1372,
+      "am_output_ok": true
+    },
+    {
+      "run": 7,
+      "total_ms": 1345,
+      "wait_ms": 1347,
+      "displayed_ms": 1345,
+      "am_output_ok": true
+    },
+    {
+      "run": 8,
+      "total_ms": 1412,
+      "wait_ms": 1415,
+      "displayed_ms": 1412,
+      "am_output_ok": true
+    },
+    {
+      "run": 9,
+      "total_ms": 1368,
+      "wait_ms": 1370,
+      "displayed_ms": 1368,
+      "am_output_ok": true
+    },
+    {
+      "run": 10,
+      "total_ms": 1366,
+      "wait_ms": 1368,
+      "displayed_ms": 1366,
+      "am_output_ok": true
+    },
+    {
+      "run": 11,
+      "total_ms": 1320,
+      "wait_ms": 1331,
+      "displayed_ms": 1320,
+      "am_output_ok": true
+    }
+  ],
+  "stats_excluding_warmup": {
+    "TotalTime": {
+      "n": 10,
+      "min": 1320,
+      "median": 1367.0,
+      "p90": 1413
+    },
+    "WaitTime": {
+      "n": 10,
+      "min": 1322,
+      "median": 1369.0,
+      "p90": 1416
+    },
+    "Displayed": {
+      "n": 10,
+      "min": 1320,
+      "median": 1367.0,
+      "p90": 1413
+    }
+  }
+}

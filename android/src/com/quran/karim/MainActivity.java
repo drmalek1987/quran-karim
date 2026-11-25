@@ -47,11 +47,15 @@ public class MainActivity extends Activity {
     private SpeechBridge speech;
     /** The WebView's padding now (system bars + cutout) and the cutout alone (what is left in full screen), in px. */
     static volatile int insT, insB, cutT, cutB;
+    // 5.39 #33a: the system splash (API 31+) stays up about a second, until the page is drawn, at most 3 s.
+    private long t0, drawnAt;
+    private volatile boolean contentDrawn;
     static volatile boolean fsKeepStatus;   // 5.34 #14: full screen leaves the status bar (AppBridge.fsStatus)
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        t0 = android.os.SystemClock.uptimeMillis();
         web = new WebView(this);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -93,6 +97,11 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 loaded = true;
+                if (Build.VERSION.SDK_INT >= 23 && !contentDrawn) {
+                    view.postVisualStateCallback(0, new WebView.VisualStateCallback() {
+                        public void onComplete(long id) { drawnAt = android.os.SystemClock.uptimeMillis(); contentDrawn = true; }
+                    });
+                }
                 if (pendingHash != null) { String h = pendingHash; pendingHash = null; openHash(h); }
             }
             // Recitation audio: served from the copy on the phone, downloaded and kept the first time.
@@ -152,6 +161,7 @@ public class MainActivity extends Activity {
             });
         }
         setContentView(root);
+        if (Build.VERSION.SDK_INT >= 31) holdSplash(root);
         // Android 13+ sends back here (enableOnBackInvokedCallback in the manifest; Android 16 no longer calls onBackPressed).
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, new OnBackInvokedCallback() {
@@ -163,6 +173,26 @@ public class MainActivity extends Activity {
         if (hash != null && hash.startsWith("#/")) web.loadUrl(START + hash);
         else if (state != null) web.restoreState(state);
         else web.loadUrl(START);
+    }
+
+    private void holdSplash(final View content) {
+        content.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
+            public boolean onPreDraw() {
+                long dt = android.os.SystemClock.uptimeMillis() - t0;
+                if (dt < 3000 && !(contentDrawn && dt >= 1000)) {
+                    content.postInvalidateDelayed(50);   // look again soon: nothing else may trigger a draw
+                    return false;
+                }
+                content.getViewTreeObserver().removeOnPreDrawListener(this);
+                android.util.Log.i("QKStart", "contentDrawn=" + (contentDrawn ? drawnAt - t0 : -1) + " splashOff=" + dt + " api=" + Build.VERSION.SDK_INT);
+                return true;
+            }
+        });
+        getSplashScreen().setOnExitAnimationListener(new android.window.SplashScreen.OnExitAnimationListener() {
+            public void onSplashScreenExit(final android.window.SplashScreenView v) {
+                v.animate().alpha(0f).setDuration(200).withEndAction(new Runnable() { public void run() { v.remove(); } }).start();
+            }
+        });
     }
 
     // A notification or the widget opened the app while it was already running: go to that screen.

@@ -40,7 +40,7 @@ const SET = ([ed, tm]) => { localStorage.setItem('q.edition', JSON.stringify(ed)
       for (let c = 1; c <= all.length + 1; c++) {
         const fin = c > all.length, txt = pre.concat(all.slice(0, Math.min(c, all.length))).join(' ');
         await say(txt, fin ? 'final' : 'partial');
-        await wait((c > all.length * 0.3) || fin ? 350 : 60);
+        await wait((c > all.length * 0.3) || c <= 4 || fin ? 350 : 60);   // Sprint 5b D: hifzPageGo turns 150 ms after the verdict; a 60 ms wait read 5:92 (page ends after word 2) as a late turn
         const bx = await boxes(); if (bx !== startBoxes && turnedAt == null) turnedAt = fin ? 'final' : c; log.push(c + ':' + (bx === startBoxes ? '=' : bx));
         if (turnedAt != null && c > (typeof turnedAt === 'number' ? turnedAt : 0) + 2) break;
       }

@@ -1,0 +1,106 @@
+{
+  "label": "5.38-emu",
+  "serial": "emulator-5554",
+  "pkg": "com.quran.karim",
+  "runs_requested": 11,
+  "warmup_runs_dropped": 1,
+  "runs": [
+    {
+      "run": 1,
+      "total_ms": 713,
+      "wait_ms": 716,
+      "displayed_ms": 713,
+      "am_output_ok": true
+    },
+    {
+      "run": 2,
+      "total_ms": 720,
+      "wait_ms": 723,
+      "displayed_ms": 720,
+      "am_output_ok": true
+    },
+    {
+      "run": 3,
+      "total_ms": 741,
+      "wait_ms": 745,
+      "displayed_ms": 741,
+      "am_output_ok": true
+    },
+    {
+      "run": 4,
+      "total_ms": 750,
+      "wait_ms": 756,
+      "displayed_ms": 750,
+      "am_output_ok": true
+    },
+    {
+      "run": 5,
+      "total_ms": 725,
+      "wait_ms": 727,
+      "displayed_ms": 725,
+      "am_output_ok": true
+    },
+    {
+      "run": 6,
+      "total_ms": 746,
+      "wait_ms": 747,
+      "displayed_ms": 746,
+      "am_output_ok": true
+    },
+    {
+      "run": 7,
+      "total_ms": 748,
+      "wait_ms": 756,
+      "displayed_ms": 748,
+      "am_output_ok": true
+    },
+    {
+      "run": 8,
+      "total_ms": 714,
+      "wait_ms": 715,
+      "displayed_ms": 714,
+      "am_output_ok": true
+    },
+    {
+      "run": 9,
+      "total_ms": 715,
+      "wait_ms": 718,
+      "displayed_ms": 715,
+      "am_output_ok": true
+    },
+    {
+      "run": 10,
+      "total_ms": 746,
+      "wait_ms": 746,
+      "displayed_ms": 746,
+      "am_output_ok": true
+    },
+    {
+      "run": 11,
+      "total_ms": 721,
+      "wait_ms": 723,
+      "displayed_ms": 721,
+      "am_output_ok": true
+    }
+  ],
+  "stats_excluding_warmup": {
+    "TotalTime": {
+      "n": 10,
+      "min": 714,
+      "median": 733.0,
+      "p90": 748
+    },
+    "WaitTime": {
+      "n": 10,
+      "min": 715,
+      "median": 736.0,
+      "p90": 756
+    },
+    "Displayed": {
+      "n": 10,
+      "min": 714,
+      "median": 733.0,
+      "p90": 748
+    }
+  }
+}

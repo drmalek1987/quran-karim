@@ -1,0 +1,541 @@
+<!doctype html>
+<html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قاموس الفصحى والاسم الجديد — Sprint 6</title>
+<style>
+body{font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif;font-size:16px;line-height:1.7;margin:0;color:#1d2b24;background:#fbf9f3}
+header{position:sticky;top:0;background:#14513a;color:#fff;padding:10px 18px;z-index:5;box-shadow:0 2px 6px #0003}
+header h1{margin:0;font-size:20px}header p{margin:2px 0 0;font-size:14px;opacity:.9}
+main{padding:14px 18px 40px;max-width:1300px;margin:auto}
+table{border-collapse:collapse;width:100%;background:#fff}
+th{position:sticky;top:64px;background:#e7efe9;text-align:right;padding:8px;border:1px solid #c9d6cd;z-index:4}
+td{padding:7px 8px;border:1px solid #dbe3dd;vertical-align:top}
+td.w{font-size:13px;color:#4a5b52;white-space:nowrap}td.o{color:#8a2c12}td.n{color:#0f5a36;font-weight:600}
+section.p{background:#fff7e0;border:1px solid #e3cf8c;border-radius:8px;padding:6px 16px;margin:14px 0}
+code{direction:ltr;unicode-bidi:embed;font-size:13px}
+</style></head><body>
+<header><h1>قاموس الفصحى والاسم الجديد «لوْح»</h1>
+<p>عدد النصوص المغيّرة: 517 (web/app.js: 258 · web/index.html: 21 · web/i18n.js: 231 · android/res/values/strings.xml: 1 · web/manifest.webmanifest: 2 · docs/privacy-policy.html: 2 · store/privacy-policy.html: 2). النص القديم بالعامية ← الجديد بالفصحى؛ الاسم «لوح» ← «لوْح».</p></header>
+<main>
+<section class="p"><h2>حالة العناوين التي كانت بانتظار قرارك</h2><ul>
+<li><b>تمت الموافقة:</b> «فكّرني» ← «ذكِّرني» (زر الكشف في الحفظ، والترجمة الإنجليزية Remind me كما هي).</li>
+<li><b>تمت الموافقة:</b> «فكّرني لو مخلصتش» ← «ذكِّرني إن لم أُتمّ الورد».</li>
+<li><b>تبقى كما هي بقرارك:</b> «اختبرني»، «اختبار عشوائي»، «تنبيه الأخطاء» (غُيّرت الكلمات العامية حولها فقط).</li></ul></section>
+<table><thead><tr><th>المكان</th><th>النص القديم</th><th>النص الجديد</th></tr></thead><tbody>
+<tr><td class="w">دالة showHifzMap<br><code>web/app.js:5059</code></td><td class="o">… كل مربع ربع، والسورة مربع لوحدها في الأجزاء ٢٨–٣٠. اضغط على المربع يظهر اسمه، ومنه «افتح في المصحف» تفتح آياته مظلّلة، أو «اختبرني» تختبر نفسك فيه. اضغط في أي مكان بره الكارت يتقفل. واضغط على الجزء تشوف وحداته وتختبر أي واحدة. «محتاجة مراجعة» لو المربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من ٨٠٪. …</td><td class="n">… كل مربع ربع، والسورة مربع وحدها في الأجزاء ٢٨–٣٠. اضغط على المربع ليظهر اسمه، ومنه «افتح في المصحف» لتفتح آياته مظلّلة، أو «اختبرني» لتختبر نفسك فيه. اضغط في أي مكان خارج البطاقة لإغلاقها. واضغط على الجزء لترى وحداته وتختبر أي واحدة منها. «محتاجة مراجعة» إذا كان المربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من ٨٠٪. …</td></tr>
+<tr><td class="w">دالة run<br><code>web/app.js:1109</code></td><td class="o">… 🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها. …</td><td class="n">… 🎤 اضغط على الميكروفون وقل أمرًا: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مائة»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وسيظهر لك مكانها. …</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4524</code></td><td class="o">السور المراجعة …  … السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتفضل فيها وبترجع لك في المراجعة بكرة. …  …</td><td class="n">السور المراجعة …  … تدخل السورة هذه القائمة عندما تحصل على ٨٠٪ أو أكثر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. وإذا حصلت على أقل من ٨٠٪ تبقى فيها وتعود إليك في المراجعة غدًا. …  …</td></tr>
+<tr><td class="w">دالة reciteSummary<br><code>web/app.js:2366</code></td><td class="o">… التعرّف على الكلام ممكن يغلط في التلاوة المجوّدة، فلو كلمة متعلّمة وانت متأكد منها، متقلقش. …  …  … تم …  …  …  …</td><td class="n">… قد يخطئ التعرّف على الكلام في التلاوة المجوّدة، فإن كانت كلمة معلّمة وأنت متأكد منها فلا تقلق. …  …  … تم …  …  …  …</td></tr>
+<tr><td class="w">دالة hzMemoList<br><code>web/app.js:5433</code></td><td class="o">… السورة بتدخل القايمة دي لما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة ٨٠٪ أو أكتر. ولو جبت أقل من ٨٠٪ بتخرج منها. …  …</td><td class="n">… تدخل السورة هذه القائمة عندما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة ٨٠٪ أو أكثر. وإذا حصلت على أقل من ٨٠٪ تخرج منها. …  …</td></tr>
+<tr><td class="w">دالة consentDlg<br><code>web/app.js:432</code></td><td class="o">…  …  … نموذج التعرّف على التلاوة …  … بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف.</td><td class="n">…  …  … نموذج التعرّف على التلاوة …  … يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف.</td></tr>
+<tr><td class="w">دالة goalDialog<br><code>web/app.js:5414</code></td><td class="o">…  …  … هدف القراءة اليومي …  … كام صفحة في اليوم؟ الصفحات بتتحسب لوحدها وانت بتقرا. …  …</td><td class="n">…  …  … هدف القراءة اليومي …  … كم صفحة في اليوم؟ تُحسب الصفحات تلقائيًا وأنت تقرأ. …  …</td></tr>
+<tr><td class="w">دالة micTips<br><code>web/app.js:452</code></td><td class="o">…  …  …  … اختبر المايك …  … ابدأ …  …  …  …</td><td class="n">…  …  …  … اختبر الميكروفون …  … ابدأ …  …  …  …</td></tr>
+<tr><td class="w">دالة showStudents<br><code>web/app.js:5202</code></td><td class="o">…  … الطالب بيعمل اختبار الحفظ، وبعدين من «المراجعة» يضغط «ابعت للمحفّظ». الصق رسالته هنا (ممكن أكتر من رسالة مرة واحدة). …</td><td class="n">…  … يجري الطالب اختبار الحفظ، ثم من «المراجعة» يضغط «أرسل للمحفّظ». الصق رسالته هنا (يمكن أكثر من رسالة دفعة واحدة). …</td></tr>
+<tr><td class="w">دالة showTopics<br><code>web/app.js:5242</code></td><td class="o">… الفهرس متولّد من جذور الكلمات ونص المصحف اللي في التطبيق نفسه، فممكن يفوته آية بتتكلم عن الموضوع من غير ما تذكر لفظه. …  …</td><td class="n">… الفهرس مولَّد من جذور الكلمات ونص المصحف الموجود في التطبيق نفسه، فقد تفوته آية تتحدث عن الموضوع دون أن تذكر لفظه. …  …</td></tr>
+<tr><td class="w">دالة showFamily<br><code>web/app.js:5116</code></td><td class="o">… التطبيق مش بيبعت حاجة على الإنترنت. لما حد يخلص جزء يضغط عليه ويشارك التقدم في جروب العيلة، والباقيين يستوردوا الكود. …  …</td><td class="n">… التطبيق لا يرسل شيئًا عبر الإنترنت. عندما يُنهي أحدهم جزءًا يضغط عليه ويشارك التقدم في مجموعة العائلة، ويستورد الباقون الكود. …  …</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5307</code></td><td class="o">…  … نموذج التعرّف على التلاوة …  … بيسمع تلاوتك ويتابعها في المصحف ويصحّح التسميع. بيشتغل على الموبايل من غير إنترنت، وحجمه</td><td class="n">…  … نموذج التعرّف على التلاوة …  … يستمع إلى تلاوتك ويتابعها في المصحف ويصحّح التسميع. يعمل على الهاتف بدون إنترنت، وحجمه</td></tr>
+<tr><td class="w">دالة donateStatsHtml<br><code>web/app.js:3734</code></td><td class="o">…  … ما اتحفظش …  …  …  …  … الخصوصية وتسجيلات الصوت …  …  …</td><td class="n">…  … لم يُحفظ …  …  …  …  … الخصوصية وتسجيلات الصوت …  …  …</td></tr>
+<tr><td class="w">دالة asrStatsHtml<br><code>web/app.js:3726</code></td><td class="o">… آخر ٧ أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات. …  …</td><td class="n">… آخر ٧ أيام، على الهاتف فقط. إذا كانت النسبة منخفضة فجرّب مكانًا أهدأ أو «اختبار الميكروفون» في الإعدادات. …  …</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5498</code></td><td class="o">… اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، والاختبار بيخلص لوحده أول ما كل الكلمات تظهر. الآيات</td><td class="n">… اقرأ من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وينتهي الاختبار تلقائيًا عندما تظهر كل الكلمات. الآيات</td></tr>
+<tr><td class="w">دالة showPrayer<br><code>web/app.js:4794</code></td><td class="o">… تنبيه الأذان ممكن يتأخر دقائق. اضغط لتسمح بالتنبيه في موعده بالظبط. …</td><td class="n">… قد يتأخر تنبيه الأذان دقائق. اضغط لتسمح بالتنبيه في موعده بالضبط. …</td></tr>
+<tr><td class="w">دالة consentDlg<br><code>web/app.js:433</code></td><td class="o">هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية. …</td><td class="n">هو أداة مساعدة للمراجعة والحفظ وقد يخطئ، خصوصًا مع الضوضاء. التفاصيل في الإعدادات › حول التطبيق › الخصوصية. …</td></tr>
+<tr><td class="w">دالة showFamily<br><code>web/app.js:5113</code></td><td class="o">…  …  …</td><td class="n">…  …  …</td></tr>
+<tr><td class="w">دالة setDonate<br><code>web/app.js:717</code></td><td class="o">توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟</td><td class="n">توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5299</code></td><td class="o">…  … مدينتك …  … عشان مواقيت الصلاة والأذان والقبلة. كل الحساب بيتم على الموبايل من غير إنترنت. …</td><td class="n">…  … مدينتك …  … لمواقيت الصلاة والأذان والقبلة. يتم كل الحساب على الهاتف بدون إنترنت. …</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5290</code></td><td class="o">…  … أهلًا بيك في «لوح» …  … اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات. …</td><td class="n">…  … أهلًا بك في «لوْح» …  … اختر المصحف الذي اعتدت القراءة فيه. يمكنك تغييره لاحقًا من الإعدادات. …</td></tr>
+<tr><td class="w">دالة showPrayer<br><code>web/app.js:4792</code></td><td class="o">… الإشعارات مقفولة للتطبيق، فالأذان مش هيظهر. اضغط وافتحها. …</td><td class="n">… الإشعارات معطّلة للتطبيق، فلن يظهر الأذان. اضغط لتفعيلها. …</td></tr>
+<tr><td class="w">دالة showMutashTest<br><code>web/app.js:5840</code></td><td class="o">… كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت.  … صح</td><td class="n">… أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت.  … صح</td></tr>
+<tr><td class="w">دالة statsHtml<br><code>web/app.js:3686</code></td><td class="o">…  … بتتحسب الصفحات اللي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم). …  …</td><td class="n">…  … تُحسب الصفحات التي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم). …  …</td></tr>
+<tr><td class="w">دالة asrStatsHtml<br><code>web/app.js:3714</code></td><td class="o">… لسه مفيش قراءة بالمايك في آخر ٧ أيام. الأرقام دي بتتحسب على الموبايل بس. …  …</td><td class="n">… لا توجد قراءة بالميكروفون بعد في آخر ٧ أيام. تُحسب هذه الأرقام على الهاتف فقط. …  …</td></tr>
+<tr><td class="w">دالة showTalqin<br><code>web/app.js:5924</code></td><td class="o">…  … اسمع …  … اقرا …  … سمّع …  …</td><td class="n">…  … اسمع …  … اقرأ …  … سمّع …  …</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5300</code></td><td class="o">استخدم موقعي …  …  … أو اختار مدينة… …</td><td class="n">استخدم موقعي …  …  … أو اختر مدينة… …</td></tr>
+<tr><td class="w">دالة micTips<br><code>web/app.js:449</code></td><td class="o">…  …  … نصايح قبل ما تبدأ …  …</td><td class="n">…  …  … نصائح قبل أن تبدأ …  …</td></tr>
+<tr><td class="w">دالة showMutashTest<br><code>web/app.js:5841</code></td><td class="o">﴾ …  …  … الآية دي متكررة بنصها، إيه الآية اللي بعدها هنا؟ …  …</td><td class="n">﴾ …  …  … هذه الآية مكررة بنصها، فما الآية التالية هنا؟ …  …</td></tr>
+<tr><td class="w">دالة listenDlg<br><code>web/app.js:2296</code></td><td class="o">…  … قفل …  …  …  …</td><td class="n">…  … إغلاق …  …  …  …</td></tr>
+<tr><td class="w">دالة micTips<br><code>web/app.js:450</code></td><td class="o">… اقعد في مكان هادي على قد ما تقدر …  … خلّي الموبايل على بعد ٢٠–٣٠ سم من بقك …</td><td class="n">… اجلس في مكان هادئ قدر الإمكان …  … اجعل الهاتف على بعد ٢٠–٣٠ سم من فمك …</td></tr>
+<tr><td class="w">دالة micTips<br><code>web/app.js:451</code></td><td class="o">… اقرا بصوت واضح وثابت …  … اتأكد إن المايك مش متغطي بإيدك أو بالجراب …  …</td><td class="n">… اقرأ بصوت واضح وثابت …  … تأكّد أن الميكروفون غير مغطّى بيدك أو بالغلاف …  …</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4752</code></td><td class="o">عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.</td><td class="n">مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.</td></tr>
+<tr><td class="w">دالة donateDelete<br><code>web/app.js:728</code></td><td class="o">تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.</td><td class="n">تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5313</code></td><td class="o">…  … تحب نفكّرك بإيه؟ …  … تقدر تغيّر المواعيد بعدين من شاشة الصلاة. …</td><td class="n">…  … بماذا تريد أن نذكّرك؟ …  … يمكنك تغيير المواعيد لاحقًا من شاشة الصلاة. …</td></tr>
+<tr><td class="w">دالة familyText<br><code>web/app.js:5099</code></td><td class="o">⏎  ⏎ لتحديث الختمة في تطبيق «لوح»: الختمة الجماعية ← استيراد، والصق الكود ده: ⏎</td><td class="n">⏎  ⏎ لتحديث الختمة في تطبيق «لوْح»: الختمة الجماعية ← استيراد، والصق هذا الكود: ⏎</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5951</code></td><td class="o">سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».</td><td class="n">سمّع الآية من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وفي النهاية اضغط «انتهيت».</td></tr>
+<tr><td class="w">دالة reciteSummary<br><code>web/app.js:2365</code></td><td class="o">… الكلمات اللي اتقالت غلط أو اتنست: …  …</td><td class="n">… الكلمات التي قيلت خطأً أو نُسيت: …  …</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4509</code></td><td class="o">الاختبار بيبقى على الآيات اللي غلطت فيها قبل كده، مع آية قبلها وآية بعدها.</td><td class="n">يكون الاختبار على الآيات التي أخطأت فيها سابقًا، مع آية قبلها وآية بعدها.</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5947</code></td><td class="o">… اسمع تاني …  …  …</td><td class="n">… اسمع مرة أخرى …  …  …</td></tr>
+<tr><td class="w">دالة showMutashTest<br><code>web/app.js:5844</code></td><td class="o">السؤال اللي بعده … &lt;button class="continue" id="mtOpen" data-s="</td><td class="n">السؤال التالي … &lt;button class="continue" id="mtOpen" data-s="</td></tr>
+<tr><td class="w">دالة micGate<br><code>web/app.js:525</code></td><td class="o">نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات</td><td class="n">نموذج التعرّف على التلاوة قيد التنزيل، تابعه من الإعدادات › التحميلات</td></tr>
+<tr><td class="w">دالة asrStatsHtml<br><code>web/app.js:3725</code></td><td class="o">… الكلمات اللي اتسمعت كل يوم …  …</td><td class="n">… الكلمات المسموعة كل يوم …  …</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:571</code></td><td class="o">… تنزيل النموذج شغال في التطبيق على الموبايل بس. …</td><td class="n">… تنزيل النموذج يعمل في تطبيق الهاتف فقط. …</td></tr>
+<tr><td class="w">دالة syncClr<br><code>web/app.js:1148</code></td><td class="o">سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.</td><td class="n">أسمعك… قل أمرًا مثل «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5953</code></td><td class="o">… خلصت …  …  …</td><td class="n">… انتهيت …  …  …</td></tr>
+<tr><td class="w">دالة showMutashTest<br><code>web/app.js:5839</code></td><td class="o">… لسه مفيش سور محفوظة، فالأسئلة من القرآن كله. …</td><td class="n">… لا توجد سور محفوظة بعد، فالأسئلة من القرآن كله. …</td></tr>
+<tr><td class="w">دالة cnt<br><code>web/app.js:6024</code></td><td class="o">… + ذكر من عندك …  …</td><td class="n">… + ذكر خاص بك …  …</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4523</code></td><td class="o">… مفيش مراجعة مستحقة النهارده. كل ربع ليه ميعاد:</td><td class="n">… لا توجد مراجعة مستحقة اليوم. لكل ربع موعد:</td></tr>
+<tr><td class="w">دالة showTalqin<br><code>web/app.js:5922</code></td><td class="o">…  …</td><td class="n">…  …</td></tr>
+<tr><td class="w">دالة edGone<br><code>web/app.js:600</code></td><td class="o">تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.</td><td class="n">تحذف صفحات كل الطبعات من الهاتف؟ يمكنك تنزيلها مرة أخرى من هنا.</td></tr>
+<tr><td class="w">دالة hzTestStart<br><code>web/app.js:4435</code></td><td class="o">مفيش آيات غلط في المدى ده. جرّب «اختبار عشوائي» أو مدى تاني.</td><td class="n">لا توجد آيات خاطئة في هذا المدى. جرّب «اختبار عشوائي» أو مدى آخر.</td></tr>
+<tr><td class="w">دالة teacherText<br><code>web/app.js:5188</code></td><td class="o">⏎  ⏎ للمحفّظ: افتح «طلابي» في تطبيق «لوح» والصق الرسالة دي: ⏎</td><td class="n">⏎  ⏎ للمحفّظ: افتح «طلابي» في تطبيق «لوْح» والصق هذه الرسالة: ⏎</td></tr>
+<tr><td class="w">دالة showImsakia<br><code>web/app.js:4864</code></td><td class="o">… حدّد موقعك الأول من شاشة مواقيت الصلاة. …</td><td class="n">… حدّد موقعك أولًا من شاشة مواقيت الصلاة. …</td></tr>
+<tr><td class="w">دالة rdCapHtml<br><code>web/app.js:3038</code></td><td class="o">…  … سامعك… ابدأ القراءة من أي آية</td><td class="n">…  … أسمعك… ابدأ القراءة من أي آية</td></tr>
+<tr><td class="w">دالة hzSkips<br><code>web/app.js:2415</code></td><td class="o">الكلمات اللي اتخطيتها متعلّمة بلون بنفسجي، ارجع اقراها</td><td class="n">الكلمات التي تخطّيتها معلّمة بلون بنفسجي، ارجع واقرأها</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5946</code></td><td class="o">اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.</td><td class="n">اقرأ الآية وأنت تراها، وعندما تصبح جاهزًا أخفِها وسمّعها.</td></tr>
+<tr><td class="w">دالة reciteSummary<br><code>web/app.js:2365</code></td><td class="o">… ما شاء الله، مفيش ولا كلمة غلط. …</td><td class="n">… ما شاء الله، لا توجد أي كلمة خاطئة. …</td></tr>
+<tr><td class="w">دالة show<br><code>web/app.js:2237</code></td><td class="o">" aria-label="الاستماع من غير إنترنت ومؤقت النوم"&gt;</td><td class="n">" aria-label="الاستماع بدون إنترنت ومؤقت النوم"&gt;</td></tr>
+<tr><td class="w">دالة showFamily<br><code>web/app.js:5106</code></td><td class="o">فرد · اضغط على الجزء لما يخلص …  …  …</td><td class="n">فرد · اضغط على الجزء عند إتمامه …  …  …</td></tr>
+<tr><td class="w">دالة showTalqin<br><code>web/app.js:5923</code></td><td class="o">…  … القارئ يقرا …</td><td class="n">…  … القارئ يقرأ …</td></tr>
+<tr><td class="w">دالة voiceListen<br><code>web/app.js:3375</code></td><td class="o">الأوامر الصوتية شغالة في التطبيق على الموبايل بس</td><td class="n">الأوامر الصوتية تعمل في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">دالة rdToggle<br><code>web/app.js:3252</code></td><td class="o">القراءة بالصوت شغالة في التطبيق على الموبايل بس</td><td class="n">القراءة بالصوت تعمل في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">دالة micTestNative<br><code>web/app.js:504</code></td><td class="o">المايك المختار مش متوصل، اتسجّل من مايك الهاتف</td><td class="n">الميكروفون المختار غير متصل، تم التسجيل من ميكروفون الهاتف</td></tr>
+<tr><td class="w">دالة reciteToggle<br><code>web/app.js:3019</code></td><td class="o">التسميع بالصوت شغال في التطبيق على الموبايل بس</td><td class="n">التسميع بالصوت يعمل في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">دالة listenDlg<br><code>web/app.js:2291</code></td><td class="o">… الاستماع من غير إنترنت …  …</td><td class="n">… الاستماع بدون إنترنت …  …</td></tr>
+<tr><td class="w">دالة micGate<br><code>web/app.js:526</code></td><td class="o">الميزة دي محتاجة نموذج التعرّف على التلاوة (</td><td class="n">هذه الميزة تحتاج نموذج التعرّف على التلاوة (</td></tr>
+<tr><td class="w">دالة donateStatsHtml<br><code>web/app.js:3733</code></td><td class="o">…  … مستني يترفع …  …  …  …</td><td class="n">…  … بانتظار الرفع …  …  …  …</td></tr>
+<tr><td class="w">دالة micPaint<br><code>web/app.js:3243</code></td><td class="o">المايك المختار مش متوصل، هستخدم مايك الهاتف</td><td class="n">الميكروفون المختار غير متصل، سيُستخدم ميكروفون الهاتف</td></tr>
+<tr><td class="w">دالة hifzStatsHtml<br><code>web/app.js:3705</code></td><td class="o">…  … آية اتسمعت …  …  …  …</td><td class="n">…  … آية سُمعت …  …  …  …</td></tr>
+<tr><td class="w">دالة asrStatsHtml<br><code>web/app.js:3723</code></td><td class="o">…  … مقطع اتسمع …  …  …  …</td><td class="n">…  … مقطع سُمع …  …  …  …</td></tr>
+<tr><td class="w">دالة todayCard<br><code>web/app.js:3807</code></td><td class="o">…  … النهارده …  …</td><td class="n">…  … اليوم …  …</td></tr>
+<tr><td class="w">دالة edPaused<br><code>web/app.js:555</code></td><td class="o">التنزيل فشل. اتأكد من الإنترنت وحاول تاني.</td><td class="n">فشل التنزيل. تأكّد من الإنترنت وحاول مرة أخرى.</td></tr>
+<tr><td class="w">دالة fetchEd<br><code>web/app.js:640</code></td><td class="o">مش متنزّلة على الموبايل. تنزّلها؟ (حوالي</td><td class="n">غير منزّلة على الهاتف. تنزّلها؟ (حوالي</td></tr>
+<tr><td class="w">دالة showKhatma<br><code>web/app.js:3842</code></td><td class="o">(أول رمضان). تقدر تبدأ القراءة من دلوقتي.</td><td class="n">(أول رمضان). يمكنك بدء القراءة الآن.</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4732</code></td><td class="o">لسه مقريتش النهارده. صفحة واحدة قبل النوم؟</td><td class="n">لم تقرأ اليوم بعد. صفحة واحدة قبل النوم؟</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5529</code></td><td class="o">الآيات اللي بعدها هتفتح لوحدها وانت بتسمّع</td><td class="n">ستُفتح الآيات التالية تلقائيًا وأنت تسمّع</td></tr>
+<tr><td class="w">دالة showWelcome<br><code>web/app.js:5268</code></td><td class="o">التحميل فشل. اتأكد من الإنترنت وحاول تاني</td><td class="n">التحميل فشل. تأكّد من الإنترنت وحاول مرة أخرى</td></tr>
+<tr><td class="w">دالة donateDelete<br><code>web/app.js:735</code></td><td class="o">المسح ما نجحش، اتأكد من النت وجرّب تاني</td><td class="n">فشل المسح، تأكّد من الإنترنت وجرّب مرة أخرى</td></tr>
+<tr><td class="w">دالة hifzBar<br><code>web/app.js:2619</code></td><td class="o">مش هتتقلب: الاختبار بيخلص في آخر الصفحة</td><td class="n">لن تُقلب الصفحة: ينتهي الاختبار في آخر الصفحة</td></tr>
+<tr><td class="w">دالة reciteBad<br><code>web/app.js:3010,3441</code></td><td class="o">الموبايل مفيهوش خدمة التعرّف على الكلام</td><td class="n">لا تتوفر في الهاتف خدمة التعرّف على الكلام</td></tr>
+<tr><td class="w">دالة locSet<br><code>web/app.js:5351</code></td><td class="o">التنزيل متاح في التطبيق على الموبايل بس</td><td class="n">التنزيل متاح في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">دالة asrUpdate<br><code>web/app.js:412,532,539</code></td><td class="o">، تقدر تتابعه من الإعدادات › التحميلات</td><td class="n">، يمكنك متابعته من الإعدادات › التحميلات</td></tr>
+<tr><td class="w">دالة micTestNative<br><code>web/app.js:497</code></td><td class="o">المايك شغال دلوقتي، وقّف التسميع الأول</td><td class="n">الميكروفون يعمل الآن، أوقف التسميع أولًا</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4515</code></td><td class="o">… ورد النهارده:</td><td class="n">… ورد اليوم:</td></tr>
+<tr><td class="w">دالة edPaused<br><code>web/app.js:548</code></td><td class="o">مفيش مساحة كفاية على الموبايل لتحميل</td><td class="n">لا توجد مساحة كافية على الهاتف لتحميل</td></tr>
+<tr><td class="w">دالة donateDelete<br><code>web/app.js:727</code></td><td class="o">المسح متاح في التطبيق على الموبايل بس</td><td class="n">المسح متاح في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">دالة goalDialog<br><code>web/app.js:5416</code></td><td class="o">&gt; …  … فكّرني لو مخلصتش …</td><td class="n">&gt; …  … ذكِّرني إن لم أُتمّ الورد …</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5525</code></td><td class="o">&gt; …  … آيات غلطت فيها قبل كده (</td><td class="n">&gt; …  … آيات أخطأت فيها سابقًا (</td></tr>
+<tr><td class="w">دالة micTest<br><code>web/app.js:477,497</code></td><td class="o">ما قدرتش أفتح المايك، اتأكد من الإذن</td><td class="n">تعذّر فتح الميكروفون، تأكّد من الإذن</td></tr>
+<tr><td class="w">دالة open<br><code>web/app.js:3440</code></td><td class="o">محتاج إذن الميكروفون للأوامر الصوتية</td><td class="n">يلزم إذن الميكروفون للأوامر الصوتية</td></tr>
+<tr><td class="w">دالة asrStatsHtml<br><code>web/app.js:3723</code></td><td class="o">…  … كلمة اتسمعت …  …</td><td class="n">…  … كلمة سُمعت …  …</td></tr>
+<tr><td class="w">دالة importBackup<br><code>web/app.js:4575</code></td><td class="o">الملف ده مش نسخة احتياطية من التطبيق</td><td class="n">هذا الملف ليس نسخة احتياطية من التطبيق</td></tr>
+<tr><td class="w">دالة micGate<br><code>web/app.js:520,526,5374</code></td><td class="o">خلص تنزيل نموذج التعرّف على التلاوة</td><td class="n">اكتمل تنزيل نموذج التعرّف على التلاوة</td></tr>
+<tr><td class="w">دالة open<br><code>web/app.js:3429</code></td><td class="o">محتاج إذن الميكروفون للقراءة بالصوت</td><td class="n">يلزم إذن الميكروفون للقراءة بالصوت</td></tr>
+<tr><td class="w">دالة importBackup<br><code>web/app.js:4577</code></td><td class="o">إعداد وبيان، التطبيق هيفتح من جديد</td><td class="n">إعداد وبيان، سيُفتح التطبيق من جديد</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5307</code></td><td class="o">ميجا (الأفضل تنزّله على wifi). …</td><td class="n">ميجا (يُفضَّل تنزيله على wifi). …</td></tr>
+<tr><td class="w">دالة showMutashTest<br><code>web/app.js:5845</code></td><td class="o">… مفيش أسئلة هنا. …</td><td class="n">… لا توجد أسئلة هنا. …</td></tr>
+<tr><td class="w">دالة micTestScore<br><code>web/app.js:484</code></td><td class="o">· المكان فيه دوشة، جرّب مكان أهدى</td><td class="n">· المكان فيه ضوضاء، جرّب مكانًا أهدأ</td></tr>
+<tr><td class="w">دالة micTestScore<br><code>web/app.js:484</code></td><td class="o">· قرّب الموبايل أو ارفع صوتك شوية</td><td class="n">· قرّب الهاتف أو ارفع صوتك قليلًا</td></tr>
+<tr><td class="w">دالة showStudents<br><code>web/app.js:5204</code></td><td class="o">… لسه مفيش طلاب. …</td><td class="n">… لا يوجد طلاب بعد. …</td></tr>
+<tr><td class="w">دالة goalCard<br><code>web/app.js:5408</code></td><td class="o">… حدد هدف يومي …  …</td><td class="n">… حدّد هدفًا يوميًا …  …</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5947</code></td><td class="o">… خبّيها وسمّع …  …</td><td class="n">… أخفِها وسمّع …  …</td></tr>
+<tr><td class="w">دالة reciteBad<br><code>web/app.js:3009</code></td><td class="o">محتاج إذن الميكروفون عشان التسميع</td><td class="n">يلزم إذن الميكروفون للتسميع</td></tr>
+<tr><td class="w">دالة open<br><code>web/app.js:3401,3412</code></td><td class="o">ماعرفتش الآية، اقرأ كام كلمة كمان</td><td class="n">لم أتعرّف على الآية، اقرأ بضع كلمات أخرى</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4518</code></td><td class="o">اختبرني في ورد النهارده …</td><td class="n">اختبرني في ورد اليوم …</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4523</code></td><td class="o">٪ أو أكتر بيطوّل الفاصل، وأقل من</td><td class="n">٪ أو أكثر تُطيل الفاصل، وأقل من</td></tr>
+<tr><td class="w">دالة edPaused<br><code>web/app.js:559,5282</code></td><td class="o">النت فاصل، التنزيل هيكمّل لوحده…</td><td class="n">انقطع الإنترنت، سيُستأنف التنزيل تلقائيًا…</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:579</code></td><td class="o">متوقف مؤقتًا، هيكمّل من مكانه ·</td><td class="n">متوقف مؤقتًا، سيُستأنف من حيث توقف ·</td></tr>
+<tr><td class="w">دالة locSet<br><code>web/app.js:5342</code></td><td class="o">تعذّر تحديد الموقع، اختار مدينتك</td><td class="n">تعذّر تحديد الموقع، اختر مدينتك</td></tr>
+<tr><td class="w">دالة showStudents<br><code>web/app.js:5211</code></td><td class="o">"&gt;شيل الطالب …  …</td><td class="n">"&gt;احذف الطالب …  …</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5529</code></td><td class="o">الاختبار هيخلص في آخر الآيات دي</td><td class="n">سينتهي الاختبار في آخر هذه الآيات</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5554</code></td><td class="o">محتاج إذن الميكروفون عشان تسجّل</td><td class="n">يلزم إذن الميكروفون للتسجيل</td></tr>
+<tr><td class="w">دالة micTest<br><code>web/app.js:471,493</code></td><td class="o">اقرا آية بصوتك العادي ٤ ثواني…</td><td class="n">اقرأ آية بصوتك المعتاد ٤ ثواني…</td></tr>
+<tr><td class="w">دالة hifzTestDone<br><code>web/app.js:2457</code></td><td class="o">اكشف آية واحدة على الأقل الأول</td><td class="n">اكشف آية واحدة على الأقل أولًا</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4509</code></td><td class="o">مفيش آيات غلط في المدى ده لسه.</td><td class="n">لا توجد آيات خاطئة في هذا المدى بعد.</td></tr>
+<tr><td class="w">دالة askNotif<br><code>web/app.js:4835</code></td><td class="o">صوت الأذان بيشتغل على الموبايل</td><td class="n">صوت الأذان يعمل على الهاتف</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5498</code></td><td class="o">… الاختبار لحد …   …</td><td class="n">… الاختبار حتى …   …</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5953</code></td><td class="o">… من الأول …  …</td><td class="n">… من البداية …  …</td></tr>
+<tr><td class="w">دالة navBack<br><code>web/app.js:852</code></td><td class="o">اضغط رجوع مرة تانية عشان تخرج</td><td class="n">اضغط رجوع مرة أخرى للخروج</td></tr>
+<tr><td class="w">دالة hifzBar<br><code>web/app.js:2619</code></td><td class="o">الصفحة هتتقلب لوحدها في آخرها</td><td class="n">ستُقلب الصفحة تلقائيًا في آخرها</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5543</code></td><td class="o">التسجيل مش متاح على الجهاز ده</td><td class="n">التسجيل غير متاح على هذا الجهاز</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5941</code></td><td class="o">اسمع القارئ وهو بيقرا الآيات</td><td class="n">استمع إلى القارئ وهو يقرأ الآيات</td></tr>
+<tr><td class="w">دالة asrStatsText<br><code>web/app.js:700</code></td><td class="o">· الفهرس والبحث لقوا الآية</td><td class="n">· الفهرس والبحث وجدا الآية</td></tr>
+<tr><td class="w">دالة asrStatsText<br><code>web/app.js:700</code></td><td class="o">· كلمات صحّحها فحص الموديل</td><td class="n">· كلمات صحّحها فحص النموذج</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4499</code></td><td class="o">ابعت للمحفّظ …  …</td><td class="n">أرسل للمحفّظ …  …</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5941</code></td><td class="o">اسمع القارئ وهو بيقرا الآية</td><td class="n">استمع إلى القارئ وهو يقرأ الآية</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5942</code></td><td class="o">… اقراها …  …</td><td class="n">… اقرأها …  …</td></tr>
+<tr><td class="w">دالة sleepEnd<br><code>web/app.js:2287</code></td><td class="o">وقّفت التلاوة، تصبح على خير</td><td class="n">أُوقفت التلاوة، تصبح على خير</td></tr>
+<tr><td class="w">دالة hzWardTest<br><code>web/app.js:4446</code></td><td class="o">مفيش مراجعة مستحقة النهارده</td><td class="n">لا توجد مراجعة مستحقة اليوم</td></tr>
+<tr><td class="w">دالة micGate<br><code>web/app.js:519</code></td><td class="o">تمام، دوس على المايك وابدأ</td><td class="n">حسنًا، اضغط على الميكروفون وابدأ</td></tr>
+<tr><td class="w">دالة listenDlg<br><code>web/app.js:2308</code></td><td class="o">التلاوة هتقف في آخر السورة</td><td class="n">ستتوقف التلاوة في آخر السورة</td></tr>
+<tr><td class="w">دالة paintBk<br><code>web/app.js:4588</code></td><td class="o">لسه ما عملتش نسخة احتياطية</td><td class="n">لم تُنشئ نسخة احتياطية بعد</td></tr>
+<tr><td class="w">دالة showStudents<br><code>web/app.js:5216</code></td><td class="o">مفيش كود QK2 في الرسالة دي</td><td class="n">لا يوجد كود QK2 في هذه الرسالة</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5517</code></td><td class="o">… اظهر …  …</td><td class="n">… أظهر …  …</td></tr>
+<tr><td class="w">دالة reciteSummary<br><code>web/app.js:2364</code></td><td class="o">… كلمة غلط …  …</td><td class="n">… كلمة خاطئة …  …</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4736</code></td><td class="o">صفحة وتحقق هدف النهارده.</td><td class="n">صفحة وتحقق هدف اليوم.</td></tr>
+<tr><td class="w">دالة teacherSend<br><code>web/app.js:5193</code></td><td class="o">اسمك (عشان المحفّظ يعرفك)</td><td class="n">اسمك (ليعرفك المحفّظ)</td></tr>
+<tr><td class="w">دالة showStudents<br><code>web/app.js:5223</code></td><td class="o">النتيجة دي موجودة قبل كده</td><td class="n">هذه النتيجة موجودة سابقًا</td></tr>
+<tr><td class="w">دالة donateDelete<br><code>web/app.js:730</code></td><td class="o">المسح ما نجحش، جرّب تاني</td><td class="n">فشل المسح، جرّب مرة أخرى</td></tr>
+<tr><td class="w">دالة mkPaint<br><code>web/app.js:3499</code></td><td class="o">اتسجلت علامة على الصفحة</td><td class="n">سُجّلت علامة على الصفحة</td></tr>
+<tr><td class="w">دالة asrStatsHtml<br><code>web/app.js:3724</code></td><td class="o">الفهرس والبحث لقوا الآية</td><td class="n">الفهرس والبحث وجدا الآية</td></tr>
+<tr><td class="w">دالة prayerCfg<br><code>web/app.js:4671</code></td><td class="o">نغمة المنبّه في الموبايل</td><td class="n">نغمة المنبّه في الهاتف</td></tr>
+<tr><td class="w">دالة pick<br><code>web/app.js:5856</code></td><td class="o">… غلط … دي تكملة سورة</td><td class="n">… خطأ … هذه تكملة سورة</td></tr>
+<tr><td class="w">دالة autoSet<br><code>web/app.js:1394</code></td><td class="o">كمّلنا التمرير التلقائي</td><td class="n">استؤنف التمرير التلقائي</td></tr>
+<tr><td class="w">دالة one<br><code>web/app.js:2262</code></td><td class="o">للاستماع من غير إنترنت</td><td class="n">للاستماع بدون إنترنت</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4523</code></td><td class="o">٪ بيرجعلك تاني يوم. …</td><td class="n">٪ تعيدها إليك في اليوم التالي. …</td></tr>
+<tr><td class="w">دالة micGate<br><code>web/app.js:526</code></td><td class="o">ميجا). تنزّله دلوقتي؟</td><td class="n">ميجا). تنزّله الآن؟</td></tr>
+<tr><td class="w">دالة reciteBad<br><code>web/app.js:3011</code></td><td class="o">)، دوس على المايك تاني</td><td class="n">)، اضغط على الميكروفون مرة أخرى</td></tr>
+<tr><td class="w">دالة voiceRun<br><code>web/app.js:3324</code></td><td class="o">الطبعة دي صفحاتها لحد</td><td class="n">صفحات هذه الطبعة حتى</td></tr>
+<tr><td class="w">دالة put<br><code>web/app.js:5125</code></td><td class="o">أضف أفراد العيلة الأول</td><td class="n">أضف أفراد العائلة أولًا</td></tr>
+<tr><td class="w">دالة paintAsrDl<br><code>web/app.js:616</code></td><td class="o">· فيه نسخة جديدة أدق</td><td class="n">· توجد نسخة جديدة أدق</td></tr>
+<tr><td class="w">دالة chips<br><code>web/app.js:3877</code></td><td class="o">الخطة هتبدأ أول رمضان</td><td class="n">ستبدأ الخطة في أول رمضان</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5514,5927</code></td><td class="o">أنا قريت صح …</td><td class="n">قرأت بشكل صحيح …</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5635</code></td><td class="o">، محتاجة مراجعة بسيطة</td><td class="n">، تحتاج إلى مراجعة بسيطة</td></tr>
+<tr><td class="w">دالة pick<br><code>web/app.js:5898</code></td><td class="o">مش واضح، كمّل التكملة</td><td class="n">غير واضح، أكمل التكملة</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:6061</code></td><td class="o">العدد اللي عايز توصله</td><td class="n">العدد الذي تريد الوصول إليه</td></tr>
+<tr><td class="w">دالة rdToggle<br><code>web/app.js:3260,5687,5883</code></td><td class="o">محتاج إذن الميكروفون</td><td class="n">يلزم إذن الميكروفون</td></tr>
+<tr><td class="w">دالة todayCard<br><code>web/app.js:3802</code></td><td class="o">مفيش مراجعة مستحقة ✓</td><td class="n">لا توجد مراجعة مستحقة ✓</td></tr>
+<tr><td class="w">دالة ramadanHtml<br><code>web/app.js:4092</code></td><td class="o">صفحة لحد آخر رمضان.</td><td class="n">صفحة حتى آخر رمضان.</td></tr>
+<tr><td class="w">دالة syncWidget<br><code>web/app.js:4769</code></td><td class="o">كمّل القراءة · صفحة</td><td class="n">أكمل القراءة · صفحة</td></tr>
+<tr><td class="w">دالة syncWidget<br><code>web/app.js:4770</code></td><td class="o">كمّل القراءة · سورة</td><td class="n">أكمل القراءة · سورة</td></tr>
+<tr><td class="w">دالة finish<br><code>web/app.js:5972</code></td><td class="o">ما شاء الله، صح كلها</td><td class="n">ما شاء الله، كلها صحيحة</td></tr>
+<tr><td class="w">دالة asrBtn<br><code>web/app.js:426</code></td><td class="o">✓ جاهز على الموبايل</td><td class="n">✓ جاهز على الهاتف</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:712</code></td><td class="o">مقطع · ما اتحفظش:</td><td class="n">مقطع · لم يُحفظ:</td></tr>
+<tr><td class="w">دالة reciteCap<br><code>web/app.js:2936</code></td><td class="o">سامعك… سمّع من حفظك</td><td class="n">أسمعك… سمّع من حفظك</td></tr>
+<tr><td class="w">دالة statPage<br><code>web/app.js:3661</code></td><td class="o">حققت هدف النهارده:</td><td class="n">حققت هدف اليوم:</td></tr>
+<tr><td class="w">دالة micTest<br><code>web/app.js:460</code></td><td class="o">المايك مش متاح هنا</td><td class="n">الميكروفون غير متاح هنا</td></tr>
+<tr><td class="w">دالة donateDelete<br><code>web/app.js:735</code></td><td class="o">اتمسحت كل تسجيلاتك</td><td class="n">تم مسح كل تسجيلاتك</td></tr>
+<tr><td class="w">دالة reciteHistory<br><code>web/app.js:2360</code></td><td class="o">غلط …  …</td><td class="n">خطأ …  …</td></tr>
+<tr><td class="w">دالة pick<br><code>web/app.js:5864</code></td><td class="o">مش واضح، جرّب تاني</td><td class="n">غير واضح، جرّب مرة أخرى</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5941</code></td><td class="o">، والآيات مستخبية.</td><td class="n">، والآيات مخفية.</td></tr>
+<tr><td class="w">دالة finish<br><code>web/app.js:5973</code></td><td class="o">الآيات اللي بعدها</td><td class="n">الآيات التالية</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:579,616</code></td><td class="o">✓ على الموبايل ·</td><td class="n">✓ على الهاتف ·</td></tr>
+<tr><td class="w">دالة listenDlg<br><code>web/app.js:2308</code></td><td class="o">التلاوة هتقف بعد</td><td class="n">ستتوقف التلاوة بعد</td></tr>
+<tr><td class="w">دالة paintBk<br><code>web/app.js:4588</code></td><td class="o">آخر نسخة النهارده</td><td class="n">آخر نسخة اليوم</td></tr>
+<tr><td class="w">دالة put<br><code>web/app.js:5138</code></td><td class="o">الكود ده مش مفهوم</td><td class="n">هذا الكود غير مفهوم</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5524</code></td><td class="o">الآيات اللي بعدها</td><td class="n">الآيات التالية</td></tr>
+<tr><td class="w">دالة go<br><code>web/app.js:5941</code></td><td class="o">، والآية مستخبية.</td><td class="n">، والآية مخفية.</td></tr>
+<tr><td class="w">دالة finish<br><code>web/app.js:5973</code></td><td class="o">الآية اللي بعدها</td><td class="n">الآية التالية</td></tr>
+<tr><td class="w">دالة micTestNative<br><code>web/app.js:502</code></td><td class="o">المايك المستخدم:</td><td class="n">الميكروفون المستخدم:</td></tr>
+<tr><td class="w">دالة listenDlg<br><code>web/app.js:2308</code></td><td class="o">اتلغى مؤقت النوم</td><td class="n">أُلغي مؤقت النوم</td></tr>
+<tr><td class="w">دالة todayCard<br><code>web/app.js:3801</code></td><td class="o">ورد الختمة خلص ✓</td><td class="n">اكتمل ورد الختمة ✓</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4728</code></td><td class="o">ربع/سورة تانيين</td><td class="n">ربع/سورة أخرى</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4736</code></td><td class="o">صفحة، يلا نبدأ؟</td><td class="n">صفحة، هيا نبدأ؟</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5524</code></td><td class="o">الموضع اللي بعده</td><td class="n">الموضع التالي</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5687</code></td><td class="o">)، دوس عليه تاني</td><td class="n">)، اضغط عليه مرة أخرى</td></tr>
+<tr><td class="w">دالة dlPaint<br><code>web/app.js:2276</code></td><td class="o">… اتلغى …</td><td class="n">… أُلغي …</td></tr>
+<tr><td class="w">دالة reciteBad<br><code>web/app.js:3008,3258,3427,3439,5685,5881</code></td><td class="o">بيجهّز الموديل…</td><td class="n">جارٍ تجهيز النموذج…</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4731</code></td><td class="o">قراءتك النهارده</td><td class="n">قراءتك اليوم</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:579</code></td><td class="o">التنزيل فشل ·</td><td class="n">فشل التنزيل ·</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:709</code></td><td class="o">صوت عالي زيادة</td><td class="n">صوت مرتفع جدًا</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:709</code></td><td class="o">المساحة مليانة</td><td class="n">المساحة ممتلئة</td></tr>
+<tr><td class="w">دالة dlStart<br><code>web/app.js:2252</code></td><td class="o">فيه تحميل شغال</td><td class="n">يوجد تحميل جارٍ</td></tr>
+<tr><td class="w">دالة voiceRun<br><code>web/app.js:3316</code></td><td class="o">بيشغّل التلاوة</td><td class="n">تشغيل التلاوة</td></tr>
+<tr><td class="w">دالة mkPaint<br><code>web/app.js:3496</code></td><td class="o">اتشالت العلامة</td><td class="n">أُزيلت العلامة</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4736</code></td><td class="o">هدفك النهارده</td><td class="n">هدفك اليوم</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5639</code></td><td class="o">٪ …  (افتكرت</td><td class="n">٪ …  (تذكّرت</td></tr>
+<tr><td class="w">دالة micTest<br><code>web/app.js:466,492</code></td><td class="o">اسكت ثانيتين…</td><td class="n">اصمت ثانيتين…</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:579</code></td><td class="o">مش متنزّلة ·</td><td class="n">غير منزّلة ·</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:586,624</code></td><td class="o">من الموبايل؟</td><td class="n">من الهاتف؟</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:712</code></td><td class="o">مستني يترفع:</td><td class="n">بانتظار الرفع:</td></tr>
+<tr><td class="w">دالة dlPaint<br><code>web/app.js:2276</code></td><td class="o">… خلص …</td><td class="n">… اكتمل …</td></tr>
+<tr><td class="w">دالة listenDlg<br><code>web/app.js:2303</code></td><td class="o">اتلغى التحميل</td><td class="n">أُلغي التحميل</td></tr>
+<tr><td class="w">دالة reciteBad<br><code>web/app.js:3011</code></td><td class="o">التسميع وقف (</td><td class="n">توقّف التسميع (</td></tr>
+<tr><td class="w">دالة rdToggle<br><code>web/app.js:3261,3430</code></td><td class="o">الموديل وقف:</td><td class="n">توقّف النموذج:</td></tr>
+<tr><td class="w">دالة open<br><code>web/app.js:3414</code></td><td class="o">كمّل القراءة…</td><td class="n">أكمل القراءة…</td></tr>
+<tr><td class="w">دالة put<br><code>web/app.js:5137</code></td><td class="o">اتحدثت الختمة</td><td class="n">تم تحديث الختمة</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5635</code></td><td class="o">٪ …  افتكرت</td><td class="n">٪ …  تذكّرت</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5635</code></td><td class="o">، راجعها تاني</td><td class="n">، راجعها مرة أخرى</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:6038</code></td><td class="o">المجموع كله:</td><td class="n">المجموع الكلي:</td></tr>
+<tr><td class="w">دالة asrBtn<br><code>web/app.js:426,616</code></td><td class="o">مش متنزّل ·</td><td class="n">غير منزّل ·</td></tr>
+<tr><td class="w">دالة ayahImage<br><code>web/app.js:3581</code></td><td class="o">· تطبيق لوح</td><td class="n">· تطبيق لوْح</td></tr>
+<tr><td class="w">دالة todayCard<br><code>web/app.js:3806</code></td><td class="o">حدد هدف يومي</td><td class="n">حدّد هدفًا يوميًا</td></tr>
+<tr><td class="w">دالة showHifzLog<br><code>web/app.js:4508</code></td><td class="o">&gt;أخطائي بس (</td><td class="n">&gt;أخطائي فقط (</td></tr>
+<tr><td class="w">دالة showPrayer<br><code>web/app.js:4800</code></td><td class="o">الأذان مقفول</td><td class="n">الأذان معطّل</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5687</code></td><td class="o">المايك وقف (</td><td class="n">توقّف الميكروفون (</td></tr>
+<tr><td class="w">دالة hifzRevealed<br><code>web/app.js:2538</code></td><td class="o">خلصت الصفحة</td><td class="n">انتهت الصفحة</td></tr>
+<tr><td class="w">5.34 #39: the recitation mic. Only NvAsr records from a chosen input; the phone's own recogniser (ReciteBridge,<br><code>web/app.js:3207</code></td><td class="o">مايك الهاتف</td><td class="n">ميكروفون الهاتف</td></tr>
+<tr><td class="w">دالة juz<br><code>web/app.js:5091,5093,5119,5251</code></td><td class="o">ختمة العيلة</td><td class="n">ختمة العائلة</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5302</code></td><td class="o">اتحدد موقعك</td><td class="n">تم تحديد موقعك</td></tr>
+<tr><td class="w">دالة showTalqin<br><code>web/app.js:5916</code></td><td class="o">&gt;لحد الآية</td><td class="n">&gt;حتى الآية</td></tr>
+<tr><td class="w">دالة finish<br><code>web/app.js:5973</code></td><td class="o">عيد الآيات</td><td class="n">أعد الآيات</td></tr>
+<tr><td class="w">دالة asrUpdate<br><code>web/app.js:411</code></td><td class="o">خلص تحديث</td><td class="n">اكتمل تحديث</td></tr>
+<tr><td class="w">دالة edPaused<br><code>web/app.js:554</code></td><td class="o">خلص تنزيل</td><td class="n">اكتمل تنزيل</td></tr>
+<tr><td class="w">دالة hifzTestDone<br><code>web/app.js:2474</code></td><td class="o">٪: افتكرت</td><td class="n">٪: تذكّرت</td></tr>
+<tr><td class="w">دالة familyText<br><code>web/app.js:5098</code></td><td class="o">مفيش أجزاء</td><td class="n">لا توجد أجزاء</td></tr>
+<tr><td class="w">دالة finish<br><code>web/app.js:5973</code></td><td class="o">عيد الآية</td><td class="n">أعد الآية</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:581</code></td><td class="o">حاول تاني</td><td class="n">حاول مرة أخرى</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:710</code></td><td class="o">السيرفر:</td><td class="n">الخادم:</td></tr>
+<tr><td class="w">دالة showImsakia<br><code>web/app.js:4901</code></td><td class="o">تطبيق لوح</td><td class="n">تطبيق لوْح</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:709</code></td><td class="o">صوت واطي</td><td class="n">صوت منخفض</td></tr>
+<tr><td class="w">5.34 #39: the recitation mic. Only NvAsr records from a chosen input; the phone's own recogniser (ReciteBridge,<br><code>web/app.js:3207</code></td><td class="o">مايك USB</td><td class="n">ميكروفون USB</td></tr>
+<tr><td class="w">دالة familyText<br><code>web/app.js:5097</code></td><td class="o">: خلصنا</td><td class="n">: أتممنا</td></tr>
+<tr><td class="w">دالة paint<br><code>web/app.js:5319</code></td><td class="o">يلا نبدأ</td><td class="n">هيا نبدأ</td></tr>
+<tr><td class="w">دالة one<br><code>web/app.js:2262</code></td><td class="o">اتحفظت</td><td class="n">حُفظت</td></tr>
+<tr><td class="w">دالة hifzBar<br><code>web/app.js:2627</code></td><td class="o">· غلط</td><td class="n">· خطأ</td></tr>
+<tr><td class="w">دالة hifzBar<br><code>web/app.js:2627</code></td><td class="o">افتكرت</td><td class="n">تذكّرت</td></tr>
+<tr><td class="w">دالة showStudents<br><code>web/app.js:5223</code></td><td class="o">اتضافت</td><td class="n">أُضيفت</td></tr>
+<tr><td class="w">دالة htFinish<br><code>web/app.js:5736</code></td><td class="o">· كمّل</td><td class="n">· أكمل</td></tr>
+<tr><td class="w">دالة paintEdDl<br><code>web/app.js:590</code></td><td class="o">بيوقف…</td><td class="n">جارٍ الإيقاف…</td></tr>
+<tr><td class="w">دالة donateDelete<br><code>web/app.js:729</code></td><td class="o">بيمسح…</td><td class="n">جارٍ المسح…</td></tr>
+<tr><td class="w">دالة hifzBar<br><code>web/app.js:2629</code></td><td class="o">فكّرني</td><td class="n">ذكِّرني</td></tr>
+<tr><td class="w">دالة donateStatsHtml<br><code>web/app.js:3733</code></td><td class="o">مقفولة</td><td class="n">معطّلة</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4736</code></td><td class="o">فاضلك</td><td class="n">بقي لك</td></tr>
+<tr><td class="w">دالة hifzBar<br><code>web/app.js:2627</code></td><td class="o">بسمع…</td><td class="n">جارٍ الاستماع…</td></tr>
+<tr><td class="w">دالة donateStatsHtml<br><code>web/app.js:3733</code></td><td class="o">شغالة</td><td class="n">مفعّلة</td></tr>
+<tr><td class="w">دالة importBackup<br><code>web/app.js:4577</code></td><td class="o">رجعت</td><td class="n">استرجعت</td></tr>
+<tr><td class="w">دالة at<br><code>web/app.js:4732</code></td><td class="o">قريت</td><td class="n">قرأت</td></tr>
+<tr><td class="w">دالة put<br><code>web/app.js:5142,5225</code></td><td class="o">نشيل</td><td class="n">نحذف</td></tr>
+<tr><td class="w">دالة micTestScore<br><code>web/app.js:483,514</code></td><td class="o">كويس</td><td class="n">جيد</td></tr>
+<tr><td class="w">دالة donatePaint<br><code>web/app.js:709</code></td><td class="o">دوشة</td><td class="n">ضوضاء</td></tr>
+<tr><td class="w">دالة askYes<br><code>web/app.js:3600</code></td><td class="o">تمام</td><td class="n">حسنًا</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5538</code></td><td class="o">اخفي</td><td class="n">أخفِ</td></tr>
+<tr><td class="w">دالة showHifzTest<br><code>web/app.js:5538</code></td><td class="o">اظهر</td><td class="n">أظهر</td></tr>
+<tr><td class="w">دالة showHome<br><code>web/app.js:873</code></td><td class="o">لوح</td><td class="n">لوْح</td></tr>
+<tr><td class="w">دالة voiceRun<br><code>web/app.js:3318</code></td><td class="o">وقف</td><td class="n">تم الإيقاف</td></tr>
+<tr><td class="w">دالة hzUnitInfo<br><code>web/app.js:5001,5056</code></td><td class="o">لسه</td><td class="n">لم يبدأ بعد</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:224</code></td><td class="o">التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة إلا تسجيلات التلاوة لو وافقت عليها (التفاصيل تحت)، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» والقراءة بالصوت يستخدمان نموذج التعرّف على التلاوة الذي يعمل على الموبايل نفسه بدون إنترنت.</td><td class="n">التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة إلا تسجيلات التلاوة إذا وافقت عليها (التفاصيل تحت)، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط إذا اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يبقى على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» والقراءة بالصوت يستخدمان نموذج التعرّف على التلاوة الذي يعمل على الهاتف نفسه بدون إنترنت.</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:211</code></td><td class="o">… لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت. …</td><td class="n">… عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت. …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:230</code></td><td class="o">وتُستخدم فقط لتدريب النموذج وتحسينه لكل القرّاء، ولا تُباع ولا تُشارك لأي غرض آخر. تُرفع على wifi فقط إلا لو سمحت بباقة البيانات. تقدر تلغي الموافقة في أي وقت وتمسح كل تسجيلاتك من الإعدادات › الخصوصية وتسجيلات الصوت. …  …</td><td class="n">وتُستخدم فقط لتدريب النموذج وتحسينه لكل القرّاء، ولا تُباع ولا تُشارك لأي غرض آخر. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات. يمكنك إلغاء الموافقة في أي وقت ومسح كل تسجيلاتك من الإعدادات › الخصوصية وتسجيلات الصوت. …  …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:229</code></td><td class="o">استخدام صوتك لتحسين التطبيق اختياري تمامًا: لو وافقت على «ساعد في تحسين التعرّف على التلاوة» يحفظ التطبيق مقاطع قصيرة من تلاوتك ويرسلها مع نص الآيات ونسخة التطبيق ورقم عشوائي للجهاز، بدون اسم أو حساب أو موقع،</td><td class="n">استخدام صوتك لتحسين التطبيق اختياري حسنًاًا: إذا وافقت على «ساعد في تحسين التعرّف على التلاوة» يحفظ التطبيق مقاطع قصيرة من تلاوتك ويرسلها مع نص الآيات ونسخة التطبيق ورقم عشوائي للجهاز، بدون اسم أو حساب أو موقع،</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:225</code></td><td class="o">الإنترنت يُستخدم فقط لتحميل صفحات الطبعة اللي تختارها (من GitHub) وصوت القارئ من everyayah.com، وبعدها يتحفظوا على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط. …</td><td class="n">الإنترنت يُستخدم فقط لتحميل صفحات الطبعة التي تختارها (من GitHub) وصوت القارئ من everyayah.com، وبعدها تُحفظ على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط. …</td></tr>
+<tr><td class="w">الإعدادات › الألوان والمظهر<br><code>web/index.html:133</code></td><td class="o">… تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. كل موضوع بدرجتين من لونه عشان يبان أوله وآخره. …  …</td><td class="n">… تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. لكل موضوع درجتان من لونه ليظهر أوله وآخره. …  …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:227</code></td><td class="o">النموذج مبني على موديل NVIDIA FastConformer العربي (رخصة CC BY 4.0)، ويُحمَّل مرة واحدة ثم يعمل على الموبايل بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف.</td><td class="n">النموذج مبني على موديل NVIDIA FastConformer العربي (رخصة CC BY 4.0)، ويُحمَّل مرة واحدة ثم يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف.</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:243</code></td><td class="o">التعرّف على التلاوة بموديل NVIDIA FastConformer العربي (stt_ar_fastconformer_hybrid_large_pcd_v1.0، رخصة CC BY 4.0) بعد ضغطه ليشتغل على الموبايل.</td><td class="n">التعرّف على التلاوة بموديل NVIDIA FastConformer العربي (stt_ar_fastconformer_hybrid_large_pcd_v1.0، رخصة CC BY 4.0) بعد ضغطه ليشتغل على الهاتف.</td></tr>
+<tr><td class="w">الإعدادات › الصوت والتلاوة<br><code>web/index.html:166</code></td><td class="o">… تنبيه الأخطاء … اهتزاز وصوت قصير عند 5 كلمات غلط ورا بعض في التسميع …</td><td class="n">… تنبيه الأخطاء … اهتزاز وصوت قصير عند 5 كلمات خاطئة متتالية في التسميع …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:194</code></td><td class="o">…  …  …  …  … ذكّرني أعمل نسخة كل شهر …  …</td><td class="n">…  …  …  …  … ذكّرني بإنشاء نسخة كل شهر …  …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:204</code></td><td class="o">… الطبعات المتنزّلة بتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب. …</td><td class="n">… الطبعات المنزّلة تعمل بدون إنترنت. يمكنك حذف أي طبعة لتوفير المساحة، وتنزيلها مرة أخرى متى شئت. …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:235</code></td><td class="o">المنبّهات الدقيقة والتشغيل مع بدء الموبايل: عشان الأذان والتذكيرات تيجي في وقتها حتى بعد إعادة تشغيل الموبايل. …</td><td class="n">المنبّهات الدقيقة والتشغيل مع بدء الهاتف: ليصل الأذان والتذكيرات في وقتها حتى بعد إعادة تشغيل الهاتف. …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:236</code></td><td class="o">الميكروفون وإعدادات الصوت: لـ«سجّل تلاوتك» و«التسميع بالصوت» فقط، ويُطلب وقت ما تستخدمهم. …</td><td class="n">الميكروفون وإعدادات الصوت: لـ«سجّل تلاوتك» و«التسميع بالصوت» فقط، ويُطلب عند استخدامهما. …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:213</code></td><td class="o">… امسح كل تسجيلاتي اللي اتبعتت …</td><td class="n">… امسح كل تسجيلاتي التي أُرسلت …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:233</code></td><td class="o">الموقع (تقريبي ودقيق): لاتجاه القبلة ومواقيت الصلاة، ويُطلب فقط لما تدوس «حدّد موقعك». …</td><td class="n">الموقع (تقريبي ودقيق): لاتجاه القبلة ومواقيت الصلاة، ويُطلب فقط عند الضغط على «حدّد موقعك». …</td></tr>
+<tr><td class="w">الإعدادات › الصوت والتلاوة<br><code>web/index.html:156</code></td><td class="o">… اختبار المايك …  …</td><td class="n">… اختبار الميكروفون …  …</td></tr>
+<tr><td class="w">الإعدادات › التطبيق<br><code>web/index.html:237</code></td><td class="o">الاهتزاز: لاهتزاز خفيف عند اللمس (تقدر تقفله من الإعدادات). …</td><td class="n">الاهتزاز: لاهتزاز خفيف عند اللمس (يمكنك إيقافه من الإعدادات). …</td></tr>
+<tr><td class="w">الإعدادات › الألوان والمظهر<br><code>web/index.html:140</code></td><td class="o">… زي الموبايل …</td><td class="n">… مثل الهاتف …</td></tr>
+<tr><td class="w">الإعدادات<br><code>web/index.html</code></td><td class="o">… لوح - القرآن الكريم …</td><td class="n">… لوْح - القرآن الكريم …</td></tr>
+<tr><td class="w">الإعدادات<br><code>web/index.html</code></td><td class="o">… لوح …</td><td class="n">… لوْح …</td></tr>
+<tr><td class="w">الإعدادات<br><code>web/index.html</code></td><td class="o">… لوح …  · الإصدار</td><td class="n">… لوْح …  · الإصدار</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:367</code></td><td class="o">كل مربع ربع، والسورة مربع لوحدها في الأجزاء ٢٨–٣٠. اضغط على المربع يظهر اسمه، ومنه «افتح في المصحف» تفتح آياته مظلّلة، أو «اختبرني» تختبر نفسك فيه. اضغط في أي مكان بره الكارت يتقفل. واضغط على الجزء تشوف وحداته وتختبر أي واحدة. «محتاجة مراجعة» لو المربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من #٪.</td><td class="n">كل مربع ربع، والسورة مربع وحدها في الأجزاء ٢٨–٣٠. اضغط على المربع ليظهر اسمه، ومنه «افتح في المصحف» لتفتح آياته مظلّلة، أو «اختبرني» لتختبر نفسك فيه. اضغط في أي مكان خارج البطاقة لإغلاقها. واضغط على الجزء لترى وحداته وتختبر أي واحدة منها. «محتاجة مراجعة» إذا كان المربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من #٪.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:372</code></td><td class="o">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع تفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» جنب المايك عشان تختبر نفسك فيها. «محتاجة مراجعة» لو الربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من #٪.</td><td class="n">كل مربع صفحة، وللصفحة التي فيها أكثر من سورة مربع لكل سورة. اضغط على المربع لتفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» بجانب الميكروفون لتختبر نفسك فيها. «محتاجة مراجعة» إذا كان الربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من #٪.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:42</code></td><td class="o">كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع تفتح آياته في المصحف، واضغط ضغطة طويلة عشان تختبر نفسك فيها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من # يوم أو نتيجة الاختبار أقل من #٪.</td><td class="n">كل مربع صفحة، وللصفحة التي فيها أكثر من سورة مربع لكل سورة. اضغط على المربع لتفتح آياته في المصحف، واضغط ضغطة طويلة لتختبر نفسك فيها. «محتاجة مراجعة» إذا كانت آخر مراجعة قبل أكثر من # يوم أو نتيجة الاختبار أقل من #٪.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:77</code></td><td class="o">🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها.</td><td class="n">🎤 اضغط على الميكروفون وقل أمرًا: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مائة»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وسيظهر لك مكانها.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:57</code></td><td class="o">لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت.</td><td class="n">عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:328</code></td><td class="o">بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</td><td class="n">يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف. هو أداة مساعدة للمراجعة والحفظ وقد يخطئ، خصوصًا مع الضوضاء. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:348</code></td><td class="o">السورة بتدخل القايمة دي لما تجيب #٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من #٪ بتفضل فيها وبترجع لك في المراجعة بكرة.</td><td class="n">تدخل السورة هذه القائمة عندما تحصل على #٪ أو أكثر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. وإذا حصلت على أقل من #٪ تبقى فيها وتعود إليك في المراجعة غدًا.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:355</code></td><td class="o">مفيش مراجعة مستحقة النهارده. كل سورة ليها ميعاد: أول مرة بعد # أيام. ولو جبت #٪ أو أكتر، المدة بتتضاعف لحد # يوم. ولو جبت أقل من #٪، بترجعلك تاني يوم.</td><td class="n">لا توجد مراجعة مستحقة اليوم. لكل سورة موعد: أول مرة بعد # أيام. وإذا حصلت على #٪ أو أكثر، تتضاعف المدة حتى # يوم. وإذا حصلت على أقل من #٪، تعيدها إليك في اليوم التالي.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:86</code></td><td class="o">تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. كل موضوع بدرجتين من لونه عشان يبان أوله وآخره.</td><td class="n">تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. لكل موضوع درجتان من لونه ليظهر أوله وآخره.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:348</code></td><td class="o">السورة بتتعلّم ✓ لوحدها لما تجيب #٪ أو أكتر في اختبار عليها هنا في «المراجعة»، أو لما تسمّعها كلها في «اختبار الحفظ» بنتيجة #٪ أو أكتر.</td><td class="n">السورة بتتعلّم ✓ لوحدها لما تجيب #٪ أو أكثر في اختبار عليها هنا في «المراجعة»، أو لما تسمّعها كلها في «اختبار الحفظ» بنتيجة #٪ أو أكثر.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:348</code></td><td class="o">السورة بتدخل القايمة دي لما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة #٪ أو أكتر. ولو جبت أقل من #٪ بتخرج منها.</td><td class="n">تدخل السورة هذه القائمة عندما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة #٪ أو أكثر. وإذا حصلت على أقل من #٪ تخرج منها.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:371</code></td><td class="o">مفيش مراجعة مستحقة النهارده. كل ربع ليه ميعاد: # ثم # ثم # ثم # ثم # يوم. #٪ أو أكتر بيطوّل الفاصل، وأقل من #٪ بيرجعلك تاني يوم.</td><td class="n">لا توجد مراجعة مستحقة اليوم. لكل ربع موعد: # ثم # ثم # ثم # ثم # يوم. #٪ أو أكثر تُطيل الفاصل، وأقل من #٪ تعيدها إليك في اليوم التالي.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:305</code></td><td class="o">التطبيق مش بيبعت حاجة على الإنترنت. لما حد يخلص جزء يضغط عليه ويشارك التقدم في جروب العيلة، والباقيين يستوردوا الكود.</td><td class="n">التطبيق لا يرسل شيئًا عبر الإنترنت. عندما يُنهي أحدهم جزءًا يضغط عليه ويشارك التقدم في مجموعة العائلة، ويستورد الباقون الكود.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:314</code></td><td class="o">الفهرس متولّد من جذور الكلمات ونص المصحف اللي في التطبيق نفسه، فممكن يفوته آية بتتكلم عن الموضوع من غير ما تذكر لفظه.</td><td class="n">الفهرس مولَّد من جذور الكلمات ونص المصحف الموجود في التطبيق نفسه، فقد تفوته آية تتحدث عن الموضوع دون أن تذكر لفظه.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">الطالب بيعمل اختبار الحفظ، وبعدين من «المراجعة» يضغط «ابعت للمحفّظ». الصق رسالته هنا (ممكن أكتر من رسالة مرة واحدة).</td><td class="n">يجري الطالب اختبار الحفظ، ثم من «المراجعة» يضغط «أرسل للمحفّظ». الصق رسالته هنا (يمكن أكثر من رسالة دفعة واحدة).</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:356</code></td><td class="o">مفيش مراجعة متأخرة. السورة بتظهر هنا لما يعدّي على آخر مراجعة ليها أكتر من # يوم، أو لو آخر نتيجة ليها أقل من #٪.</td><td class="n">لا توجد مراجعة متأخرة. تظهر السورة هنا عندما يمضي على آخر مراجعة لها أكثر من # يوم، أو إذا كانت آخر نتيجة لها أقل من #٪.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:405</code></td><td class="o">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، والاختبار بيخلص لوحده أول ما كل الكلمات تظهر. الآيات #–# من #.</td><td class="n">اقرأ من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وينتهي الاختبار تلقائيًا عندما تظهر كل الكلمات. الآيات #–# من #.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:80</code></td><td class="o">صفحات كل طبعة بتتنزل مرة واحدة وتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.</td><td class="n">تُنزَّل صفحات كل طبعة مرة واحدة وتعمل بدون إنترنت. يمكنك حذف أي طبعة لتوفير المساحة، وتنزيلها مرة أخرى متى شئت.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:302</code></td><td class="o">كل مربع صفحة، اضغط عليه يفتحها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من # يوم أو نتيجة الاختبار أقل من #٪.</td><td class="n">كل مربع صفحة، اضغط عليه لتفتحها. «محتاجة مراجعة» إذا كانت آخر مراجعة قبل أكثر من # يوم أو نتيجة الاختبار أقل من #٪.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:338</code></td><td class="o">توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟</td><td class="n">توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:102</code></td><td class="o">اضغط على السورة لما تحفظها. وبعد ما تراجع سورة اضغط «راجعتها» عشان التطبيق يرشّح لك اللي بعدها.</td><td class="n">اضغط على السورة عندما تحفظها. وبعد أن تراجع سورة اضغط «راجعتها» ليرشّح لك التطبيق التالية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:141</code></td><td class="o">التعرّف الحالي بيستخدم خدمة الموبايل، واختيار المايك بيشتغل مع نموذج التعرّف على التلاوة بس.</td><td class="n">التعرّف الحالي يستخدم خدمة الهاتف، واختيار الميكروفون يعمل مع نموذج التعرّف على التلاوة فقط.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:50</code></td><td class="o">آخر # أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات.</td><td class="n">آخر # أيام، على الهاتف فقط. إذا كانت النسبة منخفضة فجرّب مكانًا أهدأ أو «اختبار الميكروفون» في الإعدادات.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:318</code></td><td class="o">التعرّف على الكلام ممكن يغلط في التلاوة المجوّدة، فلو كلمة متعلّمة وانت متأكد منها، متقلقش.</td><td class="n">قد يخطئ التعرّف على الكلام في التلاوة المجوّدة، فإن كانت كلمة معلّمة وأنت متأكد منها فلا تقلق.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:107</code></td><td class="o">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت». الآيات #–# من #.</td><td class="n">اقرأ من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وفي النهاية اضغط «انتهيت». الآيات #–# من #.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.</td><td class="n">مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:339</code></td><td class="o">تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.</td><td class="n">تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:118</code></td><td class="o">عشان مواقيت الصلاة والأذان والقبلة. كل الحساب بيتم على الموبايل من غير إنترنت.</td><td class="n">لمواقيت الصلاة والأذان والقبلة. يتم كل الحساب على الهاتف بدون إنترنت.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:385</code></td><td class="o">سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».</td><td class="n">سمّع الآية من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وفي النهاية اضغط «انتهيت».</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:351</code></td><td class="o">الاختبار بيبقى على الآيات اللي غلطت فيها قبل كده، مع آية قبلها وآية بعدها.</td><td class="n">يكون الاختبار على الآيات التي أخطأت فيها سابقًا، مع آية قبلها وآية بعدها.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:25</code></td><td class="o">اقفل التطبيق واستنى دقيقة. لو الأذان ماجاش، شوف الملاحظة اللي تحت الزرار.</td><td class="n">أغلق التطبيق وانتظر دقيقة. إذا لم يصل الأذان، راجع الملاحظة تحت الزر.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:47</code></td><td class="o">لسه مفيش قراءة بالمايك في آخر # أيام. الأرقام دي بتتحسب على الموبايل بس.</td><td class="n">لا توجد قراءة بالميكروفون بعد في آخر # أيام. تُحسب هذه الأرقام على الهاتف فقط.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:83</code></td><td class="o">صفحات المصحف هتتنزل مرة واحدة (حوالي # ميجا) وبعدها تشتغل من غير إنترنت.</td><td class="n">ستُنزَّل صفحات المصحف مرة واحدة (حوالي # ميجا) وبعدها تعمل بدون إنترنت.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:73</code></td><td class="o">نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات</td><td class="n">نموذج التعرّف على التلاوة قيد التنزيل، تابعه من الإعدادات › التحميلات</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:99</code></td><td class="o">بتتحسب الصفحات اللي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).</td><td class="n">تُحسب الصفحات التي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:76</code></td><td class="o">سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.</td><td class="n">أسمعك… قل أمرًا مثل «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:116</code></td><td class="o">اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</td><td class="n">اختر المصحف الذي اعتدت القراءة فيه. يمكنك تغييره لاحقًا من الإعدادات.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:82</code></td><td class="o">تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.</td><td class="n">تحذف صفحات كل الطبعات من الهاتف؟ يمكنك تنزيلها مرة أخرى من هنا.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:402</code></td><td class="o">مفيش آيات غلط في المدى ده. جرّب «اختبار عشوائي» أو مدى تاني.</td><td class="n">لا توجد آيات خاطئة في هذا المدى. جرّب «اختبار عشوائي» أو مدى آخر.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:70</code></td><td class="o">النتيجة: ضعيف (# dB) · المكان فيه دوشة، جرّب مكان أهدى</td><td class="n">النتيجة: ضعيف (# dB) · المكان فيه ضوضاء، جرّب مكانًا أهدأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:71</code></td><td class="o">النتيجة: ضعيف (# dB) · قرّب الموبايل أو ارفع صوتك شوية</td><td class="n">النتيجة: ضعيف (# dB) · قرّب الهاتف أو ارفع صوتك قليلًا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:384</code></td><td class="o">اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.</td><td class="n">اقرأ الآية وأنت تراها، وعندما تصبح جاهزًا أخفِها وسمّعها.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:404</code></td><td class="o">الكلمات اللي اتخطيتها متعلّمة بلون بنفسجي، ارجع اقراها</td><td class="n">الكلمات التي تخطّيتها معلّمة بلون بنفسجي، ارجع واقرأها</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:352</code></td><td class="o">مفيش آيات غلط في المدى ده. جرّب «عشوائي» أو مدى تاني.</td><td class="n">لا توجد آيات خاطئة في هذا المدى. جرّب «عشوائي» أو مدى آخر.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:396</code></td><td class="o">اسمع القارئ وهو بيقرا الآيات # مرات، والآيات مستخبية.</td><td class="n">استمع إلى القارئ وهو يقرأ الآيات # مرات، والآيات مخفية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:112</code></td><td class="o">كام صفحة في اليوم؟ الصفحات بتتحسب لوحدها وانت بتقرا.</td><td class="n">كم صفحة في اليوم؟ تُحسب الصفحات تلقائيًا وأنت تقرأ.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:395</code></td><td class="o">اسمع القارئ وهو بيقرا الآيات # مرة، والآيات مستخبية.</td><td class="n">استمع إلى القارئ وهو يقرأ الآيات # مرة، والآيات مخفية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:139</code></td><td class="o">اهتزاز وصوت قصير عند 5 كلمات غلط ورا بعض في التسميع</td><td class="n">اهتزاز وصوت قصير عند 5 كلمات خاطئة متتالية في التسميع</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:383</code></td><td class="o">اسمع القارئ وهو بيقرا الآية # مرات، والآية مستخبية.</td><td class="n">استمع إلى القارئ وهو يقرأ الآية # مرات، والآية مخفية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:377</code></td><td class="o">كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت.</td><td class="n">أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:382</code></td><td class="o">اسمع القارئ وهو بيقرا الآية # مرة، والآية مستخبية.</td><td class="n">استمع إلى القارئ وهو يقرأ الآية # مرة، والآية مخفية.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:37</code></td><td class="o">بعد آخر آية هتفتح الآيات اللي بعدها والمايك شغال</td><td class="n">بعد آخر آية ستُفتح الآيات التالية والميكروفون يعمل</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:78</code></td><td class="o">الأوامر الصوتية شغالة في التطبيق على الموبايل بس</td><td class="n">الأوامر الصوتية تعمل في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:396</code></td><td class="o">الآية دي متكررة بنصها، إيه الآية اللي بعدها هنا؟</td><td class="n">هذه الآية مكررة بنصها، فما الآية التالية هنا؟</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:21</code></td><td class="o">القراءة بالصوت شغالة في التطبيق على الموبايل بس</td><td class="n">القراءة بالصوت تعمل في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:140</code></td><td class="o">المايك المختار مش متوصل، اتسجّل من مايك الهاتف</td><td class="n">الميكروفون المختار غير متصل، تم التسجيل من ميكروفون الهاتف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:322</code></td><td class="o">التسميع بالصوت شغال في التطبيق على الموبايل بس</td><td class="n">التسميع بالصوت يعمل في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:325</code></td><td class="o">تنزيل النموذج شغال في التطبيق على الموبايل بس.</td><td class="n">تنزيل النموذج يعمل في تطبيق الهاتف فقط.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:376</code></td><td class="o">لسه مفيش سور محفوظة، فالأسئلة من القرآن كله.</td><td class="n">لا توجد سور محفوظة بعد، فالأسئلة من القرآن كله.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:143</code></td><td class="o">المايك المختار مش متوصل، هستخدم مايك الهاتف</td><td class="n">الميكروفون المختار غير متصل، سيُستخدم ميكروفون الهاتف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:31</code></td><td class="o">الآيات اللي بعدها هتفتح لوحدها وانت بتسمّع</td><td class="n">ستُفتح الآيات التالية تلقائيًا وأنت تسمّع</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:83</code></td><td class="o">التنزيل فشل. اتأكد من الإنترنت وحاول تاني.</td><td class="n">فشل التنزيل. تأكّد من الإنترنت وحاول مرة أخرى.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:66</code></td><td class="o">اتأكد إن المايك مش متغطي بإيدك أو بالجراب</td><td class="n">تأكّد أن الميكروفون غير مغطّى بيدك أو بالغلاف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:119</code></td><td class="o">تقدر تغيّر المواعيد بعدين من شاشة الصلاة.</td><td class="n">يمكنك تغيير المواعيد لاحقًا من شاشة الصلاة.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:325</code></td><td class="o">التحميل فشل. اتأكد من الإنترنت وحاول تاني</td><td class="n">التحميل فشل. تأكّد من الإنترنت وحاول مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:37</code></td><td class="o">الاختبار هيخلص عند آخر آية وتطلع النتيجة</td><td class="n">سينتهي الاختبار عند آخر آية وتظهر النتيجة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:26</code></td><td class="o">التنزيل متاح في التطبيق على الموبايل بس</td><td class="n">التنزيل متاح في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:41</code></td><td class="o">مش هتتقلب: الاختبار بيخلص في آخر الصفحة</td><td class="n">لن تُقلب الصفحة: ينتهي الاختبار في آخر الصفحة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:90</code></td><td class="o">حدّد موقعك الأول من شاشة مواقيت الصلاة.</td><td class="n">حدّد موقعك أولًا من شاشة مواقيت الصلاة.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:321</code></td><td class="o">الموبايل مفيهوش خدمة التعرّف على الكلام</td><td class="n">لا تتوفر في الهاتف خدمة التعرّف على الكلام</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:341</code></td><td class="o">المسح ما نجحش، اتأكد من النت وجرّب تاني</td><td class="n">فشل المسح، تأكّد من الإنترنت وجرّب مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:30</code></td><td class="o">اتحفظت الجزء % للاستماع من غير إنترنت</td><td class="n">حُفظت الجزء % للاستماع بدون إنترنت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:340</code></td><td class="o">المسح متاح في التطبيق على الموبايل بس</td><td class="n">المسح متاح في تطبيق الهاتف فقط</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:24</code></td><td class="o">الملف ده مش نسخة احتياطية من التطبيق</td><td class="n">هذا الملف ليس نسخة احتياطية من التطبيق</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:30</code></td><td class="o">اتحفظت سورة @ للاستماع من غير إنترنت</td><td class="n">حُفظت سورة @ للاستماع بدون إنترنت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:68</code></td><td class="o">ما قدرتش أفتح المايك، اتأكد من الإذن</td><td class="n">تعذّر فتح الميكروفون، تأكّد من الإذن</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:78</code></td><td class="o">محتاج إذن الميكروفون للأوامر الصوتية</td><td class="n">يلزم إذن الميكروفون للأوامر الصوتية</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:401</code></td><td class="o">اختبار عشوائي (#–# آية، لحد نص صفحة)</td><td class="n">اختبار عشوائي (#–# آية، حتى نص صفحة)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:22</code></td><td class="o">محتاج إذن الميكروفون للقراءة بالصوت</td><td class="n">يلزم إذن الميكروفون للقراءة بالصوت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:65</code></td><td class="o">خلّي الموبايل على بعد #–# سم من بقك</td><td class="n">اجعل الهاتف على بعد #–# سم من فمك</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:74</code></td><td class="o">خلص تنزيل نموذج التعرّف على التلاوة</td><td class="n">اكتمل تنزيل نموذج التعرّف على التلاوة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:388</code></td><td class="o">الاستماع من غير إنترنت ومؤقت النوم</td><td class="n">الاستماع بدون إنترنت ومؤقت النوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:23</code></td><td class="o">ماعرفتش الآية، اقرأ كام كلمة كمان</td><td class="n">لم أتعرّف على الآية، اقرأ بضع كلمات أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:317</code></td><td class="o">الكلمات اللي اتقالت غلط أو اتنست:</td><td class="n">الكلمات التي قيلت خطأً أو نُسيت:</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:321</code></td><td class="o">محتاج إذن الميكروفون عشان التسميع</td><td class="n">يلزم إذن الميكروفون للتسميع</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:361</code></td><td class="o">ورد النهارده: # ربع/سورة · # صفحة</td><td class="n">ورد اليوم: # ربع/سورة · # صفحة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:402</code></td><td class="o">جرّب «اختبار عشوائي» أو مدى تاني.</td><td class="n">جرّب «اختبار عشوائي» أو مدى آخر.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:26</code></td><td class="o">تعذّر تحديد الموقع، اختار مدينتك</td><td class="n">تعذّر تحديد الموقع، اختر مدينتك</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:64</code></td><td class="o">اقعد في مكان هادي على قد ما تقدر</td><td class="n">اجلس في مكان هادئ قدر الإمكان</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:81</code></td><td class="o">النت فاصل، التنزيل هيكمّل لوحده…</td><td class="n">انقطع الإنترنت، سيُستأنف التنزيل تلقائيًا…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:27</code></td><td class="o">محتاج إذن الميكروفون عشان تسجّل</td><td class="n">يلزم إذن الميكروفون للتسجيل</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:31</code></td><td class="o">الاختبار هيخلص في آخر الآيات دي</td><td class="n">سينتهي الاختبار في آخر هذه الآيات</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:303</code></td><td class="o"># فرد · اضغط على الجزء لما يخلص</td><td class="n"># فرد · اضغط على الجزء عند إتمامه</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:317</code></td><td class="o">ما شاء الله، مفيش ولا كلمة غلط.</td><td class="n">ما شاء الله، لا توجد أي كلمة خاطئة.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:24</code></td><td class="o">صوت الأذان بيشتغل على الموبايل</td><td class="n">صوت الأذان يعمل على الهاتف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:67</code></td><td class="o">اقرا آية بصوتك العادي # ثواني…</td><td class="n">اقرأ آية بصوتك المعتاد # ثواني…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:322</code></td><td class="o">اكشف آية واحدة على الأقل الأول</td><td class="n">اكشف آية واحدة على الأقل أولًا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:333</code></td><td class="o">مستني يترفع: # مقطع · اترفض: #</td><td class="n">بانتظار الرفع: # مقطع · رُفض: #</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:352</code></td><td class="o">مفيش آيات غلط في المدى ده لسه.</td><td class="n">لا توجد آيات خاطئة في هذا المدى بعد.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:27</code></td><td class="o">التسجيل مش متاح على الجهاز ده</td><td class="n">التسجيل غير متاح على هذا الجهاز</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:41</code></td><td class="o">الصفحة هتتقلب لوحدها في آخرها</td><td class="n">ستُقلب الصفحة تلقائيًا في آخرها</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:347</code></td><td class="o">عشوائي (#–# آية، لحد نص صفحة)</td><td class="n">عشوائي (#–# آية، حتى نص صفحة)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:349</code></td><td class="o">ورد النهارده: # سورة · # صفحة</td><td class="n">ورد اليوم: # سورة · # صفحة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:38</code></td><td class="o">#٪ افتكرت # من # كلمة · كمّل</td><td class="n">#٪ تذكّرت # من # كلمة · أكمل</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:325</code></td><td class="o">امسح كل تسجيلاتي اللي اتبعتت</td><td class="n">امسح كل تسجيلاتي التي أُرسلت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:353</code></td><td class="o">مفيش مراجعة مستحقة النهارده</td><td class="n">لا توجد مراجعة مستحقة اليوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:393</code></td><td class="o">وقّفت التلاوة، تصبح على خير</td><td class="n">أُوقفت التلاوة، تصبح على خير</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:49</code></td><td class="o">الكلمات اللي اتسمعت كل يوم</td><td class="n">الكلمات المسموعة كل يوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:330</code></td><td class="o">تمام، دوس على المايك وابدأ</td><td class="n">حسنًا، اضغط على الميكروفون وابدأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:347</code></td><td class="o">آيات غلطت فيها قبل كده (#)</td><td class="n">آيات أخطأت فيها سابقًا (#)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:393</code></td><td class="o">التلاوة هتقف في آخر السورة</td><td class="n">ستتوقف التلاوة في آخر السورة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">لسه ما عملتش نسخة احتياطية</td><td class="n">لم تُنشئ نسخة احتياطية بعد</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">مفيش كود QK2 في الرسالة دي</td><td class="n">لا يوجد كود QK2 في هذه الرسالة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:82</code></td><td class="o">تحذف صفحات # من الموبايل؟</td><td class="n">تحذف صفحات # من الهاتف؟</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:113</code></td><td class="o">حققت هدف النهارده: # صفحة</td><td class="n">حققت هدف اليوم: # صفحة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:379</code></td><td class="o">دي تكملة سورة @ · الآية #</td><td class="n">هذه تكملة سورة @ · الآية #</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">اسمك (عشان المحفّظ يعرفك)</td><td class="n">اسمك (ليعرفك المحفّظ)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">النتيجة دي موجودة قبل كده</td><td class="n">هذه النتيجة موجودة سابقًا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:48</code></td><td class="o">الفهرس والبحث لقوا الآية</td><td class="n">الفهرس والبحث وجدا الآية</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:341</code></td><td class="o">المسح ما نجحش، جرّب تاني</td><td class="n">فشل المسح، جرّب مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:392</code></td><td class="o">التلاوة هتقف بعد # دقيقة</td><td class="n">ستتوقف التلاوة بعد # دقيقة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:20</code></td><td class="o">كمّلنا التمرير التلقائي</td><td class="n">استؤنف التمرير التلقائي</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:81</code></td><td class="o">✓ على الموبايل · # ميجا</td><td class="n">✓ على الهاتف · # ميجا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:350</code></td><td class="o">اختبرني في ورد النهارده</td><td class="n">اختبرني في ورد اليوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:368</code></td><td class="o">أنهيت مراجعة النهارده ✓</td><td class="n">أنهيت مراجعة اليوم ✓</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">ذكّرني أعمل نسخة كل شهر</td><td class="n">ذكّرني بإنشاء نسخة كل شهر</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:100</code></td><td class="o">سجّل السور اللي حفظتها</td><td class="n">سجّل السور التي حفظتها</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:306</code></td><td class="o">أضف أفراد العيلة الأول</td><td class="n">أضف أفراد العائلة أولًا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:388</code></td><td class="o">الاستماع من غير إنترنت</td><td class="n">الاستماع بدون إنترنت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:28</code></td><td class="o">العدد اللي عايز توصله</td><td class="n">العدد الذي تريد الوصول إليه</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:29</code></td><td class="o">الخطة هتبدأ أول رمضان</td><td class="n">ستبدأ الخطة في أول رمضان</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:46</code></td><td class="o">#/#/# · # آية · # غلط</td><td class="n">#/#/# · # آية · # خطأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:109</code></td><td class="o">، محتاجة مراجعة بسيطة</td><td class="n">، تحتاج إلى مراجعة بسيطة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:379</code></td><td class="o">مش واضح، كمّل التكملة</td><td class="n">غير واضح، أكمل التكملة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:22</code></td><td class="o">محتاج إذن الميكروفون</td><td class="n">يلزم إذن الميكروفون</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:65</code></td><td class="o">اقرا بصوت واضح وثابت</td><td class="n">اقرأ بصوت واضح وثابت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:69</code></td><td class="o">النتيجة: كويس (# dB)</td><td class="n">النتيجة: جيد (# dB)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:81</code></td><td class="o">التنزيل فشل · # ميجا</td><td class="n">فشل التنزيل · # ميجا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:353</code></td><td class="o">مفيش مراجعة مستحقة ✓</td><td class="n">لا توجد مراجعة مستحقة ✓</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:373</code></td><td class="o">(افتكرت # من # كلمة)</td><td class="n">(تذكّرت # من # كلمة)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:386</code></td><td class="o">ما شاء الله، صح كلها</td><td class="n">ما شاء الله، كلها صحيحة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:81</code></td><td class="o">مش متنزّلة · # ميجا</td><td class="n">غير منزّلة · # ميجا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:324</code></td><td class="o">✓ جاهز على الموبايل</td><td class="n">✓ جاهز على الهاتف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:67</code></td><td class="o">المايك مش متاح هنا</td><td class="n">الميكروفون غير متاح هنا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:109</code></td><td class="o">افتكرت # من # كلمة</td><td class="n">تذكّرت # من # كلمة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:116</code></td><td class="o">أهلًا بيك في «لوح»</td><td class="n">أهلًا بك في «لوْح»</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:316</code></td><td class="o">كلمات صح # · غلط #</td><td class="n">كلمات صح # · خطأ #</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:324</code></td><td class="o">مش متنزّل · # ميجا</td><td class="n">غير منزّل · # ميجا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:340</code></td><td class="o">اتمسحت كل تسجيلاتك</td><td class="n">تم مسح كل تسجيلاتك</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:366</code></td><td class="o">و# ربع/سورة تانيين</td><td class="n">و# ربع/سورة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:396</code></td><td class="o">مش واضح، جرّب تاني</td><td class="n">غير واضح، جرّب مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:64</code></td><td class="o">نصايح قبل ما تبدأ</td><td class="n">نصائح قبل أن تبدأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:108</code></td><td class="o">الآيات اللي بعدها</td><td class="n">الآيات التالية</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:303</code></td><td class="o">اسم فرد من العيلة</td><td class="n">اسم فرد من العائلة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:306</code></td><td class="o">الكود ده مش مفهوم</td><td class="n">هذا الكود غير مفهوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:315</code></td><td class="o">افتكرت # · نسيت #</td><td class="n">تذكّرت # · نسيت #</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:355</code></td><td class="o">السور اللي حفظتها</td><td class="n">السور التي حفظتها</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">آخر نسخة النهارده</td><td class="n">آخر نسخة اليوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:112</code></td><td class="o">فكّرني لو مخلصتش</td><td class="n">ذكِّرني إن لم أُتمّ الورد</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:119</code></td><td class="o">تحب نفكّرك بإيه؟</td><td class="n">بماذا تريد أن نذكّرك؟</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:140</code></td><td class="o">المايك المستخدم:</td><td class="n">الميكروفون المستخدم:</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:354</code></td><td class="o">ورد الختمة خلص ✓</td><td class="n">اكتمل ورد الختمة ✓</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:373</code></td><td class="o">الموضع اللي بعده</td><td class="n">الموضع التالي</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:378</code></td><td class="o">السؤال اللي بعده</td><td class="n">السؤال التالي</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:393</code></td><td class="o">اتلغى مؤقت النوم</td><td class="n">أُلغي مؤقت النوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:20</code></td><td class="o">بيجهّز الموديل…</td><td class="n">جارٍ تجهيز النموذج…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:119</code></td><td class="o">أو اختار مدينة…</td><td class="n">أو اختر مدينة…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:380</code></td><td class="o">مفيش أسئلة هنا.</td><td class="n">لا توجد أسئلة هنا.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:75</code></td><td class="o">بيشغّل التلاوة</td><td class="n">تشغيل التلاوة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:120</code></td><td class="o">المجموع كله: #</td><td class="n">المجموع الكلي: #</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:389</code></td><td class="o">فيه تحميل شغال</td><td class="n">يوجد تحميل جارٍ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">لسه مفيش طلاب.</td><td class="n">لا يوجد طلاب بعد.</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">اتضافت # نتيجة</td><td class="n">أُضيفت # نتيجة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:23</code></td><td class="o">كمّل القراءة…</td><td class="n">أكمل القراءة…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:56</code></td><td class="o">اختبار المايك</td><td class="n">اختبار الميكروفون</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:60</code></td><td class="o">+ ذكر من عندك</td><td class="n">+ ذكر خاص بك</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:67</code></td><td class="o">اسكت ثانيتين…</td><td class="n">اصمت ثانيتين…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:109</code></td><td class="o">، راجعها تاني</td><td class="n">، راجعها مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:306</code></td><td class="o">اتحدثت الختمة</td><td class="n">تم تحديث الختمة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:319</code></td><td class="o"># آية · # غلط</td><td class="n"># آية · # خطأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:350</code></td><td class="o">أخطائي بس (#)</td><td class="n">أخطائي فقط (#)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:389</code></td><td class="o">اتلغى التحميل</td><td class="n">أُلغي التحميل</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:66</code></td><td class="o">اختبر المايك</td><td class="n">اختبر الميكروفون</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:111</code></td><td class="o">حدد هدف يومي</td><td class="n">حدّد هدفًا يوميًا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:114</code></td><td class="o">الأذان مقفول</td><td class="n">الأذان معطّل</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:373</code></td><td class="o">الاختبار لحد</td><td class="n">الاختبار حتى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:381</code></td><td class="o">خبّيها وسمّع</td><td class="n">أخفِها وسمّع</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">ابعت للمحفّظ</td><td class="n">أرسل للمحفّظ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:40</code></td><td class="o">خلصت الصفحة</td><td class="n">انتهت الصفحة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:46</code></td><td class="o">كلمة اتسمعت</td><td class="n">كلمة سُمعت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:51</code></td><td class="o">مستني يترفع</td><td class="n">بانتظار الرفع</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:72</code></td><td class="o">كويس · # dB</td><td class="n">جيد · # dB</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:93</code></td><td class="o">زي الموبايل</td><td class="n">مثل الهاتف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:140</code></td><td class="o">مايك الهاتف</td><td class="n">ميكروفون الهاتف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:299</code></td><td class="o">ختمة العيلة</td><td class="n">ختمة العائلة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:337</code></td><td class="o">أنا قريت صح</td><td class="n">قرأت بشكل صحيح</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:380</code></td><td class="o">القارئ يقرا</td><td class="n">القارئ يقرأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:394</code></td><td class="o">لحد الآية #</td><td class="n">حتى الآية #</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:45</code></td><td class="o">آية اتسمعت</td><td class="n">آية سُمعت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:46</code></td><td class="o">مقطع اتسمع</td><td class="n">مقطع سُمع</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:394</code></td><td class="o">عيد الآيات</td><td class="n">أعد الآيات</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:397</code></td><td class="o">شيل الطالب</td><td class="n">احذف الطالب</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:51</code></td><td class="o">ما اتحفظش</td><td class="n">لم يُحفظ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:83</code></td><td class="o">حاول تاني</td><td class="n">حاول مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:108</code></td><td class="o">سجّل تاني</td><td class="n">سجّل مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:325</code></td><td class="o">مش دلوقتي</td><td class="n">ليس الآن</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:381</code></td><td class="o">اسمع تاني</td><td class="n">اسمع مرة أخرى</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:386</code></td><td class="o">عيد الآية</td><td class="n">أعد الآية</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:394</code></td><td class="o">لحد الآية</td><td class="n">حتى الآية</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:117</code></td><td class="o">يلا نبدأ</td><td class="n">هيا نبدأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:140</code></td><td class="o">مايك USB</td><td class="n">ميكروفون USB</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:316</code></td><td class="o">كلمة غلط</td><td class="n">كلمة خاطئة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:353</code></td><td class="o">النهارده</td><td class="n">اليوم</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:381</code></td><td class="o">من الأول</td><td class="n">من البداية</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:301</code></td><td class="o">لسه (#)</td><td class="n">لم يبدأ بعد (#)</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:49</code></td><td class="o">مقفولة</td><td class="n">معطّلة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:340</code></td><td class="o">بيمسح…</td><td class="n">جارٍ المسح…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:381</code></td><td class="o">اقراها</td><td class="n">اقرأها</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:404</code></td><td class="o">فكّرني</td><td class="n">ذكِّرني</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:49</code></td><td class="o">شغالة</td><td class="n">مفعّلة</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:315</code></td><td class="o">بسمع…</td><td class="n">جارٍ الاستماع…</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:389</code></td><td class="o">اتلغى</td><td class="n">أُلغي</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:53</code></td><td class="o">اظهر</td><td class="n">أظهر</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:108</code></td><td class="o">خلصت</td><td class="n">انتهيت</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:177</code></td><td class="o">تمام</td><td class="n">حسنًا</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:381</code></td><td class="o">اقرا</td><td class="n">اقرأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:75</code></td><td class="o">وقف</td><td class="n">تم الإيقاف</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:116</code></td><td class="o">لوح</td><td class="n">لوْح</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:368</code></td><td class="o">لسه</td><td class="n">لم يبدأ بعد</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:378</code></td><td class="o">غلط</td><td class="n">خطأ</td></tr>
+<tr><td class="w">English mode (مفتاح الترجمة)<br><code>web/i18n.js:389</code></td><td class="o">خلص</td><td class="n">اكتمل</td></tr>
+<tr><td class="w">اسم التطبيق (أندرويد)<br><code>android/res/values/strings.xml</code></td><td class="o">… لوح …</td><td class="n">… لوْح …</td></tr>
+<tr><td class="w">manifest (اسم التطبيق)<br><code>web/manifest.webmanifest</code></td><td class="o">name": "لوح - القرآن الكريم</td><td class="n">name": "لوْح - القرآن الكريم</td></tr>
+<tr><td class="w">manifest (اسم التطبيق)<br><code>web/manifest.webmanifest</code></td><td class="o">short_name": "لوح</td><td class="n">short_name": "لوْح</td></tr>
+<tr><td class="w">سياسة الخصوصية<br><code>docs/privacy-policy.html</code></td><td class="o">… سياسة الخصوصية - لوح …</td><td class="n">… سياسة الخصوصية - لوْح …</td></tr>
+<tr><td class="w">سياسة الخصوصية<br><code>docs/privacy-policy.html</code></td><td class="o">«لوح»</td><td class="n">«لوْح»</td></tr>
+<tr><td class="w">سياسة الخصوصية<br><code>store/privacy-policy.html</code></td><td class="o">… سياسة الخصوصية - لوح …</td><td class="n">… سياسة الخصوصية - لوْح …</td></tr>
+<tr><td class="w">سياسة الخصوصية<br><code>store/privacy-policy.html</code></td><td class="o">«لوح»</td><td class="n">«لوْح»</td></tr>
+</tbody></table></main></body></html>

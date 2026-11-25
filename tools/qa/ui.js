@@ -329,7 +329,7 @@ async function fresh(ctx, vp) {
   await check(G13, 'السبحة: هزة طويلة عند الوصول للعدد', async () => { await go('#/tasbih', 600); await p.click('#tsbReset'); await p.click('.tsb-goal button[data-g="33"]'); await ev(() => AppBridge.buzzes = []);
     for (let i = 0; i < 33; i++) await p.click('#tsbBtn'); const bz = await ev(() => AppBridge.buzzes); return assert(bz.length === 33 && bz[32] === 'p:700' && typeof bz[0] === 'number', JSON.stringify(bz.slice(-2))); });
   await check(G13, 'إحصائية الكلمات والحروف وتذكير آخر اليوم', async () => { await ev(() => { localStorage.removeItem('q.stats'); localStorage.removeItem('q.statsWL'); localStorage.setItem('q.reminders', JSON.stringify({ stat: { on: true, t: '23:59' } })); });
-    await go('#/p/3', 600); await go('#/stats', 2500); const t = await ev(() => document.querySelector('.st-wl').textContent); const a = await ev(() => AppBridge.alarms.filter(e => e.title === 'قراءتك النهارده'));
+    await go('#/p/3', 600); await go('#/stats', 2500); const t = await ev(() => document.querySelector('.st-wl').textContent); const a = await ev(() => AppBridge.alarms.filter(e => e.title === 'قراءتك اليوم'));
     return assert(/[١-٩][٠-٩]* كلمة/.test(t) && a.length >= 20 && (a[0].text.includes('كلمة') || new Date(a[0].at).getDate() !== new Date().getDate()), t + ' | ' + (a[0] || {}).text); });
   await check(G13, 'نسخة احتياطية: حفظ واسترجاع', async () => { const fs = require('fs'), os = require('os'), path = require('path'); const dl = p.waitForEvent('download').catch(() => null);
     await ev(() => { window.__bk = null; AppBridge.shareFile = (t, n) => { window.__bk = [t, n]; }; localStorage.setItem('q.notes', JSON.stringify({ '1:1': 'اختبار النسخة' })); });
@@ -488,9 +488,30 @@ async function fresh(ctx, vp) {
     // 5.6: one step back, then home; two backs within 1.5 s anywhere = exit
     const seq = []; for (const gap of [1700, 1700, 200, 200]) { const r = await ev(() => qBack()); await wait(gap); seq.push([r, await ev(() => location.hash)]); }
     return assert(seq[0][1] === '#/hifzmap' && seq[1][1] === '#/' && seq[2][0] === true && seq[3][0] === 'exit', JSON.stringify(seq)); });
-  await g18('الشريط السفلي: المصحف، الصلاة، الأذكار، المزيد', async () => {
-    await go('#/', 400); const r = await ev(() => [...document.querySelectorAll('#tabbar button')].map(a => a.textContent.trim()));
-    const want = ['المصحف', 'الصلاة', 'الأذكار', 'المزيد']; return assert(want.every((w, i) => (r[i] || '').includes(w)) && r.length === 4, JSON.stringify(r)); });
+  // B3 (#17): the bars are icon-only: the tab names live in aria-label (no visible words), 48px tap targets, long-press shows the name
+  await g18('الشريط السفلي: المصحف، الصلاة، الأذكار، المزيد (أيقونات بلا كلمات)', async () => {
+    await go('#/', 400); const r = await ev(() => [...document.querySelectorAll('#tabbar button')].map(a => [a.getAttribute('aria-label'), a.textContent.trim()]));
+    const want = ['المصحف', 'الصلاة', 'الأذكار', 'المزيد']; return assert(want.every((w, i) => r[i] && r[i][0] === w && r[i][1] === '') && r.length === 4, JSON.stringify(r)); });
+  const BARBTN = 'header.bar button:not([hidden]), #tabbar button, .page-tools [aria-label], .page-nav button';
+  const barSizes = () => ev(sel => [...document.querySelectorAll(sel)].filter(b => b.offsetParent !== null && !b.closest('[hidden]')).map(b => { const r = b.getBoundingClientRect(); return [b.id || b.dataset.h || b.className, Math.round(r.width), Math.round(r.height), b.getAttribute('aria-label')]; }), BARBTN);
+  await g18('أزرار الأشرطة: منطقة اللمس ٤٨×٤٨ على الأقل (الرئيسية، الصفحة، النص)', async () => {
+    const bad = []; for (const h of ['#/', '#/p/5', '#/s/112/1']) { await go(h, 700); for (const x of await barSizes()) if (x[1] < 48 || x[2] < 48) bad.push(h + ' ' + x.join('/')); }
+    return assert(!bad.length, bad.join(' | ')); });
+  await g18('أزرار الأشرطة: لكل زر اسم (aria-label) غير فارغ وبلا كلمات ظاهرة', async () => {
+    const bad = []; for (const h of ['#/', '#/p/5', '#/s/112/1']) { await go(h, 700); const r = await ev(sel => [...document.querySelectorAll(sel)].filter(b => b.offsetParent !== null).map(b => [b.id || b.dataset.h || b.className, (b.getAttribute('aria-label') || '').trim(), b.textContent.trim()]), BARBTN);
+      for (const x of r) if (!x[1] || (x[2] && !x[0].includes('pNum'))) bad.push(h + ' ' + x.join('/')); }
+    return assert(!bad.length, bad.join(' | ')); });
+  await g18('ضغطة مطوّلة على زر في الشريط تظهر اسمه ولا تنفّذ الزر', async () => {
+    const res = [];
+    for (const [sel, h] of [['#tabbar button[data-h="#/more"]', '#/'], ['#btnSettings', '#/']]) {
+      await go(h, 500); const bb = await p.locator(sel).boundingBox(); await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.mouse.down(); await wait(650);
+      const tip = await ev(() => { const t = document.querySelector('.bar-tip.show'); return t ? [t.textContent, Math.round(t.getBoundingClientRect().left), Math.round(t.getBoundingClientRect().right), innerWidth] : null; });
+      await p.mouse.up(); await wait(300);
+      const st = await ev(() => [location.hash, document.getElementById('settings').hidden]); res.push([sel, tip, st]);
+      assert(tip && tip[0] === (await p.locator(sel).getAttribute('aria-label')) && tip[1] >= 0 && tip[2] <= tip[3] && st[0] === '#/' && st[1], JSON.stringify(res));
+      await wait(1700); assert(await ev(() => !document.querySelector('.bar-tip.show')), 'tip stays');
+    }
+    await go('#/', 300); await p.click('#tabbar button[data-h="#/more"]'); await wait(300); assert(await ev(() => location.hash === '#/more'), 'normal click broken'); return true; });
   await g18('مايك الفهرس بيستخدم البحث الجديد', async () => {
     await ev(() => localStorage.setItem('q.mode', '"pages"')); await mock(); await go('#/p/10', 800);
     await p.click('#btnIndex'); await wait(200); await ev(() => { document.getElementById('idxMic').hidden = false; document.getElementById('idxMic').click(); }); await wait(100);
@@ -644,7 +665,7 @@ async function fresh(ctx, vp) {
     const res = await ev(() => { const o = document.getElementById('mtRes'); return [o.textContent, o.dataset.snr, !!JSON.parse(localStorage.getItem('q.micTest'))]; });
     await p.screenshot({ path: process.env.SHOT_DIR ? process.env.SHOT_DIR + '/g39-mictips.png' : __dirname + '/g39-mictips.png' }); await p.click('.mt-dlg .dlg-ok'); await wait(400);
     const after = await ev(() => { const r = [window.__st, localStorage.getItem('q.micTips'), !document.querySelector('.mt-dlg'), !!document.getElementById('micTestBtn').closest('#settings, .settings, body')]; try { document.getElementById('rdMic').click(); } catch (e) {} window.ReciteBridge = window.__rb; if (!window.__rb) delete window.ReciteBridge; return r; });
-    return assert(shown && /ممتاز|كويس|ضعيف/.test(res[0]) && res[1] !== undefined && res[2] && after[1] === '1' && after[2] && after[3], JSON.stringify([shown, res, after])); });
+    return assert(shown && /ممتاز|جيد|ضعيف/.test(res[0]) && res[1] !== undefined && res[2] && after[1] === '1' && after[2] && after[3], JSON.stringify([shown, res, after])); });
   await check(G511, 'G4: «المزيد» في مجموعات بعناوين (الحفظ أولاً)، كل زرار بيفتح شاشته', async () => { await go('#/more', 500);
     const g = await ev(() => [...document.querySelectorAll('.more-g')].map(x => x.querySelector('.more-h').textContent + ':' + x.querySelectorAll('.tile').length));
     const hs = await ev(() => [...document.querySelectorAll('.more-g .tile')].map(b => b.dataset.h)); const bad = [];
@@ -664,7 +685,7 @@ async function fresh(ctx, vp) {
     await p.click('#stPriv'); await wait(700); const pv = await ev(() => { const g = document.getElementById('privGroup'); return !!g && g.open && !document.getElementById('settings').hidden; });
     await ev(k => { delete window.NvBridge; k.forEach(([a, v]) => v === null ? localStorage.removeItem(a) : localStorage.setItem(a, v)); }, keep); await p.keyboard.press('Escape'); await ev(() => { const c = document.getElementById('closeSettings'); if (c) c.click(); }); await go('#/', 300);
     return assert(web[0] === '#/stats' && web[1] === 4 && web[2] === '٩٠٪,٧٥٪,—' && web[3].includes('٢آية') && web[3].includes('١آية') && web[3].includes('٩٥٪') && web[4] === '#/more' &&
-      ph[0] === 5 && ph[1].includes('٤') && ph[1].includes('شغالة') && pv, JSON.stringify([web, ph, pv])); });
+      ph[0] === 5 && ph[1].includes('٤') && ph[1].includes('مفعّلة') && pv, JSON.stringify([web, ph, pv])); });
   await check(G511, 'G6: الاختبار والخريطة والمتابعة بينهم صف واحد، والصفحة المحددة منورة', async () => { const r = [];
     for (const h of ['#/hifztest', '#/hifzmap', '#/hifzlog']) { await go(h, 600); r.push(await ev(() => [...document.querySelectorAll('.hz-nav a')].map(a => a.getAttribute('href') + (a.classList.contains('on') ? '*' : '')).join(' '))); }
     await p.click('.hz-nav a[href="#/hifztest"]'); await wait(500); const back = await ev(() => location.hash);
@@ -699,8 +720,8 @@ async function fresh(ctx, vp) {
     await ev(() => { localStorage.setItem('q.turn', '"v"'); window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; }); await p.reload(); await wait(900);
     await ev(() => { window.ReciteBridge = { start() {}, stop() {}, setHints() {} }; });
     await go('#/hifzmap', 700); await ev(n => { const s = window.QURAN.p.findIndex(a => a.includes(+n)) + 1, i = window.QURAN.p[s - 1].indexOf(+n); window.hifzTestPages(s, i < 0 ? 1 : i + 1); }, 50); await wait(1800);
-    // inside page 50 (still across 40% of the screen, so it stays the page being tested)
-    await ev(() => window.scrollBy(0, 230)); await wait(300); const before = await ev(() => document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top);
+    // inside page 50 (top 110px above the screen: its bottom is still well past 40% of the screen, so it stays the page being tested; a fixed scrollBy broke when the bar got shorter, 5.39)
+    await ev(() => window.scrollBy(0, document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top + 110)); await wait(300); const before = await ev(() => document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top);
     await p.click('#hifzBar [data-c="mic"]'); await wait(400);
     const r = await ev(() => [document.querySelector('.page-box.vp[data-p="50"]').closest('.vp-c').getBoundingClientRect().top, document.querySelector('.bar').offsetHeight]);
     await p.click('#hifzBar [data-c="mic"]').catch(() => {});
@@ -815,7 +836,7 @@ async function fresh(ctx, vp) {
     const b2 = await ev(() => [location.hash, document.querySelectorAll('.ht-text .ayah-no').length, !!document.getElementById('htNext'), (document.querySelector('.ht-place') || {}).textContent]);
     await p.click('.ht-w[data-a="2"]'); await p.evaluate(() => window.__htFinish()); await wait(300); const t = await ev(() => (document.getElementById('htTot') || {}).textContent || '');
     await hzBack(k); await go('#/', 300);
-    return assert(a[0] === 'الموضع اللي بعده' && a[1] === 'الموضع ١ من ٢' && mid && b2[0] === '#/hifztest/114' && b2[1] === 3 && !b2[2] && b2[3] === 'الموضع ٢ من ٢' && /٪/.test(t) && !/١٠٠٪/.test(t), JSON.stringify([a, mid, b2, t])); });
+    return assert(a[0] === 'الموضع التالي' && a[1] === 'الموضع ١ من ٢' && mid && b2[0] === '#/hifztest/114' && b2[1] === 3 && !b2[2] && b2[3] === 'الموضع ٢ من ٢' && /٪/.test(t) && !/١٠٠٪/.test(t), JSON.stringify([a, mid, b2, t])); });
   await check(G513, '5.14: اختبار المصحف العشوائي بيقلب للموضع التاني لوحده ويخلص بعد آخر موضع', async () => { const k = await hzKeep();
     await ev(() => { ['q.hifzScores'].forEach(x => localStorage.removeItem(x)); localStorage.setItem('q.hzScope', JSON.stringify({ k: 's', s: 112, n: 1, q: 1, a1: 1, a2: 4, w: 'o' })); });
     const P = await ev(() => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); const g = (s, a) => A[s - 1] + a - 1; return [[g(112, 1), g(112, 2)], [g(114, 1), g(114, 3)]]; });
@@ -902,7 +923,7 @@ async function fresh(ctx, vp) {
     await ev(a => localStorage.setItem('q.hzSched', JSON.stringify({ 0: { r: a, iv: 30 } })), dAgo(8)); await go('#/hifzlog', 150); await go('#/', 500);
     const ok = await ev(() => [(document.querySelector('#tdCard small') || {}).textContent || '', !document.getElementById('tdGo')]);
     await hzBack(k); await go('#/', 200);
-    return assert(none && /مراجعة: ١ ربع\/سورة/.test(txt) && t[0] && /^#\/p\/\d+/.test(t[1]) && /مفيش مراجعة مستحقة/.test(ok[0]) && ok[1], JSON.stringify([none, txt, t, ok])); });
+    return assert(none && /مراجعة: ١ ربع\/سورة/.test(txt) && t[0] && /^#\/p\/\d+/.test(t[1]) && /لا توجد مراجعة مستحقة/.test(ok[0]) && ok[1], JSON.stringify([none, txt, t, ok])); });
   // 5.15b: the user's patch for «المراجعة»
   const gq = async (s, a) => ev(([s, a]) => { const S = window.QURAN.s, A = [0]; S.forEach((x, i) => A.push(A[i] + x[3])); return A[s - 1] + a - 1; }, [s, a]);
   await check(G515, '5.15b ١: «السور المراجعة» بتتفتح وتتقفل، واللمس على سورة ما بيعملش حاجة', async () => { const k = await hzKeep();
@@ -1095,7 +1116,7 @@ async function fresh(ctx, vp) {
       const r = await ev(k => { const b = [...document.querySelectorAll('.mt-ch')]; const H = JSON.parse(localStorage.getItem('q.hifzAyat') || '{}');
         return { ok: b.filter(x => x.classList.contains('ok')).length, miss: b.filter(x => x.classList.contains('miss')).length, dis: b.every(x => x.disabled), src: b.every(x => !x.querySelector('.mt-src').hidden), h: H[k] && H[k].ok, res: document.getElementById('mtRes').textContent }; }, k);
       if (r.ok !== 1 || !r.dis || !r.src) return assert(false, JSON.stringify(r));
-      if (r.miss) wrong = wrong || (r.h === 0 && /غلط/.test(r.res)); else right = right || (r.h === 1 && /صح/.test(r.res));
+      if (r.miss) wrong = wrong || (r.h === 0 && /خطأ/.test(r.res)); else right = right || (r.h === 1 && /صح/.test(r.res));
       await p.click('#mtNext'); await wait(200);
     }
     const sc = await ev(() => document.getElementById('mtScore').textContent);
@@ -1204,7 +1225,7 @@ async function fresh(ctx, vp) {
     await p.click('#tqNext'); await wait(400);
     const n = await ev(() => [document.getElementById('tqA').value, document.getElementById('tqB').value]);
     await ev(() => { const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
-    return assert(a[0] === '1' && a[1] === '3' && a[2] === 3 && /الآيات/.test(a[3]) && /١–٣/.test(pl) && H[0] === 1 && H[1] === 0 && H[2] === 1 && /الآيات اللي بعدها/.test(H[3]) && n[0] === '4' && n[1] === '4', JSON.stringify([a, pl, H, n])); });
+    return assert(a[0] === '1' && a[1] === '3' && a[2] === 3 && /الآيات/.test(a[3]) && /١–٣/.test(pl) && H[0] === 1 && H[1] === 0 && H[2] === 1 && /الآيات التالية/.test(H[3]) && n[0] === '4' && n[1] === '4', JSON.stringify([a, pl, H, n])); });
   await check(G517, 'S8: مؤقت النوم ١٥ دقيقة بيبان في المشغّل وبيتلغي', async () => {
     await go('#/p/' + PL, 900); await p.click('#pPlay'); await wait(300);
     await p.click('#player button[data-c=dl]'); await wait(150); const dlg = await ev(() => [!!document.querySelector('.ls-dlg .zz-opts'), !!document.getElementById('dlGo')]);
@@ -1229,7 +1250,7 @@ async function fresh(ctx, vp) {
     const j = await ev(() => document.querySelector('#dlBox span').textContent);
     await ev(() => { if (window.AppBridge && window.AppBridge.fake517) delete window.AppBridge; document.querySelectorAll('.dlg-back').forEach(e => e.remove()); const b = document.querySelector('#player button[data-c=st]'); if (b) b.click(); });
     // surah 112: basmala + 4 ayat; juz 30: 564 ayat + basmala
-    return assert(/سورة الإخلاص ٥ من ٥ خلص/.test(s) && w === '100%' && /الجزء الثلاثون .* من ٥٦٥ اتلغى/.test(j), JSON.stringify([s, w, j])); });
+    return assert(/سورة الإخلاص ٥ من ٥ اكتمل/.test(s) && w === '100%' && /الجزء الثلاثون .* من ٥٦٥ أُلغي/.test(j), JSON.stringify([s, w, j])); });
   // ---------- 5.18 (Sprint D): S9 معنى الكلمة بلمسة، S10 النسخة الاحتياطية، S11 المحفّظ والطالب ----------
   const G518 = 'نسخة 5.18 (Sprint D)';
   // the middle of word i (whitespace tokens) of ayah #aN in the text view
@@ -1272,7 +1293,7 @@ async function fresh(ctx, vp) {
       const c = document.getElementById('bkRem'); c.checked = false; c.onchange(); const off = got[got.length - 1].filter(e => e.title === 'نسخة احتياطية').length;
       c.checked = true; c.onchange(); delete window.AppBridge;
       return [age, bk.length, days, t && t.getHours(), bk[0] && bk[0].hash, off]; });
-    return assert(r[0] === 'آخر نسخة النهارده' && r[1] === 1 && r[2] === 30 && r[3] === 20 && r[4] === '#/backup' && r[5] === 0, JSON.stringify(r)); });
+    return assert(r[0] === 'آخر نسخة اليوم' && r[1] === 1 && r[2] === 30 && r[3] === 20 && r[4] === '#/backup' && r[5] === 0, JSON.stringify(r)); });
   await check(G518, 'S10: النسخة المتأخرة تذكيرها النهارده أو بكرة، و#/backup بيفتح الإعدادات', async () => {
     const r = await ev(d => { localStorage.setItem('q.lastBackup', JSON.stringify(d)); const due = QA_bkDue(), now = Math.floor(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) / 864e5);
       return now - due; }, dAgo(45));
@@ -1654,7 +1675,7 @@ async function fresh(ctx, vp) {
     await tap('.hm-c[data-u="3"]'); await ev(() => document.getElementById('hmOpen').click()); await wait(400); const op = await ev(() => location.hash);
     await go('#/hifzmap', 600); await ev(() => document.querySelector('.hm-jc[data-j="1"] .hm-jh').click()); await wait(300); const jl = await ev(() => location.hash);
     await hzBack(k); await go('#/', 200);
-    assert(a && a.lines.join('|') === 'سورة الإخلاص' && a.btns.join('|') === 'افتح في المصحف|اختبرني' && ha === h0 && a.st && /آخر مراجعة من .+ يوم · كل .+ يوم · مستحقة/.test(a.st) && a.minH >= 40 && b && b.st === 'لسه' && b.lines.length === 2 && b.lines[0].split(' ').length === 4 && /^سورة .+ آية /.test(b.lines[1]) && !b.lines.some(l => /الربع/.test(l)) && hb === h0
+    assert(a && a.lines.join('|') === 'سورة الإخلاص' && a.btns.join('|') === 'افتح في المصحف|اختبرني' && ha === h0 && a.st && /آخر مراجعة من .+ يوم · كل .+ يوم · مستحقة/.test(a.st) && a.minH >= 40 && b && b.st === 'لم يبدأ بعد' && b.lines.length === 2 && b.lines[0].split(' ').length === 4 && /^سورة .+ آية /.test(b.lines[1]) && !b.lines.some(l => /الربع/.test(l)) && hb === h0
       && out1 === null && ho1 === h0 && open2 && out2 === null && ho2 === h0 && keep && !lp[0] && lp[1] === 1 && lp[2] === h0 && op.startsWith('#/p/') && /\?r=\d+:\d+-\d+$/.test(op) && jl === '#/hifzmap?j=1', JSON.stringify([a, b, out1, ho1, out2, ho2, keep, lp, op, jl])); return JSON.stringify([a, b, keep, lp, op, jl]); });
   await check(G530, 'T14: كل سور الجزء ٣٠ القصيرة مستحقة + ١٠ أرباع مستحقة، hzDaily=0 ← القايمة بالوزن (مجموع w <= الميزانية) والمتأخر صح', async () => { const k = await hzKeep();
     const r = await ev(a => { localStorage.setItem('q.hzRev', '{}'); localStorage.setItem('q.hzDaily', '0'); const S = {}, U = hzUnits(), sh = U.filter(u => u.kind === 's' && u.juz === 30), rb = U.filter(u => u.kind === 'r').slice(0, 10);
@@ -1819,21 +1840,21 @@ async function fresh(ctx, vp) {
     return assert(d0.join() === 'off,off,0' && r.join() === 'true,true,7,on,on' && r2.join() === 'false,false,0' && c.includes('["keepOn",true]') && c.includes('["fsStatus",true]') && c.includes('["setMic",7]'), d0 + ' | ' + r + ' | ' + r2 + ' | ' + c); });
   await check(G534, '#39: قائمة المايكات بتتبني من NvBridge.mics() (تلقائي ثم الأجهزة بأسماء عربي)', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534(DEVS534, true);
     await p.click('#btnSettings'); await wait(200); const r = await ev(() => [[...document.querySelectorAll('#micSel option')].map(o => o.textContent), document.getElementById('micSel').value, document.getElementById('micRow').hidden, !!document.getElementById('micHint')]); await closeS();
-    return assert(r[0].join('|') === 'تلقائي|مايك الهاتف|سماعة بلوتوث · Buds|مايك USB · Dev' && r[1] === '9' && !r[2] && !r[3], JSON.stringify(r)); });
+    return assert(r[0].join('|') === 'تلقائي|ميكروفون الهاتف|سماعة بلوتوث · Buds|ميكروفون USB · Dev' && r[1] === '9' && !r[2] && !r[3], JSON.stringify(r)); });
   await check(G534, '#39: القائمة فاضية أو المايك المحفوظ اتفصل: تلقائي ومحدش بيتحفظ q.micId قديم؛ ومن غير NvBridge الصف مخفي؛ ومفيش أي جملة توضيحية', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534('[]', false);
     await p.click('#btnSettings'); await wait(200); const r = await ev(() => [[...document.querySelectorAll('#micSel option')].map(o => o.textContent).join('|'), document.getElementById('micSel').value, localStorage.getItem('q.micId'), !!document.getElementById('micHint')]);
     const c = await calls534(); await closeS(); await boot534(base534, '#/'); await p.click('#btnSettings'); await wait(200); const hid = await ev(() => document.getElementById('micRow').hidden); await closeS();
     return assert(r[0] === 'تلقائي' && r[1] === '0' && r[2] === '0' && !r[3] && c.includes('["setMic",0]') && hid, JSON.stringify([r, c, hid])); });
   await check(G534, '#39: onMicInfo("fallback") بيطلع تنبيه «المايك المختار مش متوصل»', async () => { await boot534(base534, '#/'); await ev(() => window.onMicInfo('fallback', '')); await wait(100);
-    return assert(await ev(() => [...document.querySelectorAll('.toast')].some(t => t.textContent.includes('المايك المختار مش متوصل'))), 'no toast'); });
+    return assert(await ev(() => [...document.querySelectorAll('.toast')].some(t => t.textContent.includes('الميكروفون المختار غير متصل'))), 'no toast'); });
   await check(G534, '#39: الصف اسمه «اختيار الميكروفون» وتحته على طول «اختبار المايك»، ومفيش جملة «بيجرّب مايك الهاتف العادي»', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534(DEVS534, false);
     await p.click('#btnSettings'); await wait(200); const r = await ev(() => { const row = document.getElementById('micRow'), nx = row.nextElementSibling; return [row.firstChild.textContent.trim(), document.getElementById('micSel').getAttribute('aria-label'), !!nx.querySelector('#micTestBtn'), nx.firstChild.textContent.trim(), row.textContent.includes('العادي')]; }); await closeS();
-    return assert(r[0] === 'اختيار الميكروفون' && r[1] === 'اختيار الميكروفون' && r[2] && r[3] === 'اختبار المايك' && !r[4], JSON.stringify(r)); });
+    return assert(r[0] === 'اختيار الميكروفون' && r[1] === 'اختيار الميكروفون' && r[2] && r[3] === 'اختبار الميكروفون' && !r[4], JSON.stringify(r)); });
   await check(G534, '#39: «اختبار المايك» بيروح للتسجيل الأصلي بالمايك المختار (NvBridge.micTest(id)) وبيعرض الجهاز اللي اتسجّل منه', async () => { await boot534(Object.assign({}, base534, { 'q.micId': '9' }), '#/'); await stub534(DEVS534, false);
     await p.click('#btnSettings'); await wait(200); await p.click('#micTestBtn'); await wait(200); const c = await calls534();
     const lv = [...Array(40).fill(-60), ...Array(80).fill(-30)]; await ev(lv => window.onMicInfo('testdone', JSON.stringify({ levels: lv, routed: 'usb:Dev', gone: false, note: '' })), lv); await wait(100);
     const r = await ev(() => [document.getElementById('micTestSum').textContent, document.getElementById('micTestBtn').disabled]); await closeS();
-    return assert(c.includes('["micTest",9]') && r[0].includes('ممتاز') && r[0].includes('المايك المستخدم:') && r[0].includes('مايك USB') && !r[0].includes('Dev') && !r[1], c + ' | ' + r); });
+    return assert(c.includes('["micTest",9]') && r[0].includes('ممتاز') && r[0].includes('الميكروفون المستخدم:') && r[0].includes('ميكروفون USB') && !r[0].includes('Dev') && !r[1], c + ' | ' + r); });
   await check(G534, 'تحت الصفحة: مفيش #pMark، وسطر السورة/الجزء جوه .page-tools (مرة واحدة) قبل دليل التجويد، ومخفي في ملء الشاشة', async () => { await boot534(Object.assign({}, base534, { 'q.tajweed': 'true' }), '#/p/50'); await wait(400); await ev(() => { window.QA_NOFS = true; });
     const r = await ev(() => { const t = document.querySelector('.page-tools'), i = t && t.querySelector('.page-info'); return [!!document.getElementById('pMark'), document.querySelectorAll('.page-info').length, !!i && i.textContent.includes('سورة') && i.textContent.includes('الجزء'), !!i && !!i.nextElementSibling && i.nextElementSibling.classList.contains('tj-key'), t && t.firstElementChild === i]; });
     const fsOff = await ev(() => { const t = document.querySelector('.page-tools'); t.style.transition = 'none'; document.body.classList.add('fs'); const o = getComputedStyle(t).visibility, mh = getComputedStyle(t).maxHeight; document.body.classList.remove('fs'); t.style.transition = ''; return [o, mh]; });
@@ -1914,7 +1935,7 @@ async function fresh(ctx, vp) {
   const micOpts535 = async (saved) => { await boot534(Object.assign({}, base534, { 'q.micId': saved === null ? null : String(saved) }), '#/'); await stub534(DEVS535, true); await p.click('#btnSettings'); await wait(200);
     const r = await ev(() => [[...document.querySelectorAll('#micSel option')].map(o => o.textContent).join('|'), document.getElementById('micSel').value, localStorage.getItem('q.micId'), JSON.stringify(window.__br)]); await closeS(); return r; };
   await check(G535, '#39: مايكين مدمجين (تحت وضهر) بيظهروا «مايك الهاتف» مرة واحدة، وكذلك أي جهازين بنفس النوع والاسم', async () => { const r = await micOpts535(null);
-    return assert(r[0] === 'تلقائي|مايك الهاتف|سماعة بلوتوث · Buds|مايك USB · Dev|مايك USB · Other' && r[1] === '0', JSON.stringify(r)); });
+    return assert(r[0] === 'تلقائي|ميكروفون الهاتف|سماعة بلوتوث · Buds|ميكروفون USB · Dev|ميكروفون USB · Other' && r[1] === '0', JSON.stringify(r)); });
   await check(G535, '#39: q.micId محفوظ على المايك المدمج التاني بيتحوّل للمايك المدمج الظاهر (مش تلقائي)، والمخفي من نفس الاسم برضه', async () => { const a = await micOpts535(4), b = await micOpts535(10), c = await micOpts535(99);
     return assert(a[1] === '3' && a[2] === '3' && a[3].includes('["setMic",3]') && b[1] === '9' && b[2] === '9' && c[1] === '0' && c[2] === '0', JSON.stringify([a, b, c])); });
   // text mode: the visible text block (box minus the text crop) is the whole viewport on every page; the picture, overlays and tajweed layer keep their coordinates
@@ -1984,16 +2005,22 @@ async function fresh(ctx, vp) {
   const stub536 = () => ev(() => { window.__nv = []; window.NvBridge = { mics: () => [], setMic: () => {}, micTest: () => {}, ready: () => true, setPace: v => __nv.push(['setPace', v]), start: () => __nv.push(['start']), stop: () => __nv.push(['stop']) }; });
   const micTap536 = async () => { await ev(() => { window.ReciteBridge = window.ReciteBridge || { start() {}, stop() {}, setHints() {} }; localStorage.setItem('q.asr', JSON.stringify('asrnv')); document.getElementById('rdMic').click(); }); await wait(200); await ev(() => document.getElementById('rdMic').click()); await wait(200); };
   await p.setViewportSize({ width: 390, height: 844 });
-  await check(G536, '«سرعة القراءة»: صف بزرارين (عادي / مجوّد)، الافتراضي عادي من غير ما يتكتب q.asrPace، ومخفي لو مفيش NvBridge.setPace', async () => {
+  await check(G536, '«سرعة القراءة»: صف بـ3 أزرار (عادي / مجوّد / تلقائي)، الافتراضي عادي من غير ما يتكتب q.asrPace، ومخفي لو مفيش NvBridge.setPace', async () => {
     await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/'); const none = await ev(() => document.getElementById('paceRow').hidden); await stub536(); await p.click('#btnSettings'); await wait(200);
     const r = await ev(() => [document.getElementById('paceRow').hidden, [...document.querySelectorAll('#paceSet button')].map(b => b.dataset.v + ':' + b.textContent.trim()).join('|'), document.querySelector('#paceSet .on').dataset.v, localStorage.getItem('q.asrPace')]); await closeS();
-    return assert(none && !r[0] && r[1] === 'normal:عادي|slow:مجوّد' && r[2] === 'normal' && r[3] === null, JSON.stringify([none, r])); });
+    return assert(none && !r[0] && r[1] === 'normal:عادي|slow:مجوّد|auto:تلقائي' && r[2] === 'normal' && r[3] === null, JSON.stringify([none, r])); });
   await check(G536, '«سرعة القراءة»: الزرار بيحفظ q.asrPace ويفضل بعد إعادة التحميل، والرجوع لعادي بيحفظه', async () => {
     await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/'); await stub536(); await p.click('#btnSettings'); await wait(200);
     await p.click('#paceSet button[data-v=slow]'); const a = await ev(() => [localStorage.getItem('q.asrPace'), document.querySelector('#paceSet .on').dataset.v]); await closeS();
     await p.reload(); await wait(900); await stub536(); await p.click('#btnSettings'); await wait(200); const b = await ev(() => document.querySelector('#paceSet .on').dataset.v);
     await p.click('#paceSet button[data-v=normal]'); const c = await ev(() => [localStorage.getItem('q.asrPace'), document.querySelector('#paceSet .on').dataset.v]); await closeS();
     return assert(a[0] === '"slow"' && a[1] === 'slow' && b === 'slow' && c[0] === '"normal"' && c[1] === 'normal', JSON.stringify([a, b, c])); });
+  await check(G536, '«سرعة القراءة» تلقائي: بيتحفظ q.asrPace="auto" ويفضل بعد إعادة التحميل، وبيتبعت NvBridge.setPace("auto") قبل start', async () => {
+    await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/p/2'); await stub536(); await p.click('#btnSettings'); await wait(200);
+    await p.click('#paceSet button[data-v=auto]'); const a = await ev(() => [localStorage.getItem('q.asrPace'), document.querySelector('#paceSet .on').dataset.v]); await closeS();
+    await p.reload(); await wait(900); await stub536(); await p.click('#btnSettings'); await wait(200); const b = await ev(() => document.querySelector('#paceSet .on').dataset.v); await closeS();
+    await ev(() => { window.__nv.length = 0; }); await micTap536(); const s = await ev(() => JSON.stringify(window.__nv)); await ev(() => localStorage.removeItem('q.asr'));
+    return assert(a[0] === '"auto"' && a[1] === 'auto' && b === 'auto' && s === '[["setPace","auto"],["start"],["stop"]]', JSON.stringify([a, b, s])); });
   await check(G536, 'زرار المايك: NvBridge.setPace(القيمة المحفوظة) بتتنادى قبل start في كل تشغيل، وعادي هو الافتراضي والباقي زي ما كان (start / stop)', async () => {
     await boot534(Object.assign({}, base534, { 'q.asrPace': null }), '#/p/2'); await stub536(); await micTap536(); const n = await ev(() => JSON.stringify(window.__nv));
     await ev(() => { localStorage.setItem('q.asrPace', '"slow"'); window.__nv.length = 0; }); await micTap536(); const s = await ev(() => JSON.stringify(window.__nv)); await ev(() => localStorage.removeItem('q.asr'));
@@ -2021,6 +2048,94 @@ async function fresh(ctx, vp) {
     let out = ''; try { out = require('child_process').execSync('node ' + JSON.stringify(require('path').join(__dirname, 'sprint5', 'vturn_scroll.js')), { env: Object.assign({}, process.env, { ED: 'kfgqpc', PAGES: '100,200' }), encoding: 'utf8' }); } catch (e) { out = 'FAIL ' + (e.stdout || e.message); }
     return assert(/PASS/.test(out) && !/FAIL/.test(out), out.slice(0, 300)); });
   await ev(() => { for (const k of ['q.openAt', 'q.tapMark', 'q.turn', 'q.flipMode', 'q.qiblaLoc', 'q.keepOn', 'q.fsStatus', 'q.micId', 'q.fsFit', 'q.spine', 'q.asrPace', 'q.asr']) localStorage.removeItem(k); localStorage.setItem('q.spread', 'true'); }); await p.goto('about:blank'); await p.goto(W); await wait(500);
+  // ---------- 5.38 C5 #33b: الجولة التعريفية ----------
+  const G537 = 'نسخة 5.38 (C5)';
+  const tourSt = () => ev(() => { const t = document.querySelector('.tour'); if (!t) return null; const r = t.querySelector('.tour-ring').getBoundingClientRect();
+    return { cnt: t.querySelector('.tour-cnt').textContent, txt: t.querySelector('.tour-txt').textContent, rx: r.left + r.width / 2, ry: r.top + r.height / 2, prev: !t.querySelector('.tour-prev').hidden, fin: !t.querySelector('.tour-fin').hidden, dlg: t.querySelector('.tour-box').getAttribute('role'), live: t.querySelector('.tour-txt').getAttribute('aria-live'), skip: t.querySelector('.tour-skip').textContent }; });
+  const onb537 = { 'q.onboarded': 'true', 'q.tourDone': null, 'q.mode': '"pages"', 'q.openAt': null, 'q.spread': 'true' };
+  await p.setViewportSize({ width: 390, height: 844 });
+  await check(G537, 'الجولة: بتظهر على #/ والخطوة الأولى على «المزيد» في الشريط السفلي، و«تخطّي» بتقفلها وتكتب q.tourDone، ومش بترجع بعد إعادة التحميل', async () => {
+    await boot534(onb537, '#/'); const auto = await ev(() => !!document.querySelector('.tour')); const started = await ev(() => window.__tour(true)); await wait(150); const s = await tourSt();
+    const more = await ev(() => { const r = document.querySelector('#tabbar button[data-h="#/more"]').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+    await p.click('.tour-skip'); await wait(100);
+    const after = await ev(() => [!!document.querySelector('.tour'), localStorage.getItem('q.tourDone')]);
+    await p.reload(); await wait(1600); const again = await ev(() => [!!document.querySelector('.tour'), window.__tour(false)]);
+    return assert(auto === false && started === true && s && s.cnt.startsWith('١ من') && !s.prev && s.dlg === 'dialog' && s.live === 'polite' && s.skip === 'تخطّي' && Math.abs(s.rx - more[0]) < 3 && Math.abs(s.ry - more[1]) < 3 && s.txt.includes('خريطة الحفظ') && after[0] === false && after[1] === 'true' && again[0] === false && again[1] === false, JSON.stringify([auto, started, s, more, after, again])); });
+  await check(G537, 'الجولة: التالي/السابق/إنهاء، والعدّاد، وزر الرجوع وEsc يقفلانها ويحفظان q.tourDone، والنقر على الخلفية = التالي', async () => {
+    await boot534(onb537, '#/'); await ev(() => window.__tour(true)); await wait(100); const a = await tourSt();
+    await p.click('.tour-next'); await wait(100); const b = await tourSt(); await p.click('.tour-prev'); await wait(100); const c = await tourSt();
+    await p.mouse.click(200, 400); await wait(100); const d = await tourSt();
+    const n = +(d.cnt.match(/من (\S+)/)[1].replace(/[٠-٩]/g, x => '٠١٢٣٤٥٦٧٨٩'.indexOf(x))); for (let k = 0; k < n; k++) { if (await ev(() => !!document.querySelector('.tour-fin:not([hidden])'))) break; await p.click('.tour-next'); await wait(60); }
+    const last = await tourSt(); await p.click('.tour-fin'); await wait(100); const done1 = await ev(() => [!!document.querySelector('.tour'), localStorage.getItem('q.tourDone')]);
+    await ev(() => { localStorage.removeItem('q.tourDone'); window.__tour(true); }); await wait(100); await ev(() => window.qBack()); await wait(100); const back = await ev(() => [!!document.querySelector('.tour'), localStorage.getItem('q.tourDone'), location.hash]);
+    await ev(() => { localStorage.removeItem('q.tourDone'); window.__tour(true); }); await wait(100); await p.keyboard.press('Escape'); await wait(100); const esc = await ev(() => [!!document.querySelector('.tour'), localStorage.getItem('q.tourDone')]);
+    return assert(a.cnt.startsWith('١') && b.cnt.startsWith('٢') && b.prev && c.cnt.startsWith('١') && d.cnt.startsWith('٢') && last.fin && done1[0] === false && done1[1] === 'true' && back[0] === false && back[1] === 'true' && back[2] !== '#/never' && esc[0] === false && esc[1] === 'true', JSON.stringify([a, b, c, d, last, done1, back, esc])); });
+  await check(G537, 'الجولة: ما بتظهر وشاشة الترحيب مفتوحة (حتى لو اتفرضت)، ولا في وسط القراءة تلقائيًا', async () => {
+    await boot534(onb537, '#/'); await go('#/welcome', 600); const w = await ev(() => [!!document.querySelector('.wel'), window.__tour(true), !!document.querySelector('.tour')]);
+    await ev(() => document.querySelectorAll('.wel').forEach(x => x.remove()));
+    return assert(w[0] === true && w[1] === false && w[2] === false, JSON.stringify(w)); });
+  await check(G537, 'الجولة: «عرض الشرح» في الإعدادات (مجموعة التطبيق) تقفل الإعدادات وتروح #/ وتبدأ الجولة من جديد', async () => {
+    await boot534(Object.assign({}, onb537, { 'q.tourDone': 'true' }), '#/more'); await p.click('#btnSettings'); await wait(250);
+    const inGroup = await ev(() => { const b = document.getElementById('tourBtn'); const g = [...document.querySelectorAll('#settings .set-group')].find(h => h.textContent.trim() === 'التطبيق'); return !!b && b.textContent.trim() === 'عرض الشرح' && !!g && !!(g.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING); });
+    await ev(() => document.getElementById('tourBtn').click()); await wait(900);
+    const r = await ev(() => [document.getElementById('settings').hidden, location.hash, !!document.querySelector('.tour')]); await ev(() => document.querySelector('.tour-skip') && document.querySelector('.tour-skip').click());
+    return assert(inGroup && r[0] === true && (r[1] === '#/' || r[1] === '') && r[2] === true, JSON.stringify([inGroup, r])); });
+  await check(G537, 'الجولة: الخطوة اللي هدفها مش ظاهر بتتخطّى (في المصحف: الإعدادات، الميكروفون، ثم آخر خطوة)، وإعادة التخطيط عند تغيير المقاس', async () => {
+    await boot534(onb537, '#/p/2'); await wait(400); await ev(() => window.__tour(true)); await wait(150); const a = await tourSt();
+    await p.click('.tour-next'); await wait(400); const b = await tourSt();
+    const mic = await ev(() => { const r = document.getElementById('rdMic').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+    await p.setViewportSize({ width: 600, height: 400 }); await wait(500); const c = await tourSt(); const mic2 = await ev(() => { const r = document.getElementById('rdMic').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+    await p.setViewportSize({ width: 390, height: 844 }); await ev(() => document.querySelector('.tour-skip') && document.querySelector('.tour-skip').click());
+    return assert(a && a.cnt.startsWith('١') && !a.txt.includes('«المزيد»') && /من ٣$/.test(a.cnt) && b.txt.includes('الميكروفون') && Math.abs(b.rx - mic[0]) < 3 && c && Math.abs(c.rx - mic2[0]) < 3 && Math.abs(c.ry - mic2[1]) < 3, JSON.stringify([a, b, mic, c, mic2])); });
+  // ---------- 5.39 D6 #22: التحقق من التحديثات (نسخة Play فقط) + إصلاح فحص نسخة النموذج بدون اتصال ----------
+  const GU = 'نسخة 5.39 (D6 #22)';
+  const URLV = /raw\.githubusercontent\.com\/.*\/version\.json/, SHOTS = require('path').resolve(__dirname, '../../plans/sprint6-shots');
+  require('fs').mkdirSync(SHOTS, { recursive: true });
+  const jb = (code, name) => JSON.stringify({ play: { code, name } });
+  async function updBoot(o) {
+    const c = await b.newContext({ viewport: { width: 360, height: 780 } }); await fresh(c, { width: 360, height: 780 }); p.ctxU = c;
+    await p.addInitScript(o => { try { if (!localStorage.getItem('q.onboarded')) { localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.mode', '"text"'); } } catch (e) {}
+      if (o.id) window.AppBridge = { appId: () => o.id, version: () => o.ver, openStore() { window.__opened = (window.__opened || 0) + 1; }, buzz() {}, buzzPattern() {}, previewAdhan() {}, tick() {}, copy() {}, shareText() {}, shareImage() {}, setAlarms() {}, setWidget() {}, askNotifications() {}, exactAlarms() { return true; }, askExactAlarms() {} };
+      if (o.asr) { window.EdBridge = { state: () => 'ready', download() {}, remove() {}, pause() {}, get() {} }; window.NvBridge = { ready: () => true, start() {}, stop() {}, reload() {} }; } }, o);
+    p.fetches = 0; await p.route(URLV, r => { p.fetches++; if (o.resp === 'abort') return r.abort();
+      r.fulfill({ status: o.status || 200, headers: { 'Access-Control-Allow-Origin': '*', 'content-type': 'application/json' }, body: o.body === undefined ? '' : o.body }); });
+    if (o.asrVer) await p.route('https://asr.app/**', r => o.asrVer === 'abort' ? r.abort() : r.fulfill({ status: o.asrVer.status, headers: { 'Access-Control-Allow-Origin': '*' }, body: o.asrVer.body || '' }));
+    await p.goto(W + '#/'); await wait(o.wait || 5200); return p; }
+  const promptSt = () => ev(() => { const d = document.querySelector('.dlg-back'); return d ? { t: d.querySelector('b').textContent, btns: [...d.querySelectorAll('button')].map(x => x.textContent.trim()) } : null; });
+  const openSet = async () => { await p.evaluate(() => document.getElementById('btnSettings').click()); await wait(300); };
+  const updRow = () => ev(() => { const r = document.getElementById('updRow'); return { vis: !!r && r.getBoundingClientRect().height > 0, msg: document.getElementById('updMsg').textContent, go: !document.getElementById('updGo').hidden, lbl: r ? r.firstChild.textContent.trim() : '' }; });
+  await check(GU, 'نسخة Play + إصدار أحدث: بعد ~4 ثوانٍ على #/ بيظهر «يتوفر إصدار جديد من لوْح» بزرّين، و«لاحقًا» بيقفله ومبيرجعش خلال 24 ساعة (حتى لو اتمسح updLast)، و«تحديث الآن» بيفتح المتجر', async () => {
+    await updBoot({ id: 'com.lawh.quran', ver: '5.39 (87)', body: jb(88, '5.40') }); const a = await promptSt();
+    await p.screenshot({ path: SHOTS + '/update-prompt-ar.png' });
+    await p.click('.upd-later'); await wait(100); const b1 = await promptSt(); const lt = await ev(() => JSON.parse(localStorage.getItem('q.updLater')));
+    await p.reload(); await wait(5200); const c1 = await promptSt(), f1 = p.fetches;
+    await ev(() => localStorage.removeItem('q.updLast')); await p.reload(); await wait(5200); const d1 = await promptSt(), f2 = p.fetches;
+    await ev(() => { localStorage.removeItem('q.updLast'); localStorage.removeItem('q.updLater'); }); await p.reload(); await wait(5200); const e1 = await promptSt();
+    await p.click('.upd-now'); await wait(100); const opened = await ev(() => window.__opened), gone = await promptSt(); await p.ctxU.close();
+    return assert(a && a.t === 'يتوفر إصدار جديد من لوْح' && a.btns.join('|') === 'تحديث الآن|لاحقًا' && b1 === null && lt.code === 88 && c1 === null && f1 === 1 && d1 === null && f2 === 2 && e1 && opened === 1 && gone === null, JSON.stringify([a, b1, lt, c1, f1, d1, f2, e1, opened, gone])); });
+  await check(GU, 'نفس الإصدار: مفيش رسالة، والإعدادات (مجموعة التطبيق) فيها صف «التحقق من التحديثات» وزرّ «تحقّق» بيقول «لديك أحدث إصدار (5.39)»', async () => {
+    await updBoot({ id: 'com.lawh.quran', ver: '5.39 (87)', body: jb(87, '5.39') }); const a = await promptSt(); await openSet();
+    const r0 = await updRow(); const inGroup = await ev(() => { const g = [...document.querySelectorAll('#settings .set-group')].find(h => h.textContent.trim() === 'التطبيق'), r = document.getElementById('updRow'); return !!(g.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING); });
+    await p.evaluate(() => document.getElementById('updRow').scrollIntoView({ block: 'center' })); await p.click('#updBtn'); await wait(500); const r1 = await updRow();
+    await p.screenshot({ path: SHOTS + '/update-row-ar.png' }); await p.ctxU.close();
+    return assert(a === null && r0.vis && r0.lbl === 'التحقق من التحديثات' && inGroup && r1.msg === 'لديك أحدث إصدار (5.39)' && !r1.go, JSON.stringify([a, r0, inGroup, r1])); });
+  await check(GU, 'إصدار أحدث + «لاحقًا» من الإعدادات: الزر بيقول «يتوفر إصدار جديد (5.40)» ومعاه «تحديث الآن» بيفتح المتجر', async () => {
+    await updBoot({ id: 'com.lawh.quran', ver: '5.39 (87)', body: jb(88, '5.40') }); await p.click('.upd-later'); await openSet(); await p.click('#updBtn'); await wait(700);
+    const r = await updRow(); await p.click('#updGo'); await wait(100); const o = await ev(() => window.__opened); await p.ctxU.close();
+    return assert(r.msg === 'يتوفر إصدار جديد (5.40)' && r.go && o === 1, JSON.stringify([r, o])); });
+  for (const [nm, o] of [['بدون اتصال', { resp: 'abort' }], ['خطأ ٥٠٠', { status: 500, body: 'x' }], ['ملف غير صالح', { body: '{"play":{"code":"x"}}' }]])
+    await check(GU, 'فحص التحديثات ' + nm + ': مفيش رسالة تلقائية ولا q.updLast، والفحص اليدوي بيقول «تعذّر الاتصال، حاول لاحقًا»', async () => {
+      await updBoot(Object.assign({ id: 'com.lawh.quran', ver: '5.39 (87)' }, o)); const a = await promptSt(), ul = await ev(() => localStorage.getItem('q.updLast')); await openSet(); await p.click('#updBtn'); await wait(700); const r = await updRow(); await p.ctxU.close();
+      return assert(a === null && ul === null && p.fetches >= 1 && r.msg === 'تعذّر الاتصال، حاول لاحقًا' && !r.go, JSON.stringify([a, ul, r])); });
+  await check(GU, 'نسخة GitHub (com.quran.karim) ونسخة الويب (بدون AppBridge): الصف مخفي ومفيش رسالة ومفيش أي طلب شبكة لـ version.json', async () => {
+    const res = []; for (const o of [{ id: 'com.quran.karim', ver: '5.39 (87)', body: jb(88, '5.40') }, { id: '', body: jb(88, '5.40') }]) {
+      await updBoot(o); const a = await promptSt(); await openSet(); const r = await updRow(); res.push([a, r.vis, p.fetches]); await p.ctxU.close(); }
+    return assert(res.every(x => x[0] === null && x[1] === false && x[2] === 0), JSON.stringify(res)); });
+  await check(GU, 'فحص نسخة نموذج التعرّف: فشل الشبكة أو ٥٠٠ ما يخلّيش «تحديث» يظهر، و٤٠٤ (نسخة قديمة) أو ver.txt أصغر يظهّره', async () => {
+    const res = {}; for (const [k, v] of [['abort', 'abort'], ['500', { status: 500 }], ['404', { status: 404 }], ['old', { status: 200, body: '4' }], ['cur', { status: 200, body: '5' }]]) {
+      await updBoot({ id: 'com.quran.karim', ver: '5.39 (87)', asr: true, asrVer: v, wait: 600 }); await openSet(); await wait(900);
+      res[k] = await ev(() => [!!document.querySelector('[data-asrup]'), /توجد نسخة جديدة/.test(document.getElementById('asrDl').textContent)]); await p.ctxU.close(); }
+    return assert(!res.abort[0] && !res.abort[1] && !res['500'][0] && !res['500'][1] && res['404'][0] && res.old[0] && res.old[1] && !res.cur[0], JSON.stringify(res)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

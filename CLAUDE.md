@@ -48,6 +48,7 @@ PLAY=1 ... bash build.sh && bash build-aab.sh                  # Play bundle; ne
   GitHub Pages serves the privacy policy from `docs/`).
 - Release checklist: bump `versionName`/`versionCode` in the manifest, the static version text in `web/index.html`
   («حول التطبيق»), and the cache name in `web/sw.js`.
+  After Play publishes vX: update `version.json` on the `editions` branch (`play.code` / `play.name`; the Play build's update prompt reads it).
 - Web build: serve `web/` with any static server (`python3 -m http.server -d web`).
 
 ## Build on Windows (no WSL)

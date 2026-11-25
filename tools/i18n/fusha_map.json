@@ -1,0 +1,4138 @@
+[
+ {
+  "old": "'<p class=\"hint hm-info\" id=\"hmInfo\" hidden>كل مربع ربع، والسورة مربع لوحدها في الأجزاء ٢٨–٣٠. اضغط على المربع يظهر اسمه، ومنه «افتح في المصحف» تفتح آياته مظلّلة، أو «اختبرني» تختبر نفسك فيه. اضغط في أي مكان بره الكارت يتقفل. واضغط على الجزء تشوف وحداته وتختبر أي واحدة. «محتاجة مراجعة» لو المربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من ٨٠٪.</p>'",
+  "new": "'<p class=\"hint hm-info\" id=\"hmInfo\" hidden>كل مربع ربع، والسورة مربع وحدها في الأجزاء ٢٨–٣٠. اضغط على المربع ليظهر اسمه، ومنه «افتح في المصحف» لتفتح آياته مظلّلة، أو «اختبرني» لتختبر نفسك فيه. اضغط في أي مكان خارج البطاقة لإغلاقها. واضغط على الجزء لترى وحداته وتختبر أي واحدة منها. «محتاجة مراجعة» إذا كان المربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من ٨٠٪.</p>'",
+  "where": "web/app.js:5059",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها.</p>'",
+  "new": "'<p class=\"hint\">🎤 اضغط على الميكروفون وقل أمرًا: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مائة»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وسيظهر لك مكانها.</p>'",
+  "where": "web/app.js:1109",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "' السور المراجعة</summary><p class=\"hint\">السورة بتدخل القايمة دي لما تجيب ٨٠٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من ٨٠٪ بتفضل فيها وبترجع لك في المراجعة بكرة.</p><ul class=\"hl-list\">'",
+  "new": "' السور المراجعة</summary><p class=\"hint\">تدخل السورة هذه القائمة عندما تحصل على ٨٠٪ أو أكثر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. وإذا حصلت على أقل من ٨٠٪ تبقى فيها وتعود إليك في المراجعة غدًا.</p><ul class=\"hl-list\">'",
+  "where": "web/app.js:4524",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">التعرّف على الكلام ممكن يغلط في التلاوة المجوّدة، فلو كلمة متعلّمة وانت متأكد منها، متقلقش.</p><div class=\"dlg-btns\"><button class=\"dlg-ok\">تم</button></div></div></div>'",
+  "new": "'<p class=\"hint\">قد يخطئ التعرّف على الكلام في التلاوة المجوّدة، فإن كانت كلمة معلّمة وأنت متأكد منها فلا تقلق.</p><div class=\"dlg-btns\"><button class=\"dlg-ok\">تم</button></div></div></div>'",
+  "where": "web/app.js:2366",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">السورة بتدخل القايمة دي لما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة ٨٠٪ أو أكتر. ولو جبت أقل من ٨٠٪ بتخرج منها.</p><ul class=\"hl-list\">'",
+  "new": "'<p class=\"hint\">تدخل السورة هذه القائمة عندما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة ٨٠٪ أو أكثر. وإذا حصلت على أقل من ٨٠٪ تخرج منها.</p><ul class=\"hl-list\">'",
+  "where": "web/app.js:5433",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"dlg-back\"><div class=\"dlg cs-dlg\"><b>نموذج التعرّف على التلاوة</b><p class=\"hint\">بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. '",
+  "new": "'<div class=\"dlg-back\"><div class=\"dlg cs-dlg\"><b>نموذج التعرّف على التلاوة</b><p class=\"hint\">يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف. '",
+  "where": "web/app.js:432",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"dlg-back\"><div class=\"dlg\"><b>هدف القراءة اليومي</b><p class=\"hint\">كام صفحة في اليوم؟ الصفحات بتتحسب لوحدها وانت بتقرا.</p><div class=\"pv-chips g-chips\">'",
+  "new": "'<div class=\"dlg-back\"><div class=\"dlg\"><b>هدف القراءة اليومي</b><p class=\"hint\">كم صفحة في اليوم؟ تُحسب الصفحات تلقائيًا وأنت تقرأ.</p><div class=\"pv-chips g-chips\">'",
+  "where": "web/app.js:5414",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\" id=\"mtRes\"></p><div class=\"dlg-btns\"><button class=\"dlg-no\" id=\"mtGo\">اختبر المايك</button><button class=\"dlg-ok\">ابدأ</button></div></div></div>'",
+  "new": "'<p class=\"hint\" id=\"mtRes\"></p><div class=\"dlg-btns\"><button class=\"dlg-no\" id=\"mtGo\">اختبر الميكروفون</button><button class=\"dlg-ok\">ابدأ</button></div></div></div>'",
+  "where": "web/app.js:452",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"tc\"><p class=\"hint\">الطالب بيعمل اختبار الحفظ، وبعدين من «المراجعة» يضغط «ابعت للمحفّظ». الصق رسالته هنا (ممكن أكتر من رسالة مرة واحدة).</p>'",
+  "new": "'<div class=\"tc\"><p class=\"hint\">يجري الطالب اختبار الحفظ، ثم من «المراجعة» يضغط «أرسل للمحفّظ». الصق رسالته هنا (يمكن أكثر من رسالة دفعة واحدة).</p>'",
+  "where": "web/app.js:5202",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"about\">الفهرس متولّد من جذور الكلمات ونص المصحف اللي في التطبيق نفسه، فممكن يفوته آية بتتكلم عن الموضوع من غير ما تذكر لفظه.</p></div>'",
+  "new": "'<p class=\"about\">الفهرس مولَّد من جذور الكلمات ونص المصحف الموجود في التطبيق نفسه، فقد تفوته آية تتحدث عن الموضوع دون أن تذكر لفظه.</p></div>'",
+  "where": "web/app.js:5242",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">التطبيق مش بيبعت حاجة على الإنترنت. لما حد يخلص جزء يضغط عليه ويشارك التقدم في جروب العيلة، والباقيين يستوردوا الكود.</p></div>'",
+  "new": "'<p class=\"hint\">التطبيق لا يرسل شيئًا عبر الإنترنت. عندما يُنهي أحدهم جزءًا يضغط عليه ويشارك التقدم في مجموعة العائلة، ويستورد الباقون الكود.</p></div>'",
+  "where": "web/app.js:5116",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</div><h2>نموذج التعرّف على التلاوة</h2><p>بيسمع تلاوتك ويتابعها في المصحف ويصحّح التسميع. بيشتغل على الموبايل من غير إنترنت، وحجمه \"",
+  "new": "\"</div><h2>نموذج التعرّف على التلاوة</h2><p>يستمع إلى تلاوتك ويتابعها في المصحف ويصحّح التسميع. يعمل على الهاتف بدون إنترنت، وحجمه \"",
+  "where": "web/app.js:5307",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'</b><small>ما اتحفظش</small></div></div><div class=\"st-go\"><button id=\"stPriv\">الخصوصية وتسجيلات الصوت</button></div></section>'",
+  "new": "'</b><small>لم يُحفظ</small></div></div><div class=\"st-go\"><button id=\"stPriv\">الخصوصية وتسجيلات الصوت</button></div></section>'",
+  "where": "web/app.js:3734",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">آخر ٧ أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات.</p></section>'",
+  "new": "'<p class=\"hint\">آخر ٧ أيام، على الهاتف فقط. إذا كانت النسبة منخفضة فجرّب مكانًا أهدأ أو «اختبار الميكروفون» في الإعدادات.</p></section>'",
+  "where": "web/app.js:3726",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، والاختبار بيخلص لوحده أول ما كل الكلمات تظهر. الآيات '",
+  "new": "'<p class=\"hint\">اقرأ من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وينتهي الاختبار تلقائيًا عندما تظهر كل الكلمات. الآيات '",
+  "where": "web/app.js:5498",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<button class=\"pr-warn\" id=\"prExact\">تنبيه الأذان ممكن يتأخر دقائق. اضغط لتسمح بالتنبيه في موعده بالظبط.</button>'",
+  "new": "'<button class=\"pr-warn\" id=\"prExact\">قد يتأخر تنبيه الأذان دقائق. اضغط لتسمح بالتنبيه في موعده بالضبط.</button>'",
+  "where": "web/app.js:4794",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</p>\"",
+  "new": "\"هو أداة مساعدة للمراجعة والحفظ وقد يخطئ، خصوصًا مع الضوضاء. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</p>\"",
+  "where": "web/app.js:433",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"fam-add\"><input id=\"famNew\" placeholder=\"اسم فرد من العيلة\"><button class=\"continue\" id=\"famAdd\">'",
+  "new": "'<div class=\"fam-add\"><input id=\"famNew\" placeholder=\"اسم فرد من العائلة\"><button class=\"continue\" id=\"famAdd\">'",
+  "where": "web/app.js:5113",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟\"",
+  "new": "\"توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟\"",
+  "where": "web/app.js:717",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</div><h2>مدينتك</h2><p>عشان مواقيت الصلاة والأذان والقبلة. كل الحساب بيتم على الموبايل من غير إنترنت.</p>\"",
+  "new": "\"</div><h2>مدينتك</h2><p>لمواقيت الصلاة والأذان والقبلة. يتم كل الحساب على الهاتف بدون إنترنت.</p>\"",
+  "where": "web/app.js:5299",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</div><h2>أهلًا بيك في «لوح»</h2><p>اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.</p>\"",
+  "new": "\"</div><h2>أهلًا بك في «لوْح»</h2><p>اختر المصحف الذي اعتدت القراءة فيه. يمكنك تغييره لاحقًا من الإعدادات.</p>\"",
+  "where": "web/app.js:5290",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<button class=\"pr-warn\" id=\"prNotif\">الإشعارات مقفولة للتطبيق، فالأذان مش هيظهر. اضغط وافتحها.</button>'",
+  "new": "'<button class=\"pr-warn\" id=\"prNotif\">الإشعارات معطّلة للتطبيق، فلن يظهر الأذان. اضغط لتفعيلها.</button>'",
+  "where": "web/app.js:4792",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت. <b class=\"mt-score\" id=\"mtScore\">صح '",
+  "new": "'<p class=\"hint\">أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت. <b class=\"mt-score\" id=\"mtScore\">صح '",
+  "where": "web/app.js:5840",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'</div><p class=\"hint\">بتتحسب الصفحات اللي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).</p></section>'",
+  "new": "'</div><p class=\"hint\">تُحسب الصفحات التي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).</p></section>'",
+  "where": "web/app.js:3686",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">لسه مفيش قراءة بالمايك في آخر ٧ أيام. الأرقام دي بتتحسب على الموبايل بس.</p></section>'",
+  "new": "'<p class=\"hint\">لا توجد قراءة بالميكروفون بعد في آخر ٧ أيام. تُحسب هذه الأرقام على الهاتف فقط.</p></section>'",
+  "where": "web/app.js:3714",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<ol class=\"tq-steps\"><li data-st=\"1\">اسمع</li><li data-st=\"2\">اقرا</li><li data-st=\"3\">سمّع</li></ol>'",
+  "new": "'<ol class=\"tq-steps\"><li data-st=\"1\">اسمع</li><li data-st=\"2\">اقرأ</li><li data-st=\"3\">سمّع</li></ol>'",
+  "where": "web/app.js:5924",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "' استخدم موقعي</button><select class=\"input\" id=\"wCity\"><option value=\"\">أو اختار مدينة…</option>'",
+  "new": "' استخدم موقعي</button><select class=\"input\" id=\"wCity\"><option value=\"\">أو اختر مدينة…</option>'",
+  "where": "web/app.js:5300",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"dlg-back\"><div class=\"dlg mt-dlg\"><b>نصايح قبل ما تبدأ</b><ul class=\"hint mt-tips\">'",
+  "new": "'<div class=\"dlg-back\"><div class=\"dlg mt-dlg\"><b>نصائح قبل أن تبدأ</b><ul class=\"hint mt-tips\">'",
+  "where": "web/app.js:449",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'﴾</span></div><p class=\"hint mt-aft\">الآية دي متكررة بنصها، إيه الآية اللي بعدها هنا؟</p></div>'",
+  "new": "'﴾</span></div><p class=\"hint mt-aft\">هذه الآية مكررة بنصها، فما الآية التالية هنا؟</p></div>'",
+  "where": "web/app.js:5841",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"dlg-btns\"><button type=\"button\" class=\"dlg-no\">قفل</button></div></div></div>'",
+  "new": "'<div class=\"dlg-btns\"><button type=\"button\" class=\"dlg-no\">إغلاق</button></div></div></div>'",
+  "where": "web/app.js:2296",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<li>اقعد في مكان هادي على قد ما تقدر</li><li>خلّي الموبايل على بعد ٢٠–٣٠ سم من بقك</li>\"",
+  "new": "\"<li>اجلس في مكان هادئ قدر الإمكان</li><li>اجعل الهاتف على بعد ٢٠–٣٠ سم من فمك</li>\"",
+  "where": "web/app.js:450",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<li>اقرا بصوت واضح وثابت</li><li>اتأكد إن المايك مش متغطي بإيدك أو بالجراب</li></ul>\"",
+  "new": "\"<li>اقرأ بصوت واضح وثابت</li><li>تأكّد أن الميكروفون غير مغطّى بيدك أو بالغلاف</li></ul>\"",
+  "where": "web/app.js:451",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.\"",
+  "new": "\"مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.\"",
+  "where": "web/app.js:4752",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.\"",
+  "new": "\"تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.\"",
+  "where": "web/app.js:728",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</div><h2>تحب نفكّرك بإيه؟</h2><p>تقدر تغيّر المواعيد بعدين من شاشة الصلاة.</p>\"",
+  "new": "\"</div><h2>بماذا تريد أن نذكّرك؟</h2><p>يمكنك تغيير المواعيد لاحقًا من شاشة الصلاة.</p>\"",
+  "where": "web/app.js:5313",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"\\n\\nلتحديث الختمة في تطبيق «لوح»: الختمة الجماعية ← استيراد، والصق الكود ده:\\n\"",
+  "new": "\"\\n\\nلتحديث الختمة في تطبيق «لوْح»: الختمة الجماعية ← استيراد، والصق هذا الكود:\\n\"",
+  "where": "web/app.js:5099",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».\"",
+  "new": "\"سمّع الآية من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وفي النهاية اضغط «انتهيت».\"",
+  "where": "web/app.js:5951",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">الكلمات اللي اتقالت غلط أو اتنست:</p><div class=\"rc-wrong\">'",
+  "new": "'<p class=\"hint\">الكلمات التي قيلت خطأً أو نُسيت:</p><div class=\"rc-wrong\">'",
+  "where": "web/app.js:2365",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الاختبار بيبقى على الآيات اللي غلطت فيها قبل كده، مع آية قبلها وآية بعدها.\"",
+  "new": "\"يكون الاختبار على الآيات التي أخطأت فيها سابقًا، مع آية قبلها وآية بعدها.\"",
+  "where": "web/app.js:4509",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>اسمع تاني</span></button><button class=\\\"continue\\\" id=\\\"tqHide\\\">\"",
+  "new": "\"<span>اسمع مرة أخرى</span></button><button class=\\\"continue\\\" id=\\\"tqHide\\\">\"",
+  "where": "web/app.js:5947",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "' السؤال اللي بعده</button><button class=\"continue\" id=\"mtOpen\" data-s=\"'",
+  "new": "' السؤال التالي</button><button class=\"continue\" id=\"mtOpen\" data-s=\"'",
+  "where": "web/app.js:5844",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات\"",
+  "new": "\"نموذج التعرّف على التلاوة قيد التنزيل، تابعه من الإعدادات › التحميلات\"",
+  "where": "web/app.js:525",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"st-cap\">الكلمات اللي اتسمعت كل يوم</p><div class=\"st-bars\">'",
+  "new": "'<p class=\"st-cap\">الكلمات المسموعة كل يوم</p><div class=\"st-bars\">'",
+  "where": "web/app.js:3725",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">تنزيل النموذج شغال في التطبيق على الموبايل بس.</p>'",
+  "new": "'<p class=\"hint\">تنزيل النموذج يعمل في تطبيق الهاتف فقط.</p>'",
+  "where": "web/app.js:571",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.\"",
+  "new": "\"أسمعك… قل أمرًا مثل «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.\"",
+  "where": "web/app.js:1148",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>خلصت</span></button><button class=\\\"continue\\\" id=\\\"tqRe\\\">\"",
+  "new": "\"<span>انتهيت</span></button><button class=\\\"continue\\\" id=\\\"tqRe\\\">\"",
+  "where": "web/app.js:5953",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">لسه مفيش سور محفوظة، فالأسئلة من القرآن كله.</p>'",
+  "new": "'<p class=\"hint\">لا توجد سور محفوظة بعد، فالأسئلة من القرآن كله.</p>'",
+  "where": "web/app.js:5839",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<button id=\"tsbAdd\" class=\"tsb-add\">+ ذكر من عندك</button></div>'",
+  "new": "'<button id=\"tsbAdd\" class=\"tsb-add\">+ ذكر خاص بك</button></div>'",
+  "where": "web/app.js:6024",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">مفيش مراجعة مستحقة النهارده. كل ربع ليه ميعاد: '",
+  "new": "'<p class=\"hint\">لا توجد مراجعة مستحقة اليوم. لكل ربع موعد: '",
+  "where": "web/app.js:4523",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'</select><select class=\"input\" id=\"tqB\" aria-label=\"لحد الآية\">'",
+  "new": "'</select><select class=\"input\" id=\"tqB\" aria-label=\"حتى الآية\">'",
+  "where": "web/app.js:5922",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.\"",
+  "new": "\"تحذف صفحات كل الطبعات من الهاتف؟ يمكنك تنزيلها مرة أخرى من هنا.\"",
+  "where": "web/app.js:600",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مفيش آيات غلط في المدى ده. جرّب «اختبار عشوائي» أو مدى تاني.\"",
+  "new": "\"لا توجد آيات خاطئة في هذا المدى. جرّب «اختبار عشوائي» أو مدى آخر.\"",
+  "where": "web/app.js:4435",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"\\n\\nللمحفّظ: افتح «طلابي» في تطبيق «لوح» والصق الرسالة دي:\\n\"",
+  "new": "\"\\n\\nللمحفّظ: افتح «طلابي» في تطبيق «لوْح» والصق هذه الرسالة:\\n\"",
+  "where": "web/app.js:5188",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">حدّد موقعك الأول من شاشة مواقيت الصلاة.</p>'",
+  "new": "'<p class=\"hint\">حدّد موقعك أولًا من شاشة مواقيت الصلاة.</p>'",
+  "where": "web/app.js:4864",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"rd-cap\"><small>سامعك… ابدأ القراءة من أي آية'",
+  "new": "'<div class=\"rd-cap\"><small>أسمعك… ابدأ القراءة من أي آية'",
+  "where": "web/app.js:3038",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الكلمات اللي اتخطيتها متعلّمة بلون بنفسجي، ارجع اقراها\"",
+  "new": "\"الكلمات التي تخطّيتها معلّمة بلون بنفسجي، ارجع واقرأها\"",
+  "where": "web/app.js:2415",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.\"",
+  "new": "\"اقرأ الآية وأنت تراها، وعندما تصبح جاهزًا أخفِها وسمّعها.\"",
+  "where": "web/app.js:5946",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">ما شاء الله، مفيش ولا كلمة غلط.</p>'",
+  "new": "'<p class=\"hint\">ما شاء الله، لا توجد أي كلمة خاطئة.</p>'",
+  "where": "web/app.js:2365",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'\" aria-label=\"الاستماع من غير إنترنت ومؤقت النوم\">'",
+  "new": "'\" aria-label=\"الاستماع بدون إنترنت ومؤقت النوم\">'",
+  "where": "web/app.js:2237",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" فرد · اضغط على الجزء لما يخلص</small></div></div>\"",
+  "new": "\" فرد · اضغط على الجزء عند إتمامه</small></div></div>\"",
+  "where": "web/app.js:5106",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<div class=\"z-sort tq-n\"><span>القارئ يقرا</span>'",
+  "new": "'<div class=\"z-sort tq-n\"><span>القارئ يقرأ</span>'",
+  "where": "web/app.js:5923",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الأوامر الصوتية شغالة في التطبيق على الموبايل بس\"",
+  "new": "\"الأوامر الصوتية تعمل في تطبيق الهاتف فقط\"",
+  "where": "web/app.js:3375",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"القراءة بالصوت شغالة في التطبيق على الموبايل بس\"",
+  "new": "\"القراءة بالصوت تعمل في تطبيق الهاتف فقط\"",
+  "where": "web/app.js:3252",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المايك المختار مش متوصل، اتسجّل من مايك الهاتف\"",
+  "new": "\"الميكروفون المختار غير متصل، تم التسجيل من ميكروفون الهاتف\"",
+  "where": "web/app.js:504",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التسميع بالصوت شغال في التطبيق على الموبايل بس\"",
+  "new": "\"التسميع بالصوت يعمل في تطبيق الهاتف فقط\"",
+  "where": "web/app.js:3019",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<b>الاستماع من غير إنترنت</b><p class=\"hint\">'",
+  "new": "'<b>الاستماع بدون إنترنت</b><p class=\"hint\">'",
+  "where": "web/app.js:2291",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الميزة دي محتاجة نموذج التعرّف على التلاوة (\"",
+  "new": "\"هذه الميزة تحتاج نموذج التعرّف على التلاوة (\"",
+  "where": "web/app.js:526",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</b><small>مستني يترفع</small></div><div><b>\"",
+  "new": "\"</b><small>بانتظار الرفع</small></div><div><b>\"",
+  "where": "web/app.js:3733",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المايك المختار مش متوصل، هستخدم مايك الهاتف\"",
+  "new": "\"الميكروفون المختار غير متصل، سيُستخدم ميكروفون الهاتف\"",
+  "where": "web/app.js:3243",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</b><small>آية اتسمعت</small></div><div><b>\"",
+  "new": "\"</b><small>آية سُمعت</small></div><div><b>\"",
+  "where": "web/app.js:3705",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</b><small>مقطع اتسمع</small></div><div><b>\"",
+  "new": "\"</b><small>مقطع سُمع</small></div><div><b>\"",
+  "where": "web/app.js:3723",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<span class=\"kc-txt\"><b>النهارده</b><small>'",
+  "new": "'<span class=\"kc-txt\"><b>اليوم</b><small>'",
+  "where": "web/app.js:3807",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التنزيل فشل. اتأكد من الإنترنت وحاول تاني.\"",
+  "new": "\"فشل التنزيل. تأكّد من الإنترنت وحاول مرة أخرى.\"",
+  "where": "web/app.js:555",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" مش متنزّلة على الموبايل. تنزّلها؟ (حوالي \"",
+  "new": "\" غير منزّلة على الهاتف. تنزّلها؟ (حوالي \"",
+  "where": "web/app.js:640",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" (أول رمضان). تقدر تبدأ القراءة من دلوقتي.\"",
+  "new": "\" (أول رمضان). يمكنك بدء القراءة الآن.\"",
+  "where": "web/app.js:3842",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"لسه مقريتش النهارده. صفحة واحدة قبل النوم؟\"",
+  "new": "\"لم تقرأ اليوم بعد. صفحة واحدة قبل النوم؟\"",
+  "where": "web/app.js:4732",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الآيات اللي بعدها هتفتح لوحدها وانت بتسمّع\"",
+  "new": "\"ستُفتح الآيات التالية تلقائيًا وأنت تسمّع\"",
+  "where": "web/app.js:5529",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التحميل فشل. اتأكد من الإنترنت وحاول تاني\"",
+  "new": "\"التحميل فشل. تأكّد من الإنترنت وحاول مرة أخرى\"",
+  "where": "web/app.js:5268",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المسح ما نجحش، اتأكد من النت وجرّب تاني\"",
+  "new": "\"فشل المسح، تأكّد من الإنترنت وجرّب مرة أخرى\"",
+  "where": "web/app.js:735",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مش هتتقلب: الاختبار بيخلص في آخر الصفحة\"",
+  "new": "\"لن تُقلب الصفحة: ينتهي الاختبار في آخر الصفحة\"",
+  "where": "web/app.js:2619",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الموبايل مفيهوش خدمة التعرّف على الكلام\"",
+  "new": "\"لا تتوفر في الهاتف خدمة التعرّف على الكلام\"",
+  "where": "web/app.js:3010,3441",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"التنزيل متاح في التطبيق على الموبايل بس\"",
+  "new": "\"التنزيل متاح في تطبيق الهاتف فقط\"",
+  "where": "web/app.js:5351",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"، تقدر تتابعه من الإعدادات › التحميلات\"",
+  "new": "\"، يمكنك متابعته من الإعدادات › التحميلات\"",
+  "where": "web/app.js:412,532,539",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 3
+ },
+ {
+  "old": "\"المايك شغال دلوقتي، وقّف التسميع الأول\"",
+  "new": "\"الميكروفون يعمل الآن، أوقف التسميع أولًا\"",
+  "where": "web/app.js:497",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint hz-wsum\">ورد النهارده: '",
+  "new": "'<p class=\"hint hz-wsum\">ورد اليوم: '",
+  "where": "web/app.js:4515",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مفيش مساحة كفاية على الموبايل لتحميل \"",
+  "new": "\"لا توجد مساحة كافية على الهاتف لتحميل \"",
+  "where": "web/app.js:548",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المسح متاح في التطبيق على الموبايل بس\"",
+  "new": "\"المسح متاح في تطبيق الهاتف فقط\"",
+  "where": "web/app.js:727",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"><span></span>فكّرني لو مخلصتش</span>\"",
+  "new": "\"><span></span>ذكِّرني إن لم أُتمّ الورد</span>\"",
+  "where": "web/app.js:5416",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'><summary><b>آيات غلطت فيها قبل كده ('",
+  "new": "'><summary><b>آيات أخطأت فيها سابقًا ('",
+  "where": "web/app.js:5525",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"ما قدرتش أفتح المايك، اتأكد من الإذن\"",
+  "new": "\"تعذّر فتح الميكروفون، تأكّد من الإذن\"",
+  "where": "web/app.js:477,497",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"محتاج إذن الميكروفون للأوامر الصوتية\"",
+  "new": "\"يلزم إذن الميكروفون للأوامر الصوتية\"",
+  "where": "web/app.js:3440",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</b><small>كلمة اتسمعت</small></div>\"",
+  "new": "\"</b><small>كلمة سُمعت</small></div>\"",
+  "where": "web/app.js:3723",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الملف ده مش نسخة احتياطية من التطبيق\"",
+  "new": "\"هذا الملف ليس نسخة احتياطية من التطبيق\"",
+  "where": "web/app.js:4575",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"خلص تنزيل نموذج التعرّف على التلاوة\"",
+  "new": "\"اكتمل تنزيل نموذج التعرّف على التلاوة\"",
+  "where": "web/app.js:520,526,5374",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 3
+ },
+ {
+  "old": "\"محتاج إذن الميكروفون للقراءة بالصوت\"",
+  "new": "\"يلزم إذن الميكروفون للقراءة بالصوت\"",
+  "where": "web/app.js:3429",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" إعداد وبيان، التطبيق هيفتح من جديد\"",
+  "new": "\" إعداد وبيان، سيُفتح التطبيق من جديد\"",
+  "where": "web/app.js:4577",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" ميجا (الأفضل تنزّله على wifi).</p>\"",
+  "new": "\" ميجا (يُفضَّل تنزيله على wifi).</p>\"",
+  "where": "web/app.js:5307",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">مفيش أسئلة هنا.</p>'",
+  "new": "'<p class=\"hint\">لا توجد أسئلة هنا.</p>'",
+  "where": "web/app.js:5845",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · المكان فيه دوشة، جرّب مكان أهدى\"",
+  "new": "\" · المكان فيه ضوضاء، جرّب مكانًا أهدأ\"",
+  "where": "web/app.js:484",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · قرّب الموبايل أو ارفع صوتك شوية\"",
+  "new": "\" · قرّب الهاتف أو ارفع صوتك قليلًا\"",
+  "where": "web/app.js:484",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'<p class=\"hint\">لسه مفيش طلاب.</p>'",
+  "new": "'<p class=\"hint\">لا يوجد طلاب بعد.</p>'",
+  "where": "web/app.js:5204",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>حدد هدف يومي</span></button>\"",
+  "new": "\"<span>حدّد هدفًا يوميًا</span></button>\"",
+  "where": "web/app.js:5408",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>خبّيها وسمّع</span></button>\"",
+  "new": "\"<span>أخفِها وسمّع</span></button>\"",
+  "where": "web/app.js:5947",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"محتاج إذن الميكروفون عشان التسميع\"",
+  "new": "\"يلزم إذن الميكروفون للتسميع\"",
+  "where": "web/app.js:3009",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"ماعرفتش الآية، اقرأ كام كلمة كمان\"",
+  "new": "\"لم أتعرّف على الآية، اقرأ بضع كلمات أخرى\"",
+  "where": "web/app.js:3401,3412",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\" اختبرني في ورد النهارده</button>\"",
+  "new": "\" اختبرني في ورد اليوم</button>\"",
+  "where": "web/app.js:4518",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"٪ أو أكتر بيطوّل الفاصل، وأقل من \"",
+  "new": "\"٪ أو أكثر تُطيل الفاصل، وأقل من \"",
+  "where": "web/app.js:4523",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"النت فاصل، التنزيل هيكمّل لوحده…\"",
+  "new": "\"انقطع الإنترنت، سيُستأنف التنزيل تلقائيًا…\"",
+  "where": "web/app.js:559,5282",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"متوقف مؤقتًا، هيكمّل من مكانه · \"",
+  "new": "\"متوقف مؤقتًا، سيُستأنف من حيث توقف · \"",
+  "where": "web/app.js:579",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"تعذّر تحديد الموقع، اختار مدينتك\"",
+  "new": "\"تعذّر تحديد الموقع، اختر مدينتك\"",
+  "where": "web/app.js:5342",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "'\">شيل الطالب</button></details>'",
+  "new": "'\">احذف الطالب</button></details>'",
+  "where": "web/app.js:5211",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الاختبار هيخلص في آخر الآيات دي\"",
+  "new": "\"سينتهي الاختبار في آخر هذه الآيات\"",
+  "where": "web/app.js:5529",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"محتاج إذن الميكروفون عشان تسجّل\"",
+  "new": "\"يلزم إذن الميكروفون للتسجيل\"",
+  "where": "web/app.js:5554",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اقرا آية بصوتك العادي ٤ ثواني…\"",
+  "new": "\"اقرأ آية بصوتك المعتاد ٤ ثواني…\"",
+  "where": "web/app.js:471,493",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"اكشف آية واحدة على الأقل الأول\"",
+  "new": "\"اكشف آية واحدة على الأقل أولًا\"",
+  "where": "web/app.js:2457",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مفيش آيات غلط في المدى ده لسه.\"",
+  "new": "\"لا توجد آيات خاطئة في هذا المدى بعد.\"",
+  "where": "web/app.js:4509",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"صوت الأذان بيشتغل على الموبايل\"",
+  "new": "\"صوت الأذان يعمل على الهاتف\"",
+  "where": "web/app.js:4835",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "' <span>الاختبار لحد</span> <b>'",
+  "new": "' <span>الاختبار حتى</span> <b>'",
+  "where": "web/app.js:5498",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>من الأول</span></button>\"",
+  "new": "\"<span>من البداية</span></button>\"",
+  "where": "web/app.js:5953",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اضغط رجوع مرة تانية عشان تخرج\"",
+  "new": "\"اضغط رجوع مرة أخرى للخروج\"",
+  "where": "web/app.js:852",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الصفحة هتتقلب لوحدها في آخرها\"",
+  "new": "\"ستُقلب الصفحة تلقائيًا في آخرها\"",
+  "where": "web/app.js:2619",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التسجيل مش متاح على الجهاز ده\"",
+  "new": "\"التسجيل غير متاح على هذا الجهاز\"",
+  "where": "web/app.js:5543",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اسمع القارئ وهو بيقرا الآيات \"",
+  "new": "\"استمع إلى القارئ وهو يقرأ الآيات \"",
+  "where": "web/app.js:5941",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · الفهرس والبحث لقوا الآية \"",
+  "new": "\" · الفهرس والبحث وجدا الآية \"",
+  "where": "web/app.js:700",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · كلمات صحّحها فحص الموديل \"",
+  "new": "\" · كلمات صحّحها فحص النموذج \"",
+  "where": "web/app.js:700",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" ابعت للمحفّظ</button></div>\"",
+  "new": "\" أرسل للمحفّظ</button></div>\"",
+  "where": "web/app.js:4499",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اسمع القارئ وهو بيقرا الآية \"",
+  "new": "\"استمع إلى القارئ وهو يقرأ الآية \"",
+  "where": "web/app.js:5941",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>اقراها</span></button>\"",
+  "new": "\"<span>اقرأها</span></button>\"",
+  "where": "web/app.js:5942",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"وقّفت التلاوة، تصبح على خير\"",
+  "new": "\"أُوقفت التلاوة، تصبح على خير\"",
+  "where": "web/app.js:2287",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مفيش مراجعة مستحقة النهارده\"",
+  "new": "\"لا توجد مراجعة مستحقة اليوم\"",
+  "where": "web/app.js:4446",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"تمام، دوس على المايك وابدأ\"",
+  "new": "\"حسنًا، اضغط على الميكروفون وابدأ\"",
+  "where": "web/app.js:519",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التلاوة هتقف في آخر السورة\"",
+  "new": "\"ستتوقف التلاوة في آخر السورة\"",
+  "where": "web/app.js:2308",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"لسه ما عملتش نسخة احتياطية\"",
+  "new": "\"لم تُنشئ نسخة احتياطية بعد\"",
+  "where": "web/app.js:4588",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مفيش كود QK2 في الرسالة دي\"",
+  "new": "\"لا يوجد كود QK2 في هذه الرسالة\"",
+  "where": "web/app.js:5216",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<span>اظهر</span></button>\"",
+  "new": "\"<span>أظهر</span></button>\"",
+  "where": "web/app.js:5517",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"</b>كلمة غلط</span></div>\"",
+  "new": "\"</b>كلمة خاطئة</span></div>\"",
+  "where": "web/app.js:2364",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" صفحة وتحقق هدف النهارده.\"",
+  "new": "\" صفحة وتحقق هدف اليوم.\"",
+  "where": "web/app.js:4736",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اسمك (عشان المحفّظ يعرفك)\"",
+  "new": "\"اسمك (ليعرفك المحفّظ)\"",
+  "where": "web/app.js:5193",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"النتيجة دي موجودة قبل كده\"",
+  "new": "\"هذه النتيجة موجودة سابقًا\"",
+  "where": "web/app.js:5223",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المسح ما نجحش، جرّب تاني\"",
+  "new": "\"فشل المسح، جرّب مرة أخرى\"",
+  "where": "web/app.js:730",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتسجلت علامة على الصفحة \"",
+  "new": "\"سُجّلت علامة على الصفحة \"",
+  "where": "web/app.js:3499",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الفهرس والبحث لقوا الآية\"",
+  "new": "\"الفهرس والبحث وجدا الآية\"",
+  "where": "web/app.js:3724",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"نغمة المنبّه في الموبايل\"",
+  "new": "\"نغمة المنبّه في الهاتف\"",
+  "where": "web/app.js:4671",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"<b>غلط</b>دي تكملة سورة \"",
+  "new": "\"<b>خطأ</b>هذه تكملة سورة \"",
+  "where": "web/app.js:5856",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"كمّلنا التمرير التلقائي\"",
+  "new": "\"استؤنف التمرير التلقائي\"",
+  "where": "web/app.js:1394",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" للاستماع من غير إنترنت\"",
+  "new": "\" للاستماع بدون إنترنت\"",
+  "where": "web/app.js:2262",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"٪ بيرجعلك تاني يوم.</p>\"",
+  "new": "\"٪ تعيدها إليك في اليوم التالي.</p>\"",
+  "where": "web/app.js:4523",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" ميجا). تنزّله دلوقتي؟\"",
+  "new": "\" ميجا). تنزّله الآن؟\"",
+  "where": "web/app.js:526",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\")، دوس على المايك تاني\"",
+  "new": "\")، اضغط على الميكروفون مرة أخرى\"",
+  "where": "web/app.js:3011",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الطبعة دي صفحاتها لحد \"",
+  "new": "\"صفحات هذه الطبعة حتى \"",
+  "where": "web/app.js:3324",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"أضف أفراد العيلة الأول\"",
+  "new": "\"أضف أفراد العائلة أولًا\"",
+  "where": "web/app.js:5125",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · فيه نسخة جديدة أدق\"",
+  "new": "\" · توجد نسخة جديدة أدق\"",
+  "where": "web/app.js:616",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الخطة هتبدأ أول رمضان\"",
+  "new": "\"ستبدأ الخطة في أول رمضان\"",
+  "where": "web/app.js:3877",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" أنا قريت صح</button>\"",
+  "new": "\" قرأت بشكل صحيح</button>\"",
+  "where": "web/app.js:5514,5927",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"، محتاجة مراجعة بسيطة\"",
+  "new": "\"، تحتاج إلى مراجعة بسيطة\"",
+  "where": "web/app.js:5635",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مش واضح، كمّل التكملة\"",
+  "new": "\"غير واضح، أكمل التكملة\"",
+  "where": "web/app.js:5898",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"العدد اللي عايز توصله\"",
+  "new": "\"العدد الذي تريد الوصول إليه\"",
+  "where": "web/app.js:6061",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"محتاج إذن الميكروفون\"",
+  "new": "\"يلزم إذن الميكروفون\"",
+  "where": "web/app.js:3260,5687,5883",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 3
+ },
+ {
+  "old": "\"مفيش مراجعة مستحقة ✓\"",
+  "new": "\"لا توجد مراجعة مستحقة ✓\"",
+  "where": "web/app.js:3802",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" صفحة لحد آخر رمضان.\"",
+  "new": "\" صفحة حتى آخر رمضان.\"",
+  "where": "web/app.js:4092",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"كمّل القراءة · صفحة \"",
+  "new": "\"أكمل القراءة · صفحة \"",
+  "where": "web/app.js:4769",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"كمّل القراءة · سورة \"",
+  "new": "\"أكمل القراءة · سورة \"",
+  "where": "web/app.js:4770",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"ما شاء الله، صح كلها\"",
+  "new": "\"ما شاء الله، كلها صحيحة\"",
+  "where": "web/app.js:5972",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"✓ جاهز على الموبايل\"",
+  "new": "\"✓ جاهز على الهاتف\"",
+  "where": "web/app.js:426",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" مقطع · ما اتحفظش: \"",
+  "new": "\" مقطع · لم يُحفظ: \"",
+  "where": "web/app.js:712",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"سامعك… سمّع من حفظك\"",
+  "new": "\"أسمعك… سمّع من حفظك\"",
+  "where": "web/app.js:2936",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"حققت هدف النهارده: \"",
+  "new": "\"حققت هدف اليوم: \"",
+  "where": "web/app.js:3661",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المايك مش متاح هنا\"",
+  "new": "\"الميكروفون غير متاح هنا\"",
+  "where": "web/app.js:460",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتمسحت كل تسجيلاتك\"",
+  "new": "\"تم مسح كل تسجيلاتك\"",
+  "where": "web/app.js:735",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" غلط</small></div>\"",
+  "new": "\" خطأ</small></div>\"",
+  "where": "web/app.js:2360",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مش واضح، جرّب تاني\"",
+  "new": "\"غير واضح، جرّب مرة أخرى\"",
+  "where": "web/app.js:5864",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"، والآيات مستخبية.\"",
+  "new": "\"، والآيات مخفية.\"",
+  "where": "web/app.js:5941",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" الآيات اللي بعدها\"",
+  "new": "\" الآيات التالية\"",
+  "where": "web/app.js:5973",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"✓ على الموبايل · \"",
+  "new": "\"✓ على الهاتف · \"",
+  "where": "web/app.js:579,616",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"التلاوة هتقف بعد \"",
+  "new": "\"ستتوقف التلاوة بعد \"",
+  "where": "web/app.js:2308",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"آخر نسخة النهارده\"",
+  "new": "\"آخر نسخة اليوم\"",
+  "where": "web/app.js:4588",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الكود ده مش مفهوم\"",
+  "new": "\"هذا الكود غير مفهوم\"",
+  "where": "web/app.js:5138",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الآيات اللي بعدها\"",
+  "new": "\"الآيات التالية\"",
+  "where": "web/app.js:5524",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"، والآية مستخبية.\"",
+  "new": "\"، والآية مخفية.\"",
+  "where": "web/app.js:5941",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" الآية اللي بعدها\"",
+  "new": "\" الآية التالية\"",
+  "where": "web/app.js:5973",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المايك المستخدم:\"",
+  "new": "\"الميكروفون المستخدم:\"",
+  "where": "web/app.js:502",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتلغى مؤقت النوم\"",
+  "new": "\"أُلغي مؤقت النوم\"",
+  "where": "web/app.js:2308",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"ورد الختمة خلص ✓\"",
+  "new": "\"اكتمل ورد الختمة ✓\"",
+  "where": "web/app.js:3801",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" ربع/سورة تانيين\"",
+  "new": "\" ربع/سورة أخرى\"",
+  "where": "web/app.js:4728",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" صفحة، يلا نبدأ؟\"",
+  "new": "\" صفحة، هيا نبدأ؟\"",
+  "where": "web/app.js:4736",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الموضع اللي بعده\"",
+  "new": "\"الموضع التالي\"",
+  "where": "web/app.js:5524",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\")، دوس عليه تاني\"",
+  "new": "\")، اضغط عليه مرة أخرى\"",
+  "where": "web/app.js:5687",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" <em>اتلغى</em>\"",
+  "new": "\" <em>أُلغي</em>\"",
+  "where": "web/app.js:2276",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"بيجهّز الموديل…\"",
+  "new": "\"جارٍ تجهيز النموذج…\"",
+  "where": "web/app.js:3008,3258,3427,3439,5685,5881",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 6
+ },
+ {
+  "old": "\"قراءتك النهارده\"",
+  "new": "\"قراءتك اليوم\"",
+  "where": "web/app.js:4731",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التنزيل فشل · \"",
+  "new": "\"فشل التنزيل · \"",
+  "where": "web/app.js:579",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"صوت عالي زيادة\"",
+  "new": "\"صوت مرتفع جدًا\"",
+  "where": "web/app.js:709",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المساحة مليانة\"",
+  "new": "\"المساحة ممتلئة\"",
+  "where": "web/app.js:709",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"فيه تحميل شغال\"",
+  "new": "\"يوجد تحميل جارٍ\"",
+  "where": "web/app.js:2252",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"بيشغّل التلاوة\"",
+  "new": "\"تشغيل التلاوة\"",
+  "where": "web/app.js:3316",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتشالت العلامة\"",
+  "new": "\"أُزيلت العلامة\"",
+  "where": "web/app.js:3496",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"هدفك النهارده \"",
+  "new": "\"هدفك اليوم \"",
+  "where": "web/app.js:4736",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"٪</b> (افتكرت \"",
+  "new": "\"٪</b> (تذكّرت \"",
+  "where": "web/app.js:5639",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اسكت ثانيتين…\"",
+  "new": "\"اصمت ثانيتين…\"",
+  "where": "web/app.js:466,492",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"مش متنزّلة · \"",
+  "new": "\"غير منزّلة · \"",
+  "where": "web/app.js:579",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" من الموبايل؟\"",
+  "new": "\" من الهاتف؟\"",
+  "where": "web/app.js:586,624",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"مستني يترفع: \"",
+  "new": "\"بانتظار الرفع: \"",
+  "where": "web/app.js:712",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" <em>خلص</em>\"",
+  "new": "\" <em>اكتمل</em>\"",
+  "where": "web/app.js:2276",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتلغى التحميل\"",
+  "new": "\"أُلغي التحميل\"",
+  "where": "web/app.js:2303",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"التسميع وقف (\"",
+  "new": "\"توقّف التسميع (\"",
+  "where": "web/app.js:3011",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الموديل وقف: \"",
+  "new": "\"توقّف النموذج: \"",
+  "where": "web/app.js:3261,3430",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"كمّل القراءة…\"",
+  "new": "\"أكمل القراءة…\"",
+  "where": "web/app.js:3414",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتحدثت الختمة\"",
+  "new": "\"تم تحديث الختمة\"",
+  "where": "web/app.js:5137",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"٪</b> افتكرت \"",
+  "new": "\"٪</b> تذكّرت \"",
+  "where": "web/app.js:5635",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"، راجعها تاني\"",
+  "new": "\"، راجعها مرة أخرى\"",
+  "where": "web/app.js:5635",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المجموع كله: \"",
+  "new": "\"المجموع الكلي: \"",
+  "where": "web/app.js:6038",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مش متنزّل · \"",
+  "new": "\"غير منزّل · \"",
+  "where": "web/app.js:426,616",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\" · تطبيق لوح\"",
+  "new": "\" · تطبيق لوْح\"",
+  "where": "web/app.js:3581",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"حدد هدف يومي\"",
+  "new": "\"حدّد هدفًا يوميًا\"",
+  "where": "web/app.js:3806",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\">أخطائي بس (\"",
+  "new": "\">أخطائي فقط (\"",
+  "where": "web/app.js:4508",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"الأذان مقفول\"",
+  "new": "\"الأذان معطّل\"",
+  "where": "web/app.js:4800",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"المايك وقف (\"",
+  "new": "\"توقّف الميكروفون (\"",
+  "where": "web/app.js:5687",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"خلصت الصفحة\"",
+  "new": "\"انتهت الصفحة\"",
+  "where": "web/app.js:2538",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مايك الهاتف\"",
+  "new": "\"ميكروفون الهاتف\"",
+  "where": "web/app.js:3207",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"ختمة العيلة\"",
+  "new": "\"ختمة العائلة\"",
+  "where": "web/app.js:5091,5093,5119,5251",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 4
+ },
+ {
+  "old": "\"اتحدد موقعك\"",
+  "new": "\"تم تحديد موقعك\"",
+  "where": "web/app.js:5302",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\">لحد الآية \"",
+  "new": "\">حتى الآية \"",
+  "where": "web/app.js:5916",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" عيد الآيات\"",
+  "new": "\" أعد الآيات\"",
+  "where": "web/app.js:5973",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"خلص تحديث \"",
+  "new": "\"اكتمل تحديث \"",
+  "where": "web/app.js:411",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"خلص تنزيل \"",
+  "new": "\"اكتمل تنزيل \"",
+  "where": "web/app.js:554",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"٪: افتكرت \"",
+  "new": "\"٪: تذكّرت \"",
+  "where": "web/app.js:2474",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مفيش أجزاء\"",
+  "new": "\"لا توجد أجزاء\"",
+  "where": "web/app.js:5098",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" عيد الآية\"",
+  "new": "\" أعد الآية\"",
+  "where": "web/app.js:5973",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"حاول تاني\"",
+  "new": "\"حاول مرة أخرى\"",
+  "where": "web/app.js:581",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"السيرفر: \"",
+  "new": "\"الخادم: \"",
+  "where": "web/app.js:710",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"تطبيق لوح\"",
+  "new": "\"تطبيق لوْح\"",
+  "where": "web/app.js:4901",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"صوت واطي\"",
+  "new": "\"صوت منخفض\"",
+  "where": "web/app.js:709",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مايك USB\"",
+  "new": "\"ميكروفون USB\"",
+  "where": "web/app.js:3207",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\": خلصنا \"",
+  "new": "\": أتممنا \"",
+  "where": "web/app.js:5097",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"يلا نبدأ\"",
+  "new": "\"هيا نبدأ\"",
+  "where": "web/app.js:5319",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتحفظت \"",
+  "new": "\"حُفظت \"",
+  "where": "web/app.js:2262",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · غلط \"",
+  "new": "\" · خطأ \"",
+  "where": "web/app.js:2627",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"افتكرت \"",
+  "new": "\"تذكّرت \"",
+  "where": "web/app.js:2627",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اتضافت \"",
+  "new": "\"أُضيفت \"",
+  "where": "web/app.js:5223",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\" · كمّل\"",
+  "new": "\" · أكمل\"",
+  "where": "web/app.js:5736",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"بيوقف…\"",
+  "new": "\"جارٍ الإيقاف…\"",
+  "where": "web/app.js:590",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"بيمسح…\"",
+  "new": "\"جارٍ المسح…\"",
+  "where": "web/app.js:729",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"فكّرني\"",
+  "new": "\"ذكِّرني\"",
+  "where": "web/app.js:2629",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"مقفولة\"",
+  "new": "\"معطّلة\"",
+  "where": "web/app.js:3733",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"فاضلك \"",
+  "new": "\"بقي لك \"",
+  "where": "web/app.js:4736",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"بسمع…\"",
+  "new": "\"جارٍ الاستماع…\"",
+  "where": "web/app.js:2627",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"شغالة\"",
+  "new": "\"مفعّلة\"",
+  "where": "web/app.js:3733",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"رجعت \"",
+  "new": "\"استرجعت \"",
+  "where": "web/app.js:4577",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"قريت \"",
+  "new": "\"قرأت \"",
+  "where": "web/app.js:4732",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"نشيل \"",
+  "new": "\"نحذف \"",
+  "where": "web/app.js:5142,5225",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"كويس\"",
+  "new": "\"جيد\"",
+  "where": "web/app.js:483,514",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "\"دوشة\"",
+  "new": "\"ضوضاء\"",
+  "where": "web/app.js:709",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"تمام\"",
+  "new": "\"حسنًا\"",
+  "where": "web/app.js:3600",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اخفي\"",
+  "new": "\"أخفِ\"",
+  "where": "web/app.js:5538",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"اظهر\"",
+  "new": "\"أظهر\"",
+  "where": "web/app.js:5538",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"لوح\"",
+  "new": "\"لوْح\"",
+  "where": "web/app.js:873",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"وقف\"",
+  "new": "\"تم الإيقاف\"",
+  "where": "web/app.js:3318",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 1
+ },
+ {
+  "old": "\"لسه\"",
+  "new": "\"لم يبدأ بعد\"",
+  "where": "web/app.js:5001,5056",
+  "file": "web/app.js",
+  "kind": "literal",
+  "n": 2
+ },
+ {
+  "old": "التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة إلا تسجيلات التلاوة لو وافقت عليها (التفاصيل تحت)، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط لو اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يفضل على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» والقراءة بالصوت يستخدمان نموذج التعرّف على التلاوة الذي يعمل على الموبايل نفسه بدون إنترنت.",
+  "new": "التطبيق لا يجمع أي بيانات ولا يرسلها لأي جهة إلا تسجيلات التلاوة إذا وافقت عليها (التفاصيل تحت)، ولا يحتاج حسابًا، وليس فيه إعلانات. الموقع يُستخدم ويُحفظ على الجهاز فقط لحساب اتجاه القبلة ومواقيت الصلاة، ولا يُرسل لأي جهة. التذكيرات وتنبيهات الأذان تُجهَّز على الجهاز نفسه. الميكروفون يُستخدم فقط إذا اخترت «سجّل تلاوتك» في اختبار الحفظ، والتسجيل يبقى على الجهاز ولا يُحفظ ولا يُرسل. و«التسميع بالصوت» والقراءة بالصوت يستخدمان نموذج التعرّف على التلاوة الذي يعمل على الهاتف نفسه بدون إنترنت.",
+  "where": "web/index.html:224",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<small class=\"hint\" id=\"donateHint\">لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت.</small>",
+  "new": "<small class=\"hint\" id=\"donateHint\">عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.</small>",
+  "where": "web/index.html:211",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "وتُستخدم فقط لتدريب النموذج وتحسينه لكل القرّاء، ولا تُباع ولا تُشارك لأي غرض آخر. تُرفع على wifi فقط إلا لو سمحت بباقة البيانات. تقدر تلغي الموافقة في أي وقت وتمسح كل تسجيلاتك من الإعدادات › الخصوصية وتسجيلات الصوت.</span></p>",
+  "new": "وتُستخدم فقط لتدريب النموذج وتحسينه لكل القرّاء، ولا تُباع ولا تُشارك لأي غرض آخر. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات. يمكنك إلغاء الموافقة في أي وقت ومسح كل تسجيلاتك من الإعدادات › الخصوصية وتسجيلات الصوت.</span></p>",
+  "where": "web/index.html:230",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "استخدام صوتك لتحسين التطبيق اختياري تمامًا: لو وافقت على «ساعد في تحسين التعرّف على التلاوة» يحفظ التطبيق مقاطع قصيرة من تلاوتك ويرسلها مع نص الآيات ونسخة التطبيق ورقم عشوائي للجهاز، بدون اسم أو حساب أو موقع،",
+  "new": "استخدام صوتك لتحسين التطبيق اختياري حسنًاًا: إذا وافقت على «ساعد في تحسين التعرّف على التلاوة» يحفظ التطبيق مقاطع قصيرة من تلاوتك ويرسلها مع نص الآيات ونسخة التطبيق ورقم عشوائي للجهاز، بدون اسم أو حساب أو موقع،",
+  "where": "web/index.html:229",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "الإنترنت يُستخدم فقط لتحميل صفحات الطبعة اللي تختارها (من GitHub) وصوت القارئ من everyayah.com، وبعدها يتحفظوا على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط.<br>",
+  "new": "الإنترنت يُستخدم فقط لتحميل صفحات الطبعة التي تختارها (من GitHub) وصوت القارئ من everyayah.com، وبعدها تُحفظ على الجهاز. العلامات والختمة والإعدادات محفوظة على جهازك فقط.<br>",
+  "where": "web/index.html:225",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<p class=\"hint\">تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. كل موضوع بدرجتين من لونه عشان يبان أوله وآخره.</p></details>",
+  "new": "<p class=\"hint\">تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. لكل موضوع درجتان من لونه ليظهر أوله وآخره.</p></details>",
+  "where": "web/index.html:133",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "النموذج مبني على موديل NVIDIA FastConformer العربي (رخصة CC BY 4.0)، ويُحمَّل مرة واحدة ثم يعمل على الموبايل بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف.",
+  "new": "النموذج مبني على موديل NVIDIA FastConformer العربي (رخصة CC BY 4.0)، ويُحمَّل مرة واحدة ثم يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف.",
+  "where": "web/index.html:227",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "التعرّف على التلاوة بموديل NVIDIA FastConformer العربي (stt_ar_fastconformer_hybrid_large_pcd_v1.0، رخصة CC BY 4.0) بعد ضغطه ليشتغل على الموبايل.",
+  "new": "التعرّف على التلاوة بموديل NVIDIA FastConformer العربي (stt_ar_fastconformer_hybrid_large_pcd_v1.0، رخصة CC BY 4.0) بعد ضغطه ليشتغل على الهاتف.",
+  "where": "web/index.html:243",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<div class=\"row row-col\" id=\"errAlertRow\">تنبيه الأخطاء<small class=\"hint\">اهتزاز وصوت قصير عند 5 كلمات غلط ورا بعض في التسميع</small>",
+  "new": "<div class=\"row row-col\" id=\"errAlertRow\">تنبيه الأخطاء<small class=\"hint\">اهتزاز وصوت قصير عند 5 كلمات خاطئة متتالية في التسميع</small>",
+  "where": "web/index.html:166",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<label class=\"rem-row\"><span class=\"rem-sw\"><input type=\"checkbox\" id=\"bkRem\"><span></span>ذكّرني أعمل نسخة كل شهر</span></label>",
+  "new": "<label class=\"rem-row\"><span class=\"rem-sw\"><input type=\"checkbox\" id=\"bkRem\"><span></span>ذكّرني بإنشاء نسخة كل شهر</span></label>",
+  "where": "web/index.html:194",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<p class=\"hint\">الطبعات المتنزّلة بتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.</p>",
+  "new": "<p class=\"hint\">الطبعات المنزّلة تعمل بدون إنترنت. يمكنك حذف أي طبعة لتوفير المساحة، وتنزيلها مرة أخرى متى شئت.</p>",
+  "where": "web/index.html:204",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "المنبّهات الدقيقة والتشغيل مع بدء الموبايل: عشان الأذان والتذكيرات تيجي في وقتها حتى بعد إعادة تشغيل الموبايل.<br>",
+  "new": "المنبّهات الدقيقة والتشغيل مع بدء الهاتف: ليصل الأذان والتذكيرات في وقتها حتى بعد إعادة تشغيل الهاتف.<br>",
+  "where": "web/index.html:235",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "الميكروفون وإعدادات الصوت: لـ«سجّل تلاوتك» و«التسميع بالصوت» فقط، ويُطلب وقت ما تستخدمهم.<br>",
+  "new": "الميكروفون وإعدادات الصوت: لـ«سجّل تلاوتك» و«التسميع بالصوت» فقط، ويُطلب عند استخدامهما.<br>",
+  "where": "web/index.html:236",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<button class=\"link-sm\" id=\"donateDel\" data-donatedel>امسح كل تسجيلاتي اللي اتبعتت</button>",
+  "new": "<button class=\"link-sm\" id=\"donateDel\" data-donatedel>امسح كل تسجيلاتي التي أُرسلت</button>",
+  "where": "web/index.html:213",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "الموقع (تقريبي ودقيق): لاتجاه القبلة ومواقيت الصلاة، ويُطلب فقط لما تدوس «حدّد موقعك».<br>",
+  "new": "الموقع (تقريبي ودقيق): لاتجاه القبلة ومواقيت الصلاة، ويُطلب فقط عند الضغط على «حدّد موقعك».<br>",
+  "where": "web/index.html:233",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<div class=\"row\">اختبار المايك<small class=\"hint\" id=\"micTestSum\"></small>",
+  "new": "<div class=\"row\">اختبار الميكروفون<small class=\"hint\" id=\"micTestSum\"></small>",
+  "where": "web/index.html:156",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "الاهتزاز: لاهتزاز خفيف عند اللمس (تقدر تقفله من الإعدادات).</p>",
+  "new": "الاهتزاز: لاهتزاز خفيف عند اللمس (يمكنك إيقافه من الإعدادات).</p>",
+  "where": "web/index.html:237",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<button data-v=\"auto\">زي الموبايل</button>",
+  "new": "<button data-v=\"auto\">مثل الهاتف</button>",
+  "where": "web/index.html:140",
+  "file": "web/index.html",
+  "kind": "text",
+  "n": 1
+ },
+ {
+  "old": "<title>لوح - القرآن الكريم</title>",
+  "new": "<title>لوْح - القرآن الكريم</title>",
+  "where": "web/index.html",
+  "file": "web/index.html",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "<h1 id=\"title\">لوح</h1>",
+  "new": "<h1 id=\"title\">لوْح</h1>",
+  "where": "web/index.html",
+  "file": "web/index.html",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "<b>لوح</b> · الإصدار",
+  "new": "<b>لوْح</b> · الإصدار",
+  "where": "web/index.html",
+  "file": "web/index.html",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "كل مربع ربع، والسورة مربع لوحدها في الأجزاء ٢٨–٣٠. اضغط على المربع يظهر اسمه، ومنه «افتح في المصحف» تفتح آياته مظلّلة، أو «اختبرني» تختبر نفسك فيه. اضغط في أي مكان بره الكارت يتقفل. واضغط على الجزء تشوف وحداته وتختبر أي واحدة. «محتاجة مراجعة» لو المربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من #٪.",
+  "new": "كل مربع ربع، والسورة مربع وحدها في الأجزاء ٢٨–٣٠. اضغط على المربع ليظهر اسمه، ومنه «افتح في المصحف» لتفتح آياته مظلّلة، أو «اختبرني» لتختبر نفسك فيه. اضغط في أي مكان خارج البطاقة لإغلاقها. واضغط على الجزء لترى وحداته وتختبر أي واحدة منها. «محتاجة مراجعة» إذا كان المربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من #٪.",
+  "where": "web/i18n.js:367",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع تفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» جنب المايك عشان تختبر نفسك فيها. «محتاجة مراجعة» لو الربع مستحق في ورد المراجعة أو آخر نتيجة له أقل من #٪.",
+  "new": "كل مربع صفحة، وللصفحة التي فيها أكثر من سورة مربع لكل سورة. اضغط على المربع لتفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» بجانب الميكروفون لتختبر نفسك فيها. «محتاجة مراجعة» إذا كان الربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من #٪.",
+  "where": "web/i18n.js:372",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كل مربع صفحة، والصفحة اللي فيها أكتر من سورة ليها مربع لكل سورة. اضغط على المربع تفتح آياته في المصحف، واضغط ضغطة طويلة عشان تختبر نفسك فيها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من # يوم أو نتيجة الاختبار أقل من #٪.",
+  "new": "كل مربع صفحة، وللصفحة التي فيها أكثر من سورة مربع لكل سورة. اضغط على المربع لتفتح آياته في المصحف، واضغط ضغطة طويلة لتختبر نفسك فيها. «محتاجة مراجعة» إذا كانت آخر مراجعة قبل أكثر من # يوم أو نتيجة الاختبار أقل من #٪.",
+  "where": "web/i18n.js:42",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "🎤 دوس المايك وقول أمر: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مية»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وهيطلعلك مكانها.",
+  "new": "🎤 اضغط على الميكروفون وقل أمرًا: «افتح سورة الكهف»، «صفحة خمسين»، «الجزء الثلاثين»، «سورة البقرة آية مائة»، «آية الكرسي»، «شغّل»، «وقف»، «الصفحة التالية»، «مواقيت الصلاة»، «أذكار الصباح». أو اقرأ آية وسيظهر لك مكانها.",
+  "where": "web/i18n.js:77",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لما توافق، التطبيق بيحفظ مقاطع قصيرة من تسميعك ويبعتها من غير اسم أو حساب، عشان نحسّن التعرّف على التلاوة لكل القرّاء. بتترفع على wifi فقط إلا لو سمحت بباقة البيانات، وتقدر تلغي وتمسح تسجيلاتك في أي وقت.",
+  "new": "عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.",
+  "where": "web/i18n.js:57",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "بيشتغل على الموبايل من غير إنترنت، وصوتك ما بيخرجش من الجهاز وقت التعرّف. هو أداة مساعدة للمراجعة والحفظ وممكن يغلط، خصوصًا في الدوشة. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.",
+  "new": "يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف. هو أداة مساعدة للمراجعة والحفظ وقد يخطئ، خصوصًا مع الضوضاء. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.",
+  "where": "web/i18n.js:328",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "السورة بتدخل القايمة دي لما تجيب #٪ أو أكتر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. ولو جبت أقل من #٪ بتفضل فيها وبترجع لك في المراجعة بكرة.",
+  "new": "تدخل السورة هذه القائمة عندما تحصل على #٪ أو أكثر في اختبار عليها من هنا («المراجعة»)، بالسرد أو عشوائي. وإذا حصلت على أقل من #٪ تبقى فيها وتعود إليك في المراجعة غدًا.",
+  "where": "web/i18n.js:348",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش مراجعة مستحقة النهارده. كل سورة ليها ميعاد: أول مرة بعد # أيام. ولو جبت #٪ أو أكتر، المدة بتتضاعف لحد # يوم. ولو جبت أقل من #٪، بترجعلك تاني يوم.",
+  "new": "لا توجد مراجعة مستحقة اليوم. لكل سورة موعد: أول مرة بعد # أيام. وإذا حصلت على #٪ أو أكثر، تتضاعف المدة حتى # يوم. وإذا حصلت على أقل من #٪، تعيدها إليك في اليوم التالي.",
+  "where": "web/i18n.js:355",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. كل موضوع بدرجتين من لونه عشان يبان أوله وآخره.",
+  "new": "تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. لكل موضوع درجتان من لونه ليظهر أوله وآخره.",
+  "where": "web/i18n.js:86",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "السورة بتتعلّم ✓ لوحدها لما تجيب #٪ أو أكتر في اختبار عليها هنا في «المراجعة»، أو لما تسمّعها كلها في «اختبار الحفظ» بنتيجة #٪ أو أكتر.",
+  "new": "السورة بتتعلّم ✓ لوحدها لما تجيب #٪ أو أكثر في اختبار عليها هنا في «المراجعة»، أو لما تسمّعها كلها في «اختبار الحفظ» بنتيجة #٪ أو أكثر.",
+  "where": "web/i18n.js:348",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "السورة بتدخل القايمة دي لما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة #٪ أو أكتر. ولو جبت أقل من #٪ بتخرج منها.",
+  "new": "تدخل السورة هذه القائمة عندما تسمّعها كلها هنا في «اختبار الحفظ» (أو من «خريطة الحفظ») بنتيجة #٪ أو أكثر. وإذا حصلت على أقل من #٪ تخرج منها.",
+  "where": "web/i18n.js:348",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش مراجعة مستحقة النهارده. كل ربع ليه ميعاد: # ثم # ثم # ثم # ثم # يوم. #٪ أو أكتر بيطوّل الفاصل، وأقل من #٪ بيرجعلك تاني يوم.",
+  "new": "لا توجد مراجعة مستحقة اليوم. لكل ربع موعد: # ثم # ثم # ثم # ثم # يوم. #٪ أو أكثر تُطيل الفاصل، وأقل من #٪ تعيدها إليك في اليوم التالي.",
+  "where": "web/i18n.js:371",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التطبيق مش بيبعت حاجة على الإنترنت. لما حد يخلص جزء يضغط عليه ويشارك التقدم في جروب العيلة، والباقيين يستوردوا الكود.",
+  "new": "التطبيق لا يرسل شيئًا عبر الإنترنت. عندما يُنهي أحدهم جزءًا يضغط عليه ويشارك التقدم في مجموعة العائلة، ويستورد الباقون الكود.",
+  "where": "web/i18n.js:305",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الفهرس متولّد من جذور الكلمات ونص المصحف اللي في التطبيق نفسه، فممكن يفوته آية بتتكلم عن الموضوع من غير ما تذكر لفظه.",
+  "new": "الفهرس مولَّد من جذور الكلمات ونص المصحف الموجود في التطبيق نفسه، فقد تفوته آية تتحدث عن الموضوع دون أن تذكر لفظه.",
+  "where": "web/i18n.js:314",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الطالب بيعمل اختبار الحفظ، وبعدين من «المراجعة» يضغط «ابعت للمحفّظ». الصق رسالته هنا (ممكن أكتر من رسالة مرة واحدة).",
+  "new": "يجري الطالب اختبار الحفظ، ثم من «المراجعة» يضغط «أرسل للمحفّظ». الصق رسالته هنا (يمكن أكثر من رسالة دفعة واحدة).",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش مراجعة متأخرة. السورة بتظهر هنا لما يعدّي على آخر مراجعة ليها أكتر من # يوم، أو لو آخر نتيجة ليها أقل من #٪.",
+  "new": "لا توجد مراجعة متأخرة. تظهر السورة هنا عندما يمضي على آخر مراجعة لها أكثر من # يوم، أو إذا كانت آخر نتيجة لها أقل من #٪.",
+  "where": "web/i18n.js:356",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، والاختبار بيخلص لوحده أول ما كل الكلمات تظهر. الآيات #–# من #.",
+  "new": "اقرأ من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وينتهي الاختبار تلقائيًا عندما تظهر كل الكلمات. الآيات #–# من #.",
+  "where": "web/i18n.js:405",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "صفحات كل طبعة بتتنزل مرة واحدة وتشتغل من غير إنترنت. تقدر تحذف أي طبعة توفّر مساحة، وتنزّلها تاني وقت ما تحب.",
+  "new": "تُنزَّل صفحات كل طبعة مرة واحدة وتعمل بدون إنترنت. يمكنك حذف أي طبعة لتوفير المساحة، وتنزيلها مرة أخرى متى شئت.",
+  "where": "web/i18n.js:80",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كل مربع صفحة، اضغط عليه يفتحها. «محتاجة مراجعة» لو آخر مراجعة من أكتر من # يوم أو نتيجة الاختبار أقل من #٪.",
+  "new": "كل مربع صفحة، اضغط عليه لتفتحها. «محتاجة مراجعة» إذا كانت آخر مراجعة قبل أكثر من # يوم أو نتيجة الاختبار أقل من #٪.",
+  "where": "web/i18n.js:302",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "توافق إن التطبيق يحفظ مقاطع من صوتك وقت التسميع ويبعتها من غير أي بيانات شخصية لتحسين التعرّف على التلاوة؟",
+  "new": "توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟",
+  "where": "web/i18n.js:338",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اضغط على السورة لما تحفظها. وبعد ما تراجع سورة اضغط «راجعتها» عشان التطبيق يرشّح لك اللي بعدها.",
+  "new": "اضغط على السورة عندما تحفظها. وبعد أن تراجع سورة اضغط «راجعتها» ليرشّح لك التطبيق التالية.",
+  "where": "web/i18n.js:102",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التعرّف الحالي بيستخدم خدمة الموبايل، واختيار المايك بيشتغل مع نموذج التعرّف على التلاوة بس.",
+  "new": "التعرّف الحالي يستخدم خدمة الهاتف، واختيار الميكروفون يعمل مع نموذج التعرّف على التلاوة فقط.",
+  "where": "web/i18n.js:141",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "آخر # أيام، على الموبايل بس. لو النسبة واطية جرب مكان أهدى أو «اختبار المايك» في الإعدادات.",
+  "new": "آخر # أيام، على الهاتف فقط. إذا كانت النسبة منخفضة فجرّب مكانًا أهدأ أو «اختبار الميكروفون» في الإعدادات.",
+  "where": "web/i18n.js:50",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التعرّف على الكلام ممكن يغلط في التلاوة المجوّدة، فلو كلمة متعلّمة وانت متأكد منها، متقلقش.",
+  "new": "قد يخطئ التعرّف على الكلام في التلاوة المجوّدة، فإن كانت كلمة معلّمة وأنت متأكد منها فلا تقلق.",
+  "where": "web/i18n.js:318",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقرا من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت». الآيات #–# من #.",
+  "new": "اقرأ من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وفي النهاية اضغط «انتهيت». الآيات #–# من #.",
+  "where": "web/i18n.js:107",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "عدّى شهر من غير نسخة احتياطية. اضغط واحفظها على Drive عشان علاماتك وحفظك ما يضيعوش.",
+  "new": "مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تمسح كل المقاطع اللي اتبعتت من الجهاز ده واللي لسه مستنية؟ ده كمان هيوقف التبرّع.",
+  "new": "تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.",
+  "where": "web/i18n.js:339",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "عشان مواقيت الصلاة والأذان والقبلة. كل الحساب بيتم على الموبايل من غير إنترنت.",
+  "new": "لمواقيت الصلاة والأذان والقبلة. يتم كل الحساب على الهاتف بدون إنترنت.",
+  "where": "web/i18n.js:118",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "سمّع الآية من حفظك. لو نسيت كلمة اضغط عليها عشان تظهر، وفي الآخر اضغط «خلصت».",
+  "new": "سمّع الآية من حفظك. إذا نسيت كلمة اضغط عليها لتظهر، وفي النهاية اضغط «انتهيت».",
+  "where": "web/i18n.js:385",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الاختبار بيبقى على الآيات اللي غلطت فيها قبل كده، مع آية قبلها وآية بعدها.",
+  "new": "يكون الاختبار على الآيات التي أخطأت فيها سابقًا، مع آية قبلها وآية بعدها.",
+  "where": "web/i18n.js:351",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقفل التطبيق واستنى دقيقة. لو الأذان ماجاش، شوف الملاحظة اللي تحت الزرار.",
+  "new": "أغلق التطبيق وانتظر دقيقة. إذا لم يصل الأذان، راجع الملاحظة تحت الزر.",
+  "where": "web/i18n.js:25",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لسه مفيش قراءة بالمايك في آخر # أيام. الأرقام دي بتتحسب على الموبايل بس.",
+  "new": "لا توجد قراءة بالميكروفون بعد في آخر # أيام. تُحسب هذه الأرقام على الهاتف فقط.",
+  "where": "web/i18n.js:47",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "صفحات المصحف هتتنزل مرة واحدة (حوالي # ميجا) وبعدها تشتغل من غير إنترنت.",
+  "new": "ستُنزَّل صفحات المصحف مرة واحدة (حوالي # ميجا) وبعدها تعمل بدون إنترنت.",
+  "where": "web/i18n.js:83",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "نموذج التعرّف على التلاوة لسه بيتنزّل، تابعه من الإعدادات › التحميلات",
+  "new": "نموذج التعرّف على التلاوة قيد التنزيل، تابعه من الإعدادات › التحميلات",
+  "where": "web/i18n.js:73",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "بتتحسب الصفحات اللي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).",
+  "new": "تُحسب الصفحات التي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).",
+  "where": "web/i18n.js:99",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "سامعك… قول أمر زي «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.",
+  "new": "أسمعك… قل أمرًا مثل «افتح سورة الكهف» أو «صفحة خمسين»، أو اقرأ آية.",
+  "where": "web/i18n.js:76",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اختار المصحف اللي متعود تقرا فيه. تقدر تغيّره بعدين من الإعدادات.",
+  "new": "اختر المصحف الذي اعتدت القراءة فيه. يمكنك تغييره لاحقًا من الإعدادات.",
+  "where": "web/i18n.js:116",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تحذف صفحات كل الطبعات من الموبايل؟ هتقدر تنزّلها تاني من هنا.",
+  "new": "تحذف صفحات كل الطبعات من الهاتف؟ يمكنك تنزيلها مرة أخرى من هنا.",
+  "where": "web/i18n.js:82",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش آيات غلط في المدى ده. جرّب «اختبار عشوائي» أو مدى تاني.",
+  "new": "لا توجد آيات خاطئة في هذا المدى. جرّب «اختبار عشوائي» أو مدى آخر.",
+  "where": "web/i18n.js:402",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "النتيجة: ضعيف (# dB) · المكان فيه دوشة، جرّب مكان أهدى",
+  "new": "النتيجة: ضعيف (# dB) · المكان فيه ضوضاء، جرّب مكانًا أهدأ",
+  "where": "web/i18n.js:70",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "النتيجة: ضعيف (# dB) · قرّب الموبايل أو ارفع صوتك شوية",
+  "new": "النتيجة: ضعيف (# dB) · قرّب الهاتف أو ارفع صوتك قليلًا",
+  "where": "web/i18n.js:71",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقرا الآية وانت شايفها، ولما تبقى جاهز خبّيها وسمّعها.",
+  "new": "اقرأ الآية وأنت تراها، وعندما تصبح جاهزًا أخفِها وسمّعها.",
+  "where": "web/i18n.js:384",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الكلمات اللي اتخطيتها متعلّمة بلون بنفسجي، ارجع اقراها",
+  "new": "الكلمات التي تخطّيتها معلّمة بلون بنفسجي، ارجع واقرأها",
+  "where": "web/i18n.js:404",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش آيات غلط في المدى ده. جرّب «عشوائي» أو مدى تاني.",
+  "new": "لا توجد آيات خاطئة في هذا المدى. جرّب «عشوائي» أو مدى آخر.",
+  "where": "web/i18n.js:352",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسمع القارئ وهو بيقرا الآيات # مرات، والآيات مستخبية.",
+  "new": "استمع إلى القارئ وهو يقرأ الآيات # مرات، والآيات مخفية.",
+  "where": "web/i18n.js:396",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كام صفحة في اليوم؟ الصفحات بتتحسب لوحدها وانت بتقرا.",
+  "new": "كم صفحة في اليوم؟ تُحسب الصفحات تلقائيًا وأنت تقرأ.",
+  "where": "web/i18n.js:112",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسمع القارئ وهو بيقرا الآيات # مرة، والآيات مستخبية.",
+  "new": "استمع إلى القارئ وهو يقرأ الآيات # مرة، والآيات مخفية.",
+  "where": "web/i18n.js:395",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اهتزاز وصوت قصير عند 5 كلمات غلط ورا بعض في التسميع",
+  "new": "اهتزاز وصوت قصير عند 5 كلمات خاطئة متتالية في التسميع",
+  "where": "web/i18n.js:139",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسمع القارئ وهو بيقرا الآية # مرات، والآية مستخبية.",
+  "new": "استمع إلى القارئ وهو يقرأ الآية # مرات، والآية مخفية.",
+  "where": "web/i18n.js:383",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كمّل الآية دي صح: اختار التكملة، أو سمّعها بالصوت.",
+  "new": "أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت.",
+  "where": "web/i18n.js:377",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسمع القارئ وهو بيقرا الآية # مرة، والآية مستخبية.",
+  "new": "استمع إلى القارئ وهو يقرأ الآية # مرة، والآية مخفية.",
+  "where": "web/i18n.js:382",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "بعد آخر آية هتفتح الآيات اللي بعدها والمايك شغال",
+  "new": "بعد آخر آية ستُفتح الآيات التالية والميكروفون يعمل",
+  "where": "web/i18n.js:37",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الأوامر الصوتية شغالة في التطبيق على الموبايل بس",
+  "new": "الأوامر الصوتية تعمل في تطبيق الهاتف فقط",
+  "where": "web/i18n.js:78",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الآية دي متكررة بنصها، إيه الآية اللي بعدها هنا؟",
+  "new": "هذه الآية مكررة بنصها، فما الآية التالية هنا؟",
+  "where": "web/i18n.js:396",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "القراءة بالصوت شغالة في التطبيق على الموبايل بس",
+  "new": "القراءة بالصوت تعمل في تطبيق الهاتف فقط",
+  "where": "web/i18n.js:21",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المايك المختار مش متوصل، اتسجّل من مايك الهاتف",
+  "new": "الميكروفون المختار غير متصل، تم التسجيل من ميكروفون الهاتف",
+  "where": "web/i18n.js:140",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التسميع بالصوت شغال في التطبيق على الموبايل بس",
+  "new": "التسميع بالصوت يعمل في تطبيق الهاتف فقط",
+  "where": "web/i18n.js:322",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تنزيل النموذج شغال في التطبيق على الموبايل بس.",
+  "new": "تنزيل النموذج يعمل في تطبيق الهاتف فقط.",
+  "where": "web/i18n.js:325",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لسه مفيش سور محفوظة، فالأسئلة من القرآن كله.",
+  "new": "لا توجد سور محفوظة بعد، فالأسئلة من القرآن كله.",
+  "where": "web/i18n.js:376",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المايك المختار مش متوصل، هستخدم مايك الهاتف",
+  "new": "الميكروفون المختار غير متصل، سيُستخدم ميكروفون الهاتف",
+  "where": "web/i18n.js:143",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الآيات اللي بعدها هتفتح لوحدها وانت بتسمّع",
+  "new": "ستُفتح الآيات التالية تلقائيًا وأنت تسمّع",
+  "where": "web/i18n.js:31",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التنزيل فشل. اتأكد من الإنترنت وحاول تاني.",
+  "new": "فشل التنزيل. تأكّد من الإنترنت وحاول مرة أخرى.",
+  "where": "web/i18n.js:83",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتأكد إن المايك مش متغطي بإيدك أو بالجراب",
+  "new": "تأكّد أن الميكروفون غير مغطّى بيدك أو بالغلاف",
+  "where": "web/i18n.js:66",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تقدر تغيّر المواعيد بعدين من شاشة الصلاة.",
+  "new": "يمكنك تغيير المواعيد لاحقًا من شاشة الصلاة.",
+  "where": "web/i18n.js:119",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التحميل فشل. اتأكد من الإنترنت وحاول تاني",
+  "new": "التحميل فشل. تأكّد من الإنترنت وحاول مرة أخرى",
+  "where": "web/i18n.js:325",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الاختبار هيخلص عند آخر آية وتطلع النتيجة",
+  "new": "سينتهي الاختبار عند آخر آية وتظهر النتيجة",
+  "where": "web/i18n.js:37",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التنزيل متاح في التطبيق على الموبايل بس",
+  "new": "التنزيل متاح في تطبيق الهاتف فقط",
+  "where": "web/i18n.js:26",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مش هتتقلب: الاختبار بيخلص في آخر الصفحة",
+  "new": "لن تُقلب الصفحة: ينتهي الاختبار في آخر الصفحة",
+  "where": "web/i18n.js:41",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "حدّد موقعك الأول من شاشة مواقيت الصلاة.",
+  "new": "حدّد موقعك أولًا من شاشة مواقيت الصلاة.",
+  "where": "web/i18n.js:90",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الموبايل مفيهوش خدمة التعرّف على الكلام",
+  "new": "لا تتوفر في الهاتف خدمة التعرّف على الكلام",
+  "where": "web/i18n.js:321",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المسح ما نجحش، اتأكد من النت وجرّب تاني",
+  "new": "فشل المسح، تأكّد من الإنترنت وجرّب مرة أخرى",
+  "where": "web/i18n.js:341",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتحفظت الجزء % للاستماع من غير إنترنت",
+  "new": "حُفظت الجزء % للاستماع بدون إنترنت",
+  "where": "web/i18n.js:30",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "المسح متاح في التطبيق على الموبايل بس",
+  "new": "المسح متاح في تطبيق الهاتف فقط",
+  "where": "web/i18n.js:340",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الملف ده مش نسخة احتياطية من التطبيق",
+  "new": "هذا الملف ليس نسخة احتياطية من التطبيق",
+  "where": "web/i18n.js:24",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتحفظت سورة @ للاستماع من غير إنترنت",
+  "new": "حُفظت سورة @ للاستماع بدون إنترنت",
+  "where": "web/i18n.js:30",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "ما قدرتش أفتح المايك، اتأكد من الإذن",
+  "new": "تعذّر فتح الميكروفون، تأكّد من الإذن",
+  "where": "web/i18n.js:68",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "محتاج إذن الميكروفون للأوامر الصوتية",
+  "new": "يلزم إذن الميكروفون للأوامر الصوتية",
+  "where": "web/i18n.js:78",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اختبار عشوائي (#–# آية، لحد نص صفحة)",
+  "new": "اختبار عشوائي (#–# آية، حتى نص صفحة)",
+  "where": "web/i18n.js:401",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "محتاج إذن الميكروفون للقراءة بالصوت",
+  "new": "يلزم إذن الميكروفون للقراءة بالصوت",
+  "where": "web/i18n.js:22",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "خلّي الموبايل على بعد #–# سم من بقك",
+  "new": "اجعل الهاتف على بعد #–# سم من فمك",
+  "where": "web/i18n.js:65",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "خلص تنزيل نموذج التعرّف على التلاوة",
+  "new": "اكتمل تنزيل نموذج التعرّف على التلاوة",
+  "where": "web/i18n.js:74",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الاستماع من غير إنترنت ومؤقت النوم",
+  "new": "الاستماع بدون إنترنت ومؤقت النوم",
+  "where": "web/i18n.js:388",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ماعرفتش الآية، اقرأ كام كلمة كمان",
+  "new": "لم أتعرّف على الآية، اقرأ بضع كلمات أخرى",
+  "where": "web/i18n.js:23",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الكلمات اللي اتقالت غلط أو اتنست:",
+  "new": "الكلمات التي قيلت خطأً أو نُسيت:",
+  "where": "web/i18n.js:317",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "محتاج إذن الميكروفون عشان التسميع",
+  "new": "يلزم إذن الميكروفون للتسميع",
+  "where": "web/i18n.js:321",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ورد النهارده: # ربع/سورة · # صفحة",
+  "new": "ورد اليوم: # ربع/سورة · # صفحة",
+  "where": "web/i18n.js:361",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "جرّب «اختبار عشوائي» أو مدى تاني.",
+  "new": "جرّب «اختبار عشوائي» أو مدى آخر.",
+  "where": "web/i18n.js:402",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تعذّر تحديد الموقع، اختار مدينتك",
+  "new": "تعذّر تحديد الموقع، اختر مدينتك",
+  "where": "web/i18n.js:26",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقعد في مكان هادي على قد ما تقدر",
+  "new": "اجلس في مكان هادئ قدر الإمكان",
+  "where": "web/i18n.js:64",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "النت فاصل، التنزيل هيكمّل لوحده…",
+  "new": "انقطع الإنترنت، سيُستأنف التنزيل تلقائيًا…",
+  "where": "web/i18n.js:81",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "محتاج إذن الميكروفون عشان تسجّل",
+  "new": "يلزم إذن الميكروفون للتسجيل",
+  "where": "web/i18n.js:27",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الاختبار هيخلص في آخر الآيات دي",
+  "new": "سينتهي الاختبار في آخر هذه الآيات",
+  "where": "web/i18n.js:31",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "# فرد · اضغط على الجزء لما يخلص",
+  "new": "# فرد · اضغط على الجزء عند إتمامه",
+  "where": "web/i18n.js:303",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ما شاء الله، مفيش ولا كلمة غلط.",
+  "new": "ما شاء الله، لا توجد أي كلمة خاطئة.",
+  "where": "web/i18n.js:317",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "صوت الأذان بيشتغل على الموبايل",
+  "new": "صوت الأذان يعمل على الهاتف",
+  "where": "web/i18n.js:24",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقرا آية بصوتك العادي # ثواني…",
+  "new": "اقرأ آية بصوتك المعتاد # ثواني…",
+  "where": "web/i18n.js:67",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اكشف آية واحدة على الأقل الأول",
+  "new": "اكشف آية واحدة على الأقل أولًا",
+  "where": "web/i18n.js:322",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مستني يترفع: # مقطع · اترفض: #",
+  "new": "بانتظار الرفع: # مقطع · رُفض: #",
+  "where": "web/i18n.js:333",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش آيات غلط في المدى ده لسه.",
+  "new": "لا توجد آيات خاطئة في هذا المدى بعد.",
+  "where": "web/i18n.js:352",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التسجيل مش متاح على الجهاز ده",
+  "new": "التسجيل غير متاح على هذا الجهاز",
+  "where": "web/i18n.js:27",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الصفحة هتتقلب لوحدها في آخرها",
+  "new": "ستُقلب الصفحة تلقائيًا في آخرها",
+  "where": "web/i18n.js:41",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "عشوائي (#–# آية، لحد نص صفحة)",
+  "new": "عشوائي (#–# آية، حتى نص صفحة)",
+  "where": "web/i18n.js:347",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ورد النهارده: # سورة · # صفحة",
+  "new": "ورد اليوم: # سورة · # صفحة",
+  "where": "web/i18n.js:349",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "#٪ افتكرت # من # كلمة · كمّل",
+  "new": "#٪ تذكّرت # من # كلمة · أكمل",
+  "where": "web/i18n.js:38",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "امسح كل تسجيلاتي اللي اتبعتت",
+  "new": "امسح كل تسجيلاتي التي أُرسلت",
+  "where": "web/i18n.js:325",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش مراجعة مستحقة النهارده",
+  "new": "لا توجد مراجعة مستحقة اليوم",
+  "where": "web/i18n.js:353",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "وقّفت التلاوة، تصبح على خير",
+  "new": "أُوقفت التلاوة، تصبح على خير",
+  "where": "web/i18n.js:393",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الكلمات اللي اتسمعت كل يوم",
+  "new": "الكلمات المسموعة كل يوم",
+  "where": "web/i18n.js:49",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تمام، دوس على المايك وابدأ",
+  "new": "حسنًا، اضغط على الميكروفون وابدأ",
+  "where": "web/i18n.js:330",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "آيات غلطت فيها قبل كده (#)",
+  "new": "آيات أخطأت فيها سابقًا (#)",
+  "where": "web/i18n.js:347",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التلاوة هتقف في آخر السورة",
+  "new": "ستتوقف التلاوة في آخر السورة",
+  "where": "web/i18n.js:393",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لسه ما عملتش نسخة احتياطية",
+  "new": "لم تُنشئ نسخة احتياطية بعد",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش كود QK2 في الرسالة دي",
+  "new": "لا يوجد كود QK2 في هذه الرسالة",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تحذف صفحات # من الموبايل؟",
+  "new": "تحذف صفحات # من الهاتف؟",
+  "where": "web/i18n.js:82",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "حققت هدف النهارده: # صفحة",
+  "new": "حققت هدف اليوم: # صفحة",
+  "where": "web/i18n.js:113",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "دي تكملة سورة @ · الآية #",
+  "new": "هذه تكملة سورة @ · الآية #",
+  "where": "web/i18n.js:379",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسمك (عشان المحفّظ يعرفك)",
+  "new": "اسمك (ليعرفك المحفّظ)",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "النتيجة دي موجودة قبل كده",
+  "new": "هذه النتيجة موجودة سابقًا",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الفهرس والبحث لقوا الآية",
+  "new": "الفهرس والبحث وجدا الآية",
+  "where": "web/i18n.js:48",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المسح ما نجحش، جرّب تاني",
+  "new": "فشل المسح، جرّب مرة أخرى",
+  "where": "web/i18n.js:341",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التلاوة هتقف بعد # دقيقة",
+  "new": "ستتوقف التلاوة بعد # دقيقة",
+  "where": "web/i18n.js:392",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كمّلنا التمرير التلقائي",
+  "new": "استؤنف التمرير التلقائي",
+  "where": "web/i18n.js:20",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "✓ على الموبايل · # ميجا",
+  "new": "✓ على الهاتف · # ميجا",
+  "where": "web/i18n.js:81",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اختبرني في ورد النهارده",
+  "new": "اختبرني في ورد اليوم",
+  "where": "web/i18n.js:350",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "أنهيت مراجعة النهارده ✓",
+  "new": "أنهيت مراجعة اليوم ✓",
+  "where": "web/i18n.js:368",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ذكّرني أعمل نسخة كل شهر",
+  "new": "ذكّرني بإنشاء نسخة كل شهر",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "سجّل السور اللي حفظتها",
+  "new": "سجّل السور التي حفظتها",
+  "where": "web/i18n.js:100",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "أضف أفراد العيلة الأول",
+  "new": "أضف أفراد العائلة أولًا",
+  "where": "web/i18n.js:306",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الاستماع من غير إنترنت",
+  "new": "الاستماع بدون إنترنت",
+  "where": "web/i18n.js:388",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "العدد اللي عايز توصله",
+  "new": "العدد الذي تريد الوصول إليه",
+  "where": "web/i18n.js:28",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الخطة هتبدأ أول رمضان",
+  "new": "ستبدأ الخطة في أول رمضان",
+  "where": "web/i18n.js:29",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "#/#/# · # آية · # غلط",
+  "new": "#/#/# · # آية · # خطأ",
+  "where": "web/i18n.js:46",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "، محتاجة مراجعة بسيطة",
+  "new": "، تحتاج إلى مراجعة بسيطة",
+  "where": "web/i18n.js:109",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مش واضح، كمّل التكملة",
+  "new": "غير واضح، أكمل التكملة",
+  "where": "web/i18n.js:379",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "محتاج إذن الميكروفون",
+  "new": "يلزم إذن الميكروفون",
+  "where": "web/i18n.js:22",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقرا بصوت واضح وثابت",
+  "new": "اقرأ بصوت واضح وثابت",
+  "where": "web/i18n.js:65",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "النتيجة: كويس (# dB)",
+  "new": "النتيجة: جيد (# dB)",
+  "where": "web/i18n.js:69",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "التنزيل فشل · # ميجا",
+  "new": "فشل التنزيل · # ميجا",
+  "where": "web/i18n.js:81",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش مراجعة مستحقة ✓",
+  "new": "لا توجد مراجعة مستحقة ✓",
+  "where": "web/i18n.js:353",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "(افتكرت # من # كلمة)",
+  "new": "(تذكّرت # من # كلمة)",
+  "where": "web/i18n.js:373",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ما شاء الله، صح كلها",
+  "new": "ما شاء الله، كلها صحيحة",
+  "where": "web/i18n.js:386",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مش متنزّلة · # ميجا",
+  "new": "غير منزّلة · # ميجا",
+  "where": "web/i18n.js:81",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "✓ جاهز على الموبايل",
+  "new": "✓ جاهز على الهاتف",
+  "where": "web/i18n.js:324",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المايك مش متاح هنا",
+  "new": "الميكروفون غير متاح هنا",
+  "where": "web/i18n.js:67",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "افتكرت # من # كلمة",
+  "new": "تذكّرت # من # كلمة",
+  "where": "web/i18n.js:109",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "أهلًا بيك في «لوح»",
+  "new": "أهلًا بك في «لوْح»",
+  "where": "web/i18n.js:116",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كلمات صح # · غلط #",
+  "new": "كلمات صح # · خطأ #",
+  "where": "web/i18n.js:316",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مش متنزّل · # ميجا",
+  "new": "غير منزّل · # ميجا",
+  "where": "web/i18n.js:324",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتمسحت كل تسجيلاتك",
+  "new": "تم مسح كل تسجيلاتك",
+  "where": "web/i18n.js:340",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "و# ربع/سورة تانيين",
+  "new": "و# ربع/سورة أخرى",
+  "where": "web/i18n.js:366",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مش واضح، جرّب تاني",
+  "new": "غير واضح، جرّب مرة أخرى",
+  "where": "web/i18n.js:396",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "نصايح قبل ما تبدأ",
+  "new": "نصائح قبل أن تبدأ",
+  "where": "web/i18n.js:64",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الآيات اللي بعدها",
+  "new": "الآيات التالية",
+  "where": "web/i18n.js:108",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "اسم فرد من العيلة",
+  "new": "اسم فرد من العائلة",
+  "where": "web/i18n.js:303",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الكود ده مش مفهوم",
+  "new": "هذا الكود غير مفهوم",
+  "where": "web/i18n.js:306",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "افتكرت # · نسيت #",
+  "new": "تذكّرت # · نسيت #",
+  "where": "web/i18n.js:315",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "السور اللي حفظتها",
+  "new": "السور التي حفظتها",
+  "where": "web/i18n.js:355",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "آخر نسخة النهارده",
+  "new": "آخر نسخة اليوم",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "فكّرني لو مخلصتش",
+  "new": "ذكِّرني إن لم أُتمّ الورد",
+  "where": "web/i18n.js:112",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "تحب نفكّرك بإيه؟",
+  "new": "بماذا تريد أن نذكّرك؟",
+  "where": "web/i18n.js:119",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المايك المستخدم:",
+  "new": "الميكروفون المستخدم:",
+  "where": "web/i18n.js:140",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ورد الختمة خلص ✓",
+  "new": "اكتمل ورد الختمة ✓",
+  "where": "web/i18n.js:354",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الموضع اللي بعده",
+  "new": "الموضع التالي",
+  "where": "web/i18n.js:373",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "السؤال اللي بعده",
+  "new": "السؤال التالي",
+  "where": "web/i18n.js:378",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتلغى مؤقت النوم",
+  "new": "أُلغي مؤقت النوم",
+  "where": "web/i18n.js:393",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "بيجهّز الموديل…",
+  "new": "جارٍ تجهيز النموذج…",
+  "where": "web/i18n.js:20",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "أو اختار مدينة…",
+  "new": "أو اختر مدينة…",
+  "where": "web/i18n.js:119",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مفيش أسئلة هنا.",
+  "new": "لا توجد أسئلة هنا.",
+  "where": "web/i18n.js:380",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "بيشغّل التلاوة",
+  "new": "تشغيل التلاوة",
+  "where": "web/i18n.js:75",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "المجموع كله: #",
+  "new": "المجموع الكلي: #",
+  "where": "web/i18n.js:120",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "فيه تحميل شغال",
+  "new": "يوجد تحميل جارٍ",
+  "where": "web/i18n.js:389",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لسه مفيش طلاب.",
+  "new": "لا يوجد طلاب بعد.",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتضافت # نتيجة",
+  "new": "أُضيفت # نتيجة",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كمّل القراءة…",
+  "new": "أكمل القراءة…",
+  "where": "web/i18n.js:23",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اختبار المايك",
+  "new": "اختبار الميكروفون",
+  "where": "web/i18n.js:56",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "+ ذكر من عندك",
+  "new": "+ ذكر خاص بك",
+  "where": "web/i18n.js:60",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسكت ثانيتين…",
+  "new": "اصمت ثانيتين…",
+  "where": "web/i18n.js:67",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "، راجعها تاني",
+  "new": "، راجعها مرة أخرى",
+  "where": "web/i18n.js:109",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتحدثت الختمة",
+  "new": "تم تحديث الختمة",
+  "where": "web/i18n.js:306",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "# آية · # غلط",
+  "new": "# آية · # خطأ",
+  "where": "web/i18n.js:319",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "أخطائي بس (#)",
+  "new": "أخطائي فقط (#)",
+  "where": "web/i18n.js:350",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتلغى التحميل",
+  "new": "أُلغي التحميل",
+  "where": "web/i18n.js:389",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اختبر المايك",
+  "new": "اختبر الميكروفون",
+  "where": "web/i18n.js:66",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "حدد هدف يومي",
+  "new": "حدّد هدفًا يوميًا",
+  "where": "web/i18n.js:111",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الأذان مقفول",
+  "new": "الأذان معطّل",
+  "where": "web/i18n.js:114",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "الاختبار لحد",
+  "new": "الاختبار حتى",
+  "where": "web/i18n.js:373",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "خبّيها وسمّع",
+  "new": "أخفِها وسمّع",
+  "where": "web/i18n.js:381",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ابعت للمحفّظ",
+  "new": "أرسل للمحفّظ",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "خلصت الصفحة",
+  "new": "انتهت الصفحة",
+  "where": "web/i18n.js:40",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كلمة اتسمعت",
+  "new": "كلمة سُمعت",
+  "where": "web/i18n.js:46",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مستني يترفع",
+  "new": "بانتظار الرفع",
+  "where": "web/i18n.js:51",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كويس · # dB",
+  "new": "جيد · # dB",
+  "where": "web/i18n.js:72",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "زي الموبايل",
+  "new": "مثل الهاتف",
+  "where": "web/i18n.js:93",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مايك الهاتف",
+  "new": "ميكروفون الهاتف",
+  "where": "web/i18n.js:140",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ختمة العيلة",
+  "new": "ختمة العائلة",
+  "where": "web/i18n.js:299",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "أنا قريت صح",
+  "new": "قرأت بشكل صحيح",
+  "where": "web/i18n.js:337",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "القارئ يقرا",
+  "new": "القارئ يقرأ",
+  "where": "web/i18n.js:380",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لحد الآية #",
+  "new": "حتى الآية #",
+  "where": "web/i18n.js:394",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "آية اتسمعت",
+  "new": "آية سُمعت",
+  "where": "web/i18n.js:45",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مقطع اتسمع",
+  "new": "مقطع سُمع",
+  "where": "web/i18n.js:46",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "عيد الآيات",
+  "new": "أعد الآيات",
+  "where": "web/i18n.js:394",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "شيل الطالب",
+  "new": "احذف الطالب",
+  "where": "web/i18n.js:397",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "ما اتحفظش",
+  "new": "لم يُحفظ",
+  "where": "web/i18n.js:51",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "حاول تاني",
+  "new": "حاول مرة أخرى",
+  "where": "web/i18n.js:83",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "سجّل تاني",
+  "new": "سجّل مرة أخرى",
+  "where": "web/i18n.js:108",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مش دلوقتي",
+  "new": "ليس الآن",
+  "where": "web/i18n.js:325",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اسمع تاني",
+  "new": "اسمع مرة أخرى",
+  "where": "web/i18n.js:381",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "عيد الآية",
+  "new": "أعد الآية",
+  "where": "web/i18n.js:386",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لحد الآية",
+  "new": "حتى الآية",
+  "where": "web/i18n.js:394",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "يلا نبدأ",
+  "new": "هيا نبدأ",
+  "where": "web/i18n.js:117",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مايك USB",
+  "new": "ميكروفون USB",
+  "where": "web/i18n.js:140",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "كلمة غلط",
+  "new": "كلمة خاطئة",
+  "where": "web/i18n.js:316",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "النهارده",
+  "new": "اليوم",
+  "where": "web/i18n.js:353",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "من الأول",
+  "new": "من البداية",
+  "where": "web/i18n.js:381",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لسه (#)",
+  "new": "لم يبدأ بعد (#)",
+  "where": "web/i18n.js:301",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "مقفولة",
+  "new": "معطّلة",
+  "where": "web/i18n.js:49",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "بيمسح…",
+  "new": "جارٍ المسح…",
+  "where": "web/i18n.js:340",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقراها",
+  "new": "اقرأها",
+  "where": "web/i18n.js:381",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "فكّرني",
+  "new": "ذكِّرني",
+  "where": "web/i18n.js:404",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "شغالة",
+  "new": "مفعّلة",
+  "where": "web/i18n.js:49",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "بسمع…",
+  "new": "جارٍ الاستماع…",
+  "where": "web/i18n.js:315",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اتلغى",
+  "new": "أُلغي",
+  "where": "web/i18n.js:389",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اظهر",
+  "new": "أظهر",
+  "where": "web/i18n.js:53",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "خلصت",
+  "new": "انتهيت",
+  "where": "web/i18n.js:108",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 2
+ },
+ {
+  "old": "تمام",
+  "new": "حسنًا",
+  "where": "web/i18n.js:177",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "اقرا",
+  "new": "اقرأ",
+  "where": "web/i18n.js:381",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "وقف",
+  "new": "تم الإيقاف",
+  "where": "web/i18n.js:75",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لوح",
+  "new": "لوْح",
+  "where": "web/i18n.js:116",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "لسه",
+  "new": "لم يبدأ بعد",
+  "where": "web/i18n.js:368",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "غلط",
+  "new": "خطأ",
+  "where": "web/i18n.js:378",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "خلص",
+  "new": "اكتمل",
+  "where": "web/i18n.js:389",
+  "file": "web/i18n.js",
+  "kind": "i18n-key",
+  "n": 1
+ },
+ {
+  "old": "<string name=\"app_name\">لوح</string>",
+  "new": "<string name=\"app_name\">لوْح</string>",
+  "where": "android/res/values/strings.xml",
+  "file": "android/res/values/strings.xml",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "\"name\": \"لوح - القرآن الكريم\"",
+  "new": "\"name\": \"لوْح - القرآن الكريم\"",
+  "where": "web/manifest.webmanifest",
+  "file": "web/manifest.webmanifest",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "\"short_name\": \"لوح\"",
+  "new": "\"short_name\": \"لوْح\"",
+  "where": "web/manifest.webmanifest",
+  "file": "web/manifest.webmanifest",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "<title>سياسة الخصوصية - لوح</title>",
+  "new": "<title>سياسة الخصوصية - لوْح</title>",
+  "where": "docs/privacy-policy.html",
+  "file": "docs/privacy-policy.html",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "«لوح»",
+  "new": "«لوْح»",
+  "where": "docs/privacy-policy.html",
+  "file": "docs/privacy-policy.html",
+  "kind": "name",
+  "n": 2
+ },
+ {
+  "old": "<title>سياسة الخصوصية - لوح</title>",
+  "new": "<title>سياسة الخصوصية - لوْح</title>",
+  "where": "store/privacy-policy.html",
+  "file": "store/privacy-policy.html",
+  "kind": "name",
+  "n": 1
+ },
+ {
+  "old": "«لوح»",
+  "new": "«لوْح»",
+  "where": "store/privacy-policy.html",
+  "file": "store/privacy-policy.html",
+  "kind": "name",
+  "n": 2
+ }
+]

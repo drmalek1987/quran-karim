@@ -4,7 +4,7 @@
 const fs = require('fs'), app = fs.readFileSync(process.argv[2], 'utf8');
 function grab(name) { const i = app.indexOf('function ' + name + '('); let d = 0, j = app.indexOf('{', i);
   for (let k = j; k < app.length; k++) { if (app[k] === '{') d++; else if (app[k] === '}' && --d === 0) return app.slice(i, k + 1); } }
-eval(grab('norm') + grab('rSkel') + grab('rSame') + grab('rLocal') + ';globalThis.F={norm,rSkel,rLocal}');
+eval(((app.match(/^\s*var R_PAIRS = .*$/m) || [''])[0]) + grab('norm') + grab('rSkel') + grab('rSim') + grab('rSame') + grab('rLocal') + ';globalThis.F={norm,rSkel,rLocal}');
 const jobs = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 const out = jobs.map(job => {
   const E = job.E.map(F.rSkel); let p0 = 0;

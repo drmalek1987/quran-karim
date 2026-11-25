@@ -782,3 +782,33 @@ On the phone:
 - Fixes: vHifz next one scroll to capKeep's band (tools/qa/sprint5/vturn_scroll.js 6/6 monotonic); «تنبيه الأخطاء» toggle (q.errAlert); pace «مجوّد», hint removed; kfold shown as «مصحف المدينة».
 - run-parallel 383/0 x4, data 28/0, matrix 40/0, fs-motion 17/17, recite_sim ok, alert_repro ok (i accepted), split_turn shamarly hz ok.
 - APK 70,118,832 bytes, signer 7d8b31d2, not debuggable, assets/web 2297 byte-identical. Installed on bee81250 (call state 0, no taps). Phone checklist plans/phone-test-5.37.html (8 items).
+
+## 5.38 release QA (strict letter-pair rSame/rSim + ctcJudge skip, asrPace auto + «تلقائي», NvAsr pace 2, 2026-11-25, versionCode 86, sw quran-v82)
+- run-parallel.js: kfgqpc 384/0, kfold 384/0, shamarly 384/0, harmain 384/0 (5.37 was 383/0 x4; one new check). Wall 18.5 min. Two copies were started by mistake for ~1 min; the duplicate was stopped before any check ran far.
+- data.py 28/0 · matrix.js 40/0 · fs-motion 17/17 · recite_sim errs [] · parity.js diff 0 (same 3812).
+- split_turn (sprint5) rerun alone by Opus: harmain + shamarly 48/48 ok (the QA-agent run was under load from a second runner and cut short; not a regression).
+- i18n_scan (needs NODE_PATH=$(npm root -g)/@playwright/test/node_modules): 1514 entries in tools/qa/i18n-missing.json, mostly Quran text; «تلقائي» not in the list (0 hits). Prior count not recorded.
+- New checklist lines for 5.38 features (not yet covered by a named ui.js check; add one): (1) a letter-swap mistake is shown red (rSame/rSim strict pair); (2) «سرعة القراءة» has «تلقائي», default «عادي» (q.asrPace).
+- #25 phone CDP (bee81250, 5.38-cdp, kfold): single seq p50/p95 23.9/47.4 ms, jump 61.8/72.2. Vertical blank p95 6.7 (1 pps) / 28.6 (3 pps) / 6.9 (8 pps) ms. JS heap 10.1 MB. PASS, #25 closed. Normal 5.38 reinstalled after.
+
+## 5.39 release QA (Sprint 6: name «لوْح», Fusha UI strings, icon-only bars + long-press tooltip, splash (Java), first-run tour, update check (Play only), asrVerCheck offline fix; 2026-11-25, uncommitted, no APK build, no emulator during QA)
+- Pre-check: adb devices empty, no emulator process.
+- run-parallel.js (wall 20.3 min): kfgqpc 400/0, kfold 400/0, harmain 400/0, shamarly 400/1. The shamarly failure is «نسخة 5.11 G6: المايك في اختبار على المصحف (عمودي) بيروح لأول الصفحة» FAIL [-171.21875,[-449.21875,48]]. Rerun alone (ED=shamarly node tools/qa/ui.js): TOTAL 400 FAIL 1, same line, same values. Not a parallel-timing issue; OPEN, needs investigation before release.
+- data.py web 28/0 · matrix.js 40/0 · fs-motion (node tools/qa/fs-motion/measure.js) TOTAL 17/17 · recite_sim (node tools/qa/recite_sim.js) exit 0, errs [] · split_turn (sprint5, ED=harmain / ED=shamarly) 24/24 + 24/24 = 48/48 ok.
+- parity.js: NOT RUN against the 3812-piece set (not on disk; the rows-*-dp1.0.json files in D:\Quran App\qtrain\eval\out give other counts: base2/pre3q1 745 same, diff 1; pre3/pre5 721, diff 25; pre3q08 722, diff 24). Needs the 5.38 input file to compare with the diff 0 baseline.
+- i18n_scan (NODE_PATH set): MISSING 1514 (baseline 1514, not exceeded). Diff against the previous tools/qa/i18n-missing.json: 0 new entries, so no untranslated Sprint 6 string.
+- Manual phone list for Sprint 6 (not yet done, phone bee81250 not touched by QA):
+  - [ ] launcher label shows «لوْح» with sukun
+  - [ ] splash logo ~1 s, then main UI
+  - [ ] top/bottom bars icon-only; long-press shows the name; every tap target easy to hit
+  - [ ] tour appears once on first open after update (on home); «تخطّي» works; Android Back closes it; rotation re-lays it out; «عرض الشرح» in settings replays it
+  - [ ] Fusha texts in welcome / settings / hifz / khatma / prayer
+  - [ ] update row hidden in the GitHub build
+  - [ ] model «تحديث» not shown offline
+  - [ ] English mode still translated
+
+### 5.39 final gate (2026-11-25, after the G6 test fix + CRLF->LF)
+- run-parallel: kfgqpc / kfold / shamarly / harmain = 400/0 each (20.3 min wall). matrix 40/0.
+- shamarly G6 «المايك في اختبار على المصحف (عمودي)»: RESOLVED, test artifact (fixed 230 px scroll + 12 px shorter bar put the 40% line on page 51; test now scrolls relative to page 50). App unchanged.
+- parity: R_PAIRS, norm, rSkel, rSim, rSame, rAlign, rLocal, ctcJudge, voiceAyahs byte-identical to the 5.38 APK -> 5.38 parity (3812, diff 0) holds.
+- APK quran-karim-v5.39.apk 70,118,832 B, com.quran.karim 87 / 5.39, label «لوْح», signer 7d8b31d2, not debuggable; Sprint 6 code present in assets/web/app.js (q.tourDone, barTip, version.json, openStore, ذكِّرني) and QKStart in classes.dex.

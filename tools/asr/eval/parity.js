@@ -3,7 +3,8 @@
 const fs = require('fs'), app = fs.readFileSync(process.argv[2], 'utf8');
 function grab(name) { const i = app.indexOf('function ' + name + '('); let d = 0, j = app.indexOf('{', i);
   for (let k = j; k < app.length; k++) { if (app[k] === '{') d++; else if (app[k] === '}' && --d === 0) return app.slice(i, k + 1); } }
-eval(grab('norm') + grab('rSkel') + grab('rSame') + grab('rAlign') + ';globalThis.F={norm,rSkel,rAlign}');
+const pairsLine = (app.match(/^\s*var R_PAIRS = .*$/m) || [''])[0];   // 5.38: rSame uses rSim + R_PAIRS (strict letter pairs)
+eval(pairsLine + grab('norm') + grab('rSkel') + grab('rSim') + grab('rSame') + grab('rAlign') + ';globalThis.F={norm,rSkel,rAlign}');
 const rows = JSON.parse(fs.readFileSync(process.argv[3], 'utf8')); let same = 0, diff = 0, ex = [];
 for (const r of rows) {
   const H = r.piece_texts.flatMap(t => F.norm(t).split(' ').filter(Boolean).map(F.rSkel));

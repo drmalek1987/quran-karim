@@ -63,18 +63,21 @@ button:active { transform: scale(.97); }
 /* top bar */
 .bar {
   position: sticky; top: 0; z-index: 5;
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 12px; padding-top: max(10px, env(safe-area-inset-top));
+  display: flex; align-items: center; gap: 0;
+  padding: 0 6px; padding-top: env(safe-area-inset-top, 0px);   /* B3: slimmer bar (48px); the 48px buttons fill its height */
   background: var(--pattern), var(--grad); color: var(--accent-ink);
   box-shadow: 0 4px 18px rgba(8, 50, 38, .18);
 }
-.bar h1 { flex: 1; min-width: 0; margin: 0 4px; font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar h1 { flex: 1; min-width: 0; margin: 0 6px; font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .icon-btn {
-  display: grid; place-items: center; flex: none;
-  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .14); color: inherit; font-size: 20px;
-  width: 40px; height: 40px; border-radius: 14px; cursor: pointer; padding: 0;
+  position: relative; display: grid; place-items: center; align-items: center; justify-content: center; flex: none;
+  background: none; border: 0; color: inherit; font-size: 20px;
+  width: 48px; height: 48px; cursor: pointer; padding: 0; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none;   /* B3: 48px hit area, 36px visual chip (::before) */
 }
-.icon-btn:active { background: rgba(255, 255, 255, .25); }
+.icon-btn::before { content: ""; position: absolute; inset: 6px; border-radius: 12px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .14); }
+.icon-btn:active::before { background: rgba(255, 255, 255, .25); }
+.icon-btn .ic { position: relative; width: 20px; height: 20px; }
+.icon-btn:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -4px; border-radius: 14px; }
 .icon-btn[hidden] { display: none; }
 
 main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
@@ -183,6 +186,7 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
 .sheet h2 { margin: 0 4px 12px; font-size: 20px; font-weight: 700; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 8px; padding: 12px 14px;
   background: var(--card); border-radius: 16px; box-shadow: var(--shadow); font-weight: 600; }
+#updRow[hidden] { display: none; }
 .row input[type=range] { flex: 1; accent-color: var(--accent); }
 .seg { display: flex; gap: 2px; padding: 3px; background: var(--bg); border-radius: 12px; }
 .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); }
@@ -212,23 +216,20 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
   border: 0; background: var(--bg); color: var(--text); outline: none; }
 
 /* index (فهرس) */
-.idx-btn { width: auto; gap: 6px; display: flex; padding: 0 12px; font-size: 14px; font-weight: 600; }
-.idx-btn .ic { width: 18px; height: 18px; }
-/* narrow phones: the title gets the room — a smaller title font, and the index button shows its icon only (the mushaf page header keeps its label) */
+/* narrow phones: the title gets the room (B3: the bar buttons are icon-only and keep a 48px hit area) */
 @media (max-width: 430px) {
   .bar h1 { font-size: 17px; }
-  body:not(.pgview) .idx-btn { font-size: 0; gap: 0; width: 40px; padding: 0; justify-content: center; }
 }
 @media (max-width: 380px) {
-  .bar { gap: 4px; padding-inline: 8px; }
+  .bar { gap: 0; padding-inline: 2px; }
   .bar h1 { font-size: 16px; margin: 0 2px; }
-  .bar .icon-btn { width: 38px; }
 }
 .index-page { position: fixed; inset: 0; z-index: 8; background: var(--bg); overflow-y: auto; }
 .index-page[hidden] { display: none; }
 .list li.cur { background: var(--gold-soft); box-shadow: inset 0 0 0 1.5px var(--gold), var(--shadow); }
 
-.page-nav .dark-btn { flex: none; width: 46px; background: var(--gold-soft); color: var(--gold); font-size: 20px; }
+.page-nav button { min-height: 48px; }
+.page-nav .dark-btn { flex: none; width: 48px; background: var(--gold-soft); color: var(--gold); font-size: 20px; }
 
 /* search word highlight */
 mark { background: #ffe14d; color: #1d1a14; border-radius: 4px; padding: 0 1px; }
@@ -393,7 +394,7 @@ body.reading .quran, body.reading .basmala, body.reading .page-info { color: var
   .page-nav { gap: 4px; }
   .page-nav button { padding: 10px 6px; min-width: 0; font-size: 14px; }
   .page-nav input { min-width: 54px; }
-  .page-nav .dark-btn { width: 40px; }
+  .page-nav .dark-btn { width: 48px; }
   .tile { flex-direction: column; text-align: center; }
   .ab-btns button { font-size: 12px; }
 }
@@ -647,7 +648,6 @@ body.has-bar .vbar, body.autoing .vbar { display: none; }
 .tr-en { display: block; font-family: "Cairo", system-ui, sans-serif; font-size: 15px; line-height: 1.7; color: var(--muted); text-align: left; margin: 4px 2px 0; }
 .ayah-bar .tr-en { font-size: 13.5px; margin: 2px 4px 8px; max-height: 6.2em; overflow: auto; }
 /* With the auto-scroll button in the bar, the index button keeps only its icon so the title still fits. */
-body.reading:not(.pgview) .idx-btn, body.vread .idx-btn { font-size: 0; gap: 0; }
 /* English interface: the layout runs left to right, but the mushaf, Quran text and book texts stay right to left. */
 html.en .page-wrap, html.en .page-nav, html.en .vpages, html.en .spread, html.en .quran, html.en .ay-text, html.en .book-text,
 html.en .z-text, html.en .z-pre, html.en .result .txt, html.en .learn-card p, html.en .tj-words { direction: rtl; }
@@ -870,13 +870,22 @@ body.has-hifz.has-player .vbar { bottom: calc(var(--hzbar, 66px) + max(10px, env
 /* 3.7: tab bar, more, welcome, duas, goal, hifz test */
 html { scroll-padding-bottom: 80px; }
 #tabbar { position: fixed; inset-inline: 0; bottom: 0; z-index: 9; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border-top: 1px solid var(--line);
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -4px 18px rgba(0,0,0,.06); }
+  padding: 2px 6px calc(2px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -4px 18px rgba(0,0,0,.06); }
 #tabbar[hidden] { display: none; }
-#tabbar button { border: 0; background: none; color: var(--muted); font: inherit; font-size: 11px; display: grid; justify-items: center; gap: 2px; padding: 4px 0; border-radius: 14px; cursor: pointer; }
-#tabbar button .ic { width: 22px; height: 22px; }
-#tabbar button.on { color: var(--accent); background: rgba(30,58,95,.09); font-weight: 700; }
-body.has-tabs #view { padding-bottom: 84px; }
-body.has-tabs .player { bottom: 70px; }
+/* B3: icons only; 48px tall hit area; the active tab = accent colour + soft chip + a bar on top */
+#tabbar button { position: relative; border: 0; background: none; color: var(--muted); display: grid; place-items: center; min-width: 48px; min-height: 48px; padding: 0; border-radius: 14px; cursor: pointer; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+#tabbar button .ic { width: 24px; height: 24px; }
+#tabbar button.on { color: var(--accent); background: rgba(30,58,95,.09); }
+#tabbar button.on::after { content: ""; position: absolute; top: 0; left: 50%; width: 22px; height: 3px; margin-left: -11px; border-radius: 0 0 3px 3px; background: currentColor; }
+#tabbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+body.has-tabs #view { padding-bottom: 68px; }
+body.has-tabs .player { bottom: 54px; }
+/* B3: long-press name bubble for the icon-only bars (barTip() in app.js) */
+.bar-tip { position: fixed; z-index: 60; max-width: min(240px, calc(100vw - 16px)); padding: 6px 10px; border-radius: 10px; background: rgba(20,24,28,.94); color: #fff; font-size: 13px; line-height: 1.4; text-align: center; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.bar-tip.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .bar-tip { transition: none; } }
+.page-tools > [aria-label] { min-width: 48px; min-height: 48px; justify-content: center; }
+.page-tools > [aria-label] .ic { width: 22px; height: 22px; }
 .home-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 12px; }
 .mini { display: flex; align-items: center; gap: 10px; border: 0; background: var(--card); border-radius: 18px; padding: 12px; font: inherit; color: inherit; text-align: start; box-shadow: var(--shadow); cursor: pointer; font-size: 13px; font-weight: 600; min-height: 64px; }
 .mini > .ic { width: 26px; height: 26px; color: var(--accent); flex: none; }
@@ -886,6 +895,18 @@ body.has-tabs .player { bottom: 70px; }
 .mini.goal.done .g-ring b { color: var(--accent); font-size: 16px; }
 .tiles.more { margin-top: 4px; }
 .more-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+/* C5 #33b: first-run tour */
+.tour { position: fixed; inset: 0; z-index: 70; }
+.tour-bg { position: absolute; inset: 0; }
+.tour-ring { position: absolute; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.55); outline: 2px solid #fff; pointer-events: none; transition: left .2s, top .2s, width .2s, height .2s; }
+.tour-box { position: absolute; width: min(300px, calc(100vw - 16px)); box-sizing: border-box; background: var(--card); color: var(--ink, inherit); border-radius: 16px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.35); outline: none; }
+.tour-txt { margin: 0 0 10px; font-size: 15px; line-height: 1.7; }
+.tour-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tour-cnt { margin-inline-end: auto; font-size: 12px; color: var(--muted); }
+.tour-row button { border: 0; font: inherit; font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 10px; cursor: pointer; background: none; color: var(--muted); }
+.tour-row .tour-next, .tour-row .tour-fin { background: var(--accent); color: var(--accent-ink); }
+.tour-row button[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .tour-ring { transition: none; } }
 .wel { position: fixed; inset: 0; z-index: 60; background: var(--grad); display: grid; place-items: center; padding: 16px; overflow: auto; }
 .wel-card { width: min(420px, 100%); background: var(--card); border-radius: 26px; padding: 22px 18px 16px; display: grid; gap: 10px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.25); animation: welIn .35s ease; }
 @keyframes welIn { from { transform: translateY(18px); opacity: 0; } }
@@ -985,7 +1006,7 @@ body.has-tabs .player { bottom: 70px; }
 .bar { transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), margin-top .42s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s; }
 #tabbar, .player, .vbar { transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s; }
 .page-tools, .page-nav { max-height: 240px; transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), max-height .42s cubic-bezier(.4,0,.2,1), margin .42s cubic-bezier(.4,0,.2,1), padding-block .42s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s; }
-body.fs .bar { transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none; margin-top: calc(var(--barh, 60px) * -1);
+body.fs .bar { transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none; margin-top: calc(var(--barh, 48px) * -1);
   transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), margin-top .42s cubic-bezier(.4,0,.2,1), visibility 0s linear .42s; }
 body.vread.fs .bar { transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .42s cubic-bezier(.4,0,.2,1), visibility 0s linear .42s; }
 body.fs #tabbar, body.fs .player, body.fs .vbar { transform: translateY(100%); opacity: 0; visibility: hidden; pointer-events: none;
@@ -1134,8 +1155,8 @@ body.sheet-open .rd-mic, body.sheet-open .rd-test { display: none; }
 .tap-ok { box-shadow: 0 0 0 3px #2ecc71 !important; transition: box-shadow .1s; }
 .rd-mic.on, .hifz-bar .rec { background: #d64541 !important; color: #fff !important; }
 /* 5.13 P2.2: the home screen's mic sits above the tab bar (and the player, when it shows) */
-body.has-tabs .rd-mic, body.has-tabs .rd-cap, body.has-tabs .rd-test { bottom: calc(80px + env(safe-area-inset-bottom)); }
-body.has-tabs.has-player .rd-mic, body.has-tabs.has-player .rd-cap, body.has-tabs.has-player .rd-test { bottom: calc(154px + env(safe-area-inset-bottom)); }
+body.has-tabs .rd-mic, body.has-tabs .rd-cap, body.has-tabs .rd-test { bottom: calc(66px + env(safe-area-inset-bottom)); }
+body.has-tabs.has-player .rd-mic, body.has-tabs.has-player .rd-cap, body.has-tabs.has-player .rd-test { bottom: calc(140px + env(safe-area-inset-bottom)); }
 body.has-hifz .rd-mic, body.has-hifz .rd-cap, body.has-hifz .rd-test { bottom: calc(96px + env(safe-area-inset-bottom)); }   /* above the memorisation bar */
 
 /* hifz test layout: mini map card, big mic, one row of icon buttons, wrong-ayat chips */
@@ -1155,9 +1176,9 @@ body.has-hifz .rd-mic, body.has-hifz .rd-cap, body.has-hifz .rd-test { bottom: c
 /* 5.6 vertical reading: the top bar floats over the pages (its space is kept as padding), so full screen only slides it
    away, like on single pages, and the pages never jump. */
 body.vread .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 30; }
-body.vread .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
+body.vread .vpages { padding-top: calc(var(--barh, 48px) + 8px); }
 body.vread .bar, body.vread.fs .bar { margin-top: 0 !important; }
-body.vread.fs .vpages { padding-top: calc(var(--barh, 64px) + 8px); }
+body.vread.fs .vpages { padding-top: calc(var(--barh, 48px) + 8px); }
 
 /* 5.11: small text-link button (delete my recordings, inside the privacy policy) */
 .link-sm { background: none; border: 0; padding: 4px 0; margin-top: 6px; color: var(--muted); font: inherit; font-size: .82em; text-decoration: underline; cursor: pointer; }
@@ -1300,11 +1321,11 @@ html.en .st-link i { display: inline-block; transform: scaleX(-1); }
 /* 5.23 #16: one-tap bookmark corner button on the mushaf (outline = not marked, filled = marked) */
 /* Sprint 2 #44/#45: #qBar holds the juz/hizb label and the bookmark button; fixed under the app bar's height + below the status bar
    (safe-area), the same box in normal / body.fs / hifz. Only the button takes taps. */
-.q-bar { position: fixed; z-index: 19; left: 8px; right: 8px; top: max(calc(var(--barh, 60px) + 4px), calc(env(safe-area-inset-top, 0px) + 4px)); height: 32px;
+.q-bar { position: fixed; z-index: 19; left: 8px; right: 8px; top: max(calc(var(--barh, 48px) + 4px), calc(env(safe-area-inset-top, 0px) + 4px)); height: 32px;
   display: flex; align-items: center; gap: 8px; pointer-events: none; }
 .q-bar[hidden] { display: none; }
 .q-bar .q-mk { position: static; width: 32px; height: 32px; margin-inline-start: auto; pointer-events: auto; flex: none; }
-.q-mk { position: fixed; z-index: 19; left: 10px; top: calc(var(--barh, 60px) + 10px); width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); padding: 0;
+.q-mk { position: fixed; z-index: 19; left: 10px; top: calc(var(--barh, 48px) + 10px); width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); padding: 0;
   background: var(--card); color: var(--accent); display: grid; place-items: center; opacity: .8; box-shadow: 0 2px 8px #0003; cursor: pointer; }
 .q-mk[hidden] { display: none; }
 .q-mk .ic { width: 20px; height: 20px; }

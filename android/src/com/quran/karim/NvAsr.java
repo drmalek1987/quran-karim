@@ -48,9 +48,23 @@ class NvAsr {
     // 5.36 reading pace (q.asrPace): 0 normal = today's rules exactly; 1 slow = a piece is held through up to SLOW_Q s of quiet
     // and joined with the next one (up to MCAP), then emitted as one final. bench.py speed_post --slowq 2.0 --mcap 30: ALL 97.3 -> 97.8.
     private static final double SLOW_Q = 2.0; private static final int MCAP = SR * 30;
+    // Sprint 5b: 2 auto = like slow, but a piece is held only when its own decode is slow (isSlow: under SLOW_WPS words/s). The recorder
+    // posts the decode of the piece to the worker thread at its 0.5 s of quiet (a "probe": the same decode the final needs) and keeps
+    // recording; the worker answers fast (it emits the final from that decode) or slow (the recorder holds it, as pace 1).
+    // Rule = tools/asr/eval/bench.py speed_post (slow_wps 1.0, slowq 2.0, mcap 30): ALL 97.3 -> 97.6, murattal clips touched 1%.
+    private static final double SLOW_WPS = 1.0; private static final int CAP12 = SR * 12;
     private volatile int pace = 0;
     @JavascriptInterface
-    public void setPace(String p) { pace = "slow".equals(p) ? 1 : 0; }
+    public void setPace(String p) { pace = "slow".equals(p) ? 1 : "auto".equals(p) ? 2 : 0; }
+    // pure decision functions (tools/asr/speedbench/AutoParity.java checks them against the Python bench on its pieces)
+    static boolean isSlow(String text, double sec) {
+        String t = text == null ? "" : text.trim();
+        if (t.isEmpty()) return false;
+        return t.split("\\s+").length / Math.max(0.5, sec - 0.8) < SLOW_WPS;
+    }
+    static boolean canJoin(long gapSamples, long joinedSamples) { return gapSamples <= (long) ((SLOW_Q - QUIET_END) * SR) && joinedSamples <= MCAP; }
+    // one probe: the recorder thread reads v (0 pending, 1 fast, 2 slow); cancelled = the recorder gave the piece up (30 s cap, stop)
+    private static final class Probe { volatile int v = 0; boolean cancelled = false; }
     private volatile String frozen = "";                                       // the frozen text of the piece being heard (worker thread)
     private final Activity act;
     private final WebView web;
@@ -359,6 +373,7 @@ class NvAsr {
         rec = new Thread(new Runnable() { public void run() {
             short[] blk = new short[SR / 10];
             float[] seg = new float[pz == 0 ? SR * 12 : MCAP]; int len = 0, lastPartial = 0, frz = 0, heldAt = 0;
+            Probe pr = null; boolean held = false, probedQuiet = false; int probeLen = 0, resumeAt = 0, capBase = 0;   // pace 2 (auto)
             float[] be = new float[seg.length / BLK + 1];                                    // each 100 ms block's level in the piece
             float[] pre = new float[PRE]; int preN = 0;                       // the last 0.3 s before speech
             double floor = 0.004, quiet = 0, voiced = 0; int run = 0;      // run: speech blocks in a row
@@ -387,11 +402,37 @@ class NvAsr {
                       for (int i = 0; i < k; i++) pre[PRE - k + i] = blk[n - k + i] / 32768f; preN = Math.min(PRE, preN + k); }
                     if (speech) { voiced += dt; quiet = 0; } else if (len > 0) quiet += dt;
                     if (pz == 1) { if (speech) heldAt = 0; else if (len > 0 && quiet > QUIET_END && heldAt == 0) heldAt = len; }   // slow: where the held piece's speech ended
-                    boolean end = len > 0 && (quiet > (pz == 1 ? SLOW_Q : QUIET_END) || len >= seg.length);
+                    if (pz == 2) {   // auto: len/voiced/quiet may be changed here by an answered probe or a new one
+                        if (speech && pr != null && resumeAt == 0) resumeAt = Math.max(probeLen, len - n - PRE);   // speech came back while the probe runs
+                        if (pr != null && pr.v != 0) {   // answered
+                            if (pr.v == 2) { held = true; heldAt = resumeAt == 0 ? probeLen : 0; pr = null; }
+                            else {   // fast: the worker emitted seg[0..probeLen] itself; go on with what came after it, if speech did
+                                int from = resumeAt / BLK * BLK; pr = null; held = false; heldAt = 0; lastPartial = 0; frz = 0; capBase = 0; probedQuiet = false; resumeAt = 0;
+                                if (from > 0 && from < len) {
+                                    System.arraycopy(seg, from, seg, 0, len - from); len -= from; voiced = Math.min(voiced, len / (double) SR);
+                                    int fb = from / BLK; System.arraycopy(be, fb, be, 0, be.length - fb); java.util.Arrays.fill(be, be.length - fb, be.length, 0f);
+                                } else { len = 0; quiet = 0; voiced = 0; }
+                            }
+                        }
+                        if (speech && held) heldAt = 0;   // speech came back inside the held quiet: the piece now goes on (as pace 1), never cut at the old end
+                        if (len > 0 && pr == null) {
+                            if (!speech && quiet > QUIET_END && !probedQuiet) {      // the piece's own 0.5 s of quiet
+                                probedQuiet = true;
+                                if (voiced > 0.3) { probeLen = len; resumeAt = 0; capBase = len; pr = launchProbe(seg, len, g); }
+                                else { len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0; heldAt = 0; held = false; probedQuiet = false; }
+                            } else if (speech && len < seg.length && len - capBase >= CAP12) {   // 12 s of speech in a row: where pace 0 cuts the piece
+                                probeLen = len; resumeAt = len; capBase = len; pr = launchProbe(seg, len, g);
+                            }
+                        }
+                        if (speech) probedQuiet = false;
+                        if (len >= seg.length && pr != null) { synchronized (pr) { if (pr.v == 0) pr.cancelled = true; } pr = null; }
+                    }
+                    boolean end = len > 0 && (pz == 2 ? (len >= seg.length || (pr == null && held && quiet > SLOW_Q))
+                                                      : (quiet > (pz == 1 ? SLOW_Q : QUIET_END) || len >= seg.length));
                     if (end) {
-                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, pz == 1 && heldAt > 0 ? heldAt : len); work.execute(new Runnable() { public void run() { emit(y, "final", g, false); } }); }
-                        len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0; heldAt = 0;
-                    } else if (len - lastPartial >= Math.max(SR / 2, partMs * 2 * SR / 1000) && voiced > 0.5 && !decoding) {
+                        if (voiced > 0.3) { final float[] y = java.util.Arrays.copyOf(seg, pz != 0 && heldAt > 0 ? heldAt : len); work.execute(new Runnable() { public void run() { emit(y, "final", g, false); } }); }
+                        len = 0; lastPartial = 0; quiet = 0; voiced = 0; frz = 0; heldAt = 0; held = false; probedQuiet = false; resumeAt = 0; capBase = 0;
+                    } else if (len - lastPartial >= Math.max(SR / 2, partMs * 2 * SR / 1000) && voiced > 0.5 && !decoding && pr == null) {
                         lastPartial = len; decoding = true;
                         final int cut = freezeAt(be, frz, len);
                         final float[] y = java.util.Arrays.copyOfRange(seg, frz, cut > 0 ? cut : len);
@@ -402,13 +443,31 @@ class NvAsr {
             } catch (Throwable t) { bad = !(t instanceof java.util.concurrent.RejectedExecutionException);   // rejected = the activity is closing
             } finally { try { mic.stop(); } catch (Exception ex) { } mic.release(); if (route != null) route.close(); }
             // The mic stopped mid-piece: judge what was heard instead of dropping it (same 0.3 s voiced threshold as a normal end).
-            if (!bad && len > 0 && voiced > 0.3) {
-                final float[] y = java.util.Arrays.copyOf(seg, pz == 1 && heldAt > 0 ? heldAt : len);
+            int s0 = 0;   // pace 2: a probe that already answered fast emitted seg[0..probeLen]; only what came after it is left to flush
+            if (pz == 2 && pr != null) synchronized (pr) { if (pr.v == 0) pr.cancelled = true; else if (pr.v == 1) s0 = resumeAt == 0 ? len : resumeAt / BLK * BLK; }
+            if (!bad && len > s0 && voiced > 0.3 && (s0 == 0 || len - s0 > SR * 3 / 10)) {
+                final float[] y = java.util.Arrays.copyOfRange(seg, s0, pz != 0 && heldAt > s0 ? heldAt : len);
                 try { work.execute(new Runnable() { public void run() { emit(y, "final", g, true); } }); } catch (java.util.concurrent.RejectedExecutionException e) { }
             }
             if (bad) micError(g);
         } });
         rec.start();
+    }
+
+    // Pace 2: decode seg[0..n] on the worker thread. Fast (or empty): emit it as the final from this same decode. Slow: only tell the recorder.
+    private Probe launchProbe(float[] seg, int n, final int g) {
+        final float[] y = java.util.Arrays.copyOf(seg, n); final Probe p = new Probe();
+        try { work.execute(new Runnable() { public void run() {
+            String t; long ms;
+            try {
+                if (!live(g, false)) { p.v = 1; return; }
+                long t0 = android.os.SystemClock.elapsedRealtime(); t = decode(louder(y)); ms = android.os.SystemClock.elapsedRealtime() - t0;
+            } catch (Throwable e) { if (live(g, false)) tell("", "state:error:run " + e.getMessage()); p.v = 1; return; }
+            boolean slow = isSlow(t, y.length / (double) SR);
+            synchronized (p) { if (p.cancelled) return; p.v = slow ? 2 : 1; }
+            if (!slow) emit(y, "final", g, false, t, ms);
+        } }); } catch (java.util.concurrent.RejectedExecutionException e) { p.v = 1; }
+        return p;
     }
 
     private void micError(int g) { if (gen.get() == g) { on = false; decoding = false; tell("", "state:error:mic"); } }
@@ -428,13 +487,16 @@ class NvAsr {
         return (on && gen.get() == g) || (flush && stoppedGen == g && gen.get() == g + 1 && !on);
     }
 
-    private void emit(float[] y, String kind, int g, boolean flush) {
+    private void emit(float[] y, String kind, int g, boolean flush) { emit(y, kind, g, flush, null, 0); }
+
+    // text != null: the piece was already decoded by a pace 2 probe (probeMs = its time); lastLp is still that decode's (same worker thread)
+    private void emit(float[] y, String kind, int g, boolean flush, String text, long probeMs) {
         try {
             if (!live(g, flush)) return;
             long t0 = android.os.SystemClock.elapsedRealtime();
-            String t = decode(louder(y));
+            String t = text != null ? text : decode(louder(y));
             // how long the decode took and how much audio it read: the page keeps the average (Stats, 5.11 G7)
-            long ms = android.os.SystemClock.elapsedRealtime() - t0; if (!kind.equals("final")) partMs = ms;
+            long ms = text != null ? probeMs : android.os.SystemClock.elapsedRealtime() - t0; if (!kind.equals("final")) partMs = ms;
             String before = "window.nvMs=" + ms + ";window.nvLen=" + (y.length * 1000L / SR) + ";";
             if (kind.equals("freeze")) { frozen = (frozen + " " + t).trim(); t = frozen; kind = "partial"; }
             else if (kind.equals("partial")) t = (frozen + " " + t).trim();

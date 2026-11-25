@@ -251,4 +251,21 @@ class AppBridge {
             return p.versionName + " (" + p.versionCode + ")";
         } catch (Exception e) { return ""; }
     }
+
+    /** Sprint 6 #22: the application id, so the web code can tell the Play build (com.lawh.quran) from the GitHub one. */
+    @JavascriptInterface
+    public String appId() { return activity.getPackageName(); }
+
+    /** Sprint 6 #22: open this app's page in the Play Store app; the https page is the fallback when no store app is installed. */
+    @JavascriptInterface
+    public void openStore() {
+        String id = activity.getPackageName();
+        try {
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + id)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        } catch (Exception e) {
+            try {
+                activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + id)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            } catch (Exception e2) { }
+        }
+    }
 }
