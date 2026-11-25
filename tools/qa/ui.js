@@ -335,8 +335,11 @@ async function fresh(ctx, vp) {
     await ev(() => { window.__bk = null; AppBridge.shareFile = (t, n) => { window.__bk = [t, n]; }; localStorage.setItem('q.notes', JSON.stringify({ '1:1': 'اختبار النسخة' })); });
     await p.click('#btnSettings'); await p.click('#bkOut'); const bk = await ev(() => window.__bk); await closeS();
     await ev(() => localStorage.removeItem('q.notes')); const f = path.join(os.tmpdir(), bk[1]); fs.writeFileSync(f, bk[0]);
-    await p.setInputFiles('#bkFile', f); await wait(2500); const n = await ev(() => localStorage.getItem('q.notes'));
-    return assert(/^quran-backup-.*\.json$/.test(bk[1]) && n && n.includes('اختبار النسخة'), bk && bk[1] + ' ' + n); });
+    // Wait for the restore instead of a fixed 2.5 s: under four parallel editions the file read + reload ran late (5.41 QA).
+    await p.setInputFiles('#bkFile', f); let n = null; const t0 = Date.now();
+    while (Date.now() - t0 < 8000) { await wait(250); try { n = await ev(() => localStorage.getItem('q.notes')); } catch (e) { n = null; } if (n) break; }
+    await wait(3000); let n2 = null; try { n2 = await ev(() => localStorage.getItem('q.notes')); } catch (e) {}   // still there after the app reopens
+    return assert(/^quran-backup-.*\.json$/.test(bk[1]) && n && n.includes('اختبار النسخة') && n2 === n, bk && bk[1] + ' ' + n + ' | ' + n2); });
 
   const G14 = 'مزايا نسخة 3.7';
   await check(G14, 'الشريط السفلي بـ4 أزرار ويختفي وقت القراءة', async () => { await go('#/', 700); const a = await ev(() => [document.querySelectorAll('#tabbar button').length, document.getElementById('tabbar').hidden]);
@@ -2136,6 +2139,16 @@ async function fresh(ctx, vp) {
       await updBoot({ id: 'com.quran.karim', ver: '5.39 (87)', asr: true, asrVer: v, wait: 600 }); await openSet(); await wait(900);
       res[k] = await ev(() => [!!document.querySelector('[data-asrup]'), /توجد نسخة جديدة/.test(document.getElementById('asrDl').textContent)]); await p.ctxU.close(); }
     return assert(!res.abort[0] && !res.abort[1] && !res['500'][0] && !res['500'][1] && res['404'][0] && res.old[0] && res.old[1] && !res.cur[0], JSON.stringify(res)); });
+  // 5.41 (in its own context: a reload in the shared page upset the backup check after it): the phone's WebView printed «June 15, 1448 BC» in English; the month name now comes from the app's own list.
+  await check('عام', 'التاريخ الهجري بالإنجليزي: اسم شهر هجري و AH (مش اسم شهر ميلادي ولا BC)', async () => {
+    const c = await b.newContext({ viewport: { width: 360, height: 780 } }); await fresh(c, { width: 360, height: 780 });   // own context, like updBoot
+    await p.addInitScript(() => { localStorage.setItem('q.lang', '"en"'); localStorage.setItem('q.qiblaLoc', JSON.stringify([30.06, 31.23, 'Cairo'])); if (!localStorage.getItem('q.onboarded')) { localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.mode', '"text"'); localStorage.setItem('q.tourDone', '1'); } });
+    await p.goto(W + '#/'); await wait(3000);
+    const h = await ev(() => (document.querySelector('.hj-bar') || {}).textContent || ''); await go('#/prayer', 800);
+    const pr = await ev(() => document.querySelector('.pr-where').textContent);
+    await c.close();
+    const ok = t => /\d{1,2} (Muharram|Safar|Rabi' al-Awwal|Rabi' al-Thani|Jumada al-Ula|Jumada al-Akhirah|Rajab|Sha'ban|Ramadan|Shawwal|Dhu al-Qa'dah|Dhu al-Hijjah) 1[45]\d\d AH/.test(t) && !/BC/.test(t);
+    return assert(ok(h) && ok(pr), h + ' | ' + pr); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

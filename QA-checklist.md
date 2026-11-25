@@ -819,3 +819,7 @@ On the phone:
 - run-parallel ui.js: kfgqpc / kfold / shamarly / harmain 400/0 each.
 - Splash: phone bee81250 (MIUI 14, Android 12, dark mode) logo on cream (was blank grey in 5.39); emulator API 35 matches the system splash. Phone cold start x10 each, alternating 5.39/5.40: first frame ~1110 -> ~320 ms, splashOff ~1.0 s both, contentDrawn ~576 -> ~648 ms.
 - Check on every release: launch from the launcher on a MIUI phone in dark mode, the splash must show the logo.
+
+## 5.41 (2026-11-25) — English Hijri date
+- run-parallel ui.js 401/0 on all 4 editions (new check: EN Hijri date = Hijri month name + AH, no BC).
+- Phone bee81250: home «Wednesday 15 Jumada al-Akhirah 1448 AH», prayer screen the same (was «June 15, 1448 BC»).

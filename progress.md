@@ -1267,3 +1267,11 @@ Resume: fair cold-start report (qk-qa running) -> final report to the user. Open
 - Phone A/B timing stopped: mCallState=2 (call in progress) — nothing touched. Emulator wedged again on install loop (killed).
 - 5.40 DONE: QA 400/0 x4; phone A/B (n=10 each): first frame 1110->320 ms, splashOff ~1.0 s both, contentDrawn 576->648 ms. Pushed main 12cc279, builds release v5.40 (70,118,832 B). Installed on bee81250.
 Resume: open for user: phone items 9 (offline model) + 10 (recitation); EN pre-existing gaps (Hijri «BC» date); Play AAB; .set-group stripe.
+
+## 5.41 — English Hijri date (2026-11-25)
+- Bug (since v3.9): EN Hijri date on the phone «Wednesday June 15, 1448 BC» — Android WebView ICU has no English month names for islamic-umalqura and fell back to Gregorian names + era. Fix: hijri() builds EN text from the numeric parts (already right: fastOf works) + HIJRI_EN list -> «15 Jumada al-Akhirah 1448 AH». Arabic unchanged.
+- ui.js G13 new check (EN Hijri month + AH, no BC): PASS. Phone 5.41: home «Wednesday 15 Jumada al-Akhirah 1448 AH», prayer screen same; language set back to Arabic, reading position kept.
+- Bumped 5.41 (89), sw quran-v85; APK signer 7d8b31d2.
+- QA 5.41: run-parallel 401/0 x4 (after test-only fixes: the new EN Hijri check runs in its own context with a seeded location; the backup check now waits for the restore and checks it survives the reopen, instead of a fixed 2.5 s that flaked under 4 parallel editions — restore takes ~250 ms, data kept after reload, 12/12). One harmain S3 «سمّع التكملة» fail in one run, passed in the next (flake).
+- PUSHED: main + builds release v5.41.
+Resume: open for user: phone items 9+10; other EN gaps (fasting reason, prayer card names, alerts); Play AAB; .set-group stripe.

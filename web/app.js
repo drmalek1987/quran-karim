@@ -4699,11 +4699,16 @@
   var REM_DEF = { wird: { on: false, t: "20:00" }, m: { on: false, t: "06:30" }, e: { on: false, t: "16:30" }, kahf: { on: false, t: "09:00" }, fast: { on: false, t: "21:00" }, hifz: { on: false, t: "07:30" }, stat: { on: false, t: "22:30" }, goal: { on: false, t: "21:00" } };
   function remCfg() { var r = load("reminders", {}); Object.keys(REM_DEF).forEach(function (k) { if (!r[k]) r[k] = JSON.parse(JSON.stringify(REM_DEF[k])); }); return r; }
   // Hijri date (Umm al-Qura calendar, built into the phone's WebView).
+  var HIJRI_EN = ["Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani", "Jumada al-Ula", "Jumada al-Akhirah",
+    "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu al-Qa'dah", "Dhu al-Hijjah"];
   function hijri(d) {
     try {
       var parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(d), o = {};
       parts.forEach(function (x) { if (x.type !== "literal") o[x.type] = parseInt(x.value, 10); });
-      o.text = new Intl.DateTimeFormat(window.LANG === "en" ? "en-u-ca-islamic-umalqura" : "ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(d);
+      // English month names come from our own list: the Android WebView's ICU has none for this calendar
+      // and printed Gregorian ones with an era («June 15, 1448 BC» for 15 Jumada II 1448, 5.40).
+      o.text = window.LANG === "en" ? o.day + " " + HIJRI_EN[o.month - 1] + " " + o.year + " AH"
+        : new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(d);
       return o;
     } catch (e) { return null; }
   }
