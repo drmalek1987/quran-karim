@@ -2,7 +2,7 @@
 and JDK 17, no Gradle, no WSL. Needs the `brotli` Python package (see CLAUDE.md > Build on Windows).
 Usage: [PLAY=1] py -3.11 build-win.py [path\to\android.jar]
 Env: ANDROID_HOME (default %LOCALAPPDATA%\Android\Sdk), JAVA_HOME, BUILD_TOOLS (default 36.0.0), OUT, KEYSTORE."""
-import glob, json, os, re, shutil, subprocess, sys, zipfile
+import glob, hashlib, json, os, re, shutil, subprocess, sys, urllib.request, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SDK = os.environ.get("ANDROID_HOME") or os.path.join(os.environ["LOCALAPPDATA"], "Android", "Sdk")
@@ -33,6 +33,30 @@ ENV = dict(os.environ, JAVA_HOME=JDK, PATH=os.path.join(JDK, "bin") + os.pathsep
 def run(*cmd, **kw):
     subprocess.run([str(c) for c in cmd], check=True, env=ENV, **kw)
 def jdk(tool): return os.path.join(JDK, "bin", tool + ".exe")
+
+# PLAY=1 (5.43): Google Play In-App Updates. The official Play Core AARs come from Google's Maven repository, pinned by
+# SHA-256 like bundletool in build-aab-win.py, cached in toolsin\play-libs (git-ignored: Google's SDK is not ours to
+# redistribute); only their classes.jar is used (no resources are referenced by the code paths android/src-play uses).
+PLAY_AARS = [
+    ("com/google/android/play/app-update/2.1.0/app-update-2.1.0.aar", "1565e9ef014f7cb7193f0462e4d817480aff4b333fc7f7e0052bb932cc28820d"),
+    ("com/google/android/play/core-common/2.0.3/core-common-2.0.3.aar", "4303255f152c59b954919bb471d14ee5fed2df783565dea8528b08083ba7342b"),
+    ("com/google/android/gms/play-services-tasks/18.0.2/play-services-tasks-18.0.2.aar", "03465cf53680da23d3d4a3995c0329b7f73b211d38791ecb36e591febb896664"),
+    ("com/google/android/gms/play-services-basement/18.1.0/play-services-basement-18.1.0.aar", "03ba15f386cf260bde72fc4010fb89a820c47d51ce63bc09297eabe6cce09bdd"),
+]
+def play_jars():
+    cache = os.path.join(HERE, "tools", "bin", "play-libs"); os.makedirs(cache, exist_ok=True)
+    jars = []
+    for path, want in PLAY_AARS:
+        aar = os.path.join(cache, path.rsplit("/", 1)[1])
+        sha = lambda f: hashlib.sha256(open(f, "rb").read()).hexdigest()
+        if not (os.path.exists(aar) and sha(aar) == want):
+            url = "https://dl.google.com/dl/android/maven2/" + path
+            print("downloading", url); urllib.request.urlretrieve(url, aar)
+            if sha(aar) != want: os.remove(aar); sys.exit("SHA-256 mismatch, deleted: " + aar)
+        jar = os.path.join(OUT, "libs-play", os.path.basename(aar)[:-4] + ".jar"); os.makedirs(os.path.dirname(jar), exist_ok=True)
+        with zipfile.ZipFile(aar) as z, open(jar, "wb") as f: f.write(z.read("classes.jar"))
+        jars.append(jar)
+    return jars
 def bt(tool): return os.path.join(BT, tool + (".bat" if tool in ("d8", "apksigner") else ".exe"))
 
 def zip_dir(zip_path, root, subdirs, stored=True):
@@ -96,6 +120,10 @@ def main():
     man = open(os.path.join(HERE, "android", "AndroidManifest.xml"), encoding="utf-8").read().replace(
         'android:authorities="com.quran.karim.share"', 'android:authorities="%s.share"' % APP_ID)
     man = re.sub(r'android:minSdkVersion="\d+"', 'android:minSdkVersion="%s"' % MIN_SDK, man)
+    if PLAY:   # Play Core's own activity (from core-common's manifest; the AAR's theme swapped for a built-in one)
+        man = man.replace("</application>", '    <activity android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"'
+                          ' android:exported="false" android:stateNotNeeded="true" android:theme="@android:style/Theme.Translucent.NoTitleBar" />'
+                          '\n    </application>', 1)
     with open(os.path.join(OUT, "AndroidManifest.xml"), "w", encoding="utf-8", newline="\n") as f: f.write(man)
     with open(os.path.join(OUT, "app-id.txt"), "w") as f: f.write(APP_ID)
     unsigned = os.path.join(OUT, "unsigned.apk")
@@ -113,8 +141,9 @@ def main():
     gd = os.path.join(OUT, "gen", "com", "quran", "karim"); os.makedirs(gd, exist_ok=True)
     with open(os.path.join(gd, "DonateKey.java"), "w") as f:
         f.write('package com.quran.karim;\nfinal class DonateKey { static final String KEY = %s, URL = %s; }\n' % (json.dumps(key), json.dumps(url)))
-    libs = sorted(glob.glob(os.path.join(HERE, "android", "libs", "*.jar")))
-    srcs = [os.path.join(d, n) for top in (os.path.join(HERE, "android", "src"), os.path.join(OUT, "gen"))
+    libs = sorted(glob.glob(os.path.join(HERE, "android", "libs", "*.jar"))) + (play_jars() if PLAY else [])
+    tops = [os.path.join(HERE, "android", "src"), os.path.join(OUT, "gen")] + ([os.path.join(HERE, "android", "src-play")] if PLAY else [])
+    srcs = [os.path.join(d, n) for top in tops
             for d, _, ns in os.walk(top) for n in ns if n.endswith(".java")]
     argfile = os.path.join(OUT, "sources.txt")
     with open(argfile, "w") as f: f.write("\n".join('"%s"' % s.replace("\\", "/") for s in srcs))

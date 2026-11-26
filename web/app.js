@@ -5032,14 +5032,25 @@
   })();
 
   // ---------- Sprint 6 #22: check for updates (Play build only) ----------
-  // version.json on the editions branch says which versionCode is live on Play (updated by hand after a release is published).
-  // A plain GET, nothing about the user is sent. The GitHub build and the web build have no button and no prompt.
+  // 5.43+: Google Play itself answers (In-App Updates, AppBridge.playUpdate*), so nothing is updated by hand after a release.
+  // Before that, version.json on the editions branch said which versionCode is live on Play; it stays for 5.42 and older
+  // (a plain GET, nothing about the user is sent). The GitHub build and the web build have no button and no prompt.
   var upd = (function () {
     var DAY = 864e5, row = document.getElementById("updRow"), msg = document.getElementById("updMsg"), btn = document.getElementById("updBtn"), go = document.getElementById("updGo");
     function isPlay() { try { return !!window.AppBridge && !!AppBridge.appId && AppBridge.appId() === "com.lawh.quran"; } catch (e) { return false; } }
     function ownCode() { try { var m = String(AppBridge.version()).match(/\((\d+)\)\s*$/); return m ? +m[1] : 0; } catch (e) { return 0; } }
+    function viaPlay() { try { return !!AppBridge.playUpdates && AppBridge.playUpdates(); } catch (e) { return false; } }
+    // Play's answer comes back through window.onPlayUpdate; no answer in 10 s is "unknown".
+    function checkPlay() {
+      return new Promise(function (res) {
+        var tm = setTimeout(function () { window.onPlayUpdate = null; res({ st: "unknown" }); }, 10000);
+        window.onPlayUpdate = function (r) { clearTimeout(tm); window.onPlayUpdate = null; res(r && (r.st === "newer" || r.st === "current") ? { st: r.st, code: r.code || 0, name: "" } : { st: "unknown" }); };
+        try { AppBridge.playUpdateCheck(); } catch (e) { clearTimeout(tm); res({ st: "unknown" }); }
+      });
+    }
     // -> {st: "newer" | "current" | "unknown"}; an error or a bad file is "unknown", never "newer"
     function check() {
+      if (viaPlay()) return checkPlay();
       var ac = window.AbortController ? new AbortController() : null, tm = setTimeout(function () { if (ac) ac.abort(); }, 8000);
       return fetch(ED_BASE + "version.json", { cache: "no-store", signal: ac ? ac.signal : undefined }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
         .then(function (j) {
@@ -5048,7 +5059,8 @@
           return { st: c > own ? "newer" : "current", code: c, name: String(j.play.name || "") };
         }).catch(function () { clearTimeout(tm); return { st: "unknown" }; });
     }
-    function openStore() { try { AppBridge.openStore(); } catch (e) {} }
+    // «تحديث الآن»: Google's own update screen in the Play build (5.43+), the store page otherwise
+    function openStore() { try { if (viaPlay()) AppBridge.playUpdateStart(); else AppBridge.openStore(); } catch (e) {} }
     function free() {
       var h = location.hash;
       return (!h || h === "#" || h === "#/") && !document.querySelector(".wel, .dlg-back, .sheet:not([hidden])") && !tour.active() && indexSheet.hidden;
@@ -5081,7 +5093,7 @@
       if (r.st === "checking") { msg.textContent = "جارٍ التحقق…"; btn.disabled = true; }
       else if (r.st === "unknown") msg.textContent = "تعذّر الاتصال، حاول لاحقًا";
       else if (r.st === "current") msg.textContent = "لديك أحدث إصدار (" + (String(AppBridge.version()).split(" ")[0]) + ")";
-      else { msg.textContent = "يتوفر إصدار جديد (" + r.name + ")"; go.hidden = false; }
+      else { msg.textContent = r.name ? "يتوفر إصدار جديد (" + r.name + ")" : "يتوفر إصدار جديد"; go.hidden = false; }
     }
     if (row && isPlay()) {
       row.hidden = false;

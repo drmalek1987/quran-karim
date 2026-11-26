@@ -2099,6 +2099,9 @@ async function fresh(ctx, vp) {
     const c = await b.newContext({ viewport: { width: 360, height: 780 } }); await fresh(c, { width: 360, height: 780 }); p.ctxU = c;
     await p.addInitScript(o => { try { if (!localStorage.getItem('q.onboarded')) { localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.mode', '"text"'); } } catch (e) {}
       if (o.id) window.AppBridge = { appId: () => o.id, version: () => o.ver, openStore() { window.__opened = (window.__opened || 0) + 1; }, buzz() {}, buzzPattern() {}, previewAdhan() {}, tick() {}, copy() {}, shareText() {}, shareImage() {}, setAlarms() {}, setWidget() {}, askNotifications() {}, exactAlarms() { return true; }, askExactAlarms() {} };
+      // 5.43: o.play = Play's In-App Updates answer ('newer' | 'current' | 'fail'); playUpdateStart counts the taps on «تحديث الآن»
+      if (o.id && o.play) Object.assign(window.AppBridge, { playUpdates: () => true, playUpdateStart() { window.__playStart = (window.__playStart || 0) + 1; },
+        playUpdateCheck() { window.__playChecks = (window.__playChecks || 0) + 1; if (o.play !== 'fail') setTimeout(() => window.onPlayUpdate && onPlayUpdate({ st: o.play, code: 91 }), 50); } });
       if (o.asr) { window.EdBridge = { state: () => 'ready', download() {}, remove() {}, pause() {}, get() {} }; window.NvBridge = { ready: () => true, start() {}, stop() {}, reload() {} }; } }, o);
     p.fetches = 0; await p.route(URLV, r => { p.fetches++; if (o.resp === 'abort') return r.abort();
       r.fulfill({ status: o.status || 200, headers: { 'Access-Control-Allow-Origin': '*', 'content-type': 'application/json' }, body: o.body === undefined ? '' : o.body }); });
@@ -2134,6 +2137,16 @@ async function fresh(ctx, vp) {
     const res = []; for (const o of [{ id: 'com.quran.karim', ver: '5.39 (87)', body: jb(88, '5.40') }, { id: '', body: jb(88, '5.40') }]) {
       await updBoot(o); const a = await promptSt(); await openSet(); const r = await updRow(); res.push([a, r.vis, p.fetches]); await p.ctxU.close(); }
     return assert(res.every(x => x[0] === null && x[1] === false && x[2] === 0), JSON.stringify(res)); });
+  // 5.43: the Play build asks Google Play (In-App Updates) instead of version.json.
+  await check(GU, 'نسخة Play بـ In-App Updates: Play بيقول فيه تحديث -> الرسالة تظهر من غير version.json، و«تحديث الآن» بيفتح شاشة تحديث Google', async () => {
+    await updBoot({ id: 'com.lawh.quran', ver: '5.43 (91)', play: 'newer', body: jb(80, '5.30') }); const a = await promptSt(), f = p.fetches;
+    if (a) await p.click('.upd-now'); await wait(100); const st = await ev(() => [window.__playStart || 0, window.__opened || 0, window.__playChecks || 0]); await p.ctxU.close();
+    return assert(a && a.t === 'يتوفر إصدار جديد من لوْح' && f === 0 && st[0] === 1 && st[1] === 0 && st[2] >= 1, JSON.stringify([a, f, st])); });
+  await check(GU, 'نسخة Play بـ In-App Updates: مفيش تحديث -> مفيش رسالة، والزرّ بيقول «لديك أحدث إصدار»؛ وفشل Play -> «تعذّر الاتصال» ومفيش رسالة', async () => {
+    const res = []; for (const play of ['current', 'fail']) {
+      await updBoot({ id: 'com.lawh.quran', ver: '5.43 (91)', play, body: jb(99, '9.9'), wait: play === 'fail' ? 15000 : 5200 }); const a = await promptSt(), f = p.fetches;
+      await openSet(); await p.click('#updBtn'); await wait(play === 'fail' ? 10600 : 600); const r = await updRow(); res.push([play, a, f, r.msg, r.go]); await p.ctxU.close(); }
+    return assert(res[0][1] === null && res[0][2] === 0 && res[0][3] === 'لديك أحدث إصدار (5.43)' && !res[0][4] && res[1][1] === null && res[1][2] === 0 && res[1][3] === 'تعذّر الاتصال، حاول لاحقًا' && !res[1][4], JSON.stringify(res)); });
   await check(GU, 'فحص نسخة نموذج التعرّف: فشل الشبكة أو ٥٠٠ ما يخلّيش «تحديث» يظهر، و٤٠٤ (نسخة قديمة) أو ver.txt أصغر يظهّره', async () => {
     const res = {}; for (const [k, v] of [['abort', 'abort'], ['500', { status: 500 }], ['404', { status: 404 }], ['old', { status: 200, body: '4' }], ['cur', { status: 200, body: '5' }]]) {
       await updBoot({ id: 'com.quran.karim', ver: '5.39 (87)', asr: true, asrVer: v, wait: 600 }); await openSet(); await wait(900);

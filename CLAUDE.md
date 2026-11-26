@@ -48,7 +48,10 @@ PLAY=1 ... bash build.sh && bash build-aab.sh                  # Play bundle; ne
   GitHub Pages serves the privacy policy from `docs/`).
 - Release checklist: bump `versionName`/`versionCode` in the manifest, the static version text in `web/index.html`
   («حول التطبيق»), and the cache name in `web/sw.js`.
-  After Play publishes vX: update `version.json` on the `editions` branch (`play.code` / `play.name`; the Play build's update prompt reads it).
+  Play update prompt: from 5.43 the Play build asks Google Play itself (In-App Updates, `android/src-play/PlayUpdate.java`,
+  Play Core AARs fetched + SHA-256-pinned by `build-win.py` when `PLAY=1`), so nothing is done by hand after a release.
+  `version.json` on the `editions` branch only serves Play installs of 5.42 and older: update it ONE last time when 5.43 is
+  live on Play (`play.code` 91 / `play.name` 5.43), then leave it.
 - Web build: serve `web/` with any static server (`python3 -m http.server -d web`).
 
 ## Build on Windows (no WSL)

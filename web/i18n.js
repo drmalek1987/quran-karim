@@ -474,6 +474,7 @@
     put("هدف القراءة", "Reading goal"); put("بقي لك # صفحة وتحقق هدف اليوم.", "# more pages and you reach today's goal."); put("هدفك اليوم # صفحة، هيا نبدأ؟", "Your goal today is # pages. Shall we start?");
     put("ورد اليوم في انتظارك، اضغط لتكمل من حيث توقفت.", "Today's ward is waiting, tap to continue where you stopped.");
     put("مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.", "A month without a backup. Tap to save one to Drive so your bookmarks and memorisation are safe.");
+    put("يتوفر إصدار جديد", "A new version is available");
     put("أكمل القراءة · صفحة #", "Continue reading · page #"); put("أكمل القراءة · سورة @", "Continue reading · Surah @");
   })();
   for (var c in CITY) D[c] = CITY[c];

@@ -19,8 +19,9 @@ import android.webkit.JavascriptInterface;
 /** Small helpers for the web app, exposed as window.AppBridge. */
 class AppBridge {
     private final Activity activity;
+    private final android.webkit.WebView web;
 
-    AppBridge(Activity activity) { this.activity = activity; }
+    AppBridge(Activity activity, android.webkit.WebView web) { this.activity = activity; this.web = web; }
 
     /** Copies an ayah to the clipboard (the WebView has no reliable clipboard API for file:// pages). */
     @JavascriptInterface
@@ -267,5 +268,34 @@ class AppBridge {
                 activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + id)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             } catch (Exception e2) { }
         }
+    }
+
+    // 5.43: Google Play In-App Updates. PlayUpdate is only in the Play build (android/src-play), hence the reflection:
+    // the GitHub build has no such class, says false here and keeps no update prompt at all.
+    private static Class<?> playUpdate() {
+        try { return Class.forName("com.quran.karim.PlayUpdate"); } catch (Throwable t) { return null; }
+    }
+
+    @JavascriptInterface
+    public boolean playUpdates() { return playUpdate() != null; }
+
+    /** Asks Play for a newer version; the answer comes back through window.onPlayUpdate({st, code}). */
+    @JavascriptInterface
+    public void playUpdateCheck() {
+        final Class<?> c = playUpdate(); if (c == null) return;
+        activity.runOnUiThread(new Runnable() { public void run() {
+            try { c.getDeclaredMethod("check", Activity.class, android.webkit.WebView.class).invoke(null, activity, web); } catch (Exception e) { }
+        } });
+    }
+
+    /** Starts Google's update screen; the store page opens instead when Play can't start it. */
+    @JavascriptInterface
+    public void playUpdateStart() {
+        final Class<?> c = playUpdate();
+        final Runnable store = new Runnable() { public void run() { openStore(); } };
+        if (c == null) { store.run(); return; }
+        activity.runOnUiThread(new Runnable() { public void run() {
+            try { c.getDeclaredMethod("start", Activity.class, Runnable.class).invoke(null, activity, store); } catch (Exception e) { store.run(); }
+        } });
     }
 }

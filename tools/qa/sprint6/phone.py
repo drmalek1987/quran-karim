@@ -14,8 +14,8 @@ Usage: py -3.11 phone.py <cmd> [args]
 """
 import os, re, subprocess, sys, time, xml.etree.ElementTree as ET
 
-DEV = "bee81250"
-PKG = "com.quran.karim"
+DEV = os.environ.get("QK_DEV", "bee81250")
+PKG = os.environ.get("QK_PKG", "com.quran.karim")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "phone")
 
 

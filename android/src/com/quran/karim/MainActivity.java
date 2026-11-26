@@ -134,7 +134,7 @@ public class MainActivity extends Activity {
         });
         qibla = new QiblaBridge(this, web);
         web.addJavascriptInterface(qibla, "QiblaBridge");
-        app = new AppBridge(this);
+        app = new AppBridge(this, web);
         web.addJavascriptInterface(app, "AppBridge");
         eds = new EdStore(this, web);
         web.addJavascriptInterface(eds, "EdBridge");
