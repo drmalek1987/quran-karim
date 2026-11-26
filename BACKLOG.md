@@ -130,3 +130,8 @@ P-B:
 7. Upload long recitation sessions to the database (needs consent + backend choice).
 P-C (research):
 8. Mushaf image -> exact text rendering. Plan: Madani editions via free KFGQPC/QPC per-page glyph fonts (V1/V2, exact glyphs, ayah numbers, page layout) + SVG frames/surah headers; no OCR (can't reach 100%). Shamarly/Harmain have no glyph fonts -> stay images.
+
+## Later: recitations by Sheikh Dr. Ahmed Dayban (added 2026-11-26)
+- Permission: written WhatsApp consent 2026-11-24, all his audio mushafs, in «لوح», for any feature (listening, recitation follow, Play build too). Evidence: store/permissions/ahmed-dayban-whatsapp-2026-11-24.png; details + Drive links: store/licences-status.md.
+- Riwayat sent: الدوري عن أبي عمرو، قالون عن نافع، حفص عن عاصم (Google Drive folders).
+- To do when picked up: download the folders, check format/quality and per-ayah vs per-surah files (the player expects everyayah-style per-ayah audio; per-surah needs ayah timings), host them (editions branch or another public host), add him as a reciter (AudioCache / reciter list), and credit him in «حول التطبيق». Non-Hafs riwayat also need matching text/marks before they can drive recitation follow.
