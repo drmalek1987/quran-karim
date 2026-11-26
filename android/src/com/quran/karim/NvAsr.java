@@ -182,6 +182,7 @@ class NvAsr {
                 route = new MicRoute(act);
                 try { gone = route.open(ar, id) == MicRoute.MISSING; } catch (Exception e) { gone = true; }
             }
+            try { RadioService.pause(act); } catch (Throwable ignored) { }   // the radio steps aside for the microphone
             ar.startRecording();
             org.json.JSONArray levels = new org.json.JSONArray();
             short[] blk = new short[SR / 20];
@@ -379,6 +380,7 @@ class NvAsr {
             double floor = 0.004, quiet = 0, voiced = 0; int run = 0;      // run: speech blocks in a row
             boolean bad = false;
             try {
+                try { RadioService.pause(act); } catch (Throwable ignored) { }   // the radio steps aside for the microphone
                 mic.startRecording();   // throws when the microphone cannot be taken (inside the try: this is a bare thread)
                 frozen = "";
                 tell("", "state:listening");

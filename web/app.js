@@ -30,7 +30,9 @@
   }
   // 5 wrong / skipped words in a row (at least one of them wrong) while reciting: a long buzz plus a short beep (Settings: errAlert).
   // AppBridge.buzzPattern prepends the 0 delay itself, so the CSV starts with the first ON duration.
+  var alertN = 0;   // E: counts the buzz + beep alerts: a clip recorded while one sounded is not donated (reciteDonate / rdDonate)
   function errAlert() {
+    alertN++;
     try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("300,120,300"); else if (navigator.vibrate) navigator.vibrate([300, 120, 300]); } catch (e) {}
     try { var C = window.AudioContext || window.webkitAudioContext, c = new C(), o = c.createOscillator(), g = c.createGain();
       o.frequency.value = 660; g.gain.value = 0.15; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.25);
@@ -38,6 +40,7 @@
   }
   // 5.26 #29: a skip of 5 or more words at once in a hifz test / review: one buzz and a short soft beep
   function skipAlert() {
+    alertN++;
     try { if (window.AppBridge && AppBridge.buzzPattern) AppBridge.buzzPattern("120,60,120"); else if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) {}
     try { var C = window.AudioContext || window.webkitAudioContext, c = new C(), o = c.createOscillator(), g = c.createGain();
       o.frequency.value = 520; g.gain.value = 0.06; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.12);
@@ -234,10 +237,12 @@
   var fsFit = load("fsFit", "width");        // 5.35 #19: "width" = the page fits the screen in full screen, "stretch" = it fills the whole screen (not keeping its ratio), "text" = the text block alone fills it
   if (FS_FITS.indexOf(fsFit) < 0) fsFit = "width";
   var spineOn = load("spine", true);         // 5.35 #13: the shadow along the page's binding edge
-  var keepOn = load("keepOn", false);        // 5.34 #15: the screen stays lit while the app is open (AppBridge.keepOn)
+  var brightSwipe = load("brightSwipe", false);   // #18: a vertical drag on the left edge of the mushaf sets the in-app brightness (AppBridge.setBrightness)
+  var brightVal = load("bright", 1); if (typeof brightVal !== "number" || !(brightVal >= 0.02)) brightVal = 1; brightVal = Math.min(1, brightVal);
+  var keepOn = load("keepOn", false);       // 5.34 #15: the screen stays lit while the app is open (AppBridge.keepOn)
   var fsStatus = load("fsStatus", false);    // 5.34 #14: true = full screen keeps the phone's status bar (AppBridge.fsStatus), false = hides it as before
   var errAlertOn = load("errAlert", true);  // 5.36 #28: buzz + short beep on 5 wrong words in a row while reciting
-  var asrPace = (function (v) { return v === "slow" || v === "auto" ? v : "normal"; })(load("asrPace", "normal"));   // 5.36: "slow" = NvAsr holds a piece through 2 s of quiet (mujawwad, long madd); "auto" = only a piece that decodes slow (< 1 word/s)
+  var asrPace = (function (v) { return v === "slow" || v === "normal" ? v : "auto"; })(load("asrPace", "auto"));   // 5.43: default «تلقائي» (5.38 phone test passed); a saved manual choice is kept. 5.36: "slow" = NvAsr holds a piece through 2 s of quiet (mujawwad, long madd); "auto" = only a piece that decodes slow (< 1 word/s)
   var micId = load("micId", 0);              // 5.34 #39: the recitation mic (NvBridge.mics() id), 0 = automatic
   var openAt = load("openAt", "home");       // 5.34 #41: "home" | "last" (the mushaf at the last page, on launch only)
   var spreadPref = load("spread", true);  // Reading background: the chosen colour, or one that follows the light / dark theme.
@@ -312,6 +317,8 @@
     document.querySelectorAll("#errAlertSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === errAlertOn); });
     document.querySelectorAll("#fsStatSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === fsStatus); });
     bridgeSet(window.AppBridge, "keepOn", keepOn); bridgeSet(window.AppBridge, "fsStatus", fsStatus); bridgeSet(window.NvBridge, "setMic", micId);
+    document.querySelectorAll("#brightSet button").forEach(function (b) { b.classList.toggle("on", (b.dataset.v === "on") === brightSwipe); });
+    if (window.brightSync) window.brightSync(true);
     document.querySelectorAll("#openSet button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === openAt); });    root.classList.toggle("tjpg", tjPg);
     var bg = pageBg, dark = luminance(bg) < 0.18;
     root.style.setProperty("--pbg", bg);
@@ -430,18 +437,29 @@
   // 5.11 G3.8: the model works only after its terms are accepted once (q.modelConsent). The voice donation is a separate
   // optional box, unticked by default, never bundled with the terms.
   function modelOk() { return !!load("modelConsent", null); }
+  // E: q.donateV is the version of the donation consent: 2 = covers the mic reading on the mushaf too (5.43+), 1 = an older
+  // consent the reader declined to widen (hifz clips only), 0/absent = none or an older consent not asked yet. Every place
+  // that turns donation on saves 2 (the text they showed already names the reading); turning it off clears it.
+  function donateSet(v) { save("donate", v ? 1 : 0); save("donateV", v ? 2 : 0); }
+  // An older consent (donate 1, no donateV) is asked once, the first time the mic reading starts. donateV 1 is saved before
+  // the question shows, so any way of closing it counts as «no» and it is never asked again.
+  function donateV2Ask(then) {
+    save("donateV", 1);
+    askYes((window.T || String)("تحسين التعرّف يشمل الآن القراءة بالمايك أيضًا: توافق على حفظ مقاطع من صوتك أثناء القراءة وإرسالها دون أي بيانات شخصية؟"),
+      function () { save("donateV", 2); then(); }, "أوافق", false, then);
+  }
   function consentDlg(then) {
     var d = el('<div class="dlg-back"><div class="dlg cs-dlg"><b>نموذج التعرّف على التلاوة</b><p class="hint">يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف. ' +
       "هو أداة مساعدة للمراجعة والحفظ وقد يخطئ، خصوصًا مع الضوضاء. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.</p>" +
       '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
-      '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>' +
+      '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="cDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك أثناء التسميع والقراءة بالمايك (اختياري)</span></label>' +
       '<div class="dlg-btns"><button class="dlg-no">ليس الآن</button><button class="dlg-ok" disabled>موافق</button></div></div></div>').firstChild;
     document.body.appendChild(d);
     var t = d.querySelector("#cTerms"), ok = d.querySelector(".dlg-ok");
     t.onchange = function () { ok.disabled = !t.checked; };
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
     ok.onclick = function () {
-      save("modelConsent", { v: 1, t: Date.now() }); save("donate", d.querySelector("#cDonate").checked ? 1 : 0);
+      save("modelConsent", { v: 1, t: Date.now() }); donateSet(d.querySelector("#cDonate").checked ? 1 : 0);
       d.remove(); donatePaint(); if (then) then();
     };
   }
@@ -715,8 +733,8 @@
   }
   document.querySelectorAll("#donateSet button").forEach(function (b) {
     b.addEventListener("click", function () {
-      function setDonate() { save("donate", +b.dataset.v); donatePaint(); donateSend(); }
-      if (b.dataset.v === "1") return askYes((window.T || String)("توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟"), setDonate, "أوافق");
+      function setDonate() { donateSet(+b.dataset.v); donatePaint(); donateSend(); }
+      if (b.dataset.v === "1") return askYes((window.T || String)("توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟"), setDonate, "أوافق");
       setDonate();
     });
   });
@@ -728,7 +746,7 @@
   function donateDelete() {
     if (!window.NvBridge || !NvBridge.forget) return toast("المسح متاح في تطبيق الهاتف فقط");
     askYes((window.T || String)("تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا."), function () {
-      save("donate", 0); donatePaint(); toast("جارٍ المسح…");
+      donateSet(0); donatePaint(); toast("جارٍ المسح…");
       try { NvBridge.forget(load("donateId", "")); } catch (e) { toast("فشل المسح، جرّب مرة أخرى"); }
     }, "حذف", true);
   }
@@ -775,6 +793,9 @@
   });
   document.querySelectorAll("#fsStatSet button").forEach(function (b) {
     b.addEventListener("click", function () { fsStatus = b.dataset.v === "on"; save("fsStatus", fsStatus); applySettings(); });
+  });
+  document.querySelectorAll("#brightSet button").forEach(function (b) {
+    b.addEventListener("click", function () { brightSwipe = b.dataset.v === "on"; save("brightSwipe", brightSwipe); applySettings(); });
   });
   document.querySelectorAll("#openSet button").forEach(function (b) {
     b.addEventListener("click", function () { openAt = b.dataset.v; save("openAt", openAt); applySettings(); });
@@ -1694,6 +1715,87 @@
     wrap.addEventListener("pointerup", function (e) { release(e, false); });
     wrap.addEventListener("pointercancel", function (e) { release(e, true); });
   }
+
+  // ---------- #18: brightness by swipe ----------
+  // A transparent strip on the left physical edge of the mushaf (pages and vertical modes): a vertical drag on it sets the app's own
+  // window brightness (AppBridge.setBrightness, no system setting). The strip takes its pointer, so page turns / curl / pinch never see it;
+  // a second finger anywhere cancels the drag. Android's back gesture is kept off the strip by AppBridge.brightStrip (the rect).
+  var brightEl = null, brightPill = null, brightPct = null, brightSent = null, brightKey = "", brightHideT = 0;
+  var brightDrag = null, brightDown = {}, brightDownN = 0, brightLastT = 0, brightPendT = 0;
+  function brightBridge(fn, a) { try { var B = window.AppBridge; if (B && B[fn]) B[fn].apply(B, a); } catch (e) {} }
+  function brightSend(v, force) {
+    if (!force && v === brightSent) return;
+    brightSent = v; brightBridge("setBrightness", [v]);
+  }
+  function brightRect() {
+    var show = !!(brightEl && !brightEl.hidden), key;
+    var h = Math.min(window.innerHeight * 0.6, 200), top = (window.innerHeight - h) / 2;
+    if (show) { brightEl.style.top = top + "px"; brightEl.style.height = h + "px"; }
+    key = show ? [0, Math.round(top), 24, Math.round(h)].join() : "0,0,0,0";
+    if (key === brightKey) return;
+    brightKey = key; brightBridge("brightStrip", show ? [0, top, 24, h] : [0, 0, 0, 0]);
+  }
+  function brightShowPill(v) {
+    if (!brightPill) return;
+    brightPct.textContent = ar(Math.round(v * 100)) + "٪";
+    var r = brightEl.getBoundingClientRect(); brightPill.style.top = (r.top + r.height / 2) + "px";
+    brightPill.classList.add("show");
+    clearTimeout(brightHideT);
+    if (!brightDrag) brightHideT = setTimeout(function () { brightPill.classList.remove("show"); }, 800);
+  }
+  function brightEnd(cancel) {
+    var d = brightDrag; if (!d) return;
+    brightDrag = null; clearTimeout(brightPendT);
+    brightSend(brightVal); save("bright", brightVal);
+    brightShowPill(brightVal);
+    try { brightEl.releasePointerCapture(d.id); } catch (e) {}
+  }
+  function brightMake() {
+    brightEl = document.createElement("div"); brightEl.id = "brightStrip"; brightEl.className = "bright-strip"; brightEl.hidden = true;
+    brightPill = document.createElement("div"); brightPill.id = "brightPill"; brightPill.className = "bright-pill"; brightPill.setAttribute("aria-hidden", "true");
+    brightPill.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span></span>';
+    brightPct = brightPill.querySelector("span");
+    document.body.appendChild(brightEl); document.body.appendChild(brightPill);
+    // every pointer on the screen, to see a second finger anywhere
+    document.addEventListener("pointerdown", function (e) {
+      brightDown[e.pointerId] = 1; brightDownN = Object.keys(brightDown).length;
+      if (brightDrag && e.pointerId !== brightDrag.id) brightEnd(true);
+    }, true);
+    function up(e) { delete brightDown[e.pointerId]; brightDownN = Object.keys(brightDown).length; }
+    document.addEventListener("pointerup", up, true); document.addEventListener("pointercancel", up, true);
+    brightEl.addEventListener("pointerdown", function (e) {
+      e.stopPropagation(); e.preventDefault();
+      if (!e.isPrimary || brightDownN > 1 || brightDrag) return;
+      var h = brightEl.getBoundingClientRect().height || 200;
+      brightDrag = { id: e.pointerId, y: e.clientY, v: brightVal, h: h };
+      try { brightEl.setPointerCapture(e.pointerId); } catch (err) {}
+      brightShowPill(brightVal);
+    });
+    brightEl.addEventListener("pointermove", function (e) {
+      e.stopPropagation();
+      var d = brightDrag; if (!d || e.pointerId !== d.id) return;
+      brightVal = Math.max(0.02, Math.min(1, d.v + (d.y - e.clientY) / d.h));
+      brightShowPill(brightVal);
+      var now = Date.now(), wait = 33 - (now - brightLastT);
+      if (wait <= 0) { brightLastT = now; brightSend(brightVal); }
+      else if (!brightPendT) brightPendT = setTimeout(function () { brightPendT = 0; brightLastT = Date.now(); if (brightDrag) brightSend(brightVal); }, wait);
+    });
+    brightEl.addEventListener("pointerup", function (e) { e.stopPropagation(); e.preventDefault(); if (brightDrag && e.pointerId === brightDrag.id) brightEnd(false); });
+    brightEl.addEventListener("pointercancel", function (e) { e.stopPropagation(); if (brightDrag && e.pointerId === brightDrag.id) brightEnd(true); });
+    brightEl.addEventListener("click", function (e) { e.stopPropagation(); e.preventDefault(); });
+    window.addEventListener("resize", brightRect);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) brightSync(true); });
+  }
+  // force: the setting changed or the app came back: send the brightness again (the saved one while on, -1 = the system's while off)
+  function brightSync(force) {
+    if (!brightEl) { if (!brightSwipe) { if (force || brightSent === null) brightSend(-1, !!force); return; } brightMake(); }
+    var on = brightSwipe && document.body.classList.contains("pgview");
+    brightEl.hidden = !on;
+    if (!on) { if (brightDrag) brightEnd(true); brightPill.classList.remove("show"); }
+    brightRect();
+    if (force || brightSent === null) brightSend(brightSwipe ? brightVal : -1, !!force);
+  }
+  window.brightSync = brightSync;
   function pad(n) { return ("00" + n).slice(-3); }
 
   // ---------- 5.35 #19: pinch = the next full screen page size ----------
@@ -2316,6 +2418,7 @@
       // onRep: after each time through the passage.
       playRange: function (s, a, b, times, onDone, onRep) { range = { s: s, from: a, to: b, times: times === undefined ? 1 : times, done: 0, onDone: onDone, onRep: onRep }; start(s, a); }, paint: function () { paint(false); }, stop: stop,
       listenDlg: listenDlg, sleepSet: sleepSet, dlList: dlList,
+      isPlaying: function () { return !audio.paused && !audio.ended; },   // E: the reciter is audible (a mic reading clip must hold only the reader's voice)
       reciterChanged: function () { if (cur) start(cur.s, cur.a, "a"); } };
   })();
 
@@ -3109,7 +3212,63 @@
     rd.w = 0; rdGo(s, a);
   }
   // Words heard since the last call, matched forward in the ayah (a few may be missed or misheard).
-  function rdHear(text, fin) {
+  // ---------- E: training clips from the mic reading (src "recite"), under the hifz test's rules (htvDonate) ----------
+  // A piece = one NvAsr decoded piece (partials + its final). rd.pc follows it: the first / last word read (surah, ayah, token),
+  // the number of words, and `bad` once anything makes the label doubtful. Only a piece that is clean from start to end is donated.
+  function rdLetter(t, j) { for (; j < t.length; j++) if (/[ء-يٱ]/.test(t[j])) return j; return -1; }
+  // the word read right after p (the next token with letters, in the ayah or at the start of the next one); null past the Quran's end
+  function rdSucc(p) {
+    var j = rdLetter(rdWords(p.s, p.a), p.j + 1); if (j >= 0) return { s: p.s, a: p.a, j: j };
+    var s = p.s, a = p.a + 1; if (a > Q.s[s - 1][3]) { s++; a = 1; } if (s > 114) return null;
+    return { s: s, a: a, j: rdLetter(rdWords(s, a), 0) };
+  }
+  // something other than the reader's voice may be sounding: the reciter or the radio (the clip would hold their audio too)
+  function rdLoud() {
+    if (player.isPlaying()) return true;
+    var rs = radioSt; try { var b = radioBridge(); if (b) rs = JSON.parse(b.radioState()); } catch (e) {}
+    return rs.st === "playing" || rs.st === "loading";
+  }
+  // a re-anchor (first place found, relocated, lost): this piece and the next one are not donated, so the label never starts
+  // from a guessed place
+  function rdAnchor() { rd.settle = 2; if (rd.pc) rd.pc.bad = true; }
+  // word j of ayah (s,a) was heard (hw) as the expected word (ew)
+  function rdPcHit(s, a, j, hw, ew) {
+    var pc = rd.pc; if (!pc) return;
+    // it must be exactly the word after the last one read (or after where the previous piece ended): a skipped word inside
+    // the piece or between the pieces, or a jump, would make the label longer than what was said
+    var exp = pc.l ? rdSucc(pc.l) : pc.from && rdSucc({ s: pc.from.s, a: pc.from.a, j: pc.from.j - 1 });
+    if (!exp || exp.s !== s || exp.a !== a || exp.j !== j) pc.bad = true;
+    // «uncertain»: rdSame also accepts a one-letter difference; for training the word must be the same up to the vowels
+    if (hw !== ew && skel(hw) !== skel(ew)) pc.bad = true;
+    if (pc.f && pc.f.s !== s) pc.bad = true;      // the clip label has one surah only
+    pc.l = { s: s, a: a, j: j }; if (!pc.f) pc.f = pc.l; pc.n++;
+  }
+  function rdHear(text, fin) { rdHear1(text, fin); if (fin) rdDonate(text); }
+  function rdDonate(hyp) {
+    var pc = rd.pc; rd.pc = null;
+    if (rd.settle > 0) { rd.settle--; return; }
+    if (!pc || pc.bad || pc.n < 3) return;                               // too short to be a useful clip
+    var hn = norm(hyp).split(/\s+/).filter(Boolean).length;
+    if (hn < pc.n * 0.65 || hn > pc.n * 1.35) return;                    // the model heard much more / less than the label
+    if (rdLoud() || alertN !== pc.al) return;
+    reciteDonate({ f: pc.f, l: pc.l, seq: window.nvSeq, hyp: hyp });
+  }
+  function reciteDonate(p) {
+    // same gate as htvDonate, plus the reading consent (donateV 2: the text the reader agreed to names the mic reading)
+    if (Mic.cur !== "nv" || load("donate", 0) !== 1 || load("donateV", 0) !== 2 || !window.NvBridge || !NvBridge.donate2 || p.seq == null) return;
+    var out = [], s = p.f.s, a = p.f.a;
+    for (;;) {   // the words of [first, last] as the mushaf prints them (the hifz test's label source: Q.t tokens with letters)
+      var t = rdWords(s, a), j0 = a === p.f.a ? p.f.j : 0, j1 = a === p.l.a ? p.l.j : t.length - 1;
+      for (var j = j0; j <= j1; j++) if (/[ء-يٱ]/.test(t[j])) out.push(t[j]);
+      if (a === p.l.a) break; a++;
+    }
+    var meta = { v: 2, text: out.join(" "), s: s, a0: p.f.a, w0: p.f.j, a1: p.l.a, w1: p.l.j,
+      kind: "auto", hyp: p.hyp, src: "recite", model: "nv-fc-large-pcd-v1.0", app: window.AppBridge && AppBridge.version ? AppBridge.version() : "" };
+    try { NvBridge.donate2(JSON.stringify(meta), p.seq); } catch (e) {}
+  }
+  function rdHear1(text, fin) {
+    var pc = rd.pc || (rd.pc = { n: 0, f: null, l: null, bad: false, al: alertN, from: rd.s ? { s: rd.s, a: rd.a, j: rd.w } : null });
+    if (!rd.s || rdLoud() || alertN !== pc.al) pc.bad = true;            // not anchored yet / other sound / an alert beep during the piece
     var ws = norm(text).split(/\s+/).filter(Boolean), fresh = ws.slice(rd.done);
     rd.done = fin ? 0 : ws.length;
     if (!rd.s) {
@@ -3124,16 +3283,17 @@
       for (var i = 0; i < all.length; i++) if (norm(all[i]).replace(/\s/g, "") && ++cnt === F.w[q]) { rd.w = i + 1; break; }   // after the last word read
       fresh = []; rd.heard = []; rd.miss = 0;
       toast("سورة " + Q.s[rd.s - 1][0] + " · الآية " + ar(rd.a));
-      rdGo(rd.s, rd.a); rdHints();
+      rdGo(rd.s, rd.a); rdHints(); rdAnchor();
     }
     fresh.forEach(function (hw) {
       var aw = rdWords(rd.s, rd.a).map(norm), hit = false;
-      for (var j = rd.w; j < Math.min(aw.length, rd.w + 4); j++) if (rdSame(hw, aw[j])) { rd.w = j + 1; hit = true; break; }
+      for (var j = rd.w; j < Math.min(aw.length, rd.w + 4); j++) if (rdSame(hw, aw[j])) { rdPcHit(rd.s, rd.a, j, hw, aw[j]); rd.w = j + 1; hit = true; break; }
       // the reader may already be in the next ayah (the end of this one was missed)
       if (!hit && rd.w >= aw.length - 3 && rd.a < Q.s[rd.s - 1][3]) {
         var nw = rdWords(rd.s, rd.a + 1).map(norm);
-        for (var k = 0; k < Math.min(3, nw.length); k++) if (rdSame(hw, nw[k])) { rdNext(); rd.w = k + 1; hit = true; break; }
+        for (var k = 0; k < Math.min(3, nw.length); k++) if (rdSame(hw, nw[k])) { rdNext(); rdPcHit(rd.s, rd.a, k, hw, nw[k]); rd.w = k + 1; hit = true; break; }
       }
+      if (!hit && rd.pc) rd.pc.bad = true;      // a heard word that fits nowhere: the label may not match what was said
       // a short word (في، ما، أن) fits almost anywhere: it does not prove the reader is still here (5.11 G7)
       var strong = hit && hw.length > 2;
       rd.miss = strong ? 0 : hit ? (rd.miss || 0) : (rd.miss || 0) + 1; asrStat(hit ? "rh" : "rm");
@@ -3141,7 +3301,7 @@
       if (!hit && rd.miss >= 4 && rd.miss < 8 && rd.lost.length >= 4 && rdRelocate()) return;
       if (rd.w >= aw.length && hit) rdNext();
     });
-    if (rd.miss >= 8) { rd.s = 0; rd.heard = []; rd.miss = 0; }
+    if (rd.miss >= 8) { rd.s = 0; rd.heard = []; rd.miss = 0; rdAnchor(); }
     if (rd.s && rd.w >= rdWords(rd.s, rd.a).length) rdNext();
     rdSplitTurn();
     rdPaint();
@@ -3151,7 +3311,7 @@
   function rdRelocate() {
     var mp = /^#\/p\/(\d+)/.exec(location.hash), g = quranLocate(rd.lost.map(rSkel), mp ? +mp[1] : 0); if (!g) return false;
     var F = quranFlat(), q = g.p - 1, s = F.s[q], a = F.a[q]; if (s === rd.s && a === rd.a) return false;
-    rd.s = s; rd.a = a; rd.w = rdTok(s, a, F.w[q] + 1); rd.miss = 0; rd.lost = []; rd.split = null;
+    rd.s = s; rd.a = a; rd.w = rdTok(s, a, F.w[q] + 1); rd.miss = 0; rd.lost = []; rd.split = null; rdAnchor();
     rdGo(s, a); rdHints(); return true;
   }
   // tokens of the ayah (rdWords) that hold the first n real words (rWords skips tokens with no letters)
@@ -3250,6 +3410,7 @@
   function rdToggle() {
     if (rd.on) return rdStop();
     if (hifz.on) return reciteToggle();          // ayat hidden: recite from memory, they show as they are said
+    if (load("donate", 0) === 1 && load("donateV", 0) === 0) return donateV2Ask(rdToggle);   // E: an older consent, asked once
     var m = Mic.nv() ? null : asrModel();
     if (!micGate(rdToggle)) return;
     if (!m && !window.ReciteBridge) return toast("القراءة بالصوت تعمل في تطبيق الهاتف فقط");
@@ -4553,7 +4714,7 @@
 
   // ---------- نسخة احتياطية ----------
   // Everything the app keeps (bookmarks, khatma, notes, sebha, settings...) as one JSON file to share / save, and back.
-  var BK_SKIP = { "q.donate": 1, "q.donateId": 1, "q.modelConsent": 1 };   // consent / donation state never travels in a backup file
+  var BK_SKIP = { "q.donate": 1, "q.donateV": 1, "q.donateId": 1, "q.modelConsent": 1 };   // consent / donation state never travels in a backup file
   function bkCollect() {
     var keys = {};
     try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf("q.") === 0 && !BK_SKIP[k]) keys[k] = localStorage.getItem(k); } } catch (e) {}
@@ -4823,6 +4984,7 @@
       }).join("") + "</div>" +
         '<div class="pr-tiles"><button id="prMonth">' + ic("calendar") + "إمساكية رمضان</button><button id=\"prQibla\">" + ic("compass") + "اتجاه القبلة</button></div>";
     } else html += '<p class="hint">حدّد موقعك أو اختر مدينتك لحساب مواقيت الصلاة على الجهاز (بدون إنترنت).</p>';
+    html += '<div class="pr-tiles pl-link"><button id="prLog">' + ic("check") + "متابعة الصلوات ←</button></div>";
     html += '<details class="pr-set"' + (loc ? "" : " open") + "><summary>" + ic("pin") + "الموقع وطريقة الحساب</summary>" +
       '<div class="q-loc"><button class="continue" id="prGps">' + ic("pin") + ' استخدم موقعي الحالي</button><select class="input" id="prCity">' + opts + "</select></div>" +
       '<select class="input" id="prMethod">' + Object.keys(PR_METHODS).map(function (k) {
@@ -4853,6 +5015,7 @@
     }; });
     view.querySelectorAll(".pr-asr button").forEach(function (b) { b.onclick = function () { cfg.hanafi = b.dataset.h === "1"; changed(); }; });
     document.getElementById("prMethod").onchange = function () { cfg.method = this.value; changed(); };
+    document.getElementById("prLog") && (document.getElementById("prLog").onclick = function () { location.hash = "#/prayerlog"; });
     document.getElementById("prCity").onchange = function () { var c = CITIES[+this.value]; if (c) { save("qiblaLoc", [c[1], c[2], c[0]]); askNotif(); changed(); } };
     if (loc) { document.getElementById("prQibla").onclick = function () { location.hash = "#/qibla"; };
       document.getElementById("prMonth").onclick = function () { location.hash = "#/imsakia"; }; }
@@ -5115,7 +5278,7 @@
       bar.querySelectorAll("button").forEach(function (b) { b.onclick = function () { location.hash = b.dataset.h; }; });
     }
     var cur = h === "#" ? "#/" : h;
-    var show = cur === "#/" || /^#\/(azkar|prayer|more|duas|tasbih|qibla|khatma|hifzlog|hifztest|hifzmap|mutash|talqin|family|topics|imsakia|tajweed|qiraat|stats)/.test(cur);
+    var show = cur === "#/" || /^#\/(azkar|prayer|more|duas|tasbih|qibla|khatma|hifzlog|hifztest|hifzmap|mutash|talqin|family|topics|imsakia|prayerlog|radio|tajweed|qiraat|stats)/.test(cur);
     bar.hidden = !show; document.body.classList.toggle("has-tabs", show);
     bar.querySelectorAll("button").forEach(function (b) {
       var t = b.dataset.h, on = t === "#/" ? cur === "#/" : cur.indexOf(t) === 0 || (t === "#/prayer" && /^#\/(imsakia|qibla)/.test(cur)) ||
@@ -5444,6 +5607,93 @@
   }
 
   // ---------- المزيد ----------
+  // ---------- #/prayerlog: weekly prayer tracker (5 prayers x 7 days, Saturday first). q.prayLog = {"YYYY-MM-DD": bitmask, bit0 = fajr .. bit4 = isha} (local dates) ----------
+  var PL_DAYS = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+  function plKey(d) { return d.getFullYear() + "-" + (d.getMonth() < 9 ? "0" : "") + (d.getMonth() + 1) + "-" + (d.getDate() < 10 ? "0" : "") + d.getDate(); }
+  function showPrayerLog() {
+    titleEl.textContent = "متابعة الصلوات";
+    btnBack.hidden = false;
+    var off = 0, pr = PRAYERS.filter(function (p) { return p[0] !== "sunrise"; }), tl = function (x) { return window.T ? window.T(x) : x; };
+    function draw() {
+      var now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), log = load("prayLog", {}), loc = load("qiblaLoc", null), cfg = prayerCfg();
+      var start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() + 1) % 7 + off * 7), days = [], done = 0, elig = 0;
+      for (var i = 0; i < 7; i++) days.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+      var html = '<div class="pl"><p class="hint">اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.</p><div class="pl-grid" role="group" aria-label="متابعة الصلوات"><span></span>' +
+        days.map(function (d) { return '<span class="pl-h' + (d.getTime() === today.getTime() ? " pl-t" : "") + '">' + PL_DAYS[(d.getDay() + 1) % 7] + "<b>" + ar(d.getDate()) + "</b></span>"; }).join("");
+      pr.forEach(function (p, k) {
+        html += '<span class="pl-n">' + p[1] + "</span>";
+        days.forEach(function (d) {
+          var ok = d <= today, on = (log[plKey(d)] || 0) >> k & 1;
+          if (ok && d.getTime() === today.getTime() && loc) { var t = prayerTimes(d, loc[0], loc[1], cfg.method, cfg.hanafi)[p[0]]; ok = t <= now; }
+          if (ok) { elig++; if (on) done++; }
+          html += '<button class="pl-c' + (on ? " on" : "") + '" data-d="' + plKey(d) + '" data-k="' + k + '" aria-pressed="' + (on ? "true" : "false") + '" aria-label="' + tl(p[1]) + " " + tl(PL_DAYS[(d.getDay() + 1) % 7]) + '"' + (ok ? "" : " disabled") + ">" + (on ? ic("check") : "") + "</button>";
+        });
+      });
+      html += '</div><div class="pl-sum" id="plSum">' + ar(done) + " من " + ar(elig) + '</div><div class="pl-nav"><button class="continue" id="plPrev">الأسبوع السابق</button>' +
+        '<button class="continue" id="plNext"' + (off >= 0 ? " disabled" : "") + ">الأسبوع التالي</button></div></div>";
+      var y = window.scrollY; view.innerHTML = html; window.scrollTo(0, y);
+      view.querySelectorAll(".pl-c").forEach(function (b) { b.onclick = function () {
+        var lg = load("prayLog", {}), v = (lg[b.dataset.d] || 0) ^ (1 << +b.dataset.k);
+        if (v) lg[b.dataset.d] = v; else delete lg[b.dataset.d];
+        save("prayLog", lg); draw(); }; });
+      document.getElementById("plPrev").onclick = function () { off--; draw(); };
+      document.getElementById("plNext").onclick = function () { if (off < 0) { off++; draw(); } };
+    }
+    draw();
+  }
+  // ---------- #/radio: official Quran radio (#34 phase 2). Native RadioService plays; q.radioCountry = tn|pk|qa|other, q.radioLast = last station id ----------
+  var RADIO = [
+    { id: "tn-zaitouna", c: "tn", name: "إذاعة الزيتونة للقرآن الكريم", owner: "الإذاعة التونسية", src: "https://radiotunisienne.tn", url: "https://radio.radiotunisienne.tn/radiozaitouna" },
+    { id: "pk-93", c: "pk", name: "صوت القرآن (FM 93.4)", owner: "هيئة الإذاعة الباكستانية PBC", src: "https://radio.gov.pk/", url: "https://whmsonic.radio.gov.pk:7002/stream?type=http&nocache=12" },
+    { id: "qa-1", c: "qa", name: "إذاعة القرآن الكريم", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8" },
+    { id: "qa-2", c: "qa", name: "إذاعة القرآن الكريم – القناة الثانية", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradio2live/quranradio2/playlist.m3u8" }];
+  var RADIO_BOX = { tn: [30.2, 37.6, 7.5, 11.6], pk: [23.6, 37.1, 60.8, 77.9], qa: [24.4, 26.2, 50.7, 51.7] };   // lat min/max, lon min/max
+  var RADIO_C = [["tn", "تونس"], ["pk", "باكستان"], ["qa", "قطر"], ["other", "دولة أخرى"]];
+  var radioSt = { st: "stopped", id: "", reason: "" };
+  function radioBridge() { try { return typeof AppBridge !== "undefined" && AppBridge.radioPlay ? AppBridge : null; } catch (e) { return null; } }
+  function radioCountry() {
+    var c = load("radioCountry", null);
+    if (c) return c;
+    var loc = load("qiblaLoc", null);
+    if (loc) for (var k in RADIO_BOX) { var b = RADIO_BOX[k]; if (loc[0] >= b[0] && loc[0] <= b[1] && loc[1] >= b[2] && loc[1] <= b[3]) return k; }
+    return "other";
+  }
+  window.onRadio = function (s) { try { radioSt = s || radioSt; if (document.getElementById("rdList") && window.radioDraw) window.radioDraw(); } catch (e) {} };
+  function showRadio() {
+    titleEl.textContent = "إذاعة القرآن الكريم";
+    btnBack.hidden = false;
+    var br = radioBridge();
+    if (br) { try { radioSt = JSON.parse(br.radioState()); } catch (e) {} }
+    function draw() {
+      var cc = radioCountry(), list = RADIO.filter(function (s) { return s.c === cc; }), note = "";
+      if (!list.length) { list = RADIO; note = '<p class="hint" id="rdNote">لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.</p>'; }
+      var html = '<div class="rd"><label class="rd-c"><span>الدولة</span><select id="rdCountry">' + RADIO_C.map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === cc ? " selected" : "") + ">" + c[1] + "</option>"; }).join("") + "</select></label>" + note +
+        (br ? "" : '<p class="hint" id="rdNoBridge">الإذاعة متاحة في تطبيق أندرويد فقط.</p>') + '<div id="rdList">';
+      list.forEach(function (s) {
+        var mine = radioSt.id === s.id, st = mine ? radioSt.st : "stopped", msg = "";
+        if (mine && st === "loading") msg = "جارٍ الاتصال…";
+        else if (mine && st === "error") msg = radioSt.reason === "offline" ? "لا يوجد اتصال بالإنترنت." : "تعذّر الاتصال بالإذاعة الآن، حاول لاحقًا.";
+        var label = st === "playing" ? "إيقاف مؤقت" : st === "loading" ? "إيقاف الإذاعة" : "تشغيل الإذاعة";
+        html += '<div class="rd-card" data-id="' + s.id + '"><div class="rd-name">' + s.name + '</div><div class="rd-own"><span>المصدر:</span> <span>' + s.owner + '</span> · <a href="' + s.src + '" target="_blank" rel="noopener">الصفحة الرسمية</a></div>' +
+          '<button class="continue rd-btn' + (st === "playing" ? " on" : "") + '" data-id="' + s.id + '" aria-pressed="' + (st === "playing" ? "true" : "false") + '">' + label + "</button>" +
+          (msg ? '<div class="rd-msg' + (st === "error" ? " err" : "") + '" role="status">' + msg + "</div>" : "") + "</div>";
+      });
+      view.innerHTML = html + "</div></div>";
+      document.getElementById("rdCountry").onchange = function () { save("radioCountry", this.value); draw(); };
+      view.querySelectorAll(".rd-btn").forEach(function (b) { b.onclick = function () {
+        var s = RADIO.filter(function (x) { return x.id === b.dataset.id; })[0], b2 = radioBridge(), mine = radioSt.id === s.id;
+        if (!b2) return;
+        try {
+          if (mine && radioSt.st === "playing") b2.radioPause();
+          else if (mine && radioSt.st === "loading") b2.radioStop();
+          else if (mine && radioSt.st === "paused") b2.radioResume();
+          else { save("radioLast", s.id); b2.radioPlay(s.id, s.url, s.name, s.owner); }
+        } catch (e) {}
+      }; });
+    }
+    window.radioDraw = draw;
+    draw();
+  }
   function showMore() {
     titleEl.textContent = "المزيد";
     btnBack.hidden = true;
@@ -5451,7 +5701,7 @@
     var G = [["الحفظ", [["#/hifztest", "eyeoff", "اختبار الحفظ", "tjw"], ["#/hifzmap", "grid", "خريطة الحفظ", "tjw"], ["#/hifzlog", "check", "المراجعة", "qib"], ["#/mutash", "list", "اختبار المتشابهات", "qra"], ["#/talqin", "wave", "التلقين", "sun"]]],
       ["القراءة والختمة", [["#/khatma", "target", "الختمة والعلامات", "kh"], ["#/family", "users", "ختمة العائلة", "kh"], ["#/students", "users", "طلابي", "tjw"], ["#/topics", "list", "مواضيع القرآن", "qra"], ["#/stats", "chart", "الإحصائيات", "qib"]]],
       ["التجويد والقراءات", [["#/tajweed", "wave", "أحكام التجويد", "tjw"], ["#/qiraat", "book", "القراءات العشر", "qra"]]],
-      ["أدعية وعبادات", [["#/duas", "hands", "أدعية مختارة", "sun"], ["#/tasbih", "beads", "السبحة", "sun"], ["#/qibla", "compass", "اتجاه القبلة", "qib"], ["#/imsakia", "calendar", "إمساكية رمضان", "kh"]]]];
+      ["أدعية وعبادات", [["#/duas", "hands", "أدعية مختارة", "sun"], ["#/tasbih", "beads", "السبحة", "sun"], ["#/qibla", "compass", "اتجاه القبلة", "qib"], ["#/imsakia", "calendar", "إمساكية رمضان", "kh"], ["#/prayerlog", "check", "متابعة الصلوات", "kh"], ["#/radio", "wave", "إذاعة القرآن الكريم", "tjw"]]]];
     view.innerHTML = G.map(function (g) {
       return '<section class="more-g"><h3 class="more-h">' + g[0] + '</h3><div class="tiles more">' + g[1].map(function (t, i) { return '<button class="tile' + (g[1].length % 2 && !i ? " main" : "") + '" data-h="' + t[0] + '"><span class="tile-ic ' + t[3] + '">' + ic(t[1]) + "</span>" + t[2] + "</button>"; }).join("") + "</div></section>";
     }).join("") +
@@ -5509,7 +5759,7 @@
           (asrReady("asrnv") ? '<p class="wel-got">✓ النموذج جاهز</p>' : wMd && wMd.err ? '<p class="wel-err">' + wRetry + '</p><button class="continue wel-pri" id="wRetry">' + ic("dl") + " إعادة المحاولة</button>" :
           wMd || aq ? '<p class="wel-got">جاري التحميل</p><span class="dl-p" data-wm="1"><i style="width:' + wMdPct() + '%"></i></span><small class="wel-pc">' + wMdPct() + "%</small>" :
           '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wTerms"><span></span>موافق على شروط استخدام النموذج وسياسة الخصوصية</span></label>' +
-          '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)</span></label>' +
+          '<label class="rem-row"><span class="rem-sw"><input type="checkbox" id="wDonate"><span></span>ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك أثناء التسميع والقراءة بالمايك (اختياري)</span></label>' +
           '<button class="continue wel-pri" id="wDl" disabled>' + ic("dl") + " حمّل النموذج</button>");
       } else body = '<div class="wel-ic">' + ic("bell") + "</div><h2>بماذا تريد أن نذكّرك؟</h2><p>يمكنك تغيير المواعيد لاحقًا من شاشة الصلاة.</p>" +
         [["adhan", "الأذان في مواعيده"], ["m", "أذكار الصباح"], ["e", "أذكار المساء"], ["kahf", "الكهف يوم الجمعة"], ["stat", "ملخص قراءة اليوم"]].map(function (r) {
@@ -5548,7 +5798,7 @@
       var wT = document.getElementById("wTerms"), wDl = document.getElementById("wDl");
       if (wT) wT.onchange = function () { wDl.disabled = !wT.checked; };
       if (wDl) wDl.onclick = function () {
-        save("modelConsent", { v: 1, t: Date.now() }); save("donate", document.getElementById("wDonate").checked ? 1 : 0); donatePaint();
+        save("modelConsent", { v: 1, t: Date.now() }); donateSet(document.getElementById("wDonate").checked ? 1 : 0); donatePaint();
         if (!window.EdBridge) { toast("التنزيل متاح في تطبيق الهاتف فقط"); return; }
         startModel();
       };
@@ -6875,6 +7125,7 @@
     if (vObs) { vObs.disconnect(); vObs = null; }   // 5.36 #25: the vertical view is being replaced
     document.body.classList.toggle("reading", /^#\/(p|s)\//.test(location.hash));
     document.body.classList.toggle("pgview", /^#\/p\//.test(location.hash));
+    brightSync(false);
     tabbar();
     view.classList.remove("v-in"); if (!pageToPage) { void view.offsetWidth; view.classList.add("v-in"); }
     if (!/^#\/(p|s)\//.test(location.hash) && hifz.on) { hifz.on = false; hifz.test = null; reciteStop(); hifzBar(); }
@@ -6922,6 +7173,10 @@
       showHifzLog();
     } else if (h === "#/imsakia") {
       showImsakia();
+    } else if (h === "#/prayerlog") {
+      showPrayerLog();
+    } else if (h === "#/radio") {
+      showRadio();
     } else if (h === "#/prayer") {
       showPrayer();
     } else if (h === "#/tasbih") {

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة: إزالة الخطوط الجانبية (5.43)</title>
+<!-- The app's own stylesheet, so «قبل» is exactly what ships today. -->
+<link rel="stylesheet" href="../web/style.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font-family: inherit; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .lead { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .item { margin: 0 0 28px; }
+  .item > h2 { font-size: 15px; margin: 0 0 8px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .col { background: var(--bg); border-radius: 14px; padding: 10px 12px; outline: 1px dashed var(--line); }
+  .col > b { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .theme-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .dark-wrap { padding: 12px; border-radius: 16px; background: var(--bg); }
+  @media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+
+  /* ===== «بعد»: the three proposals (1أ، 2أ، 3أ), scoped to .new ===== */
+  .new .set-group { border-inline-start: 0; }
+  .new .page-cap { border-inline-start: 0; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); }
+  .new .book-text .fn { border-inline-start: 0; padding-inline-start: 12px; }
+</style>
+</head>
+<body>
+<h1>معاينة: إزالة الخطوط الجانبية</h1>
+<p class="lead">العمود الأيمن هو الشكل الحالي في التطبيق، والأيسر هو المقترح. الألوان والخطوط مأخوذة من ملف التنسيق الحقيقي للتطبيق، بالوضعين الفاتح والداكن.</p>
+
+<div id="themes"></div>
+
+<template id="tpl">
+  <div class="item">
+    <h2>١أ. عناوين أقسام الإعدادات</h2>
+    <div class="pair">
+      <div class="col"><b>قبل</b>
+        <h3 class="set-group">القراءة</h3>
+        <div class="row row-col">المصحف</div>
+        <h3 class="set-group">الألوان والمظهر</h3>
+      </div>
+      <div class="col new"><b>بعد</b>
+        <h3 class="set-group">القراءة</h3>
+        <div class="row row-col">المصحف</div>
+        <h3 class="set-group">الألوان والمظهر</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="item">
+    <h2>٢أ. بطاقة نتيجة البحث فوق صفحة المصحف</h2>
+    <div class="pair">
+      <div class="col"><b>قبل</b>
+        <div class="page-cap"><div class="cap-head"><span>سورة البقرة · الآية ٢٥٥</span></div>
+          <div class="txt">ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلۡحَيُّ ٱلۡقَيُّومُۚ</div></div>
+      </div>
+      <div class="col new"><b>بعد</b>
+        <div class="page-cap"><div class="cap-head"><span>سورة البقرة · الآية ٢٥٥</span></div>
+          <div class="txt">ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلۡحَيُّ ٱلۡقَيُّومُۚ</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="item">
+    <h2>٣أ. الحواشي في التفسير والكتب</h2>
+    <div class="pair">
+      <div class="col"><b>قبل</b>
+        <div class="book-text"><p>قوله تعالى: ﴿ٱلۡحَيُّ ٱلۡقَيُّومُ﴾ أي الدائم الباقي القائم بتدبير خلقه.<span class="fn">(١) انظر: تفسير الطبري ٥/٣٨٦.</span></p></div>
+      </div>
+      <div class="col new"><b>بعد</b>
+        <div class="book-text"><p>قوله تعالى: ﴿ٱلۡحَيُّ ٱلۡقَيُّومُ﴾ أي الدائم الباقي القائم بتدبير خلقه.<span class="fn">(١) انظر: تفسير الطبري ٥/٣٨٦.</span></p></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  // Render the same comparison twice: light theme, then dark (data-theme on a wrapper is not enough: the app keys dark on :root).
+  var t = document.getElementById("tpl").innerHTML, host = document.getElementById("themes");
+  host.innerHTML = '<h2 style="font-size:16px">الوضع الفاتح</h2>' + t;
+  var params = new URLSearchParams(location.search);
+  if (params.get("theme") === "dark") document.documentElement.setAttribute("data-theme", "dark");
+</script>
+</body>
+</html>

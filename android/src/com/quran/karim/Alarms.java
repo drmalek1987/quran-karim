@@ -116,5 +116,19 @@ final class Alarms {
         if (Build.VERSION.SDK_INT < 26 && adhan) b.setSound("silent".equals(voice) ? null : sound).setPriority(Notification.PRIORITY_HIGH);
         else if (Build.VERSION.SDK_INT < 26) b.setDefaults(Notification.DEFAULT_ALL);
         try { nm.notify(adhan ? 2 : 3, b.build()); } catch (SecurityException ignored) { }
+        // #34: the Quran radio, if playing, pauses while the adhan sounds and comes back after it
+        if (adhan && !"silent".equals(voice)) try { RadioService.pauseFor(c, adhanMs(c, raw) + 5000); } catch (Throwable ignored) { }
+    }
+
+    /** Length of the adhan recording in ms (fallback 4 min; 1 min for the phone alarm tone, which the Play build uses). */
+    private static long adhanMs(Context c, int raw) {
+        if (raw == 0) return 60000;
+        android.media.MediaMetadataRetriever r = new android.media.MediaMetadataRetriever();
+        try {
+            r.setDataSource(c, Uri.parse("android.resource://" + c.getPackageName() + "/" + raw));
+            long d = Long.parseLong(r.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION));
+            return d > 0 ? d : 240000;
+        } catch (Exception e) { return 240000; }
+        finally { try { r.release(); } catch (Exception ignored) { } }
     }
 }

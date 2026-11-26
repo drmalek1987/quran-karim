@@ -54,7 +54,7 @@
     "الحفظ": "Memorisation", "القراءة والختمة": "Reading and khatma", "التجويد والقراءات": "Tajweed and qira'at", "أدعية وعبادات": "Duas and worship",
     "اقرأ آية وأنا أفتحها": "Recite an ayah and I'll open it", "القراءة بالصوت": "Read by voice", "مصحف المدينة": "Madinah Mushaf",
     "التعرّف على التلاوة": "Recitation recognition", "اختبار الميكروفون": "Mic test", "اختبر": "Test", "لا": "No",
-    "عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.": "If you agree, the app keeps short clips of your recitation and sends them with no name or account, to improve recitation recognition for every reciter. They upload on Wi-Fi only unless you allow mobile data, and you can stop and delete your recordings at any time.",
+    "عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك وقراءتك بالمايك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.": "If you agree, the app keeps short clips of your recitation and your mic reading and sends them with no name or account, to improve recitation recognition for every reciter. They upload on Wi-Fi only unless you allow mobile data, and you can stop and delete your recordings at any time.",
     "الهيئة المصرية العامة للمساحة": "Egyptian General Authority of Survey", "أم القرى (مكة المكرمة)": "Umm al-Qura (Makkah)", "رابطة العالم الإسلامي": "Muslim World League",
     "جامعة العلوم الإسلامية بكراتشي": "University of Islamic Sciences, Karachi", "أمريكا الشمالية (ISNA)": "North America (ISNA)", "الإمارات (دبي)": "UAE (Dubai)", "قطر": "Qatar",
     "استمع للآيات": "Listen to the ayahs", "+ ذكر خاص بك": "+ Your own dhikr", "عدد…": "Count…", "اسم الختمة": "Khatma name",
@@ -142,7 +142,8 @@
     "القراءة": "Reading", "المصحف": "Mushaf", "طبعة الملك فهد": "King Fahd print", "طبعة الشمرلي": "Shamarly print", "طبعة الحرمين": "Haramain print", "نص": "Text",
     "طريقة التقليب": "Page turning", "أفقي كالكتاب": "Sideways, like a book", "عمودي": "Vertical scroll", "تأثير قلب الصفحة": "Page curl effect",
     "تشغيل": "On", "إيقاف": "Off", "صفحتان متجاورتان على التابلت والفولد بالعرض": "Two pages side by side on a landscape tablet or foldable",
-    "إبقاء الشاشة مضيئة": "Keep the screen on", "شريط الهاتف في ملء الشاشة": "Phone status bar in full screen", "إظهار": "Show",
+    "التحكم في الإضاءة بالسحب": "Brightness by swiping", "اسحب لأعلى أو لأسفل على الحافة اليسرى من الصفحة لتغيير الإضاءة داخل التطبيق فقط.": "Swipe up or down on the left edge of the page to change the brightness inside the app only.",
+    "إبقاء الشاشة مضيئة": "Keep the screen on","شريط الهاتف في ملء الشاشة": "Phone status bar in full screen", "إظهار": "Show",
     "تنبيه الأخطاء": "Error alert", "اهتزاز وصوت قصير عند 5 كلمات خاطئة متتالية في التسميع": "A short buzz and beep after 5 wrong words in a row while reciting", "سرعة القراءة": "Reading pace", "عادي": "Normal", "مجوّد": "Mujawwad",
     "اختيار الميكروفون": "Microphone", "الميكروفون المستخدم:": "Mic used:", "الميكروفون المختار غير متصل، تم التسجيل من ميكروفون الهاتف": "The chosen mic is not connected, recorded from the phone's mic", "ميكروفون الهاتف": "Phone mic", "سماعة سلكية": "Wired headset", "ميكروفون USB": "USB mic", "سماعة بلوتوث": "Bluetooth headset",
     "التعرّف الحالي يستخدم خدمة الهاتف، واختيار الميكروفون يعمل مع نموذج التعرّف على التلاوة فقط.": "Recognition is using the phone's own service; the mic choice only works with the recitation model.",
@@ -331,18 +332,19 @@
     "الخصوصية وتسجيلات الصوت": "Privacy and voice recordings", "✓ جاهز على الهاتف": "✓ On the phone", "جاري التحميل…": "Downloading…", "غير منزّل · # ميجا": "Not downloaded · # MB",
     "تنزيل النموذج يعمل في تطبيق الهاتف فقط.": "The model downloads in the phone app only.", "امسح كل تسجيلاتي التي أُرسلت": "Delete all my sent recordings", "ليس الآن": "Not now", "ليس الآن": "Not now", "حمّل النموذج": "Download the model", "جاري التحميل": "Downloading", "التحميل فشل. تأكّد من الإنترنت وحاول مرة أخرى": "The download failed. Check the internet and try again", "إعادة المحاولة": "Try again",
     "موافق على شروط استخدام النموذج وسياسة الخصوصية": "I agree to the model's terms of use and the privacy policy",
-    "ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك (اختياري)": "Help improve recitation recognition with your voice recordings (optional)",
+    "ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك أثناء التسميع والقراءة بالمايك (اختياري)": "Help improve recitation recognition with your voice recordings while reciting and reading with the mic (optional)",
     "يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف. هو أداة مساعدة للمراجعة والحفظ وقد يخطئ، خصوصًا مع الضوضاء. التفاصيل في الإعدادات › حول التطبيق › الخصوصية.":
       "It runs on the phone without internet, and your voice does not leave the device during recognition. It is a helper for review and memorisation and can make mistakes, especially in noise. Details in Settings › About › Privacy.",
     "حسنًا، اضغط على الميكروفون وابدأ": "Done. Tap the mic to start",
-    "عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.":
-      "With your consent, the app keeps short clips of your recitation and sends them with no name or account, to improve recognition for all reciters. They upload on Wi-Fi only unless you allow mobile data, and you can withdraw and delete your recordings at any time.",
+    "عند موافقتك يحفظ التطبيق مقاطع قصيرة من تسميعك وقراءتك بالمايك ويرسلها بدون اسم أو حساب، لنحسّن التعرّف على التلاوة لكل القرّاء. تُرفع على wifi فقط إلا إذا سمحت بباقة البيانات، ويمكنك الإلغاء ومسح تسجيلاتك في أي وقت.":
+      "With your consent, the app keeps short clips of your recitation and mic reading and sends them with no name or account, to improve recognition for all reciters. They upload on Wi-Fi only unless you allow mobile data, and you can withdraw and delete your recordings at any time.",
     "بانتظار الرفع: # مقطع · رُفض: #": "Waiting to upload: # clips · refused: #", "رفع التسجيلات على باقة البيانات": "Upload recordings on mobile data",
     "تحميل نموذج التعرّف على التلاوة": "Download the recitation recognition model", "✓ نموذج التعرّف على التلاوة جاهز": "✓ Recitation recognition model ready",
     "جاري تحميل نموذج التعرّف على التلاوة…": "Downloading the recitation recognition model…", "نموذج التعرّف على التلاوة": "Recitation recognition model",
     "الألوان والمظهر": "Colours & look", "الصوت والتلاوة": "Audio & recitation", "التطبيق": "App",
     "wifi فقط": "Wi-Fi only", "مسموح": "Allowed", "امسح كل تسجيلاتي": "Delete all my recordings", "قرأت بشكل صحيح": "I read it right",
-    "توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟": "Allow the app to keep clips of your voice while you recite and send them, with no personal data, to improve recitation recognition?",
+    "توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟": "Allow the app to keep clips of your voice while you recite and read with the mic, and send them, with no personal data, to improve recitation recognition?",
+    "تحسين التعرّف يشمل الآن القراءة بالمايك أيضًا: توافق على حفظ مقاطع من صوتك أثناء القراءة وإرسالها دون أي بيانات شخصية؟": "Improving recognition now includes mic reading too: do you agree to keep clips of your voice while you read and send them with no personal data?",
     "تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.": "Delete every clip sent from this phone and those still waiting? This also stops sharing.",
     "المسح متاح في تطبيق الهاتف فقط": "Deleting works only in the phone app", "جارٍ المسح…": "Deleting…", "تم مسح كل تسجيلاتك": "All your recordings were deleted",
     "فشل المسح، جرّب مرة أخرى": "Deleting failed, try again", "فشل المسح، تأكّد من الإنترنت وجرّب مرة أخرى": "Deleting failed, check the connection and try again" };
@@ -417,6 +419,19 @@
   for (var c49 in D49) if (D[c49] === undefined) D[c49] = D49[c49];
   for (var c39 in D39) if (D[c39] === undefined) D[c39] = D39[c39];
   for (var c38 in D38) if (D[c38] === undefined) D[c38] = D38[c38];
+  var D30 = { "متابعة الصلوات": "Prayer tracker", "متابعة الصلوات ←": "Prayer tracker →", "الأسبوع السابق": "Previous week", "الأسبوع التالي": "Next week", "هذا الأسبوع": "This week",
+    "السبت": "Sat", "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri",
+    "اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.": "Tap each prayer you have prayed. A box opens when its time arrives.", "مؤدّاة": "prayed", "غير مؤدّاة": "not prayed" };
+  for (var c30 in D30) if (D[c30] === undefined) D[c30] = D30[c30];
+  var D34 = { "إذاعة القرآن الكريم": "Quran Karim radio", "الدولة": "Country", "تونس": "Tunisia", "باكستان": "Pakistan", "قطر": "Qatar", "دولة أخرى": "Another country",
+    "لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.": "No official radio for your country is in the app yet; these are the stations available.",
+    "الإذاعة متاحة في تطبيق أندرويد فقط.": "The radio is available in the Android app only.", "جارٍ الاتصال…": "Connecting…",
+    "لا يوجد اتصال بالإنترنت.": "No internet connection.", "تعذّر الاتصال بالإذاعة الآن، حاول لاحقًا.": "Could not connect to the radio now, try again later.",
+    "تشغيل الإذاعة": "Play radio", "إيقاف الإذاعة": "Stop radio", "المصدر:": "Source:", "الصفحة الرسمية": "Official page",
+    "إذاعة الزيتونة للقرآن الكريم": "Zaitouna Radio for the Holy Quran", "الإذاعة التونسية": "Radio Tunisienne", "صوت القرآن (FM 93.4)": "Voice of the Quran (FM 93.4)",
+    "هيئة الإذاعة الباكستانية PBC": "Pakistan Broadcasting Corporation (PBC)", "مؤسسة قطر للإعلام": "Qatar Media Corporation (QMC)",
+    "إذاعة القرآن الكريم – القناة الثانية": "Quran Karim Radio - Channel 2" };
+  for (var c34 in D34) if (D[c34] === undefined) D[c34] = D34[c34];
   var DUPD = { "يتوفر إصدار جديد من لوْح": "A new version of Lawh is available", "تحديث الآن": "Update now", "لاحقًا": "Later", "التحقق من التحديثات": "Check for updates", "تحقّق": "Check",
     "جارٍ التحقق…": "Checking…", "لديك أحدث إصدار (#)": "You have the latest version (#)", "يتوفر إصدار جديد (#)": "A new version is available (#)", "تعذّر الاتصال، حاول لاحقًا": "Couldn't connect, try again later" };
   for (var cUpd in DUPD) if (D[cUpd] === undefined) D[cUpd] = DUPD[cUpd];

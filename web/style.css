@@ -194,7 +194,7 @@ main { max-width: 760px; margin: 0 auto; padding: 14px 16px 48px; }
 /* The reading choices (three editions and text) take their own line under the label, wrapping on narrow phones. */
 /* Each big settings section opens with a tinted band, so the groups stand apart. */
 .set-group { font-size: 15px; font-weight: 700; color: var(--accent); margin: 22px 0 10px; padding: 9px 14px; border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 12%, transparent); border-inline-start: 4px solid var(--accent); }
+  background: color-mix(in srgb, var(--accent) 12%, transparent); }   /* 5.43: the tint alone sets the group apart (no side stripe) */
 .set-group:first-of-type { margin-top: 4px; }
 .row.row-col { flex-direction: column; align-items: stretch; gap: 10px; }
 .seg-wrap { flex-wrap: wrap; }
@@ -241,7 +241,7 @@ mark { background: #ffe14d; color: #1d1a14; border-radius: 4px; padding: 0 1px; 
 :root.pdark .ayah-box { background: rgba(255, 214, 0, .3); mix-blend-mode: normal; }
 .srch-w { position: absolute; background: rgba(255, 120, 0, .38); mix-blend-mode: multiply; border-radius: 3px; pointer-events: none; }
 :root.pdark .srch-w { background: rgba(255, 150, 40, .35); mix-blend-mode: normal; }
-.page-cap { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 10px 14px; margin: 0 0 12px; border-inline-start: 4px solid var(--gold); }
+.page-cap { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 10px 14px; margin: 0 0 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); }   /* 5.43: a thin gold frame instead of the side stripe */
 .cap-head { display: flex; align-items: center; gap: 8px; color: var(--accent); font-size: 13px; font-weight: 600; }
 .cap-head span { flex: 1; }
 .cap-head button { background: none; border: 1px solid var(--line); border-radius: 16px; padding: 4px 10px; cursor: pointer; font-size: 13px; }
@@ -349,7 +349,7 @@ body.has-bar main { padding-bottom: 190px; }
 .book > .hint { margin: 8px 0 4px; font-size: 12.5px; }
 .book-text { font-size: 17px; line-height: 2; text-align: justify; }
 .book-text p { margin: 0 0 10px; }
-.book-text .fn { display: block; font-size: 13px; color: var(--muted); border-inline-start: 3px solid var(--line); padding-inline-start: 8px; margin: 4px 0; }
+.book-text .fn { display: block; font-size: 13px; color: var(--muted); padding-inline-start: 12px; margin: 4px 0; }   /* 5.43: indent, size and colour mark a footnote (no side line) */
 .book-text .qq { font-family: "Amiri Quran", serif; color: var(--accent); }
 .span-note { color: var(--gold); font-size: 13.5px; font-weight: 600; }
 .words { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
@@ -1349,3 +1349,36 @@ p.wel-err { margin: 0; } .wel-retry { display: block; margin-top: 4px; font-size
 .hm-tbs button { min-height: 40px; padding: 0 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,.55); background: transparent; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
 .hm-i { margin-inline-start: auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(127,127,127,.6); background: transparent; color: inherit; font: italic 700 14px/1 serif; cursor: pointer; padding: 0; }
 .hm-info[hidden] { display: none; }
+/* prayer tracker (#/prayerlog) */
+.pl { padding: 12px 12px 24px; }
+.pl-grid { display: grid; grid-template-columns: 54px repeat(7, 1fr); gap: 4px; align-items: center; margin: 10px 0; }
+.pl-h { text-align: center; font-size: 11px; color: var(--muted); line-height: 1.3; }
+.pl-h b { display: block; font-size: 13px; color: var(--text); }
+.pl-h.pl-t b { color: var(--accent); }
+.pl-n { font-size: 13px; font-weight: 700; }
+.pl-c { width: 100%; max-width: 38px; aspect-ratio: 1; margin: 0 auto; border-radius: 50%; border: 2px solid rgba(127,127,127,.5); background: transparent; color: #fff; padding: 0; cursor: pointer; display: grid; place-items: center; }
+.pl-c.on { background: var(--accent); border-color: var(--accent); }
+.pl-c .ic { width: 60%; height: 60%; }
+.pl-c:disabled { opacity: .3; cursor: default; }
+.pl-sum { text-align: center; font-weight: 700; color: var(--accent); margin: 8px 0; }
+.pl-nav { display: flex; gap: 8px; }
+.pl-nav .continue { flex: 1; }
+.pl-nav .continue:disabled { opacity: .4; }
+.pl-link { margin-top: 12px; grid-template-columns: 1fr; }
+
+/* #18: brightness by swipe: a transparent strip on the left edge of the mushaf + a small percentage pill */
+.bright-strip { position: fixed; left: 0; width: 24px; z-index: 4; touch-action: none; background: transparent; -webkit-tap-highlight-color: transparent; }
+.bright-strip[hidden] { display: none; }
+.bright-pill { position: fixed; left: 34px; z-index: 31; transform: translateY(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px;
+  background: rgba(20, 30, 26, .92); color: #fff; font-size: 14px; pointer-events: none; opacity: 0; transition: opacity .25s; }
+.bright-pill.show { opacity: 1; transition: none; }
+@media (prefers-reduced-motion: reduce) { .bright-pill { transition: none; } }
+.rd-c { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.rd-c select { flex: 1; min-height: 40px; }
+.rd-card { background: var(--card, #fff); border: 1px solid var(--line, #ddd); border-radius: 12px; padding: 12px; margin: 10px 0; }
+.rd-name { font-weight: 700; margin-bottom: 4px; }
+.rd-own { color: var(--muted); font-size: 13.5px; margin-bottom: 8px; }
+.rd-own a { color: var(--accent); }
+.rd-btn { width: 100%; }
+.rd-msg { margin-top: 8px; font-size: 14px; color: var(--muted); }
+.rd-msg.err { color: #b3261e; }

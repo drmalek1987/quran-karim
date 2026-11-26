@@ -44,6 +44,7 @@ class ReciteBridge {
                 if (android.os.Build.VERSION.SDK_INT >= 23 && activity.checkSelfPermission("android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
                     activity.requestPermissions(new String[] { "android.permission.RECORD_AUDIO" }, PERMISSION_REQUEST); return;
                 }
+                try { RadioService.pause(activity); } catch (Throwable ignored) { }   // the radio steps aside for the microphone
                 on = true; listen();
             }
         });

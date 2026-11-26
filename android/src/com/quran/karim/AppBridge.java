@@ -70,6 +70,36 @@ class AppBridge {
         });
     }
 
+    /** #18: this window's own brightness (Settings: التحكم في الإضاءة بالسحب). v in [0.02, 1], or -1 = follow the system again.
+     *  Only the window attribute: no system setting is changed, so no permission is needed. */
+    @JavascriptInterface
+    public void setBrightness(final float v) {
+        final float val = v < 0 ? android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE : Math.max(0.02f, Math.min(1f, v));
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                android.view.Window w = activity.getWindow();
+                android.view.WindowManager.LayoutParams lp = w.getAttributes();
+                lp.screenBrightness = val;
+                w.setAttributes(lp);
+            }
+        });
+    }
+
+    /** #18: the brightness strip's rect in css px (0 width = hidden). From Android 10 it is kept out of the system back gesture. */
+    @JavascriptInterface
+    public void brightStrip(float x, float y, float w, float h) {
+        if (Build.VERSION.SDK_INT < 29) return;
+        final float d = activity.getResources().getDisplayMetrics().density;
+        final int l = Math.round(x * d), t = Math.round(y * d), r = Math.round((x + w) * d), b = Math.round((y + h) * d);
+        final boolean hide = w <= 0 || h <= 0;
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                if (hide) web.setSystemGestureExclusionRects(java.util.Collections.<android.graphics.Rect>emptyList());
+                else web.setSystemGestureExclusionRects(java.util.Collections.singletonList(new android.graphics.Rect(l, t, r, b)));
+            }
+        });
+    }
+
     /** "top,bottom,fsTop,fsBottom" in css px: the WebView's inset from the screen edges now, and with the system bars
      *  hidden (the cutout only, or the status bar too when it is kept). Full screen uses it to glide the page once, straight to where it ends (5.11 G2). */
     @JavascriptInterface
@@ -298,4 +328,31 @@ class AppBridge {
             try { c.getDeclaredMethod("start", Activity.class, Runnable.class).invoke(null, activity, store); } catch (Exception e) { store.run(); }
         } });
     }
+
+    // #34 Phase 2: official Quran radio (RadioService). The state comes back through window.onRadio({st, id, reason}).
+    @JavascriptInterface
+    public void radioPlay(final String id, final String url, final String title, final String owner) {
+        activity.runOnUiThread(new Runnable() { public void run() {
+            try { RadioService.web = web; RadioService.play(activity, id, url, title, owner); } catch (Exception e) { }
+        } });
+    }
+
+    @JavascriptInterface
+    public void radioPause() {
+        activity.runOnUiThread(new Runnable() { public void run() { try { RadioService.userPause(activity); } catch (Exception e) { } } });
+    }
+
+    @JavascriptInterface
+    public void radioResume() {
+        activity.runOnUiThread(new Runnable() { public void run() { try { RadioService.web = web; RadioService.resume(activity); } catch (Exception e) { } } });
+    }
+
+    @JavascriptInterface
+    public void radioStop() {
+        activity.runOnUiThread(new Runnable() { public void run() { try { RadioService.stop(activity); } catch (Exception e) { } } });
+    }
+
+    /** {"st","id","reason"} of the radio right now (the page asks when it opens). */
+    @JavascriptInterface
+    public String radioState() { RadioService.web = web; return RadioService.stateJson(); }
 }

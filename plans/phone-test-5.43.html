@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اختبار الهاتف — لوْح 5.43</title>
+<style>
+  body { font-family: system-ui, 'Segoe UI', Tahoma; margin: 0; padding: 14px; background: #f6f6f2; color: #1b2430; line-height: 1.7; }
+  h1 { color: #1f3a5f; font-size: 22px; margin: 4px 0 8px; }
+  h2 { color: #1f3a5f; font-size: 18px; margin: 22px 0 8px; border-bottom: 2px solid #1f3a5f22; }
+  .note { background: #fff7e0; border: 1px solid #e8c766; border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+  .card { background: #fff; border-radius: 12px; padding: 12px 14px; margin: 10px 0; box-shadow: 0 1px 3px #0001; }
+  .card b.n { color: #fff; background: #1f3a5f; border-radius: 6px; padding: 0 7px; margin-left: 6px; font-size: 13px; }
+  .card .t { font-weight: bold; font-size: 16px; }
+  ol { margin: 6px 0; padding-right: 22px; }
+  .ok { color: #0a7a3a; font-size: 15px; }
+  .ok::before { content: "✓ المفروض: "; font-weight: bold; }
+  .btns { display: flex; gap: 8px; margin-top: 8px; }
+  .btns button { flex: 1; padding: 9px; border-radius: 9px; border: 1px solid #ccd; background: #f2f3f5; font-size: 15px; font-family: inherit; }
+  .card.pass { border-right: 6px solid #0a7a3a; } .card.fail { border-right: 6px solid #c0392b; }
+  .card.pass .p { background: #0a7a3a; color: #fff; } .card.fail .f { background: #c0392b; color: #fff; }
+  textarea { width: 100%; box-sizing: border-box; margin-top: 8px; border-radius: 8px; border: 1px solid #ccd; padding: 6px; font-family: inherit; display: none; }
+  .card.fail textarea { display: block; }
+  #sum { position: sticky; top: 0; background: #1f3a5f; color: #fff; border-radius: 10px; padding: 8px 12px; z-index: 2; font-size: 15px; }
+</style>
+</head><body><h1>اختبار الهاتف — لوْح 5.43</h1>
+<div id="sum"></div>
+
+<div class="note">
+  <b>الملف:</b> quran-karim-v5.43.apk<br>
+  <b>الإصدار:</b> 5.43 (91)، تأكد منه: «المزيد» ← «حول التطبيق».<br>
+  • جهّز مكانًا هادئًا للقراءة بالمايك، وسماعات أو صوتًا مسموعًا للإذاعة، واتصالًا بالإنترنت (وتحتاج قطعه في بند الإذاعة).<br>
+  • بعد كل بند اضغط <b>نجح</b> أو <b>فيه مشكلة</b>. إن كانت فيه مشكلة فاكتب ما حدث وخذ لقطة شاشة. اختياراتك تُحفظ في هذه الصفحة، وفي الآخر اضغط «نسخ النتائج».
+</div>
+
+<div id="list"></div>
+
+<script>
+// Each item: [tag, title, steps[], expected]
+var G = [
+ ["القراءة بالمايك", [
+  ["القراءة بالمايك", "سرعة القراءة الافتراضية «تلقائي»", ["على تثبيت جديد (أو مستخدم لم يغيّر الإعداد): افتح الإعدادات وابحث عن «سرعة القراءة».", "على هاتف كان قد اختار «عادي» سابقًا: افتح الإعداد نفسه بعد التحديث."], "الإعداد يظهر «تلقائي» افتراضيًا لمن لم يغيّره، ومن اختار «عادي» سابقًا يبقى «عادي»."]
+ ]],
+ ["متابعة الصلوات", [
+  ["الصلاة", "الدخول إلى متابعة الصلوات", ["افتح «مواقيت الصلاة» وادخل منها إلى «متابعة الصلوات».", "ارجع، ثم افتح «المزيد» وادخل منها أيضًا."], "تفتح شاشة متابعة الصلوات (#/prayerlog) من المكانين."],
+  ["الصلاة", "تعليم صلاة مرّ وقتها", ["في شاشة المتابعة اختر صلاة مرّ وقتها اليوم وعلّمها (أُدّيت).", "اخرج من الشاشة وارجع إليها."], "التعليم يظهر ويبقى بعد الخروج والرجوع."],
+  ["الصلاة", "صلاة لم يحن وقتها", ["انظر إلى صلاة لم يحن وقتها بعد اليوم وحاول الضغط عليها."], "الصلاة معطّلة ولا يمكن تعليمها."],
+  ["الصلاة", "الأسبوع السابق والملخص", ["انتقل إلى الأسبوع السابق وعلّم صلاة فيه.", "افتح الملخص."], "الأسبوع السابق يُعرض ويقبل التعليم، والملخص يعكس ما علّمته."],
+  ["الصلاة", "النسخ الاحتياطي والاستعادة", ["الإعدادات ← النسخ الاحتياطي: أنشئ نسخة احتياطية.", "امسح تعليماتك أو انتقل لتثبيت آخر، ثم استعد النسخة.", "افتح متابعة الصلوات."], "التعليمات التي علّمتها عادت كما كانت بعد الاستعادة."]
+ ]],
+ ["الإضاءة بالسحب", [
+  ["الإضاءة", "تفعيل الخيار من الإعدادات", ["افتح الإعدادات وابحث عن خيار الإضاءة بالسحب وفعّله."], "الخيار موجود ويبقى مفعّلًا بعد الخروج من الإعدادات."],
+  ["الإضاءة", "السحب الرأسي على الحافة اليسرى", ["افتح صفحة من المصحف.", "اسحب رأسيًا بإصبع واحد على الحافة اليسرى للشاشة صعودًا ثم نزولًا."], "الإضاءة داخل التطبيق تتغير مع السحب ويظهر مؤشر لها."],
+  ["الإضاءة", "السحب لا يُخرج من التطبيق", ["اسحب من الحافة اليسرى عدة مرات، من الأعلى والأسفل ومن عمق الحافة."], "لا تُفعَّل إيماءة الرجوع في أندرويد ولا يخرج التطبيق ولا يرجع للشاشة السابقة."],
+  ["الإضاءة", "بقية الإيماءات تعمل والخيار مفعّل", ["اقلب الصفحة بالسحب الأفقي.", "مرّر عموديًا في شاشة قابلة للتمرير.", "كبّر الصفحة بإصبعين.", "اضغط المايك وابدأ القراءة."], "قلب الصفحة والتمرير والتكبير والمايك كلها تعمل كالمعتاد."],
+  ["الإضاءة", "إيقاف الخيار وإعادة إضاءة الهاتف", ["غيّر الإضاءة بالسحب لمستوى مختلف عن إضاءة الهاتف.", "أوقف الخيار من الإعدادات."], "تعود إضاءة الهاتف الأصلية، ولا يغيّر السحب الإضاءة بعد ذلك."],
+  ["الإضاءة", "الخروج من التطبيق يعيد إضاءة النظام", ["فعّل الخيار وغيّر الإضاءة بالسحب.", "اخرج من التطبيق إلى الشاشة الرئيسية للهاتف."], "إضاءة النظام تعود كما كانت خارج التطبيق."]
+ ]],
+ ["الإذاعة", [
+  ["الإذاعة", "الدولة من الموقع وتغييرها يدويًا", ["افتح #/radio (من القائمة أو الصفحة الرئيسية للإذاعة).", "لاحظ الدولة المختارة تلقائيًا من موقعك.", "غيّر الدولة يدويًا."], "الدولة تُحدَّد من الموقع، وتغييرها يدويًا يعمل ويُحفظ."],
+  ["الإذاعة", "تشغيل كل إذاعة من الأربع", ["شغّل إذاعة الزيتونة.", "شغّل صوت القرآن باكستان.", "شغّل إذاعة قطر ١ ثم قطر ٢."], "كل إذاعة من الأربع تُشغَّل ويُسمع صوتها، والانتقال بينها يوقف السابقة."],
+  ["الإذاعة", "إشعار الوسائط والشاشة المقفلة", ["شغّل إذاعة، ثم اسحب لوحة الإشعارات.", "اضغط إيقاف ثم تشغيل من الإشعار.", "اقفل الشاشة وجرّب التشغيل والإيقاف من الإشعار."], "الإشعار فيه تشغيل/إيقاف يعمل، ويعمل أيضًا والشاشة مقفلة."],
+  ["الإذاعة", "قطع الإنترنت", ["شغّل إذاعة، ثم افصل الإنترنت (وضع الطيران)."], "تظهر رسالة انقطاع الاتصال ولا يتعطل التطبيق."],
+  ["الإذاعة", "وقت الأذان", ["شغّل إذاعة قبل وقت الأذان (أو اضبط اختبار أذان قريبًا من إعدادات الأذان).", "انتظر وقت الأذان."], "تتوقف الإذاعة عند الأذان ثم تعود بعده."],
+  ["الإذاعة", "القراءة بالمايك توقف الإذاعة", ["شغّل إذاعة.", "ابدأ القراءة بالمايك."], "تتوقف الإذاعة بمجرد بدء القراءة بالمايك."]
+ ]],
+ ["رفع التسجيلات من القراءة", [
+  ["الرفع", "مستخدم وافق قديمًا يُسأل مرة واحدة", ["على هاتف كان وافق سابقًا على الرفع: ابدأ أول قراءة بالمايك بعد التحديث."], "يظهر سؤال الموافقة مرة واحدة عند أول قراءة بالمايك فقط."],
+  ["الرفع", "الاختيار «لا»", ["اختر «لا» في السؤال.", "ابدأ قراءة بالمايك مرة أخرى."], "لا يُسأل بعد ذلك."],
+  ["الرفع", "«أوافق» وزيادة «بانتظار الرفع»", ["الإعدادات: لاحظ عدد «بانتظار الرفع».", "اختر «أوافق» (أو فعّل الخيار) ثم اقرأ صفحة بوضوح بالمايك.", "ارجع إلى الإعدادات."], "عدد «بانتظار الرفع» يزيد بعد القراءة الواضحة."],
+  ["الرفع", "القارئ أو الإذاعة أثناء القراءة", ["لاحظ العدد في الإعدادات.", "ابدأ القراءة بالمايك ثم شغّل القارئ (التلاوة) أو الإذاعة أثناءها.", "ارجع إلى الإعدادات."], "العدد لا يزيد بسبب صوت القارئ أو الإذاعة."]
+ ]],
+ ["الشكل", [
+  ["الشكل", "عناوين أقسام الإعدادات", ["افتح الإعدادات في الوضع الفاتح ثم الداكن."], "عناوين الأقسام بلا خط جانبي في الوضعين."],
+  ["الشكل", "بطاقة نتيجة البحث", ["ابحث عن كلمة وانظر إلى نتائج البحث في الوضع الفاتح ثم الداكن."], "بطاقة النتيجة بإطار ذهبي رفيع في الوضعين."],
+  ["الشكل", "الحواشي في التفسير", ["افتح تفسيرًا فيه حواشٍ في الوضع الفاتح ثم الداكن."], "الحواشي بلا خط جانبي في الوضعين."]
+ ]],
+ ["عام", [
+  ["عام", "تحديث التطبيق (In-App Updates)", ["هذا البند لا يمكن اختباره من APK على GitHub، فلا تجرّبه هنا."], "يُختبر من Play."]
+ ]]
+];var KEY = "pt543", S = {}; try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+var L = document.getElementById("list"), id = 0;
+G.forEach(function (g) {
+  var h = document.createElement("h2"); h.textContent = g[0]; L.appendChild(h);
+  g[1].forEach(function (it) {
+    var k = "i" + (++id), st = S[k] || {}, c = document.createElement("div");
+    c.className = "card" + (st.v ? " " + st.v : "");
+    c.innerHTML = '<div class="t"><b class="n">' + id + "</b>" + it[1] + "</div><ol>" + it[2].map(function (s) { return "<li>" + s + "</li>"; }).join("") +
+      '</ol><div class="ok">' + it[3] + '</div><div class="btns"><button class="p">نجح ✓</button><button class="f">فيه مشكلة ✗</button></div><textarea rows="2" placeholder="اكتب ما حدث…"></textarea>';
+    var ta = c.querySelector("textarea"); ta.value = st.n || "";
+    function set(v) { S[k] = { v: S[k] && S[k].v === v ? "" : v, n: ta.value }; c.className = "card" + (S[k].v ? " " + S[k].v : ""); save(); }
+    c.querySelector(".p").onclick = function () { set("pass"); };
+    c.querySelector(".f").onclick = function () { set("fail"); };
+    ta.oninput = function () { S[k] = { v: (S[k] || {}).v || "fail", n: ta.value }; save(); };
+    L.appendChild(c);
+  });
+});
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} sum(); }
+function sum() { var p = 0, f = 0; Object.keys(S).forEach(function (k) { if (S[k].v === "pass") p++; if (S[k].v === "fail") f++; });
+  document.getElementById("sum").textContent = "نجح " + p + " · فيه مشكلة " + f + " · فاضل " + (id - p - f) + " من " + id; }
+sum();
+// Export: results live in this browser's storage, not in the file, so give the user text to paste in the chat.
+function report() { var n = 0, out = [];
+  G.forEach(function (g) { g[1].forEach(function (it) { var st = S["i" + (++n)] || {};
+    out.push(n + ". " + it[1] + ": " + (st.v === "pass" ? "نجح" : st.v === "fail" ? "مشكلة" + (st.n ? " ← " + st.n : "") : "—")); }); });
+  return "لوْح 5.43 (91)\n" + document.getElementById("sum").textContent + "\n" + out.join("\n"); }
+var B = document.createElement("button"), T = document.createElement("textarea");
+B.textContent = "📋 نسخ النتائج"; B.style.cssText = "width:100%;padding:14px;margin:18px 0 6px;font-size:17px;border-radius:10px;border:0;background:#1f3a5f;color:#fff;font-family:inherit";
+T.rows = 10; T.style.display = "none";
+B.onclick = function () { var r = report(); T.value = r; T.style.display = "block"; T.select();
+  if (navigator.share) { navigator.share({ text: r }).catch(function () {}); }
+  else if (navigator.clipboard) { navigator.clipboard.writeText(r).then(function () { B.textContent = "✓ تم النسخ – الصقها في المحادثة"; }, function () {}); } };
+document.body.appendChild(B); document.body.appendChild(T);
+</script>
+</body></html>
