@@ -66,7 +66,9 @@ def run(variant):
                 for k in range(a, b):
                     ok = 1 if fr[own[k - a]] is not None else 0
                     inside = s['a'] <= k < s['b']
-                    if variant.startswith('ctc_up'): v[k] = max(v.get(k, 0), ok) if inside else v.get(k)
+                    # 5.38: the app's ctcJudge never rescues a pair-swap red (rLocal's sw mark = red only because of an R_PAIRS
+                    # letter swap); mirror it so ctc_up matches the app (plain 'ctc' is the old replace variant, unchanged)
+                    if variant.startswith('ctc_up'): v[k] = (v.get(k, 0) if str(k) in (s.get('sw') or {}) else max(v.get(k, 0), ok)) if inside else v.get(k)
                     elif inside: v[k] = ok
                     elif ok: v[k] = 1                     # edge word outside the span: only turns right
                 v = {k: x for k, x in v.items() if x is not None}
