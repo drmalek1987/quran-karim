@@ -828,3 +828,11 @@ On the phone:
 - run-parallel ui.js 402/0 on all 4 editions; new check: English home/prayer/hifzlog show no Arabic UI text (fasting reason, prayer tile, muezzin + reminder, countdown, «آية نسيتها», bell labels).
 - Notifications + widgets in English (new check: 0 Arabic in EN payload, Arabic payload unchanged). 403/0 x3, harmain 1 flake (5.29 #11, passes alone).
 - Phone bee81250: English home / prayer / review show no Arabic UI text; the prayer widget switches language with the app.
+
+## 5.43 (2026-11-27) — Sprint 7: prayer tracker, swipe brightness, Quran radio, reading clips
+- Automated: run-parallel ui.js kfgqpc/kfold/shamarly 451/0, harmain 451/1 (5.29 #11 vertical mic, passes alone 2/2: parallel-load flake). data.py 28/0, matrix 40/0, fs-motion 17/17, recite_sim no errors.
+- New ui.js groups (re-run every release): «متابعة الصلوات» (8), «سحب الإضاءة #18» (9, toggle ON: flip, vertical scroll, pinch #19, mic), «إذاعة القرآن #34» (11), «رفع التسجيلات من القراءة #3» (16); pace default «تلقائي» + kept manual choice (G536); More = 18 tiles (G14); settings headings without side stripe (G17).
+- ui.js now names the check in each JS error («... @ group / check»): a run that hides a failing check behind ONLY can't fool the «no JS errors» check any more.
+- Emulator smoke (Phone_API35): radio Qatar 1 PLAYING after 15 s and after HOME 20 s, RadioService foreground (type 0x2), media notification with pause/stop, no FATAL.
+- Phone (user): plans/phone-test-5.43.html, 28 items (brightness back-gesture, real streams + HLS, adhan pause, mic pause, one-time consent ask, «بانتظار الرفع» counter).
+- Not checked: tools/qa/donate.js stops at #htMic (old 5.16 tool, no baseline run possible); In-App Updates only from Play.
