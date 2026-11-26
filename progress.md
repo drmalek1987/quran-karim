@@ -1288,4 +1288,5 @@ Resume: phone EN check when connected -> on the user's OK push main + builds rel
 - QA 5.42 (with notifications): run-parallel 403/0 on kfgqpc, kfold, shamarly; harmain 403/1 = 5.29 #11 vertical random review (passed alone 2/2: parallel-load flake, unrelated).
 - Phone 5.42 (user awake, asked; QK_AWAKE=1 skips only the night/airplane guard): English home, prayer, review: no Arabic UI text; prayer widget on the home screen «Next prayer · Dhuhr · 11:43 AM», back to «الصلاة القادمة» in Arabic. Notification channel names update at the next notification. Language back to Arabic, reading position kept (Al-Baqarah p41).
 - PUSHED: main + builds release v5.42 (user: «بعد تجربة الهاتف»).
-Resume: open for user: phone items 9+10; Play AAB; .set-group stripe.
+- Play AAB 5.42: quran-karim-v5.42-play.aab 40,783,277 B, com.lawh.quran 90/5.42, minSdk 24, signed with the upload key (71:18:F1…), no harmain/adhan audio, 5.42 code inside. Arabic notes store/release-notes-5.42.txt (390 chars, covers 5.38-5.42; Play upload since 5.37). Play test APK kept as quran-karim-v5.42-playtest.apk; GitHub APK restored (sha matches release).
+Resume: user uploads the AAB to Alpha; after Play publishes 5.42 set editions version.json play {code:90,name:'5.42'}. Open: phone items 9+10; .set-group stripe.
