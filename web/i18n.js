@@ -221,7 +221,7 @@
     // tajweed
     "رواية حفص عن عاصم من طريق الشاطبية": "Hafs from 'Asim, by way of al-Shatibiyyah", "ألوان التجويد في عرض النص": "Tajweed colours in the text view",
     "همزة الوصل": "Hamzat al-wasl", "لام شمسية": "Lam shamsiyyah", "حرف لا يُنطق": "Silent letter", "مد عارض أو لين (# أو # أو #)": "Madd 'arid or lin (# / # / #)",
-    "مد منفصل (# أو #)": "Madd munfasil (# or #)", "مد متصل (# أو #)": "Madd muttasil (# or #)", "مد لازم (#)": "Madd lazim (#)", "غنة": "Ghunnah", "إخفاء": "Ikhfa'",
+    "مد منفصل (# أو #)": "Madd munfasil (# or #)", "مد متصل (# أو #)": "Madd muttasil (# or #)", "مد لازم (#)": "Madd lazim (#)", "غنة": "Ghunnah",
     "إخفاء شفوي": "Ikhfa' shafawi", "إقلاب": "Iqlab", "إدغام بغنة": "Idgham with ghunnah", "إدغام بغير غنة": "Idgham without ghunnah", "إدغام شفوي": "Idgham shafawi",
     "إدغام متجانسين": "Idgham mutajanisayn", "إدغام متقاربين": "Idgham mutaqaribayn", "قلقلة": "Qalqalah",
     "تظهر الألوان في عرض النص وفي صفحة الآية، ويمكن إيقافها من الإعدادات. صفحات المصحف المصوّرة تبقى كما طُبعت.": "The colours show in the text view, on the mushaf pages and on the verse screen, and can be turned off in Settings.",
@@ -420,6 +420,11 @@
   var DUPD = { "يتوفر إصدار جديد من لوْح": "A new version of Lawh is available", "تحديث الآن": "Update now", "لاحقًا": "Later", "التحقق من التحديثات": "Check for updates", "تحقّق": "Check",
     "جارٍ التحقق…": "Checking…", "لديك أحدث إصدار (#)": "You have the latest version (#)", "يتوفر إصدار جديد (#)": "A new version is available (#)", "تعذّر الاتصال، حاول لاحقًا": "Couldn't connect, try again later" };
   for (var cUpd in DUPD) if (D[cUpd] === undefined) D[cUpd] = DUPD[cUpd];
+  // Tajweed rule names, in app.js TJ_NAMES order. Their own list: «إخفاء» is also the «Hide» button (Settings), and one
+  // key can't say both; it read «Ikhfa'» on the status-bar switch (5.43).
+  window.TJ_EN = ["Hamzat al-wasl", "Lam shamsiyyah", "Silent letter", "Madd 'arid or lin (2 / 4 / 6)", "Madd munfasil (4 or 5)", "Madd muttasil (4 or 5)",
+    "Madd lazim (6)", "Ghunnah", "Ikhfa'", "Ikhfa' shafawi", "Iqlab", "Idgham with ghunnah", "Idgham without ghunnah", "Idgham shafawi",
+    "Idgham mutajanisayn", "Idgham mutaqaribayn", "Qalqalah"];
   // 5.42: lines built from parts that the phone pass found still in Arabic. Generated, so every combination matches.
   (function () {
     function put(k, v) { if (D[k] === undefined) D[k] = v; }

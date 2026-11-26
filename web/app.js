@@ -6411,6 +6411,8 @@
   // TAJWEED.q[s-1][a-1] = flat [start, end, rule, ...] offsets into Q.t; TAJWEED.rules names the rules.
   var TJ_NAMES = ["همزة الوصل", "لام شمسية", "حرف لا يُنطق", "مد عارض أو لين (٢ أو ٤ أو ٦)", "مد منفصل (٤ أو ٥)", "مد متصل (٤ أو ٥)",
     "مد لازم (٦)", "غنة", "إخفاء", "إخفاء شفوي", "إقلاب", "إدغام بغنة", "إدغام بغير غنة", "إدغام شفوي", "إدغام متجانسين", "إدغام متقاربين", "قلقلة"];
+  // English names come from i18n.js TJ_EN: «إخفاء» alone would read «Hide» there (the same word is a button).
+  function tjName(r) { return window.LANG === "en" && window.TJ_EN && TJ_EN[r] ? TJ_EN[r] : TJ_NAMES[r]; }
   function withTajweed(done) {
     if (window.TAJWEED) { done(); return; }
     need("tj", "tajweed-data.js", function () { if (window.TAJWEED) done(); });
@@ -6587,7 +6589,7 @@
     body.innerHTML = (order.length ? "" : '<p class="hint">لا توجد في هذه الآية أحكام ملوّنة غير المد الطبيعي.</p>') +
       order.map(function (r) {
         var les = lessons.filter(function (l) { return l.rule === r; })[0];
-        return '<div class="tj-rule"><div class="tj-head"><i class="tj-dot tjb' + r + '"></i>' + TJ_NAMES[r] + "</div>" +
+        return '<div class="tj-rule"><div class="tj-head"><i class="tj-dot tjb' + r + '"></i>' + tjName(r) + "</div>" +
           '<div class="tj-words">' + by[r].join('<span class="tj-sep">،</span> ') + "</div>" +
           (les ? '<p class="tj-why">' + les.p[0] + "</p>" : "") + "</div>";
       }).join("") +
@@ -6607,7 +6609,7 @@
       if (location.hash !== "#/tajweed") return;
       var L = window.TAJWEED_LESSONS;
       var legend = '<div class="tj-legend">' + TJ_NAMES.map(function (n, r) {
-        return '<span><i class="tj-dot tjb' + r + '"></i>' + n + "</span>";
+        return '<span><i class="tj-dot tjb' + r + '"></i>' + tjName(r) + "</span>";
       }).join("") + "</div>";
       view.innerHTML = '<div class="learn-hero"><b>أحكام التجويد</b><span>رواية حفص عن عاصم من طريق الشاطبية</span></div>' +
         '<div class="learn-card"><h3>ألوان التجويد في عرض النص</h3>' + legend +

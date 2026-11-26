@@ -2192,6 +2192,14 @@ async function fresh(ctx, vp) {
         return { n: al.length, ar: al.filter(e => AR.test(e.title + e.text)).length, lang: wd.lang, wAr: AR.test(wd.cont + wd.place + (wd.ayat || []).map(a => a.r).join('') + (wd.prayers || []).map(x => x.n + x.t).join('')) }; });
       await c.close(); }
     return assert(res.en.n > 50 && res.en.ar === 0 && res.en.lang === 'en' && !res.en.wAr && res.ar.n === res.en.n && res.ar.ar === res.ar.n && res.ar.lang === 'ar' && res.ar.wAr, JSON.stringify(res)); });
+  // 5.43: «إخفاء» is a button («Hide») and a tajweed rule («Ikhfa'»); one key said «Ikhfa'» on the status-bar switch.
+  await check('عام', 'الإنجليزي: زرّ «إخفاء» بيقول Hide، واسم حكم التجويد بيقول Ikhfa\'', async () => {
+    const c = await b.newContext({ viewport: { width: 390, height: 844 } }); await fresh(c);
+    await p.addInitScript(() => { localStorage.setItem('q.lang', '"en"'); if (!localStorage.getItem('q.onboarded')) { localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.mode', '"text"'); localStorage.setItem('q.tourDone', '1'); } });
+    await p.goto(W + '#/'); await wait(2500);
+    const off = await ev(() => [...document.querySelectorAll('button[data-v="off"]')].map(x => x.textContent.trim()));
+    await go('#/tajweed', 1500); const tj = await ev(() => [...document.querySelectorAll('.tj-legend span')].map(x => x.textContent.trim())); await c.close();
+    return assert(off.includes('Hide') && !off.some(t => /Ikhfa/.test(t)) && tj.includes("Ikhfa'") && !tj.includes('Hide'), JSON.stringify({ off, tj: tj.slice(7, 10) })); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));
