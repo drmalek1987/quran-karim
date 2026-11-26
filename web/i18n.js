@@ -452,6 +452,29 @@
     // The next prayer's time and how long until it (prayer screen).
     [["ص", "AM"], ["م", "PM"]].forEach(function (x) { put("#:# " + x[0] + " · بعد # س # د", "#:# " + x[1] + " · in # h # min"); put("#:# " + x[0] + " · بعد # د", "#:# " + x[1] + " · in # min"); });
     put("استمع", "Listen");
+    // Notifications and widgets (app.js translates them with T() before handing them to Android).
+    PR.forEach(function (p) {
+      put("صلاة " + p[0], p[1] + " prayer");
+      [["ص", "AM"], ["م", "PM"]].forEach(function (x) { put("أذان " + p[0] + " الساعة #:# " + x[0] + "، استعد للصلاة.", p[1] + " adhan at #:# " + x[1] + ", get ready for the prayer."); });
+      put("باقي # دقيقة على " + p[0], "# min until " + p[1]);
+    });
+    put("حان وقت أذكار الصباح، اضغط لتبدأ.", "Time for the morning adhkar, tap to start.");
+    put("حان وقت أذكار المساء، اضغط لتبدأ.", "Time for the evening adhkar, tap to start.");
+    put("من قرأ سورة @ يوم الجمعة أضاء له من النور ما بين الجمعتين. اضغط لتقرأها.", "Whoever reads Surah Al-Kahf on Friday, light will shine for him from one Friday to the next. Tap to read it.");
+    put("صيام الغد", "Tomorrow's fast");
+    for (var m2 = 1; m2 < 1 << FA.length; m2++) {
+      var a2 = [], e2 = []; FA.forEach(function (f, i) { if (m2 & 1 << i) { a2.push(f[0]); e2.push(f[1]); } });
+      put("غدًا يُستحب صيامه: " + a2.join(" و") + ". لا تنسَ السحور.", "Tomorrow is a sunnah fast: " + e2.join(" and ") + ". Don't forget suhoor.");
+    }
+    put("راجع اليوم سورة @.", "Review Surah @ today."); put("راجع اليوم ربعًا من سورة @.", "Review a quarter of Surah @ today.");
+    put("راجع اليوم سورة @ و# ربع/سورة أخرى.", "Review Surah @ and # more quarter/surah today."); put("راجع اليوم ربعًا من سورة @ و# ربع/سورة أخرى.", "Review a quarter of Surah @ and # more quarter/surah today.");
+    put("قراءتك اليوم", "Your reading today");
+    put("قرأت # صفحة (# كلمة و# حرف). بكل حرف حسنة، والحسنة بعشر أمثالها.", "You read # pages (# words and # letters). Every letter is a good deed, and a good deed is rewarded tenfold.");
+    put("لم تقرأ اليوم بعد. صفحة واحدة قبل النوم؟", "You haven't read today yet. One page before sleep?");
+    put("هدف القراءة", "Reading goal"); put("بقي لك # صفحة وتحقق هدف اليوم.", "# more pages and you reach today's goal."); put("هدفك اليوم # صفحة، هيا نبدأ؟", "Your goal today is # pages. Shall we start?");
+    put("ورد اليوم في انتظارك، اضغط لتكمل من حيث توقفت.", "Today's ward is waiting, tap to continue where you stopped.");
+    put("مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.", "A month without a backup. Tap to save one to Drive so your bookmarks and memorisation are safe.");
+    put("أكمل القراءة · صفحة #", "Continue reading · page #"); put("أكمل القراءة · سورة @", "Continue reading · Surah @");
   })();
   for (var c in CITY) D[c] = CITY[c];
 

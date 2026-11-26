@@ -1283,3 +1283,7 @@ Resume: open for user: phone items 9+10; other EN gaps (fasting reason, prayer c
 - Phone disconnected (adb: device not found) — phone check pending.
 - QA 5.42: run-parallel 402/0 x4. Committed locally (not pushed: push needs the user's OK).
 Resume: phone EN check when connected -> on the user's OK push main + builds release v5.42.
+- 2026-11-26: user «خلص كل الترجمات» -> notifications + widgets too: syncAlarms translates title/text with T() in English (adhan line with the city built in English), syncWidget translates cont/place/ref/prayers and sends lang; Java (Alarms.en/tr from the widget JSON) translates channel names, widget titles + empty states, share/backup chooser titles. i18n: keys for every notification template (+ all fasting combos). Headless: 42 kinds of EN notifications, 0 Arabic; Arabic payload unchanged. New ui.js check. Rebuilt 5.42 (dex + web verified in APK).
+- PHONE INCIDENT 05:12: a test tap landed under a ringing Clock alarm heads-up (no STOP/SNOOZE pressed; alarm kept ringing). Stopped all phone work. phone.py safe() now also stops on alarm/ringtone audio focus, phone hour < 7, airplane mode. Memory phone-test-safety updated. Phone app language still Arabic, nothing to restore.
+- QA 5.42 (with notifications): run-parallel 403/0 on kfgqpc, kfold, shamarly; harmain 403/1 = 5.29 #11 vertical random review (passed alone 2/2: parallel-load flake, unrelated).
+Resume: phone EN check in the daytime (home, prayer, a notification, widgets) -> on the user's OK push main + builds release v5.42.

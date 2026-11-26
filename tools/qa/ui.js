@@ -2165,6 +2165,20 @@ async function fresh(ctx, vp) {
     await go('#/hifzlog', 1200); const lt = await ev(() => (document.querySelector('.tc-last') || {}).textContent || ''); await c.close();
     return assert(!home.length && !pray.length && /^(Fajr|Sunrise|Dhuhr|Asr|Maghrib|Isha) \d{1,2}:\d\d [AP]M$/.test(tile) && /Muhammad Siddiq Al-Minshawi · reminder 60 min before/.test(rows) && / · 2 verses forgotten/.test(lt),
       JSON.stringify({ home, pray, tile, rows, lt })); });
+  // 5.42: notifications and widgets go straight to Android, past the page's translation: app.js translates them in English.
+  await check('عام', 'الإشعارات والـ widget بالإنجليزي: كل العناوين والنصوص مترجمة، و lang بيوصل للـ Java', async () => {
+    const res = {}; for (const lang of ['en', 'ar']) {
+      const c = await b.newContext({ viewport: { width: 360, height: 780 } }); await fresh(c, { width: 360, height: 780 });
+      await p.addInitScript(lang => { localStorage.setItem('q.lang', JSON.stringify(lang)); localStorage.setItem('q.qiblaLoc', JSON.stringify([30.06, 31.23, 'القاهرة']));
+        localStorage.setItem('q.prayer', JSON.stringify({ method: 'egypt', hanafi: false, adhan: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true }, voice: {}, pre: { fajr: 10 } }));
+        const on = t => ({ on: true, t }); localStorage.setItem('q.reminders', JSON.stringify({ wird: on('20:00'), m: on('06:30'), e: on('16:30'), kahf: on('09:00'), fast: on('21:00'), stat: on('22:30') }));
+        if (!localStorage.getItem('q.onboarded')) { localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.mode', '"text"'); localStorage.setItem('q.tourDone', '1'); }
+        window.AppBridge = { setAlarms(j) { window.__al = JSON.parse(j); }, setWidget(j) { window.__wd = JSON.parse(j); }, buzz() {}, tick() {} }; }, lang);
+      await p.goto(W + '#/'); await wait(3500);
+      res[lang] = await ev(() => { const al = window.__al || [], wd = window.__wd || {}, AR = /[ء-ي]/;
+        return { n: al.length, ar: al.filter(e => AR.test(e.title + e.text)).length, lang: wd.lang, wAr: AR.test(wd.cont + wd.place + (wd.ayat || []).map(a => a.r).join('') + (wd.prayers || []).map(x => x.n + x.t).join('')) }; });
+      await c.close(); }
+    return assert(res.en.n > 50 && res.en.ar === 0 && res.en.lang === 'en' && !res.en.wAr && res.ar.n === res.en.n && res.ar.ar === res.ar.n && res.ar.lang === 'ar' && res.ar.wAr, JSON.stringify(res)); });
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
   for (const r of out) console.log(r.join('\t'));

@@ -26,6 +26,12 @@ final class Alarms {
 
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
 
+    /** The app's own language (Settings › لغة التطبيق), which the page sends with the widget data; Arabic until it has. */
+    static boolean en(Context c) {
+        try { return "en".equals(new JSONObject(prefs(c).getString("widget", "{}")).optString("lang")); } catch (Exception e) { return false; }
+    }
+    static String tr(Context c, String ar, String en) { return en(c) ? en : ar; }
+
     static void store(Context c, String json) {
         prefs(c).edit().putString("events", json).apply();
         schedule(c);
@@ -93,7 +99,7 @@ final class Alarms {
         Uri sound = raw != 0 ? Uri.parse("android.resource://" + c.getPackageName() + "/" + raw) : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         String ch = adhan ? (raw != 0 ? CH_ADHAN + "_" + voice : "silent".equals(voice) ? CH_ADHAN + "_silent" : CH_ADHAN) : CH_REM;
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel nc = new NotificationChannel(ch, adhan ? "الأذان" + (raw != 0 ? " (" + voice + ")" : "") : "التذكيرات",
+            NotificationChannel nc = new NotificationChannel(ch, adhan ? tr(c, "الأذان", "Adhan") + (raw != 0 ? " (" + voice + ")" : "") : tr(c, "التذكيرات", "Reminders"),
                 adhan ? NotificationManager.IMPORTANCE_HIGH : NotificationManager.IMPORTANCE_DEFAULT);
             if (adhan && "silent".equals(voice)) nc.setSound(null, null);
             else if (adhan) nc.setSound(sound, new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build());

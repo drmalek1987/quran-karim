@@ -4749,7 +4749,8 @@
         var t = prayerTimes(day, loc[0], loc[1], cfg.method, cfg.hanafi);
         PRAYERS.forEach(function (p) {
           if (p[0] === "sunrise") return;
-          if (cfg.adhan[p[0]]) ev.push({ at: t[p[0]].getTime(), kind: "adhan", v: voiceOf(cfg, p[0]), title: "صلاة " + p[1], text: "حان الآن موعد أذان " + p[1] + (loc[2] ? " حسب توقيت " + loc[2] : "") + ".", hash: "#/prayer" });
+          if (cfg.adhan[p[0]]) ev.push({ at: t[p[0]].getTime(), kind: "adhan", v: voiceOf(cfg, p[0]), title: "صلاة " + p[1], hash: "#/prayer",
+            text: window.LANG === "en" ? "It is time for the " + T(p[1]) + " adhan" + (loc[2] ? " (" + T(loc[2]) + " time)" : "") + "." : "حان الآن موعد أذان " + p[1] + (loc[2] ? " حسب توقيت " + loc[2] : "") + "." });
           var pm = cfg.pre[p[0]]; if (pm) ev.push({ at: t[p[0]].getTime() - pm * 60000, kind: "rem", title: "باقي " + ar(pm) + " دقيقة على " + p[1], text: "أذان " + p[1] + " الساعة " + hm(t[p[0]]) + "، استعد للصلاة.", hash: "#/prayer" });
         });
       }
@@ -4759,6 +4760,8 @@
     if (bd >= 0) { bd = Math.max(bd, dayNum(base) + (base.getHours() >= 20 ? 1 : 0)); var bt = new Date(bd * 864e5);
       ev.push({ at: new Date(bt.getUTCFullYear(), bt.getUTCMonth(), bt.getUTCDate(), 20, 0).getTime(), kind: "rem", title: "نسخة احتياطية",
         text: "مضى شهر دون نسخة احتياطية. اضغط واحفظها على Drive حتى لا تضيع علاماتك وحفظك.", hash: "#/backup" }); }
+    // English: the notifications go straight to Android, past the page's translation, so translate them here (5.42).
+    if (window.LANG === "en") ev.forEach(function (e) { e.title = T(e.title); e.text = T(e.text); });
     try { AppBridge.setAlarms(JSON.stringify(ev.filter(function (e) { return e.at > Date.now(); }))); } catch (e) {}
   }
   // Ayah of the day: from a list of well-known ayat that read complete on their own, picked by the date.
@@ -4781,7 +4784,10 @@
     var loc = load("qiblaLoc", null), cfg = prayerCfg(), pr = [];
     if (loc) for (var pd = 0; pd < 3; pd++) { var dd = new Date(base.getFullYear(), base.getMonth(), base.getDate() + pd), tt = prayerTimes(dd, loc[0], loc[1], cfg.method, cfg.hanafi);
       PRAYERS.forEach(function (p) { if (p[0] !== "sunrise") pr.push({ at: tt[p[0]].getTime(), n: p[1], t: hm(tt[p[0]]) }); }); }
-    try { AppBridge.setWidget(JSON.stringify({ ayat: ayat, cont: cont, contHash: contHash, prayers: pr, place: loc ? loc[2] || "" : "" })); } catch (e) {}
+    var place = loc ? loc[2] || "" : "";
+    // English: the widgets are drawn by Android, so their lines are translated here; "lang" tells the Java side (titles, empty states).
+    if (window.LANG === "en") { cont = T(cont); place = T(place); ayat.forEach(function (a) { a.r = T(a.r); }); pr.forEach(function (p) { p.n = T(p.n); p.t = T(p.t); }); }
+    try { AppBridge.setWidget(JSON.stringify({ ayat: ayat, cont: cont, contHash: contHash, prayers: pr, place: place, lang: window.LANG || "ar" })); } catch (e) {}
   }
 
   var prTimer = 0;

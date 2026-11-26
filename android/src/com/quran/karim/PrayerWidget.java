@@ -30,6 +30,7 @@ public class PrayerWidget extends AppWidgetProvider {
 
     private static RemoteViews views(Context c) {
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_prayer);
+        v.setTextViewText(R.id.wp_label, Alarms.tr(c, "الصلاة القادمة", "Next prayer"));
         JSONObject w;
         try { w = new JSONObject(Alarms.prefs(c).getString("widget", "{}")); } catch (Exception e) { w = new JSONObject(); }
         JSONArray pr = w.optJSONArray("prayers");
@@ -54,8 +55,8 @@ public class PrayerWidget extends AppWidgetProvider {
                 if (am != null) am.set(android.app.AlarmManager.RTC, next.optLong("at") + 2000, pi);
             } catch (RuntimeException ignored) { }
         } else {
-            v.setTextViewText(R.id.wp_name, "مواقيت الصلاة");
-            v.setTextViewText(R.id.wp_time, "افتح التطبيق وحدد مدينتك");
+            v.setTextViewText(R.id.wp_name, Alarms.tr(c, "مواقيت الصلاة", "Prayer times"));
+            v.setTextViewText(R.id.wp_time, Alarms.tr(c, "افتح التطبيق وحدد مدينتك", "Open the app and choose your city"));
             v.setChronometer(R.id.wp_left, SystemClock.elapsedRealtime(), null, false);
             v.setTextViewText(R.id.wp_place, "");
         }

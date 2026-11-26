@@ -29,6 +29,15 @@ def safe(pkg=PKG):
     calls = re.findall(r"mCallState=(\d)", adb("shell", "dumpsys telephony.registry"))
     if any(c != "0" for c in calls):
         sys.exit("STOP: call state " + ",".join(calls))
+    # A ringing alarm / ringtone shows as a heads-up that does not take focus (2026-11-26 05:12: a tap landed under
+    # the Clock alarm). Also never drive the phone at night or in airplane mode: the user may be asleep.
+    if re.search(r"usage=USAGE_(ALARM|NOTIFICATION_RINGTONE)", adb("shell", "dumpsys audio | grep -A3 'Focus stack'")):
+        sys.exit("STOP: an alarm or ringtone is sounding")
+    hour = int(adb("shell", "date +%H").strip() or 12)
+    if hour < 7:
+        sys.exit("STOP: night on the phone (%02d h)" % hour)
+    if adb("shell", "settings get global airplane_mode_on").strip() == "1":
+        sys.exit("STOP: airplane mode is on (the user may be asleep)")
     focus = re.search(r"mCurrentFocus=.*", adb("shell", "dumpsys window windows")) or \
         re.search(r"mCurrentFocus=.*", adb("shell", "dumpsys window"))
     f = focus.group(0) if focus else ""

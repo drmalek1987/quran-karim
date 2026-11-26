@@ -43,6 +43,7 @@ public class QuranWidget extends AppWidgetProvider {
 
     private static RemoteViews views(Context c) {
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget);
+        v.setTextViewText(R.id.w_title, Alarms.tr(c, "آية اليوم", "Ayah of the day"));
         JSONObject w;
         try { w = new JSONObject(Alarms.prefs(c).getString("widget", "{}")); } catch (Exception e) { w = new JSONObject(); }
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
@@ -62,11 +63,11 @@ public class QuranWidget extends AppWidgetProvider {
             v.setOnClickPendingIntent(R.id.w_ref, toAyah);
             v.setOnClickPendingIntent(R.id.w_title, toAyah);
         } else {
-            v.setTextViewText(R.id.w_ayah, "افتح التطبيق مرة لتظهر آية اليوم هنا");
+            v.setTextViewText(R.id.w_ayah, Alarms.tr(c, "افتح التطبيق مرة لتظهر آية اليوم هنا", "Open the app once to see the ayah of the day here"));
             v.setTextViewText(R.id.w_ref, "");
             v.setOnClickPendingIntent(R.id.w_ayah, open(c, 11, ""));
         }
-        v.setTextViewText(R.id.w_cont, w.optString("cont", "ابدأ القراءة"));
+        v.setTextViewText(R.id.w_cont, w.optString("cont", Alarms.tr(c, "ابدأ القراءة", "Start reading")));
         v.setOnClickPendingIntent(R.id.w_cont, open(c, 12, w.optString("contHash", "")));
         return v;
     }

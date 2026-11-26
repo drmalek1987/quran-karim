@@ -151,7 +151,7 @@ class AppBridge {
         activity.runOnUiThread(new Runnable() {
             public void run() {
                 Intent i = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text);
-                activity.startActivity(Intent.createChooser(i, "مشاركة الآية"));
+                activity.startActivity(Intent.createChooser(i, Alarms.tr(activity, "مشاركة الآية", "Share the ayah")));
             }
         });
     }
@@ -171,7 +171,7 @@ class AppBridge {
                     Uri uri = Uri.parse("content://" + ShareProvider.authority(activity) + "/" + f.getName());
                     Intent i = new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    activity.startActivity(Intent.createChooser(i, "مشاركة الآية").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+                    activity.startActivity(Intent.createChooser(i, Alarms.tr(activity, "مشاركة الآية", "Share the ayah")).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
                 } catch (Exception e) { }
             }
         });
@@ -192,7 +192,7 @@ class AppBridge {
                     Uri uri = Uri.parse("content://" + ShareProvider.authority(activity) + "/" + f.getName());
                     Intent i = new Intent(Intent.ACTION_SEND).setType("application/json").putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    activity.startActivity(Intent.createChooser(i, "حفظ النسخة الاحتياطية").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+                    activity.startActivity(Intent.createChooser(i, Alarms.tr(activity, "حفظ النسخة الاحتياطية", "Save the backup")).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
                 } catch (Exception e) { }
             }
         });

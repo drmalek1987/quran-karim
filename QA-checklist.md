@@ -826,4 +826,5 @@ On the phone:
 
 ## 5.42 (2026-11-25) — English gaps
 - run-parallel ui.js 402/0 on all 4 editions; new check: English home/prayer/hifzlog show no Arabic UI text (fasting reason, prayer tile, muezzin + reminder, countdown, «آية نسيتها», bell labels).
-- Phone: pending (phone disconnected).
+- Notifications + widgets in English (new check: 0 Arabic in EN payload, Arabic payload unchanged). 403/0 x3, harmain 1 flake (5.29 #11, passes alone).
+- Phone: pending (daytime).
