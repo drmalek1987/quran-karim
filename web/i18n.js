@@ -344,7 +344,7 @@
     "الألوان والمظهر": "Colours & look", "الصوت والتلاوة": "Audio & recitation", "التطبيق": "App",
     "wifi فقط": "Wi-Fi only", "مسموح": "Allowed", "امسح كل تسجيلاتي": "Delete all my recordings", "قرأت بشكل صحيح": "I read it right",
     "توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟": "Allow the app to keep clips of your voice while you recite and read with the mic, and send them, with no personal data, to improve recitation recognition?",
-    "تحسين التعرّف يشمل الآن القراءة بالمايك أيضًا: توافق على حفظ مقاطع من صوتك أثناء القراءة وإرسالها دون أي بيانات شخصية؟": "Improving recognition now includes mic reading too: do you agree to keep clips of your voice while you read and send them with no personal data?",
+    "نسعى لتحسين تجربة التلاوة بمساعدتك: هل توافق على حفظ مقاطع قصيرة من قراءتك بالمايك وإرسالها دون أي بيانات شخصية؟": "Help us improve recitation: may we save short clips of your mic reading and send them without any personal data?", "لا، شكرًا": "No, thanks",
     "تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.": "Delete every clip sent from this phone and those still waiting? This also stops sharing.",
     "المسح متاح في تطبيق الهاتف فقط": "Deleting works only in the phone app", "جارٍ المسح…": "Deleting…", "تم مسح كل تسجيلاتك": "All your recordings were deleted",
     "فشل المسح، جرّب مرة أخرى": "Deleting failed, try again", "فشل المسح، تأكّد من الإنترنت وجرّب مرة أخرى": "Deleting failed, check the connection and try again" };
@@ -423,13 +423,13 @@
     "السبت": "Sat", "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri",
     "اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.": "Tap each prayer you have prayed. A box opens when its time arrives.", "مؤدّاة": "prayed", "غير مؤدّاة": "not prayed" };
   for (var c30 in D30) if (D[c30] === undefined) D[c30] = D30[c30];
-  var D34 = { "إذاعة القرآن الكريم": "Quran Karim radio", "الدولة": "Country", "تونس": "Tunisia", "باكستان": "Pakistan", "قطر": "Qatar", "دولة أخرى": "Another country",
+  var D34 = { "إذاعة القرآن الكريم": "Quran Karim radio", "الدولة": "Country", "مصر": "Egypt", "تونس": "Tunisia", "قطر": "Qatar", "دولة أخرى": "Another country",
     "لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.": "No official radio for your country is in the app yet; these are the stations available.",
     "الإذاعة متاحة في تطبيق أندرويد فقط.": "The radio is available in the Android app only.", "جارٍ الاتصال…": "Connecting…",
     "لا يوجد اتصال بالإنترنت.": "No internet connection.", "تعذّر الاتصال بالإذاعة الآن، حاول لاحقًا.": "Could not connect to the radio now, try again later.",
     "تشغيل الإذاعة": "Play radio", "إيقاف الإذاعة": "Stop radio", "المصدر:": "Source:", "الصفحة الرسمية": "Official page",
-    "إذاعة الزيتونة للقرآن الكريم": "Zaitouna Radio for the Holy Quran", "الإذاعة التونسية": "Radio Tunisienne", "صوت القرآن (FM 93.4)": "Voice of the Quran (FM 93.4)",
-    "هيئة الإذاعة الباكستانية PBC": "Pakistan Broadcasting Corporation (PBC)", "مؤسسة قطر للإعلام": "Qatar Media Corporation (QMC)",
+    "إذاعة الزيتونة للقرآن الكريم": "Zaitouna Radio for the Holy Quran", "الإذاعة التونسية": "Radio Tunisienne",
+    "إذاعة القرآن الكريم من القاهرة": "Quran Karim Radio from Cairo", "الهيئة الوطنية للإعلام (ماسبيرو)": "National Media Authority (Maspero)", "مؤسسة قطر للإعلام": "Qatar Media Corporation (QMC)",
     "إذاعة القرآن الكريم – القناة الثانية": "Quran Karim Radio - Channel 2" };
   for (var c34 in D34) if (D[c34] === undefined) D[c34] = D34[c34];
   var DUPD = { "يتوفر إصدار جديد من لوْح": "A new version of Lawh is available", "تحديث الآن": "Update now", "لاحقًا": "Later", "التحقق من التحديثات": "Check for updates", "تحقّق": "Check",

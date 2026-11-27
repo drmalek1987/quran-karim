@@ -183,7 +183,12 @@ public class MainActivity extends Activity {
     private void showSplash() {
         final android.view.ViewGroup decor = (android.view.ViewGroup) getWindow().getDecorView();
         final FrameLayout splash = new FrameLayout(this);
-        splash.setBackgroundColor(0xFFF7F2E7);   // @color/bg
+        // light = @color/bg (cream); dark = the app's dark --bg. The page saves its theme in AppBridge.setThemeDark; "auto" follows the system.
+        android.content.SharedPreferences tp = getSharedPreferences("theme", MODE_PRIVATE);
+        boolean dark = tp.getBoolean("auto", true)
+            ? (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+            : tp.getBoolean("dark", false);
+        splash.setBackgroundColor(dark ? 0xFF0B0F17 : 0xFFF7F2E7);
         splash.setClickable(true);               // touches must not reach the page under it
         float dp = getResources().getDisplayMetrics().density;
         // Like the system splash: the adaptive icon's layers at 240dp, seen through a 160dp circle

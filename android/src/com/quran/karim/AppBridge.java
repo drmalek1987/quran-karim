@@ -85,6 +85,13 @@ class AppBridge {
         });
     }
 
+    /** 5.43: the theme the page applied (true = dark), kept for the splash that draws before the page; auto = follow the system night mode. */
+    @JavascriptInterface
+    public void setThemeDark(boolean dark) { activity.getSharedPreferences("theme", android.content.Context.MODE_PRIVATE).edit().putBoolean("dark", dark).apply(); }
+
+    @JavascriptInterface
+    public void setThemeAuto(boolean auto) { activity.getSharedPreferences("theme", android.content.Context.MODE_PRIVATE).edit().putBoolean("auto", auto).apply(); }
+
     /** #18: the brightness strip's rect in css px (0 width = hidden). From Android 10 it is kept out of the system back gesture. */
     @JavascriptInterface
     public void brightStrip(float x, float y, float w, float h) {

@@ -297,6 +297,7 @@
     root.style.setProperty("--quran-size", fontSize + "px");
     if (theme === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", theme === "sun" ? (sunDark() ? "dark" : "light") : theme);
     try { localStorage.setItem("q.themeNow", JSON.stringify(root.getAttribute("data-theme") || "")); } catch (e) {}   // the head script starts from it after a reload (language change)
+    try { if (window.AppBridge && AppBridge.setThemeDark) { AppBridge.setThemeAuto(theme === "auto"); AppBridge.setThemeDark(root.getAttribute("data-theme") === "dark"); } } catch (e) {}   // the native splash colour
     document.querySelectorAll("#theme button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === theme); });
     document.querySelectorAll("#mode button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (mode === "text" ? "text" : edition)); });
     document.querySelectorAll("#flip button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (turnMode === "v" ? "v" : flipMode)); });
@@ -338,11 +339,56 @@
       save("lang", b.dataset.v); location.reload();
     });
   });
+  // 5.43: Settings sections fold (accordion; the open ones are kept in q.setOpen) and every on/off pair of buttons draws as a switch.
+  // The buttons stay in the DOM and keep their own handlers; the switch only restyles them and clicks the other one on tap or Space.
+  (function () {
+    var body = document.querySelector("#settings .sheet-body"), heads = [], open = load("setOpen", null);
+    if (!Array.isArray(open)) open = window.QA_NOFS && open === null ? "all" : [0];
+    Array.prototype.slice.call(body.children).forEach(function (h) { if (h.tagName === "H3" && h.classList.contains("set-group")) heads.push(h); });
+    heads.forEach(function (h, i) {
+      var sec = document.createElement("div"), nx = h.nextElementSibling, label = h.textContent;
+      sec.className = "set-sec"; sec.id = "sec" + i;
+      while (nx && !(nx.tagName === "H3" && nx.classList.contains("set-group")) && nx.tagName !== "DETAILS") { var n2 = nx.nextElementSibling; sec.appendChild(nx); nx = n2; }
+      h.after(sec);
+      var b = document.createElement("button"); b.type = "button"; b.className = "set-tg"; b.setAttribute("aria-controls", sec.id);
+      b.innerHTML = '<span></span><svg class="ic set-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>'; b.firstChild.textContent = label;
+      h.textContent = ""; h.appendChild(b);
+      function paint(on) { b.setAttribute("aria-expanded", on ? "true" : "false"); sec.hidden = !on; h.classList.toggle("open", on); }
+      paint(open === "all" || open.indexOf(i) >= 0);
+      b.onclick = function () {
+        paint(b.getAttribute("aria-expanded") !== "true");
+        save("setOpen", heads.map(function (x, k) { return x.classList.contains("open") ? k : -1; }).filter(function (k) { return k >= 0; }));
+      };
+    });
+    // Open whatever holds el (a folded section or a closed <details>) so it can be scrolled to or lit up.
+    window.setOpenFor = function (el) {
+      if (!el) return;
+      var d = el.closest("#settings details"); if (d) d.open = true;
+      var sec = el.closest(".set-sec"), t = sec ? sec.previousElementSibling.querySelector(".set-tg") : el.querySelector && el.querySelector(".set-tg");
+      if (t && t.getAttribute("aria-expanded") !== "true") t.click();
+    };
+    body.querySelectorAll(".seg").forEach(function (seg) {
+      var bs = seg.querySelectorAll("button"), row = seg.closest(".row");
+      if (bs.length !== 2 || !row) return;
+      var k = [bs[0].dataset.v, bs[1].dataset.v].sort().join();
+      if (k !== "off,on" && k !== "0,1" && k !== "false,true") return;
+      var onB = /^(on|1|true)$/.test(bs[0].dataset.v) ? bs[0] : bs[1], offB = onB === bs[0] ? bs[1] : bs[0], t = "";
+      seg.classList.add("seg-sw"); row.classList.add("row-sw"); row.classList.remove("row-col");
+      row.childNodes.forEach(function (c) { if (c.nodeType === 3) t += c.nodeValue; });
+      seg.setAttribute("aria-label", t.trim()); seg.setAttribute("role", "switch"); seg.tabIndex = 0;
+      Array.prototype.forEach.call(bs, function (x) { x.tabIndex = -1; x.setAttribute("aria-hidden", "true"); });
+      function sync() { var on = onB.classList.contains("on"); seg.setAttribute("aria-checked", on ? "true" : "false"); seg.classList.toggle("is-on", on); }
+      new MutationObserver(sync).observe(seg, { subtree: true, attributes: true, attributeFilter: ["class"] }); sync();
+      function flip() { (onB.classList.contains("on") ? offB : onB).click(); }
+      seg.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); } });
+      seg.addEventListener("click", function (e) { if (e.target === seg) flip(); });
+    });
+  })();
   (function () {
     var body = document.querySelector("#settings .sheet-body"), h2 = body.querySelector("h2"), groups = body.querySelectorAll(".set-group");
     var j = document.createElement("div"); j.className = "set-jump";
     // A group inside a closed <details> (التحميلات, الخصوصية) opens it; data-chip gives a short chip name.
-    groups.forEach(function (g, i) { g.id = g.id || "sg" + i; var b = document.createElement("button"); b.textContent = g.dataset.chip || g.textContent; b.onclick = function () { if (g.parentNode.tagName === "DETAILS") g.parentNode.open = true; g.scrollIntoView({ behavior: "smooth", block: "start" }); }; j.appendChild(b); });
+    groups.forEach(function (g, i) { g.id = g.id || "sg" + i; var b = document.createElement("button"); b.textContent = g.dataset.chip || g.textContent; b.onclick = function () { setOpenFor(g); g.scrollIntoView({ behavior: "smooth", block: "start" }); }; j.appendChild(b); });
     h2.after(j);
     var fs = document.getElementById("fontSize").closest(".row"), pv = document.createElement("div"); pv.className = "set-prev";
     pv.innerHTML = Q.t[0][1] + ' <span class="ayah-no">﴿' + ar(2) + "﴾</span>"; fs.after(pv);
@@ -445,8 +491,8 @@
   // the question shows, so any way of closing it counts as «no» and it is never asked again.
   function donateV2Ask(then) {
     save("donateV", 1);
-    askYes((window.T || String)("تحسين التعرّف يشمل الآن القراءة بالمايك أيضًا: توافق على حفظ مقاطع من صوتك أثناء القراءة وإرسالها دون أي بيانات شخصية؟"),
-      function () { save("donateV", 2); then(); }, "أوافق", false, then);
+    askYes((window.T || String)("نسعى لتحسين تجربة التلاوة بمساعدتك: هل توافق على حفظ مقاطع قصيرة من قراءتك بالمايك وإرسالها دون أي بيانات شخصية؟"),
+      function () { save("donateV", 2); then(); }, "أوافق", false, then, "لا، شكرًا");
   }
   function consentDlg(then) {
     var d = el('<div class="dlg-back"><div class="dlg cs-dlg"><b>نموذج التعرّف على التلاوة</b><p class="hint">يعمل على الهاتف بدون إنترنت، وصوتك لا يخرج من الجهاز أثناء التعرّف. ' +
@@ -811,7 +857,7 @@
     document.body.classList.toggle("sheet-open", !sheet.hidden);
     if (sheet.hidden) sheet.querySelectorAll("details[open]").forEach(function (d) { d.open = false; });
   }).observe(sheet, { attributes: true, attributeFilter: ["hidden"] });
-  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); paintBk(); micPaint(); };
+  document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); paintBk(); micPaint(); donatePaint(); };
   document.getElementById("closeSettings").onclick = function () { sheet.hidden = true; };
   sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.hidden = true; });
   document.getElementById("btnSearch").onclick = function () { location.hash = "#/search"; };
@@ -1731,9 +1777,9 @@
     var show = !!(brightEl && !brightEl.hidden), key;
     var h = Math.min(window.innerHeight * 0.6, 200), top = (window.innerHeight - h) / 2;
     if (show) { brightEl.style.top = top + "px"; brightEl.style.height = h + "px"; }
-    key = show ? [0, Math.round(top), 24, Math.round(h)].join() : "0,0,0,0";
+    key = show ? [0, Math.round(top), 40, Math.round(h)].join() : "0,0,0,0";
     if (key === brightKey) return;
-    brightKey = key; brightBridge("brightStrip", show ? [0, top, 24, h] : [0, 0, 0, 0]);
+    brightKey = key; brightBridge("brightStrip", show ? [0, top, 40, h] : [0, 0, 0, 0]);
   }
   function brightShowPill(v) {
     if (!brightPill) return;
@@ -3406,7 +3452,7 @@
     if (kind === "fallback") toast("الميكروفون المختار غير متصل، سيُستخدم ميكروفون الهاتف");
     else if (kind === "routed") window.micRouted = text;
   };
-  function rdStop() { if (!rd.on) return; rd.on = false; try { if (window.Asr) Asr.stop(); } catch (e) {} Mic.stop(); rdPaint(); }
+  function rdStop() { if (!rd.on) return; rd.on = false; try { if (window.Asr) Asr.stop(); } catch (e) {} Mic.stop(); rdPaint(); setTimeout(function () { donateSend(); donatePaint(); }, 1000); }
   function rdToggle() {
     if (rd.on) return rdStop();
     if (hifz.on) return reciteToggle();          // ayat hidden: recite from memory, they show as they are said
@@ -3757,11 +3803,12 @@
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     d.querySelector("form").onsubmit = function (e) { e.preventDefault(); var v = inp.value.trim(); d.remove(); if (v) done(v); };
   }
-  function askYes(text, done, okLabel, danger, cancel) {
+  function askYes(text, done, okLabel, danger, cancel, noLabel) {
     var d = el('<div class="dlg-back"><div class="dlg"><p class="dlg-msg"></p><div class="dlg-btns">' +
       '<button type="button" class="' + (danger ? "dlg-del" : "dlg-ok") + ' dlg-yes"></button><button type="button" class="dlg-no">إلغاء</button></div></div></div>').firstChild;
     d.querySelector(".dlg-msg").textContent = text;
     d.querySelector(".dlg-yes").textContent = okLabel || "حسنًا";
+    if (noLabel) d.querySelector(".dlg-no").textContent = noLabel;
     document.body.appendChild(d);
     function no() { d.remove(); if (cancel) cancel(); }
     d.querySelector(".dlg-yes").onclick = function () { d.remove(); done(); };
@@ -5610,6 +5657,24 @@
   // ---------- #/prayerlog: weekly prayer tracker (5 prayers x 7 days, Saturday first). q.prayLog = {"YYYY-MM-DD": bitmask, bit0 = fajr .. bit4 = isha} (local dates) ----------
   var PL_DAYS = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
   function plKey(d) { return d.getFullYear() + "-" + (d.getMonth() < 9 ? "0" : "") + (d.getMonth() + 1) + "-" + (d.getDate() < 10 ? "0" : "") + d.getDate(); }
+  // The month name(s) of the week shown: Gregorian and Hijri, «نوفمبر – ديسمبر ٢٠٢٦» when the week spans two months.
+  var PL_GM_AR = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+    PL_GM_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  function plSpan(a, b, yr) {   // a, b = [monthName, year]; yr = text added after the year (Hijri: « هـ»)
+    var en = window.LANG === "en", sep = " – ", y = function (v) { return en ? String(v) : ar(v); };
+    if (a[0] === b[0] && a[1] === b[1]) return a[0] + " " + y(a[1]) + yr;
+    if (a[1] === b[1]) return a[0] + sep + b[0] + " " + y(a[1]) + yr;
+    return a[0] + " " + y(a[1]) + sep + b[0] + " " + y(b[1]) + yr;
+  }
+  function plMonths(d1, d2) {
+    var en = window.LANG === "en", g = function (d) { return [(en ? PL_GM_EN : PL_GM_AR)[d.getMonth()], d.getFullYear()]; },
+      out = plSpan(g(d1), g(d2), ""), h1 = hijri(d1), h2 = hijri(d2);
+    if (h1 && h2) {
+      var hm = function (h, d) { return [en ? HIJRI_EN[h.month - 1] : new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "long" }).format(d), h.year]; };
+      out += " · " + plSpan(hm(h1, d1), hm(h2, d2), en ? " AH" : " هـ");
+    }
+    return out;
+  }
   function showPrayerLog() {
     titleEl.textContent = "متابعة الصلوات";
     btnBack.hidden = false;
@@ -5618,7 +5683,7 @@
       var now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), log = load("prayLog", {}), loc = load("qiblaLoc", null), cfg = prayerCfg();
       var start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() + 1) % 7 + off * 7), days = [], done = 0, elig = 0;
       for (var i = 0; i < 7; i++) days.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
-      var html = '<div class="pl"><p class="hint">اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.</p><div class="pl-grid" role="group" aria-label="متابعة الصلوات"><span></span>' +
+      var html = '<div class="pl"><p class="pl-mo" id="plMonth">' + plMonths(days[0], days[6]) + '</p><p class="hint">اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.</p><div class="pl-grid" role="group" aria-label="متابعة الصلوات"><span></span>' +
         days.map(function (d) { return '<span class="pl-h' + (d.getTime() === today.getTime() ? " pl-t" : "") + '">' + PL_DAYS[(d.getDay() + 1) % 7] + "<b>" + ar(d.getDate()) + "</b></span>"; }).join("");
       pr.forEach(function (p, k) {
         html += '<span class="pl-n">' + p[1] + "</span>";
@@ -5641,14 +5706,14 @@
     }
     draw();
   }
-  // ---------- #/radio: official Quran radio (#34 phase 2). Native RadioService plays; q.radioCountry = tn|pk|qa|other, q.radioLast = last station id ----------
+  // ---------- #/radio: official Quran radio (#34 phase 2). Native RadioService plays; q.radioCountry = eg|tn|qa|other, q.radioLast = last station id ----------
   var RADIO = [
+    { id: "eg-quran", c: "eg", name: "إذاعة القرآن الكريم من القاهرة", owner: "الهيئة الوطنية للإعلام (ماسبيرو)", src: "https://www.maspero.eg/stream/7", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
     { id: "tn-zaitouna", c: "tn", name: "إذاعة الزيتونة للقرآن الكريم", owner: "الإذاعة التونسية", src: "https://radiotunisienne.tn", url: "https://radio.radiotunisienne.tn/radiozaitouna" },
-    { id: "pk-93", c: "pk", name: "صوت القرآن (FM 93.4)", owner: "هيئة الإذاعة الباكستانية PBC", src: "https://radio.gov.pk/", url: "https://whmsonic.radio.gov.pk:7002/stream?type=http&nocache=12" },
     { id: "qa-1", c: "qa", name: "إذاعة القرآن الكريم", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8" },
     { id: "qa-2", c: "qa", name: "إذاعة القرآن الكريم – القناة الثانية", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradio2live/quranradio2/playlist.m3u8" }];
-  var RADIO_BOX = { tn: [30.2, 37.6, 7.5, 11.6], pk: [23.6, 37.1, 60.8, 77.9], qa: [24.4, 26.2, 50.7, 51.7] };   // lat min/max, lon min/max
-  var RADIO_C = [["tn", "تونس"], ["pk", "باكستان"], ["qa", "قطر"], ["other", "دولة أخرى"]];
+  var RADIO_BOX = { eg: [22.0, 31.7, 24.7, 36.9], tn: [30.2, 37.6, 7.5, 11.6], qa: [24.4, 26.2, 50.7, 51.7] };   // lat min/max, lon min/max
+  var RADIO_C = [["eg", "مصر"], ["tn", "تونس"], ["qa", "قطر"], ["other", "دولة أخرى"]];
   var radioSt = { st: "stopped", id: "", reason: "" };
   function radioBridge() { try { return typeof AppBridge !== "undefined" && AppBridge.radioPlay ? AppBridge : null; } catch (e) { return null; } }
   function radioCountry() {
@@ -5674,8 +5739,10 @@
         if (mine && st === "loading") msg = "جارٍ الاتصال…";
         else if (mine && st === "error") msg = radioSt.reason === "offline" ? "لا يوجد اتصال بالإنترنت." : "تعذّر الاتصال بالإذاعة الآن، حاول لاحقًا.";
         var label = st === "playing" ? "إيقاف مؤقت" : st === "loading" ? "إيقاف الإذاعة" : "تشغيل الإذاعة";
-        html += '<div class="rd-card" data-id="' + s.id + '"><div class="rd-name">' + s.name + '</div><div class="rd-own"><span>المصدر:</span> <span>' + s.owner + '</span> · <a href="' + s.src + '" target="_blank" rel="noopener">الصفحة الرسمية</a></div>' +
-          '<button class="continue rd-btn' + (st === "playing" ? " on" : "") + '" data-id="' + s.id + '" aria-pressed="' + (st === "playing" ? "true" : "false") + '">' + label + "</button>" +
+        var pause = st === "playing" || st === "loading", tl = window.T || String;
+        html += '<div class="rd-card" data-id="' + s.id + '"><div class="rd-info"><div class="rd-name">' + s.name + '</div><div class="rd-own"><span>المصدر:</span> <span>' + s.owner + '</span> · <a href="' + s.src + '" target="_blank" rel="noopener">الصفحة الرسمية</a></div></div>' +
+          '<button class="rd-btn' + (st === "playing" ? " on" : "") + '" data-id="' + s.id + '" aria-pressed="' + (st === "playing" ? "true" : "false") + '" aria-label="' + tl(label) + '"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">' +
+          (pause ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>' : '<path d="M8 5.5v13l11-6.5z"/>') + "</svg></button>" +
           (msg ? '<div class="rd-msg' + (st === "error" ? " err" : "") + '" role="status">' + msg + "</div>" : "") + "</div>";
       });
       view.innerHTML = html + "</div></div>";
@@ -7112,7 +7179,7 @@
     testMicOff();
     // the backup reminder (S10): home, then Settings opened at the backup row
     if (location.hash === "#/backup") { history.replaceState(null, "", "#/"); setTimeout(function () {
-      document.getElementById("btnSettings").click(); var b = document.getElementById("bkOut"); if (b) b.scrollIntoView({ block: "center" }); }, 50); }
+      document.getElementById("btnSettings").click(); var b = document.getElementById("bkOut"); if (b) { setOpenFor(b); b.scrollIntoView({ block: "center" }); } }, 50); }
     ayahBar(null);
     var isPage = /^#\/p\//.test(location.hash);
     if (!isPage) fsSet(false);

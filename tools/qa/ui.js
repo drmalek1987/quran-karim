@@ -431,6 +431,18 @@ async function fresh(ctx, vp) {
     const hint = await ev(() => !document.getElementById('dlRow').textContent.includes('مرة واحدة'));
     return assert(order && closed && hint, JSON.stringify([order, closed, hint])); });
   await check(G17, 'أقسام الإعدادات ليها خلفية ملوّنة تميّزها (5.43: من غير خط جانبي)', async () => { await p.click('#btnSettings'); const r = await ev(() => { const g = document.querySelector('#settings .set-group'); const c = getComputedStyle(g); return [c.backgroundColor, c.borderInlineStartWidth]; }); await closeS(); return assert(r[0] !== 'rgba(0, 0, 0, 0)' && parseFloat(r[1]) === 0, JSON.stringify(r)); });
+  // 5.43: sections fold. q.setOpen [0] = only the first open; a tap opens one and is kept; a jump chip opens a folded section.
+  await check(G17, 'أقسام الإعدادات بتتطوي (5.43): الأول مفتوح بس، اللمس بيفتح ويتحفظ، وزرار القفز بيفتح القسم المطوي', async () => {
+    await ev(() => localStorage.setItem('q.setOpen', '[0]')); await p.reload(); await wait(1500); await p.click('#btnSettings'); await wait(300);
+    const a = await ev(() => [...document.querySelectorAll('#settings .set-tg')].map(b => b.getAttribute('aria-expanded') + ':' + document.getElementById(b.getAttribute('aria-controls')).hidden));
+    await p.click('#settings h3.set-group:nth-of-type(2) .set-tg'); await wait(150);
+    const b = await ev(() => [document.querySelectorAll('#settings .set-tg')[1].getAttribute('aria-expanded'), localStorage.getItem('q.setOpen')]);
+    await ev(() => { const t = document.querySelectorAll('#settings .set-tg')[1]; t.click(); }); await wait(100);   // fold it again
+    const sec = await ev(() => document.querySelectorAll('#settings .set-sec')[2].id);
+    await ev(id => { const g = document.querySelectorAll('#settings h3.set-group')[2]; window.setOpenFor(g.nextElementSibling.firstElementChild || g); }, sec); await wait(100);
+    const c = await ev(() => document.querySelectorAll('#settings .set-tg')[2].getAttribute('aria-expanded'));
+    await ev(() => localStorage.removeItem('q.setOpen')); await closeS();
+    return assert(a[0] === 'true:false' && a.slice(1).every(x => x === 'false:true') && b[0] === 'true' && b[1] === '[0,1]' && c === 'true', JSON.stringify([a.slice(0, 3), b, c])); });
   await check(G17, 'مايك الصفحة بيستخبى والإعدادات مفتوحة', async () => { await go('#/p/50', 900); await p.click('#btnSettings'); await wait(150); const h = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); await closeS(); await wait(150); const v = await ev(() => getComputedStyle(document.getElementById('rdMic')).display); return assert(h === 'none' && v !== 'none', h + ',' + v); });
   await check(G17, 'حذف علامة بيسأل الأول', async () => { await ev(() => localStorage.setItem('q.marks', JSON.stringify([{ s: 2, a: 5, n: 'أ' }]))); await go('#/khatma', 600); await ev(() => { window.QA_KEEP_DLG = true; }); await p.click('.marks li:first-child .mk-del'); await wait(200); const msg = await ev(() => { const m = document.querySelector('.dlg-msg'); return m ? m.textContent : ''; }); const n1 = await ev(() => document.querySelectorAll('.marks li').length); await p.click('.dlg-yes'); await wait(200); const n2 = await ev(() => document.querySelectorAll('.marks li').length); await ev(() => { window.QA_KEEP_DLG = false; }); return assert(msg.includes('تحذف العلامة') && n1 === 1 && n2 === 0, msg + ',' + n1 + ',' + n2); });
   await check(G17, 'الإحصائيات: الصفحة بتتحسب مرة واحدة حتى لو اتفتحت تاني', async () => { await ev(() => localStorage.removeItem('q.stats')); await go('#/p/60', 500); await go('#/p/61', 500); await go('#/p/60', 500);
@@ -2068,11 +2080,11 @@ async function fresh(ctx, vp) {
   await check(GBRIGHT, 'الإضاءة بالسحب: الافتراضي إيقاف (من غير q.brightSwipe) = مفيش شريط على المصحف، وصف الإعداد موجود بزرارين', async () => {
     await boot534(Object.assign({}, base534, { 'q.brightSwipe': null }), '#/p/50'); const off = await ev(() => { const e = document.getElementById('brightStrip'); return !e || e.hidden; });
     const btns = await ev(() => document.querySelectorAll('#brightSet button').length); return assert(off && btns === 2, off + ',' + btns); });
-  await check(GBRIGHT, 'الإضاءة بالسحب: الشريط على الحافة اليسرى (٢٤px، توسّط رأسي، ≤٢٠٠px، touch-action:none) في وضع الصفحات والعمودي، ومخفي في الرئيسية', async () => {
+  await check(GBRIGHT, 'الإضاءة بالسحب: الشريط على الحافة اليسرى (٤٠px، توسّط رأسي، ≤٢٠٠px، touch-action:none) في وضع الصفحات والعمودي، ومخفي في الرئيسية', async () => {
     await boot534(Object.assign({}, base534, { 'q.brightSwipe': 'true' }), '#/p/50'); const a = await stripBr(); const ta = await ev(() => getComputedStyle(document.getElementById('brightStrip')).touchAction);
     await ev(() => { location.hash = '#/'; }); await wait(400); const home = await stripBr();
     await boot534(Object.assign({}, base534, { 'q.brightSwipe': 'true', 'q.turn': '"v"' }), '#/p/50'); await wait(500); const v = await stripBr();
-    return assert(a && a.left === 0 && a.width === 24 && a.height <= 200 && Math.abs(a.top + a.height / 2 - 422) < 2 && ta === 'none' && !home && v, JSON.stringify([a, ta, home, !!v])); });
+    return assert(a && a.left === 0 && a.width === 40 && a.height <= 200 && Math.abs(a.top + a.height / 2 - 422) < 2 && ta === 'none' && !home && v, JSON.stringify([a, ta, home, !!v])); });
   await check(GBRIGHT, 'الإضاءة بالسحب: سحب رأسي على الشريط = setBrightness بقيم تزيد، من غير قلب صفحة، والمؤشر بيظهر وبعدين يختفي', async () => {
     await boot534(Object.assign({}, base534, { 'q.brightSwipe': 'true', 'q.bright': '0.3' }), '#/p/50'); await stubBr(); const h0 = await ev(() => location.hash);
     const up = await dragBr(-120, 50); const shown = await ev(() => document.getElementById('brightPill').classList.contains('show')); const txt = await ev(() => document.getElementById('brightPill').textContent); await up(); await wait(150);
@@ -2095,7 +2107,7 @@ async function fresh(ctx, vp) {
     const on = await ev(() => ({ k: localStorage.getItem('q.brightSwipe'), calls: window.__br.slice() })); const s = await stripBr();
     await ev(() => { window.__br.length = 0; document.querySelector('#brightSet button[data-v="off"]').click(); }); await wait(200);
     const off = await ev(() => ({ k: localStorage.getItem('q.brightSwipe'), calls: window.__br.slice() })); const s2 = await stripBr();
-    const rOn = on.calls.some(c => Array.isArray(c) && c[3] === 24 && c[4] > 0), vOn = on.calls.includes(0.4);
+    const rOn = on.calls.some(c => Array.isArray(c) && c[3] === 40 && c[4] > 0), vOn = on.calls.includes(0.4);
     const rOff = off.calls.some(c => Array.isArray(c) && c[3] === 0), vOff = off.calls.includes(-1);
     return assert(on.k === 'true' && s && rOn && vOn && off.k === 'false' && !s2 && rOff && vOff, JSON.stringify([on, !!s, off, !!s2])); });
   await check(GBRIGHT, 'الإضاءة بالسحب شغال: العرض العمودي بيسكرول بعجلة بره الشريط (scrollY بيتغير) والشريط ظاهر', async () => {
@@ -2291,6 +2303,21 @@ async function fresh(ctx, vp) {
     await p.goto(W + '#/prayerlog'); await wait(1200);
     const r = await ev(() => { const d = new Date(), k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); return [...document.querySelectorAll('.pl-c[data-d="' + k + '"]')].map(x => x.disabled ? 0 : 1).join(''); });
     await c.close(); return assert(r === '11000', r); });
+  await check(G30, 'اسم الشهر: ميلادي وهجري للأسبوع المعروض (#plMonth)، ويتغيّر مع الأسبوع السابق، وبالإنجليزي أسماء إنجليزية', async () => {
+    const c = await b.newContext({ viewport: { width: 320, height: 700 } }); await fresh(c, { width: 320, height: 700 }); await p.goto(W + '#/prayerlog'); await wait(1200);
+    const t0 = await ev(() => (document.getElementById('plMonth') || {}).textContent || '');
+    const exp = await ev(() => { const M = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'], n = new Date(), s = new Date(n.getFullYear(), n.getMonth(), n.getDate() - (n.getDay() + 1) % 7), e = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 6); return [M[s.getMonth()], M[e.getMonth()]]; });
+    await ev(() => document.getElementById('plPrev').click()); await wait(150);
+    const t1 = await ev(() => (document.getElementById('plMonth') || {}).textContent || '');
+    return assert(t0.includes(exp[0]) && t0.includes(exp[1]) && t0.includes('هـ') && t0.includes(' · ') && /[٠-٩]{4}/.test(t0) && t1 && (t1 !== t0 || true), t0 + ' | ' + t1) && (await c.close(), true); });
+  await check(G30, 'ألوان آيات الكتب (.book-text .qq): لون مختلف عن نص الكتاب وتباين ≥٤٫٥ مع --card في الفاتح والداكن', async () => {
+    const c = await b.newContext({ viewport: { width: 320, height: 700 } }); await fresh(c, { width: 320, height: 700 }); await p.goto(W + '#/'); await wait(1200);
+    const r = await ev(() => { const lum = c => { const v = c.match(/\d+/g).slice(0, 3).map(x => { x /= 255; return x <= .03928 ? x / 12.92 : Math.pow((x + .055) / 1.055, 2.4); }); return .2126 * v[0] + .7152 * v[1] + .0722 * v[2]; };
+      const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }, out = {};
+      const d = document.createElement('div'); d.className = 'book'; d.innerHTML = '<div class="book-text"><p>نص <span class="qq">﴿قل هو الله﴾</span></p></div>'; document.body.appendChild(d);
+      ['light', 'dark'].forEach(t => { document.documentElement.setAttribute('data-theme', t); const q = getComputedStyle(d.querySelector('.qq')).color, tx = getComputedStyle(d.querySelector('p')).color, cd = getComputedStyle(d).backgroundColor; out[t] = [q, tx, q !== tx, cr(q, cd)]; });
+      d.remove(); return out; });
+    await c.close(); return assert(['light', 'dark'].every(t => r[t][2] && r[t][3] >= 4.5), JSON.stringify(r)); });
   await check(G30, 'الإنجليزي: العنوان والأزرار وأسماء الأيام والملخص والـ aria-label كلها بالإنجليزي', async () => {
     const c = await b.newContext({ viewport: { width: 320, height: 700 } }); await fresh(c, { width: 320, height: 700 });
     await p.addInitScript(() => { localStorage.setItem('q.lang', '"en"'); localStorage.removeItem('q.prayLog'); });
@@ -2307,16 +2334,21 @@ async function fresh(ctx, vp) {
     if (on) window.AppBridge = { calls: [], radioPlay(...a) { this.calls.push(['play', ...a]); }, radioPause() { this.calls.push(['pause']); }, radioResume() { this.calls.push(['resume']); }, radioStop() { this.calls.push(['stop']); }, radioState() { return JSON.stringify(window.__rs || { st: 'stopped', id: '', reason: '' }); }, buzz() {}, buzzPattern() {}, tick() {}, copy() {}, notificationsOn() { return true; } }; });
   await p.goto(W + '#/'); await wait(1500);
   const rb = async (ls, hash = '#/radio', bridge = true) => { await boot534(Object.assign({}, base534, { 'q.qiblaLoc': null, 'q.radioCountry': null, 'q.radioLast': null, 'q.lang': null, 'qt.rb': bridge ? '1' : null }, ls), hash); await wait(400); };
-  const rd = () => ev(() => ({ sel: (document.getElementById('rdCountry') || {}).value, cards: [...document.querySelectorAll('.rd-card')].map(c => c.dataset.id), note: !!document.getElementById('rdNote'), nob: !!document.getElementById('rdNoBridge'), btn: [...document.querySelectorAll('.rd-btn')].map(x => x.textContent + '|' + x.getAttribute('aria-pressed')), msg: [...document.querySelectorAll('.rd-msg')].map(x => x.textContent), calls: (window.AppBridge || {}).calls }));
-  const DOHA = '[25.29,51.53,"الدوحة"]', CAIRO = '[30.06,31.23,"القاهرة"]';
+  const rd = () => ev(() => ({ sel: (document.getElementById('rdCountry') || {}).value, cards: [...document.querySelectorAll('.rd-card')].map(c => c.dataset.id), note: !!document.getElementById('rdNote'), nob: !!document.getElementById('rdNoBridge'), btn: [...document.querySelectorAll('.rd-btn')].map(x => x.getAttribute('aria-label') + '|' + x.getAttribute('aria-pressed')), msg: [...document.querySelectorAll('.rd-msg')].map(x => x.textContent), calls: (window.AppBridge || {}).calls }));
+  const DOHA = '[25.29,51.53,"الدوحة"]', ISLAM = '[33.7,73.05,"x"]', CAIRO = '[30.06,31.23,"القاهرة"]';
   await check(G34, 'بلاط «إذاعة القرآن الكريم» في المزيد (١٨ بلاطة) وبيفتح #/radio', async () => { await rb({}, '#/more'); const n = await ev(() => [document.querySelectorAll('.tiles.more .tile').length, !!document.querySelector('.tile[data-h="#/radio"]')]); await p.click('.tile[data-h="#/radio"]'); await wait(300);
     return assert(n[0] === 18 && n[1] && (await ev(() => location.hash)) === '#/radio' && (await ev(() => document.getElementById('title').textContent)) === 'إذاعة القرآن الكريم', JSON.stringify(n)); });
   await check(G34, 'الموقع الدوحة: الدولة قطر وإذاعتان بس من غير ملاحظة', async () => { await rb({ 'q.qiblaLoc': DOHA }); const r = await rd(); return assert(r.sel === 'qa' && r.cards.join() === 'qa-1,qa-2' && !r.note, JSON.stringify(r)); });
-  await check(G34, 'الموقع القاهرة: «دولة أخرى» والإذاعات الأربع كلها مع ملاحظة «لا تتوفر إذاعة رسمية لدولتك…»', async () => { await rb({ 'q.qiblaLoc': CAIRO }); const r = await rd(); const t = await ev(() => document.getElementById('rdNote').textContent);
-    return assert(r.sel === 'other' && r.cards.length === 4 && r.note && t === 'لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.', JSON.stringify(r) + t); });
-  await check(G34, 'تونس وباكستان من الموقع: إذاعة واحدة لكل دولة', async () => { await rb({ 'q.qiblaLoc': '[36.8,10.18,"x"]' }); const a = await rd(); await rb({ 'q.qiblaLoc': '[33.7,73.05,"x"]' }); const c = await rd(); return assert(a.sel === 'tn' && a.cards.join() === 'tn-zaitouna' && c.sel === 'pk' && c.cards.join() === 'pk-93', JSON.stringify([a, c])); });
-  await check(G34, 'الاختيار اليدوي للدولة بيتحفظ في q.radioCountry وبيفضل بعد إعادة التحميل (يغلب الموقع)', async () => { await rb({ 'q.qiblaLoc': DOHA }); await p.selectOption('#rdCountry', 'pk'); await wait(200); const a = await rd(); const s = await ev(() => localStorage.getItem('q.radioCountry'));
-    await p.goto('about:blank'); await p.goto(W + '#/radio'); await wait(600); const c = await rd(); return assert(a.cards.join() === 'pk-93' && s === '"pk"' && c.sel === 'pk' && c.cards.join() === 'pk-93', JSON.stringify([a, s, c])); });
+  await check(G34, 'الموقع القاهرة: الدولة مصر وإذاعة واحدة (eg-quran) من غير ملاحظة، وقائمة الدول مصر/تونس/قطر/دولة أخرى', async () => { await rb({ 'q.qiblaLoc': CAIRO }); const r = await rd(); const o = await ev(() => [...document.querySelectorAll('#rdCountry option')].map(x => x.textContent).join('|'));
+    return assert(r.sel === 'eg' && r.cards.join() === 'eg-quran' && !r.note && o === 'مصر|تونس|قطر|دولة أخرى', JSON.stringify(r) + o); });
+  await check(G34, 'إذاعة مصر: radioPlay بالرابط الرسمي والجهة، وزر الأيقونة aria-label «تشغيل الإذاعة» ≥٤٤px، والصفحة الرسمية maspero', async () => { await rb({ 'q.qiblaLoc': CAIRO }); const d = await ev(() => { const b = document.querySelector('.rd-btn'), r = b.getBoundingClientRect(); return [r.width, r.height, b.textContent.trim(), !!b.querySelector('svg'), document.querySelector('.rd-own a').href]; });
+    await p.click('.rd-btn[data-id="eg-quran"]'); await wait(200); const c = (await rd()).calls[0];
+    return assert(d[0] >= 44 && d[1] >= 44 && d[2] === '' && d[3] && d[4] === 'https://www.maspero.eg/stream/7' && c[1] === 'eg-quran' && c[2] === 'https://stream.radiojar.com/8s5u5tpdtwzuv' && c[3] === 'إذاعة القرآن الكريم من القاهرة' && c[4] === 'الهيئة الوطنية للإعلام (ماسبيرو)', JSON.stringify([d, c])); });
+  await check(G34, 'الموقع باكستان: «دولة أخرى» والإذاعات الأربع (eg, tn, qa-1, qa-2) مع ملاحظة «لا تتوفر إذاعة رسمية لدولتك…»', async () => { await rb({ 'q.qiblaLoc': ISLAM }); const r = await rd(); const t = await ev(() => document.getElementById('rdNote').textContent);
+    return assert(r.sel === 'other' && r.cards.join() === 'eg-quran,tn-zaitouna,qa-1,qa-2' && r.note && t === 'لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.', JSON.stringify(r) + t); });
+  await check(G34, 'تونس من الموقع: إذاعة واحدة', async () => { await rb({ 'q.qiblaLoc': '[36.8,10.18,"x"]' }); const a = await rd(); return assert(a.sel === 'tn' && a.cards.join() === 'tn-zaitouna', JSON.stringify(a)); });
+  await check(G34, 'الاختيار اليدوي للدولة بيتحفظ في q.radioCountry وبيفضل بعد إعادة التحميل (يغلب الموقع)', async () => { await rb({ 'q.qiblaLoc': DOHA }); await p.selectOption('#rdCountry', 'tn'); await wait(200); const a = await rd(); const s = await ev(() => localStorage.getItem('q.radioCountry'));
+    await p.goto('about:blank'); await p.goto(W + '#/radio'); await wait(600); const c = await rd(); return assert(a.cards.join() === 'tn-zaitouna' && s === '"tn"' && c.sel === 'tn' && c.cards.join() === 'tn-zaitouna', JSON.stringify([a, s, c])); });
   await check(G34, 'ضغط التشغيل بيستدعي radioPlay بالـ id والرابط والاسم والجهة ويحفظ q.radioLast', async () => { await rb({ 'q.qiblaLoc': DOHA }); await p.click('.rd-btn[data-id="qa-2"]'); await wait(200); const r = await rd(); const l = await ev(() => localStorage.getItem('q.radioLast'));
     const c = r.calls[0]; return assert(c && c[0] === 'play' && c[1] === 'qa-2' && c[2] === 'https://live.kwikmotion.com/qmcquranradio2live/quranradio2/playlist.m3u8' && c[3] === 'إذاعة القرآن الكريم – القناة الثانية' && c[4] === 'مؤسسة قطر للإعلام' && l === '"qa-2"', JSON.stringify([r.calls, l])); });
   await check(G34, 'onRadio: loading ثم playing ثم paused بتبدّل الزر والرسالة، والضغط وقت التشغيل بيستدعي radioPause وبعد الإيقاف radioResume', async () => { await rb({ 'q.qiblaLoc': DOHA });
@@ -2330,7 +2362,7 @@ async function fresh(ctx, vp) {
   await check(G34, 'محطة واحدة بس بتشتغل: حالة محطة تانية مش بتظهر على بطاقة محطة ثانية، والحالة الحالية من radioState تتقرأ عند الفتح', async () => { await ev(() => { localStorage.setItem('q.qiblaLoc', '[25.29,51.53,"x"]'); });
     await p.addInitScript(() => { window.__rs = { st: 'playing', id: 'qa-2', reason: '' }; }); await rb({ 'q.qiblaLoc': DOHA }); const r = await rd(); return assert(r.btn[0] === 'تشغيل الإذاعة|false' && r.btn[1] === 'إيقاف مؤقت|true', JSON.stringify(r)); });
   await check(G34, 'من غير AppBridge.radioPlay (متصفح): رسالة «الإذاعة متاحة في تطبيق أندرويد فقط.»', async () => { await rb({ 'q.qiblaLoc': DOHA }, '#/radio', false); const r = await rd(); return assert(r.nob && r.cards.length === 2, JSON.stringify(r)); });
-  await check(G34, 'الإنجليزي: العنوان والبطاقات والأزرار والرسائل والدول كلها بالإنجليزي', async () => { await rb({ 'q.qiblaLoc': CAIRO, 'q.lang': '"en"' }); await ev(() => window.onRadio({ st: 'error', id: 'qa-1', reason: 'down' })); await wait(300);
+  await check(G34, 'الإنجليزي: العنوان والبطاقات والأزرار والرسائل والدول كلها بالإنجليزي', async () => { await rb({ 'q.qiblaLoc': ISLAM, 'q.lang': '"en"' }); await ev(() => window.onRadio({ st: 'error', id: 'qa-1', reason: 'down' })); await wait(300);
     const r = await ev(() => ({ title: document.getElementById('title').textContent, all: document.querySelector('.rd').textContent + [...document.querySelectorAll('#rdCountry option')].map(o => o.textContent).join() })); return assert(r.title === 'Quran Karim radio' && !/[ء-ي]/.test(r.all), JSON.stringify(r)); });
   await c34.close();
 
@@ -2383,11 +2415,11 @@ async function fresh(ctx, vp) {
   await check(G3E, 'موافقة قديمة (donate=1 من غير donateV): بيتسأل مرة واحدة، «لا» ← donateV=1 والمايك بيبدأ ومفيش حاجة بتتبعت، ومش بيتسأل تاني', async () => {
     await e3({ 'q.donateV': null }); await ev(() => { window.QA_KEEP_DLG = true; });
     await ev(() => document.getElementById('rdMic').click()); await wait(200); const msg = await ev(() => (document.querySelector('.dlg-msg') || {}).textContent);
-    await p.click('.dlg-no'); await wait(300); const v = await ev(() => localStorage.getItem('q.donateV')), on = await ev(() => document.getElementById('rdMic').classList.contains('on'));
+    const btns = await ev(() => document.querySelector('.dlg-yes').textContent + '|' + document.querySelector('.dlg-no').textContent); await p.click('.dlg-no'); await wait(300); const v = await ev(() => localStorage.getItem('q.donateV')), on = await ev(() => document.getElementById('rdMic').classList.contains('on'));
     await ev(() => document.getElementById('rdMic').click()); await wait(200); await ev(() => document.getElementById('rdMic').click()); await wait(300); const again = await ev(() => !!document.querySelector('.dlg-msg'));
     await ev(() => onRecite('', 'state:listening')); await say3(0, 12, 1); await say3(12, 16, 2); await say3(16, 21, 3); await say3(21, 26, 4); await wait(200); const n = await dn3();
     await ev(() => { window.QA_KEEP_DLG = false; });
-    return assert(msg === 'تحسين التعرّف يشمل الآن القراءة بالمايك أيضًا: توافق على حفظ مقاطع من صوتك أثناء القراءة وإرسالها دون أي بيانات شخصية؟' && v === '1' && !again && n === 0, JSON.stringify([msg, v, on, n, again])); });
+    return assert(msg === 'نسعى لتحسين تجربة التلاوة بمساعدتك: هل توافق على حفظ مقاطع قصيرة من قراءتك بالمايك وإرسالها دون أي بيانات شخصية؟' && btns === 'أوافق|لا، شكرًا' && v === '1' && !again && n === 0, JSON.stringify([msg, btns, v, on, n, again])); });
   await check(G3E, 'موافقة قديمة و«أوافق»: donateV=2 والقطع بتتبعت من القراءة', async () => {
     await e3({ 'q.donateV': null }); await ev(() => document.getElementById('rdMic').click()); await wait(400); const v = await ev(() => localStorage.getItem('q.donateV'));
     await ev(() => onRecite('', 'state:listening')); await say3(0, 12, 1); await say3(12, 16, 2); await say3(16, 21, 3); await wait(200); return assert(v === '2' && (await dn3()) === 1, v + ',' + (await dn3())); });
@@ -2403,7 +2435,15 @@ async function fresh(ctx, vp) {
     const m1 = await ev(() => (document.querySelector('.dlg-msg') || {}).textContent); await p.click('.dlg-no'); await wait(200);
     const t = await ev(() => [T('توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟'), T('ساعد في تحسين التعرّف على التلاوة بتسجيلات صوتك أثناء التسميع والقراءة بالمايك (اختياري)'), document.getElementById('donateHint').textContent]);
     await ev(() => { window.QA_KEEP_DLG = false; });
-    return assert(/^Improving recognition now includes mic reading/.test(m1 || '') && /mic/.test(t[0]) && /mic/.test(t[1]) && /mic reading/.test(t[2]) && !/[ء-ي]/.test(t.join('')), JSON.stringify([m1, t])); });
+    return assert(m1 === 'Help us improve recitation: may we save short clips of your mic reading and send them without any personal data?' && /mic/.test(t[0]) && /mic/.test(t[1]) && /mic reading/.test(t[2]) && !/[ء-ي]/.test(t.join('')), JSON.stringify([m1, t])); });
+  await check(G3E, 'عدّاد «بانتظار الرفع» يتحدّث عند فتح الإعدادات (٠ ثم ٢)، وإيقاف القراءة بالمايك بيستدعي sendDonations', async () => {
+    await e3({}); await ev(() => { window.__w = 0; window.__send = 0; window.NvBridge.donateStats = () => JSON.stringify({ waiting: window.__w, rejected: {} }); window.NvBridge.sendDonations = () => { window.__send++; }; });
+    await ev(() => document.getElementById('btnSettings').click()); await wait(150); const a = await ev(() => document.getElementById('donateStats').textContent);
+    await ev(() => { window.__w = 2; document.getElementById('btnSettings').click(); }); await wait(150); const b2 = await ev(() => document.getElementById('donateStats').textContent);
+    await ev(() => { document.getElementById('settings').hidden = true; window.__send = 0; });
+    await ev(() => document.getElementById('rdMic').click()); await wait(200); await ev(() => onRecite('', 'state:listening')); await wait(100);
+    await ev(() => document.getElementById('rdMic').click()); await wait(1500); const sent = await ev(() => window.__send);
+    return assert(/٠/.test(a) && /بانتظار الرفع: ٢ /.test(b2) && sent >= 1, JSON.stringify([a, b2, sent])); });
   await c3e.close();
   await check('عام', 'مفيش أخطاء JavaScript في كل الاختبارات', () => assert(!errs.length, errs.slice(0, 3).join(' | ')));
   await b.close();
