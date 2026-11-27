@@ -1369,3 +1369,4 @@ Resume: user OK -> push main + builds release v5.43 + Play AAB (PLAY=1) + Play C
   * Splash: Android 13+ AppBridge.splashTheme() -> getSplashScreen().setSplashScreenTheme(SplashLight/SplashDark/AppTheme). Android 12 (user's phone, API 31) has no API: first system frame follows phone dark mode -> ask user.
   * Donation «إلغاء» not reproducible (cancel keeps it off headless); phone state donate=1, donateV=2 -> ask user which dialog.
   * Running: settings order per Material/HIG (plans/settings-order-5.43.md) incl. «مظهر التطبيق» first in «الألوان والمظهر».
+- 2026-11-27 15:02 phone round 2: full QA 492/0 x4; release a0d45490 (signer 7d8b31d2) built + test copy; phone was asleep and locked (isKeyguardShowing) -> script stopped at its first safety check, nothing done; release reinstalled (15:02:46). Committed. Waiting for the user to unlock the phone to run phone543b.js (touch flip, switches by touch, bookmark toggle, tapMark-off, settings order, mutash marks).
