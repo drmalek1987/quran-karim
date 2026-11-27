@@ -22,7 +22,7 @@ wrapped by a tiny native Android shell in `android/` (WebView + Java bridges). N
   (ayah boxes on scans, tajweed layers), `make_books.py`, `make_tajweed*.py`, `asr/` (model training/export kit for a GPU PC,
   `asr/gpu/*.bat`), `qa/` (`data.py`, `ui.js` Playwright).
 - `store/` – Google Play listing, privacy policy, graphics, review notes. `plans/`, `BACKLOG.md`, `IDEAS-*.md` – planning.
-- `.claude/skills/run-quran-karim` – skill that drives the web UI in headless Chromium.
+- `.claude/skills/run-quran-karim` – skill that drives the web UI in headless Chromium. `.claude/skills/qk-impact` – change impact + QA registry.
 - iOS (Capacitor 8) lives on branch `claude/project-thread-jfulu4`: `capacitor.config.json`, `package.json`,
   `web/ios/ed-bridge.js` (EdBridge via JSZip + Filesystem), `ios-native/`, `.github/workflows/ios-simulator.yml`.
 
@@ -76,7 +76,18 @@ uv venv .venv --python 3.11 && uv pip install --python .venv\Scripts\python.exe 
 
 ## QA
 `python3 tools/qa/data.py web` (data checks) and `ED=kfgqpc|kfold|shamarly|harmain node tools/qa/ui.js` (Playwright UI checks,
-needs the edition unzipped in `web/`). Record results in `QA-checklist.md`. There is no emulator in CI; phone testing is manual.
+needs the edition unzipped in `web/`). There is no emulator in CI; phone testing is manual.
+
+QA system (data + scripts, skill `.claude/skills/qk-impact`): `tools/qa/features.json` (feature registry with code anchors),
+`tools/qa/qa-items.json` (the checklist, ISO 25010 + Play), `tools/qa/impact.js`, `tools/qa/qa_render.js`. `QA-checklist.md` and
+`plans/qa-checklist.html` are generated (do not edit); release history lives in `QA-history.md`. A new feature or check also gets an
+entry in both JSON files in the same change.
+```
+node tools/qa/impact.js [--run] [--deep]   # after editing: affected features, ui.js groups, phone items (--run runs only those groups)
+node tools/qa/impact.js --check-registry   # before a release: every anchor / group still exists
+node tools/qa/qa_render.js                 # regenerate QA-checklist.md + plans/qa-checklist.html
+```
+`ui.js` accepts several groups: `ONLY="a|b"`.
 
 ## Local model delegation (optional, saves Claude tokens)
 If this Claude Code session happens to be linked to the author's own PC (device bridge) and an LM Studio local server

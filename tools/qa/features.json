@@ -1,0 +1,2356 @@
+{
+ "_doc": "Feature registry for QA/impact analysis. Edit by hand; keep anchors real (node tools/qa/impact.js --check-registry). anchors.files = whole-file anchors (non-function code).",
+ "features": [
+  {
+   "id": "home.main",
+   "name_ar": "الشاشة الرئيسية",
+   "name_en": "Home screen",
+   "area": "home",
+   "routes": [
+    "#/"
+   ],
+   "anchors": {
+    "js": [
+     "showHome",
+     "hero",
+     "navBack",
+     "elastic"
+    ],
+    "keys": [
+     "q.last"
+    ],
+    "java": [],
+    "css": [
+     ".hero",
+     ".tiles"
+    ]
+   },
+   "ui_groups": [
+    "الرئيسية والفهرس"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "home.index",
+   "name_ar": "فهرس السور والأجزاء",
+   "name_en": "Surah / juz index",
+   "area": "home",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "buildIndex",
+     "mountIndex"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     "#index",
+     "#btnIndex"
+    ]
+   },
+   "ui_groups": [
+    "الرئيسية والفهرس"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "home.continue",
+   "name_ar": "متابعة القراءة والفتح عند التشغيل",
+   "name_en": "Continue reading / open at launch",
+   "area": "home",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "openAtLaunch",
+     "openPage"
+    ],
+    "keys": [
+     "q.lastPage",
+     "q.openAt"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "الرئيسية والفهرس",
+    "نسخة 5.34"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "home.today",
+   "name_ar": "بطاقة اليوم والهدف اليومي",
+   "name_en": "Today card and daily goal",
+   "area": "home",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "todayCard",
+     "goalCard",
+     "goalDialog",
+     "goalCfg",
+     "todayPages"
+    ],
+    "keys": [
+     "q.goal",
+     "q.hzDaily"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.7",
+    "نسخة 5.15 (Sprint A)",
+    "نسخة 5.16"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "home.hijri",
+   "name_ar": "التاريخ الهجري",
+   "name_en": "Hijri date",
+   "area": "home",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "hijri",
+     "fastOf"
+    ],
+    "keys": [],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6",
+    "نسخة 5.38 (C5)"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "more.menu",
+   "name_ar": "قائمة «المزيد»",
+   "name_en": "More menu",
+   "area": "home",
+   "routes": [
+    "#/more"
+   ],
+   "anchors": {
+    "js": [
+     "showMore"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     ".more-g",
+     ".more-row"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.7"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "onboard.welcome",
+   "name_ar": "شاشة الترحيب",
+   "name_en": "Welcome screen",
+   "area": "onboarding",
+   "routes": [
+    "#/welcome"
+   ],
+   "anchors": {
+    "js": [
+     "showWelcome"
+    ],
+    "keys": [
+     "q.onboarded",
+     "q.modelConsent"
+    ],
+    "java": [],
+    "css": [
+     ".wel-card",
+     ".wel-opts"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.7",
+    "نسخة 5.11"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "onboard.tour",
+   "name_ar": "الجولة التعريفية",
+   "name_en": "First-run tour",
+   "area": "onboarding",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "tour"
+    ],
+    "keys": [
+     "q.tourDone"
+    ],
+    "java": [],
+    "css": [
+     ".tour-row"
+    ]
+   },
+   "ui_groups": [
+    "نسخة 5.38 (C5)"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "read.page",
+   "name_ar": "صفحة المصحف",
+   "name_en": "Mushaf page view",
+   "area": "read",
+   "routes": [
+    "#/p/"
+   ],
+   "anchors": {
+    "js": [
+     "showPage",
+     "showPagesV",
+     "pageOf",
+     "surahOfPage",
+     "juzOfPage",
+     "firstAyahOfPage",
+     "pad"
+    ],
+    "keys": [
+     "q.lastPage",
+     "q.edition",
+     "q.mode"
+    ],
+    "java": [],
+    "css": [
+     ".page-wrap",
+     ".page-box"
+    ]
+   },
+   "ui_groups": [
+    "قراءة صفحات المصحف",
+    "المقاسات والتابلت",
+    "نسخة 5.19"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "read.flip",
+   "name_ar": "تقليب الصفحات (سحب وتأثير)",
+   "name_en": "Page turning (swipe / curl)",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "pageTurnFx",
+     "pageSlide",
+     "pageCurl",
+     "curlShift",
+     "pgSide"
+    ],
+    "keys": [
+     "q.flipMode",
+     "q.turn"
+    ],
+    "java": [],
+    "css": [
+     ".curl",
+     ".pg-r",
+     ".pg-l"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.4",
+    "نسخة 5.34",
+    "المقاسات والتابلت"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "read.spread",
+   "name_ar": "صفحتان متجاورتان",
+   "name_en": "Two-page spread",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "spreadOn",
+     "pgSide"
+    ],
+    "keys": [
+     "q.spread",
+     "q.spine"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "المقاسات والتابلت",
+    "نسخة 5.34"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "read.vertical",
+   "name_ar": "القراءة العمودية",
+   "name_en": "Vertical scroll reading",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "showPagesV",
+     "scrollUnderBar",
+     "hzV"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     ".vread"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.4",
+    "نسخة 5.34",
+    "نسخة 5.28"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "read.fullscreen",
+   "name_ar": "ملء الشاشة",
+   "name_en": "Fullscreen reading",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "fsSet",
+     "fsLater",
+     "fsFlip",
+     "fsFlipStart",
+     "fsBoxes",
+     "fsInset",
+     "fsInsets",
+     "fsVar",
+     "fsLand"
+    ],
+    "keys": [
+     "q.fsStatus",
+     "q.fsFit",
+     "q.keepOn"
+    ],
+    "java": [
+     "AppBridge.immersive",
+     "AppBridge.fsStatus",
+     "AppBridge.keepOn",
+     "AppBridge.insets"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.13 (باتش 2)",
+    "نسخة 5.35",
+    "نسخة 5.34"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "read.pinch",
+   "name_ar": "تكبير الصفحة بالقرصة وحجمها",
+   "name_en": "Pinch zoom / fit",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "pageFitPinch",
+     "fsFitSwitch",
+     "textVars",
+     "textBlock"
+    ],
+    "keys": [
+     "q.fsFit"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.35"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "read.ayahbar",
+   "name_ar": "شريط الآية",
+   "name_en": "Ayah action bar",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "ayahBar",
+     "ayahAt",
+     "curCrop",
+     "cropClip",
+     "hmHlDraw"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     ".ayah-bar",
+     ".ab-btns"
+    ]
+   },
+   "ui_groups": [
+    "قراءة صفحات المصحف",
+    "نسخة 5.18 (Sprint D)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "read.wordpress",
+   "name_ar": "الضغط الطويل على كلمة",
+   "name_en": "Long-press word meaning",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "pageWordPress",
+     "pageWordAt",
+     "wordSheet",
+     "wordAt",
+     "wordBoxes"
+    ],
+    "keys": [],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.18 (Sprint D)",
+    "نسخة 5.19",
+    "W-track (W3/W4)"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "read.tajweedlayer",
+   "name_ar": "ألوان التجويد على الصفحة",
+   "name_en": "Tajweed colour layer",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "tjLayer",
+     "tjName",
+     "withTajweed",
+     "tjHtml"
+    ],
+    "keys": [
+     "q.tajweed"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "قراءة صفحات المصحف",
+    "الإعدادات والمظهر"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "read.thematic",
+   "name_ar": "ألوان المصحف الموضوعي",
+   "name_en": "Thematic colouring",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "thmLayer"
+    ],
+    "keys": [
+     "q.thematic"
+    ],
+    "java": [],
+    "css": [
+     ".thm-key"
+    ]
+   },
+   "ui_groups": [
+    "نسخة 5.11",
+    "الإعدادات والمظهر"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "read.bg",
+   "name_ar": "لون خلفية الصفحة والتباين",
+   "name_en": "Page background colours",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "setPageBg",
+     "pageIsDark",
+     "luminance"
+    ],
+    "keys": [
+     "q.pageBg",
+     "q.pageBgDay",
+     "q.pageBgNight"
+    ],
+    "java": [],
+    "css": [
+     ".swatches"
+    ]
+   },
+   "ui_groups": [
+    "الإعدادات والمظهر",
+    "نسخة 5.11"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "read.edition",
+   "name_ar": "الطبعات وتبديلها",
+   "name_en": "Mushaf editions and switching",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "switchEdition",
+     "useEdition",
+     "edReady",
+     "edUrl"
+    ],
+    "keys": [
+     "q.edition"
+    ],
+    "java": [
+     "EdStore"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "الإعدادات والمظهر",
+    "الرئيسية والفهرس"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "read.brightness",
+   "name_ar": "الإضاءة بالسحب",
+   "name_en": "Swipe brightness",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "brightBridge",
+     "brightSend",
+     "brightRect",
+     "brightShowPill",
+     "brightEnd",
+     "brightMake",
+     "brightSync"
+    ],
+    "keys": [
+     "q.brightSwipe",
+     "q.bright"
+    ],
+    "java": [
+     "AppBridge.setBrightness",
+     "AppBridge.brightStrip"
+    ],
+    "css": [
+     ".bright-pill",
+     "#brightRow"
+    ]
+   },
+   "ui_groups": [
+    "سحب الإضاءة #18"
+   ],
+   "phone": [
+    "pt543-7",
+    "pt543-8",
+    "pt543-9",
+    "pt543-10",
+    "pt543-11",
+    "pt543-12"
+   ],
+   "risk": "high",
+   "stable": false
+  },
+  {
+   "id": "read.textview",
+   "name_ar": "عرض النص المشكول",
+   "name_en": "Text mode",
+   "area": "read",
+   "routes": [
+    "#/s/"
+   ],
+   "anchors": {
+    "js": [
+     "showSurah",
+     "trOf",
+     "withTranslation",
+     "ayahHtml",
+     "richText"
+    ],
+    "keys": [
+     "q.font",
+     "q.ayahTr"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "عرض النص"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "read.quotecolor",
+   "name_ar": "لون النص القرآني داخل الكتب",
+   "name_en": "Quran-quote colour in books",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "richText",
+     "qmark",
+     "bookText",
+     "QA_richText"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     ".book-text"
+    ]
+   },
+   "ui_groups": [
+    "لون النص القرآني 5.43"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": false
+  },
+  {
+   "id": "read.share",
+   "name_ar": "مشاركة الآية ونسخها",
+   "name_en": "Share / copy ayah",
+   "area": "read",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "shareDialog",
+     "shareText",
+     "shareImage",
+     "ayahImage",
+     "copyText",
+     "ayahForCopy",
+     "plain"
+    ],
+    "keys": [],
+    "java": [
+     "AppBridge.shareText",
+     "AppBridge.shareImage",
+     "AppBridge.copy",
+     "ShareProvider"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "قراءة صفحات المصحف",
+    "مزايا نسخة 3.4"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "search.main",
+   "name_ar": "البحث في القرآن",
+   "name_en": "Quran search",
+   "area": "search",
+   "routes": [
+    "#/search"
+   ],
+   "anchors": {
+    "js": [
+     "showSearch",
+     "parseQuery",
+     "wordHits",
+     "hitSet",
+     "searchWordIdx",
+     "highlight",
+     "norm"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     "#btnSearch"
+    ]
+   },
+   "ui_groups": [
+    "البحث",
+    "مزايا نسخة 3.4",
+    "مزايا نسخة 3.7"
+   ],
+   "phone": [
+    "pt543-24"
+   ],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "ayah.page",
+   "name_ar": "صفحة الآية (التفسير والإعراب)",
+   "name_en": "Ayah page: tafsir, irab, tabs",
+   "area": "tafsir",
+   "routes": [
+    "#/a/"
+   ],
+   "anchors": {
+    "js": [
+     "showAyah",
+     "bookTab",
+     "mutashTab",
+     "mutashSrc",
+     "chips",
+     "showOnChip",
+     "balaghaOf"
+    ],
+    "keys": [
+     "q.tab",
+     "q.ayahTab"
+    ],
+    "java": [],
+    "css": [
+     ".ay-tabs"
+    ]
+   },
+   "ui_groups": [
+    "التفسير والإعراب والمعاني",
+    "مزايا نسخة 3.4"
+   ],
+   "phone": [
+    "pt543-25"
+   ],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "ayah.words",
+   "name_ar": "معاني الكلمات",
+   "name_en": "Word meanings and dictionaries",
+   "area": "tafsir",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "wordsTab",
+     "wordSheet"
+    ],
+    "keys": [
+     "q.dict"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "التفسير والإعراب والمعاني",
+    "نسخة 5.18 (Sprint D)"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "ayah.translation",
+   "name_ar": "الترجمة الإنجليزية",
+   "name_en": "English translation under ayahs",
+   "area": "tafsir",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "trOf",
+     "withTranslation"
+    ],
+    "keys": [
+     "q.translation",
+     "q.ayahTr"
+    ],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/translation-en.js"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.4",
+    "التجويد والقراءات والأذكار والقبلة"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "tajweed.lessons",
+   "name_ar": "دروس أحكام التجويد",
+   "name_en": "Tajweed lessons",
+   "area": "tajweed",
+   "routes": [
+    "#/tajweed"
+   ],
+   "anchors": {
+    "js": [
+     "showTajweed",
+     "tajweedTab",
+     "needLessons"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/tajweed-lessons.js",
+     "web/tajweed-data.js"
+    ]
+   },
+   "ui_groups": [
+    "التجويد والقراءات والأذكار والقبلة",
+    "لون النص القرآني 5.43"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "qiraat.ten",
+   "name_ar": "القراءات العشر",
+   "name_en": "Ten qiraat",
+   "area": "tajweed",
+   "routes": [
+    "#/qiraat"
+   ],
+   "anchors": {
+    "js": [
+     "showQiraat"
+    ],
+    "keys": [],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "التجويد والقراءات والأذكار والقبلة",
+    "لون النص القرآني 5.43"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "topics.index",
+   "name_ar": "مواضيع القرآن",
+   "name_en": "Quran topics",
+   "area": "tafsir",
+   "routes": [
+    "#/topics"
+   ],
+   "anchors": {
+    "js": [
+     "showTopics"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/topics.js"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.8"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "audio.player",
+   "name_ar": "مشغّل التلاوة",
+   "name_en": "Recitation player",
+   "area": "audio",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "player",
+     "reciterName",
+     "ayStart"
+    ],
+    "keys": [
+     "q.reciter",
+     "q.repeat",
+     "q.autoSpeed",
+     "q.rangeTimes"
+    ],
+    "java": [
+     "AudioCache"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "التلاوة الصوتية",
+    "مزايا نسخة 3.4",
+    "نسخة 4.6 (قائمة 31 أكتوبر)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "audio.sleep",
+   "name_ar": "مؤقت النوم وتحميل السورة",
+   "name_en": "Sleep timer and surah download",
+   "area": "audio",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "sleepSet"
+    ],
+    "keys": [],
+    "java": [
+     "AudioCache"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.17 (Sprint C)"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "audio.tts",
+   "name_ar": "نطق الأذكار والكلمات",
+   "name_en": "Speech (TTS)",
+   "area": "audio",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "zikrSpeech"
+    ],
+    "keys": [],
+    "java": [
+     "SpeechBridge.speak",
+     "SpeechBridge.stop"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 4.6 (قائمة 31 أكتوبر)",
+    "التجويد والقراءات والأذكار والقبلة"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "marks.bookmarks",
+   "name_ar": "العلامات والملاحظات",
+   "name_en": "Bookmarks and notes",
+   "area": "marks",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "marks",
+     "addBookmark",
+     "noteDialog",
+     "rangeDialog",
+     "mkPage",
+     "mkPaint"
+    ],
+    "keys": [
+     "q.marks",
+     "q.notes"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "العلامات والختمة",
+    "قراءة صفحات المصحف"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "khatma.plan",
+   "name_ar": "الختمة والخطة",
+   "name_en": "Khatma plan",
+   "area": "marks",
+   "routes": [
+    "#/khatma"
+   ],
+   "anchors": {
+    "js": [
+     "showKhatma",
+     "khatmaCard",
+     "plan",
+     "trackPage",
+     "openForReading",
+     "today",
+     "dayPages",
+     "cheer"
+    ],
+    "keys": [
+     "q.khatma",
+     "q.rate"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "العلامات والختمة",
+    "مزايا نسخة 3.6"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "khatma.family",
+   "name_ar": "ختمة العائلة",
+   "name_en": "Family khatma",
+   "area": "marks",
+   "routes": [
+    "#/family"
+   ],
+   "anchors": {
+    "js": [
+     "showFamily",
+     "familyCode",
+     "familyData",
+     "familyText",
+     "famClean"
+    ],
+    "keys": [
+     "q.family"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.8"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "stats.main",
+   "name_ar": "الإحصائيات",
+   "name_en": "Statistics",
+   "area": "stats",
+   "routes": [
+    "#/stats"
+   ],
+   "anchors": {
+    "js": [
+     "showStats",
+     "statsHtml",
+     "statPage",
+     "wlSum",
+     "stRing",
+     "statsLink"
+    ],
+    "keys": [
+     "q.stats",
+     "q.statsWL"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.4",
+    "نسخة 4.6 (قائمة 31 أكتوبر)",
+    "مزايا نسخة 3.6"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "stats.rewards",
+   "name_ar": "المكافآت والسلاسل",
+   "name_en": "Rewards and streaks",
+   "area": "stats",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "rewards",
+     "streak",
+     "rewardCheck",
+     "celebrate",
+     "rewardsHtml"
+    ],
+    "keys": [
+     "q.rewards"
+    ],
+    "java": [],
+    "css": [
+     ".reward-pop"
+    ]
+   },
+   "ui_groups": [
+    "المكافآت 5.43"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": false
+  },
+  {
+   "id": "hifz.mode",
+   "name_ar": "وضع الحفظ والإخفاء",
+   "name_en": "Hifz mode (masking)",
+   "area": "hifz",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "hifzToggle",
+     "hifzMount",
+     "hifzBar",
+     "hzTap",
+     "hzForget",
+     "hzNextWord",
+     "hzHidden",
+     "hzWb",
+     "hzWbMask",
+     "hifzFlip"
+    ],
+    "keys": [
+     "q.hifzAyat",
+     "q.hifzFlip",
+     "q.maskStyle"
+    ],
+    "java": [],
+    "css": [
+     ".hifz-mask",
+     "#hifzBar"
+    ]
+   },
+   "ui_groups": [
+    "الحفظ والمراجعة",
+    "نسخة 5.27 (C)",
+    "W-track (W3/W4)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "hifz.test",
+   "name_ar": "اختبار الحفظ",
+   "name_en": "Hifz test",
+   "area": "hifz",
+   "routes": [
+    "#/hifztest"
+   ],
+   "anchors": {
+    "js": [
+     "showHifzTest",
+     "hzTestStart",
+     "hifzTestDone",
+     "hifzTestPages",
+     "hzWardTest",
+     "hzInTest"
+    ],
+    "keys": [
+     "q.hifzScores",
+     "q.lastTest"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.7",
+    "نسخة 5.13 (باتش 2)",
+    "نسخة 5.15 (Sprint A)",
+    "نسخة 5.26 (A)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "hifz.map",
+   "name_ar": "خريطة الحفظ",
+   "name_en": "Hifz map",
+   "area": "hifz",
+   "routes": [
+    "#/hifzmap"
+   ],
+   "anchors": {
+    "js": [
+     "showHifzMap",
+     "showHifzJuz",
+     "hzCell",
+     "hzUnitInfo",
+     "hzUnits",
+     "hzUnitStates",
+     "hzShowTip"
+    ],
+    "keys": [
+     "q.hzSched"
+    ],
+    "java": [],
+    "css": [
+     ".hm-tip"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.8",
+    "نسخة 5.30 S4",
+    "نسخة 5.26 (A)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "hifz.review",
+   "name_ar": "المراجعة والورد اليومي",
+   "name_en": "Review (hifz log) and daily ward",
+   "area": "hifz",
+   "routes": [
+    "#/hifzlog"
+   ],
+   "anchors": {
+    "js": [
+     "showHifzLog",
+     "hzDueList",
+     "hzWard",
+     "hzWardPlan",
+     "hifzDue",
+     "hzRecord",
+     "hifzSummary"
+    ],
+    "keys": [
+     "q.hzRev",
+     "q.hzWardWay",
+     "q.hzDaily",
+     "q.hifzLog"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.15 (Sprint A)",
+    "نسخة 5.16",
+    "نسخة 5.30 S4",
+    "نسخة 5.18 (Sprint D)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "hifz.schedule",
+   "name_ar": "جدولة المراجعة (الفترات)",
+   "name_en": "Spaced-review schedule",
+   "area": "hifz",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "hzSchedData",
+     "hzNextIv",
+     "hzScoreOf",
+     "hzDueInfo",
+     "hzFloorStep"
+    ],
+    "keys": [
+     "q.hzSched",
+     "q.hzRev"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.30 S4",
+    "نسخة 5.15 (Sprint A)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "hifz.resume",
+   "name_ar": "استئناف من المرة الماضية",
+   "name_en": "Resume from last time",
+   "area": "hifz",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "hzResumeGet",
+     "hzResumeSet",
+     "hzResumeClear",
+     "hzResumeGo",
+     "hzResumeBtn"
+    ],
+    "keys": [
+     "q.hzResume"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.26 (A)"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "hifz.mutash",
+   "name_ar": "اختبار المتشابهات",
+   "name_en": "Mutashabihat test",
+   "area": "hifz",
+   "routes": [
+    "#/mutash"
+   ],
+   "anchors": {
+    "js": [
+     "showMutashTest",
+     "mutBuild",
+     "mutNext",
+     "mutScopeFn",
+     "mutPool"
+    ],
+    "keys": [
+     "q.mutAll",
+     "q.mutScope"
+    ],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/mutashabihat.js"
+    ]
+   },
+   "ui_groups": [
+    "نسخة 5.17 (Sprint C)",
+    "المتشابهات 5.43"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": false
+  },
+  {
+   "id": "hifz.talqin",
+   "name_ar": "التلقين",
+   "name_en": "Talqin (prompted recital)",
+   "area": "hifz",
+   "routes": [
+    "#/talqin"
+   ],
+   "anchors": {
+    "js": [
+     "showTalqin"
+    ],
+    "keys": [
+     "q.talqin"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.17 (Sprint C)"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "hifz.students",
+   "name_ar": "طلابي (المحفّظ والطالب)",
+   "name_en": "Teacher / students",
+   "area": "hifz",
+   "routes": [
+    "#/students"
+   ],
+   "anchors": {
+    "js": [
+     "showStudents",
+     "teacherParse",
+     "teacherCode",
+     "teacherText",
+     "teacherSend",
+     "lastTestSave"
+    ],
+    "keys": [
+     "q.students"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.18 (Sprint D)"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "asr.recite",
+   "name_ar": "القراءة بالمايك والتسميع",
+   "name_en": "Recitation recognition (mic)",
+   "area": "asr",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "reciteToggle",
+     "reciteStop",
+     "reciteHear",
+     "rdToggle",
+     "rdStop",
+     "rdHear",
+     "rdFollow",
+     "rNext",
+     "rSkel",
+     "rSim",
+     "rSame",
+     "rAlign",
+     "rLocal",
+     "ctcJudge",
+     "ctcReady",
+     "quranLocate"
+    ],
+    "keys": [
+     "q.asr"
+    ],
+    "java": [
+     "NvAsr",
+     "ReciteBridge"
+    ],
+    "css": [
+     ".rd-cap",
+     ".rd-mic"
+    ],
+    "files": [
+     "web/asr.js"
+    ]
+   },
+   "ui_groups": [
+    "نسخة 4.5: موديل NVIDIA",
+    "نسخة 5.11",
+    "نسخة 5.4/5.5",
+    "نسخة 5.7",
+    "نسخة 5.36",
+    "نسخة 5.16b"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "asr.model",
+   "name_ar": "تحميل نموذج التعرّف وتحديثه",
+   "name_en": "Recognition model download / update",
+   "area": "asr",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "asrBtn",
+     "asrPick",
+     "asrUpdate",
+     "asrVerCheck",
+     "asrReady",
+     "asrPacks",
+     "asrStat",
+     "modelOk",
+     "needAsr"
+    ],
+    "keys": [
+     "q.asr"
+    ],
+    "java": [
+     "EdStore.download",
+     "EdStore.pause",
+     "EdStore.remove"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 4.5: موديل NVIDIA",
+    "نسخة 5.11",
+    "نسخة 5.39 (D6 #22)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "asr.pace",
+   "name_ar": "سرعة القراءة وتنبيه الأخطاء",
+   "name_en": "Reading pace and error alert",
+   "area": "asr",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "asrModel",
+     "errAlert",
+     "skipAlert"
+    ],
+    "keys": [
+     "q.asrPace",
+     "q.errAlert"
+    ],
+    "java": [
+     "NvAsr.setPace"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.36"
+   ],
+   "phone": [
+    "pt543-1"
+   ],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "asr.micsel",
+   "name_ar": "اختيار الميكروفون واختباره",
+   "name_en": "Microphone selection and test",
+   "area": "asr",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "micDevices",
+     "micLabel",
+     "micTest",
+     "micTestNative",
+     "micTestScore",
+     "micGate",
+     "micTips",
+     "testMicOff"
+    ],
+    "keys": [
+     "q.micId",
+     "q.micTest",
+     "q.micTips"
+    ],
+    "java": [
+     "NvAsr.mics",
+     "NvAsr.setMic",
+     "NvAsr.micTest",
+     "MicRoute"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.35",
+    "نسخة 4.6 (قائمة 31 أكتوبر)"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "asr.voice",
+   "name_ar": "الأوامر الصوتية",
+   "name_en": "Voice commands",
+   "area": "asr",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "voiceRun",
+     "voiceNum",
+     "voiceSurah",
+     "voiceAyahs",
+     "voiceLocate",
+     "voiceListen",
+     "voicePending"
+    ],
+    "keys": [],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.4/5.5",
+    "نسخة 5.34"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "donate.consent",
+   "name_ar": "موافقة التبرّع بالصوت",
+   "name_en": "Voice-donation consent",
+   "area": "privacy",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "consentDlg",
+     "donateV2Ask",
+     "donateSet",
+     "donatePaint",
+     "donateStatsHtml"
+    ],
+    "keys": [
+     "q.donate",
+     "q.donateV",
+     "q.donateMobile",
+     "q.donateId"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "رفع التسجيلات من القراءة #3",
+    "نسخة 5.11"
+   ],
+   "phone": [
+    "pt543-19",
+    "pt543-20",
+    "pt543-21"
+   ],
+   "risk": "high",
+   "stable": false
+  },
+  {
+   "id": "donate.upload",
+   "name_ar": "رفع التسجيلات وحذفها",
+   "name_en": "Donation upload and delete",
+   "area": "privacy",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "donateSend",
+     "donateDelete",
+     "reciteDonate",
+     "rdDonate",
+     "htvDonate"
+    ],
+    "keys": [],
+    "java": [
+     "NvAsr.sendDonations",
+     "NvAsr.donateStats",
+     "NvAsr.forget",
+     "DonateJob",
+     "Donations",
+     "FlacEncoder"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "رفع التسجيلات من القراءة #3",
+    "نسخة 5.11"
+   ],
+   "phone": [
+    "pt543-21",
+    "pt543-22"
+   ],
+   "risk": "high",
+   "stable": false
+  },
+  {
+   "id": "prayer.times",
+   "name_ar": "مواقيت الصلاة",
+   "name_en": "Prayer times",
+   "area": "prayer",
+   "routes": [
+    "#/prayer"
+   ],
+   "anchors": {
+    "js": [
+     "showPrayer",
+     "prayerTimes",
+     "nextPrayer",
+     "prayerCfg",
+     "prayerTileText",
+     "untilText"
+    ],
+    "keys": [
+     "q.prayer",
+     "q.qiblaLoc"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6",
+    "مزايا نسخة 3.7",
+    "التجويد والقراءات والأذكار والقبلة"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "prayer.alarms",
+   "name_ar": "الأذان والتذكيرات",
+   "name_en": "Adhan and reminders",
+   "area": "prayer",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "syncAlarms",
+     "remCfg",
+     "voiceOf"
+    ],
+    "keys": [
+     "q.reminders"
+    ],
+    "java": [
+     "Alarms",
+     "AlarmReceiver",
+     "AppBridge.setAlarms",
+     "AppBridge.previewAdhan",
+     "AppBridge.askNotifications",
+     "AppBridge.exactAlarms",
+     "AppBridge.notificationsOn"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6",
+    "مزايا نسخة 3.7"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "prayer.widget",
+   "name_ar": "ودجت الصلاة والآية",
+   "name_en": "Home-screen widgets",
+   "area": "prayer",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "syncWidget",
+     "ayahOfDay"
+    ],
+    "keys": [],
+    "java": [
+     "PrayerWidget",
+     "QuranWidget",
+     "AppBridge.setWidget"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.7"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "prayer.log",
+   "name_ar": "متابعة الصلوات",
+   "name_en": "Prayer tracker",
+   "area": "prayer",
+   "routes": [
+    "#/prayerlog"
+   ],
+   "anchors": {
+    "js": [
+     "showPrayerLog",
+     "plKey",
+     "plSpan",
+     "plMonths"
+    ],
+    "keys": [
+     "q.prayLog",
+     "q.plCal"
+    ],
+    "java": [],
+    "css": [
+     ".pl-grid"
+    ]
+   },
+   "ui_groups": [
+    "متابعة الصلوات"
+   ],
+   "phone": [
+    "pt543-2",
+    "pt543-3",
+    "pt543-4",
+    "pt543-5",
+    "pt543-6"
+   ],
+   "risk": "med",
+   "stable": false
+  },
+  {
+   "id": "prayer.imsakia",
+   "name_ar": "إمساكية رمضان",
+   "name_en": "Ramadan imsakia",
+   "area": "prayer",
+   "routes": [
+    "#/imsakia"
+   ],
+   "anchors": {
+    "js": [
+     "showImsakia",
+     "ramadanInfo",
+     "ramadanHtml"
+    ],
+    "keys": [],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "qibla.main",
+   "name_ar": "اتجاه القبلة",
+   "name_en": "Qibla compass",
+   "area": "prayer",
+   "routes": [
+    "#/qibla"
+   ],
+   "anchors": {
+    "js": [
+     "showQibla",
+     "qiblaBearing",
+     "kaabaKm"
+    ],
+    "keys": [
+     "q.qiblaLoc"
+    ],
+    "java": [
+     "QiblaBridge"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "التجويد والقراءات والأذكار والقبلة"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "azkar.main",
+   "name_ar": "الأذكار",
+   "name_en": "Azkar",
+   "area": "worship",
+   "routes": [
+    "#/azkar"
+   ],
+   "anchors": {
+    "js": [
+     "showAzkar"
+    ],
+    "keys": [
+     "q.azkarOrder",
+     "q.azkarN"
+    ],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/azkar.js"
+    ]
+   },
+   "ui_groups": [
+    "التجويد والقراءات والأذكار والقبلة",
+    "مزايا نسخة 3.4",
+    "نسخة 4.6 (قائمة 31 أكتوبر)"
+   ],
+   "phone": [],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "duas.main",
+   "name_ar": "الأدعية",
+   "name_en": "Duas",
+   "area": "worship",
+   "routes": [
+    "#/duas"
+   ],
+   "anchors": {
+    "js": [
+     "showDuas"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/duas.js"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.7"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "tasbih.main",
+   "name_ar": "السبحة",
+   "name_en": "Tasbih counter",
+   "area": "worship",
+   "routes": [
+    "#/tasbih"
+   ],
+   "anchors": {
+    "js": [
+     "showTasbih"
+    ],
+    "keys": [
+     "q.tasbih"
+    ],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6",
+    "نسخة 4.6 (قائمة 31 أكتوبر)"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "radio.main",
+   "name_ar": "إذاعة القرآن الكريم",
+   "name_en": "Quran radio",
+   "area": "radio",
+   "routes": [
+    "#/radio"
+   ],
+   "anchors": {
+    "js": [
+     "showRadio",
+     "radioBridge",
+     "radioCountry"
+    ],
+    "keys": [
+     "q.radioCountry",
+     "q.radioLast"
+    ],
+    "java": [
+     "RadioService",
+     "AppBridge.radioPlay",
+     "AppBridge.radioPause",
+     "AppBridge.radioResume",
+     "AppBridge.radioStop",
+     "AppBridge.radioState"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "إذاعة القرآن #34"
+   ],
+   "phone": [
+    "pt543-13",
+    "pt543-14",
+    "pt543-15",
+    "pt543-16",
+    "pt543-17",
+    "pt543-18"
+   ],
+   "risk": "high",
+   "stable": false
+  },
+  {
+   "id": "backup.main",
+   "name_ar": "النسخ الاحتياطي والاسترجاع",
+   "name_en": "Backup and restore",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "exportBackup",
+     "importBackup",
+     "bkCollect",
+     "bkRestore",
+     "paintBk",
+     "bkDue",
+     "bkDays"
+    ],
+    "keys": [
+     "q.lastBackup",
+     "q.bkRem"
+    ],
+    "java": [
+     "AppBridge.shareFile"
+    ],
+    "css": [
+     "#bkOut",
+     "#bkIn"
+    ]
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6",
+    "نسخة 5.18 (Sprint D)",
+    "متابعة الصلوات"
+   ],
+   "phone": [
+    "pt543-6"
+   ],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "settings.core",
+   "name_ar": "شاشة الإعدادات",
+   "name_en": "Settings screen",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "applySettings",
+     "bridgeSet"
+    ],
+    "keys": [],
+    "java": [],
+    "css": [
+     "#settings",
+     "#closeSettings",
+     ".seg"
+    ]
+   },
+   "ui_groups": [
+    "الإعدادات والمظهر",
+    "نسخة 4.6 (قائمة 31 أكتوبر)",
+    "نسخة 5.11"
+   ],
+   "phone": [
+    "pt543-23"
+   ],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "settings.theme",
+   "name_ar": "المظهر الفاتح والداكن",
+   "name_en": "Theme (light/dark/sunset)",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "themeDark",
+     "sunDark",
+     "isDarkTheme",
+     "sunCheck"
+    ],
+    "keys": [
+     "q.theme",
+     "q.themeNow"
+    ],
+    "java": [
+     "AppBridge.setThemeDark",
+     "AppBridge.setThemeAuto"
+    ],
+    "css": [
+     "#theme"
+    ]
+   },
+   "ui_groups": [
+    "الإعدادات والمظهر",
+    "مزايا نسخة 3.7"
+   ],
+   "phone": [
+    "pt543-23"
+   ],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "settings.haptics",
+   "name_ar": "الاهتزاز",
+   "name_en": "Haptics",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "hapticLevel",
+     "tick"
+    ],
+    "keys": [
+     "q.hapticLevel"
+    ],
+    "java": [
+     "AppBridge.buzz",
+     "AppBridge.buzzPattern",
+     "AppBridge.tick"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.4"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "settings.downloads",
+   "name_ar": "التحميلات والطبعات",
+   "name_en": "Downloads manager",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "edNext",
+     "edPaused",
+     "paintEdDl",
+     "edGone",
+     "paintAsrDl",
+     "needEd"
+    ],
+    "keys": [
+     "q.edPaused"
+    ],
+    "java": [
+     "EdStore.state",
+     "EdStore.download"
+    ],
+    "css": [
+     ".dl-item",
+     "#dlGroup"
+    ]
+   },
+   "ui_groups": [
+    "نسخة 5.11",
+    "نسخة 4.6 (قائمة 31 أكتوبر)"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "settings.updates",
+   "name_ar": "التحقق من التحديثات",
+   "name_en": "Update check",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "asrVerCheck"
+    ],
+    "keys": [
+     "q.updLast",
+     "q.updLater"
+    ],
+    "java": [
+     "AppBridge.playUpdateCheck",
+     "AppBridge.playUpdateStart",
+     "AppBridge.openStore",
+     "AppBridge.version"
+    ],
+    "css": [
+     "#updRow",
+     "#updBtn"
+    ]
+   },
+   "ui_groups": [
+    "نسخة 5.39 (D6 #22)"
+   ],
+   "phone": [
+    "pt543-26"
+   ],
+   "risk": "med",
+   "stable": true
+  },
+  {
+   "id": "settings.permissions",
+   "name_ar": "الأذونات (إشعارات، دقيق، تطبيق)",
+   "name_en": "Permissions shortcuts",
+   "area": "settings",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "syncAlarms"
+    ],
+    "keys": [],
+    "java": [
+     "AppBridge.openAppSettings",
+     "AppBridge.askExactAlarms"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "مزايا نسخة 3.6"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "i18n.en",
+   "name_ar": "الواجهة الإنجليزية",
+   "name_en": "English UI",
+   "area": "i18n",
+   "routes": [],
+   "anchors": {
+    "js": [],
+    "keys": [
+     "q.lang"
+    ],
+    "java": [],
+    "css": [
+     "#langSet"
+    ],
+    "files": [
+     "web/i18n.js"
+    ]
+   },
+   "ui_groups": [
+    "متابعة الصلوات",
+    "إذاعة القرآن #34",
+    "نسخة 5.16"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "nav.router",
+   "name_ar": "التنقل والرجوع",
+   "name_en": "Router and back navigation",
+   "area": "core",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "route",
+     "navBack",
+     "go",
+     "routeKeepSheet",
+     "tabbar"
+    ],
+    "keys": [],
+    "java": [
+     "MainActivity"
+    ],
+    "css": [
+     "#btnBack",
+     "#view"
+    ]
+   },
+   "ui_groups": [
+    "الرئيسية والفهرس"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "core.storage",
+   "name_ar": "التخزين المحلي والمفاتيح",
+   "name_en": "Local storage helpers",
+   "area": "core",
+   "routes": [],
+   "anchors": {
+    "js": [
+     "save",
+     "load",
+     "edKey",
+     "askYes"
+    ],
+    "keys": [],
+    "java": [],
+    "css": []
+   },
+   "ui_groups": [
+    "نسخة 5.4/5.5"
+   ],
+   "phone": [],
+   "risk": "high",
+   "stable": true
+  },
+  {
+   "id": "core.sw",
+   "name_ar": "عامل الخدمة للنسخة الويب",
+   "name_en": "Service worker (web build)",
+   "area": "core",
+   "routes": [],
+   "anchors": {
+    "js": [],
+    "keys": [],
+    "java": [],
+    "css": [],
+    "files": [
+     "web/sw.js"
+    ]
+   },
+   "ui_groups": [],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  },
+  {
+   "id": "core.webview",
+   "name_ar": "تحقق WebView وصور AVIF",
+   "name_en": "WebView / AVIF check",
+   "area": "core",
+   "routes": [],
+   "anchors": {
+    "js": [],
+    "keys": [],
+    "java": [
+     "MainActivity"
+    ],
+    "css": []
+   },
+   "ui_groups": [
+    "الإعدادات والمظهر"
+   ],
+   "phone": [],
+   "risk": "low",
+   "stable": true
+  }
+ ]
+}

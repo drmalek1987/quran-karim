@@ -1,0 +1,3369 @@
+{
+ "_doc": "QA checklist as data (ISO/IEC 25010). Source of truth for QA-checklist.md and plans/qa-checklist.html (node tools/qa/qa_render.js). Every item points to a feature in features.json; how=auto|both needs ui_group (exact ui.js group name).",
+ "characteristics": {
+  "FUN": {
+   "ar": "الملاءمة الوظيفية",
+   "en": "Functional suitability"
+  },
+  "PER": {
+   "ar": "كفاءة الأداء",
+   "en": "Performance efficiency"
+  },
+  "COM": {
+   "ar": "التوافق (الأجهزة والإصدارات والطبعات وWebView)",
+   "en": "Compatibility"
+  },
+  "USA": {
+   "ar": "قابلية الاستخدام وإمكانية الوصول والتوطين",
+   "en": "Usability, accessibility (WCAG 2.2 AA) and localisation"
+  },
+  "REL": {
+   "ar": "الموثوقية",
+   "en": "Reliability"
+  },
+  "SEC": {
+   "ar": "الأمان والخصوصية",
+   "en": "Security and privacy"
+  },
+  "MNT": {
+   "ar": "قابلية الصيانة",
+   "en": "Maintainability"
+  },
+  "POR": {
+   "ar": "قابلية النقل (البناء والتوقيع والترقية)",
+   "en": "Portability"
+  },
+  "PLY": {
+   "ar": "متطلبات Google Play",
+   "en": "Google Play pre-launch / policy"
+  }
+ },
+ "items": [
+  {
+   "id": "FUN-HOME-MAIN-01",
+   "char": "FUN",
+   "feature": "home.main",
+   "title_ar": "الشاشة الرئيسية تعرض السور والأقسام",
+   "steps_ar": [
+    "افتح التطبيق على الرئيسية.",
+    "مرّر قائمة السور."
+   ],
+   "expected_ar": "تظهر السور الـ ١١٤ وبطاقات الأقسام بلا أخطاء.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "الرئيسية والفهرس",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HOME-MAIN-02",
+   "char": "FUN",
+   "feature": "home.main",
+   "title_ar": "زر الرجوع من الرئيسية لا يغلق التطبيق فجأة",
+   "steps_ar": [
+    "افتح أي قسم ثم اضغط رجوع حتى الرئيسية.",
+    "اضغط رجوع مرة أخرى."
+   ],
+   "expected_ar": "الرجوع يعيدك للرئيسية خطوة خطوة، والخروج من الرئيسية فقط.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "الرئيسية والفهرس",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-HOME-INDEX-01",
+   "char": "FUN",
+   "feature": "home.index",
+   "title_ar": "البحث في الفهرس بالاسم وبالرقم وتبويب الأجزاء",
+   "steps_ar": [
+    "افتح الفهرس.",
+    "اكتب اسم سورة ثم رقمًا.",
+    "افتح تبويب الأجزاء."
+   ],
+   "expected_ar": "النتائج صحيحة، والأجزاء ٣٠، وجزء عمّ يفتح صفحته.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "الرئيسية والفهرس",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HOME-INDEX-02",
+   "char": "FUN",
+   "feature": "home.index",
+   "title_ar": "كلمة غير موجودة في الفهرس",
+   "steps_ar": [
+    "اكتب في خانة الفهرس نصًا لا يطابق سورة."
+   ],
+   "expected_ar": "قائمة فارغة بلا أخطاء ولا تعطل.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-HOME-CONTINUE-01",
+   "char": "FUN",
+   "feature": "home.continue",
+   "title_ar": "متابعة القراءة من آخر صفحة",
+   "steps_ar": [
+    "اقرأ إلى صفحة بعيدة ثم ارجع للرئيسية.",
+    "اضغط «كمّل»."
+   ],
+   "expected_ar": "تفتح آخر صفحة قرأتها لنفس الطبعة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "الرئيسية والفهرس",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HOME-CONTINUE-02",
+   "char": "FUN",
+   "feature": "home.continue",
+   "title_ar": "فتح المصحف عند التشغيل ورابط عميق لا يتأثر",
+   "steps_ar": [
+    "من الإعدادات اختر «آخر موضع في المصحف».",
+    "أغلق التطبيق وافتحه.",
+    "افتح التطبيق من ودجت الآية."
+   ],
+   "expected_ar": "يفتح على آخر صفحة، والودجت يفتح صفحته هو لا آخر شاشة.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "نسخة 5.34",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-HOME-TODAY-01",
+   "char": "FUN",
+   "feature": "home.today",
+   "title_ar": "بطاقة «النهارده» والهدف اليومي",
+   "steps_ar": [
+    "اضبط هدفًا يوميًا.",
+    "اقرأ صفحات وعد للرئيسية."
+   ],
+   "expected_ar": "البطاقة تعرض الورد والهدف وتتحدّث بعد القراءة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.15 (Sprint A)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HOME-TODAY-02",
+   "char": "FUN",
+   "feature": "home.today",
+   "title_ar": "هدف اليوم بلا خطة ختمة ولا حفظ",
+   "steps_ar": [
+    "على تثبيت جديد افتح الرئيسية."
+   ],
+   "expected_ar": "لا أرقام فارغة مربكة؛ تلميح واضح بدلًا منها.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.16",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HOME-HIJRI-01",
+   "char": "FUN",
+   "feature": "home.hijri",
+   "title_ar": "التاريخ الهجري بالعربية والإنجليزية",
+   "steps_ar": [
+    "افتح الرئيسية بالعربية ثم بالإنجليزية."
+   ],
+   "expected_ar": "يظهر اسم الشهر الهجري مع «هـ» أو «AH» ولا يظهر «BC».",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.6",
+   "device": "any"
+  },
+  {
+   "id": "FUN-MORE-MENU-01",
+   "char": "FUN",
+   "feature": "more.menu",
+   "title_ar": "بلاطات «المزيد» تفتح وجهاتها",
+   "steps_ar": [
+    "افتح «المزيد».",
+    "اضغط كل بلاطة."
+   ],
+   "expected_ar": "كل بلاطة تفتح شاشتها ويعمل الرجوع منها.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.7",
+   "device": "any"
+  },
+  {
+   "id": "FUN-MORE-MENU-02",
+   "char": "FUN",
+   "feature": "more.menu",
+   "title_ar": "صفّ الإعدادات وشاشة الترحيب في آخر «المزيد»",
+   "steps_ar": [
+    "اضغط «الإعدادات» ثم «شاشة الترحيب»."
+   ],
+   "expected_ar": "الإعدادات تُفتح، والترحيب يُعاد عرضه ويمكن تخطيه.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-ONBOARD-WELCOME-01",
+   "char": "FUN",
+   "feature": "onboard.welcome",
+   "title_ar": "خطوات الترحيب مع «تخطي» و«تخطي الكل»",
+   "steps_ar": [
+    "على تثبيت جديد اتبع الخطوات الأربع.",
+    "جرّب «تخطي» في كل خطوة."
+   ],
+   "expected_ar": "كل خطوة تُتخطى، والأخيرة تنهي الترحيب ولا يعود للظهور.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.11",
+   "device": "any"
+  },
+  {
+   "id": "FUN-ONBOARD-WELCOME-02",
+   "char": "FUN",
+   "feature": "onboard.welcome",
+   "title_ar": "الترحيب بلا إنترنت: اختيار طبعة غير منزّلة",
+   "steps_ar": [
+    "اقطع الإنترنت واختر طبعة غير منزّلة."
+   ],
+   "expected_ar": "رسالة فشل واضحة مع «إعادة المحاولة» ولا تعطل.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ONBOARD-TOUR-01",
+   "char": "FUN",
+   "feature": "onboard.tour",
+   "title_ar": "الجولة التعريفية: التالي والسابق والإنهاء",
+   "steps_ar": [
+    "افتح التطبيق بعد التحديث أول مرة.",
+    "تنقّل بين الخطوات ثم أنهِ."
+   ],
+   "expected_ar": "تظهر مرة واحدة على الرئيسية، و«عرض الشرح» في الإعدادات يعيدها.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.38 (C5)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-ONBOARD-TOUR-02",
+   "char": "FUN",
+   "feature": "onboard.tour",
+   "title_ar": "زر الرجوع وتدوير الشاشة أثناء الجولة",
+   "steps_ar": [
+    "أثناء الجولة اضغط رجوع ثم دوّر الشاشة."
+   ],
+   "expected_ar": "الرجوع يغلق الجولة، والتدوير يعيد توزيعها بلا تعطل.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-PAGE-01",
+   "char": "FUN",
+   "feature": "read.page",
+   "title_ar": "صفحة المصحف تُحمَّل وتُعرض",
+   "steps_ar": [
+    "افتح صفحة ١ ثم ٥٠ ثم ٦٠٤.",
+    "اكتب رقم صفحة غير صحيح."
+   ],
+   "expected_ar": "الصفحات تُعرض، والرقم الخاطئ يُصحَّح إلى أقرب صفحة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-PAGE-02",
+   "char": "FUN",
+   "feature": "read.page",
+   "title_ar": "صورة صفحة مفقودة أو بطيئة",
+   "steps_ar": [
+    "افتح طبعة غير مكتملة التنزيل."
+   ],
+   "expected_ar": "تظهر رسالة/هيكل تحميل لا شاشة بيضاء مجمّدة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-FLIP-01",
+   "char": "FUN",
+   "feature": "read.flip",
+   "title_ar": "التقليب بالسحب والصوت والتأثير",
+   "steps_ar": [
+    "اسحب يمينًا ويسارًا.",
+    "قل «الصفحة التالية».",
+    "فعّل تأثير ثني الورقة."
+   ],
+   "expected_ar": "الصفحة تتبدّل في الاتجاه الصحيح (RTL) بلا وميض ولا رعشة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.34",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-FLIP-02",
+   "char": "FUN",
+   "feature": "read.flip",
+   "title_ar": "سحب قصير أو قطري لا يقلب بالخطأ",
+   "steps_ar": [
+    "اسحب مسافة قصيرة أو بميل رأسي."
+   ],
+   "expected_ar": "لا تنقلب الصفحة ولا تتغير الصفحة الحالية.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-SPREAD-01",
+   "char": "FUN",
+   "feature": "read.spread",
+   "title_ar": "صفحتان متجاورتان على التابلت بالعرض",
+   "steps_ar": [
+    "شغّل محاكي تابلت بالعرض.",
+    "قلّب الصفحات.",
+    "دوّر للطولي."
+   ],
+   "expected_ar": "تظهر صفحتان وتتقلبان معًا، والطولي يعيد صفحة واحدة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "المقاسات والتابلت",
+   "device": "emulator"
+  },
+  {
+   "id": "FUN-READ-SPREAD-02",
+   "char": "FUN",
+   "feature": "read.spread",
+   "title_ar": "الفولد ٨٤١×٦٧٣",
+   "steps_ar": [
+    "افتح بمقاس الفولد."
+   ],
+   "expected_ar": "خيار «صفحتان متجاورتان» يعمل بلا تداخل.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "المقاسات والتابلت",
+   "device": "emulator"
+  },
+  {
+   "id": "FUN-READ-VERTICAL-01",
+   "char": "FUN",
+   "feature": "read.vertical",
+   "title_ar": "القراءة العمودية تفتح على آخر صفحة",
+   "steps_ar": [
+    "فعّل القراءة العمودية وافتح المصحف.",
+    "مرّر عدة صفحات."
+   ],
+   "expected_ar": "يفتح عند الصفحة الأخيرة ويتتبع المقروء ويحفظ الموضع.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-VERTICAL-02",
+   "char": "FUN",
+   "feature": "read.vertical",
+   "title_ar": "وضع الحفظ والمايك في العمودي",
+   "steps_ar": [
+    "فعّل وضع الحفظ في العمودي وابدأ المايك."
+   ],
+   "expected_ar": "المايك يبدأ من موضع الصفحة الظاهرة لا من أول الصفحة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.28",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-FULLSCREEN-01",
+   "char": "FUN",
+   "feature": "read.fullscreen",
+   "title_ar": "الدخول والخروج من ملء الشاشة",
+   "steps_ar": [
+    "افتح صفحة ودعها ٥ ثوانٍ بلا لمس.",
+    "المس الشاشة."
+   ],
+   "expected_ar": "تختفي الأزرار والشرائط ثم تعود باللمس، والصفحة لا تقفز.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.35",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-FULLSCREEN-02",
+   "char": "FUN",
+   "feature": "read.fullscreen",
+   "title_ar": "ملء الشاشة مع شريط الحالة والقطع (notch) والأفقي",
+   "steps_ar": [
+    "جرّب الأفقي وتبديل «شريط الحالة»."
+   ],
+   "expected_ar": "لا يُقص جزء من الصفحة، ويعود شريط النظام عند الخروج.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-PINCH-01",
+   "char": "FUN",
+   "feature": "read.pinch",
+   "title_ar": "القرصة تغيّر حجم الصفحة",
+   "steps_ar": [
+    "في ملء الشاشة اقرص بإصبعين.",
+    "جرّب القرصة الكبيرة جدًا والصغيرة جدًا."
+   ],
+   "expected_ar": "التكبير ضمن حدود، والسحب لقلب الصفحة يظل يعمل.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.35",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-PINCH-02",
+   "char": "FUN",
+   "feature": "read.pinch",
+   "title_ar": "الصف «حجم الصفحة» يحفظ اختياره",
+   "steps_ar": [
+    "غيّر الخيار وأعد فتح التطبيق."
+   ],
+   "expected_ar": "الاختيار يبقى.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.35",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-AYAHBAR-01",
+   "char": "FUN",
+   "feature": "read.ayahbar",
+   "title_ar": "الضغط على آية يظللها ويظهر شريطها",
+   "steps_ar": [
+    "اضغط آية في الصفحة.",
+    "اضغط خارجها."
+   ],
+   "expected_ar": "الآية تُظلَّل ويظهر الشريط، وخارجها يزيله.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-AYAHBAR-02",
+   "char": "FUN",
+   "feature": "read.ayahbar",
+   "title_ar": "«علامة» بلمسة واحدة والضغطة العادية بعد الضغطة الطويلة",
+   "steps_ar": [
+    "اضغط «علامة» من الشريط.",
+    "نفّذ ضغطة طويلة على كلمة ثم لمسة عادية."
+   ],
+   "expected_ar": "العلامة تُحفظ بلا نافذة، واللمسة العادية تفتح الشريط كالمعتاد.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.18 (Sprint D)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-WORDPRESS-01",
+   "char": "FUN",
+   "feature": "read.wordpress",
+   "title_ar": "الضغط الطويل على كلمة يفتح معناها",
+   "steps_ar": [
+    "اضغط مطولًا على كلمة (مثل «ٱلْكِتَٰبُ»)."
+   ],
+   "expected_ar": "تظهر نافذة المعنى والجذر ولا يبقى تظليل.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.19",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-WORDPRESS-02",
+   "char": "FUN",
+   "feature": "read.wordpress",
+   "title_ar": "الضغط الطويل في وضع الحفظ وفي الحرمين",
+   "steps_ar": [
+    "كرر في وضع الحفظ وعلى طبعة الحرمين."
+   ],
+   "expected_ar": "الكلمة الصحيحة تُحدَّد ولا تنكشف كلمات مخفية.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.19",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-TAJWEEDLAYER-01",
+   "char": "FUN",
+   "feature": "read.tajweedlayer",
+   "title_ar": "ألوان التجويد فوق الصفحة وإيقافها",
+   "steps_ar": [
+    "افتح صفحة مع التجويد.",
+    "أوقفه من الإعدادات."
+   ],
+   "expected_ar": "الألوان تظهر ثم تختفي وتبقى القراءة سليمة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-TAJWEEDLAYER-02",
+   "char": "FUN",
+   "feature": "read.tajweedlayer",
+   "title_ar": "التجويد في وضع النص",
+   "steps_ar": [
+    "افتح عرض النص."
+   ],
+   "expected_ar": "تظهر ألوان التجويد على النص نفسه.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "عرض النص",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-THEMATIC-01",
+   "char": "FUN",
+   "feature": "read.thematic",
+   "title_ar": "المصحف الموضوعي: المفتاح والألوان",
+   "steps_ar": [
+    "فعّل الألوان الموضوعية وافتح «معاني الألوان»."
+   ],
+   "expected_ar": "الألوان تتطابق مع المفتاح بلا تعارض مع التجويد.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.11",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-BG-01",
+   "char": "FUN",
+   "feature": "read.bg",
+   "title_ar": "ألوان خلفية الصفحة كلها وبلون من اختيارك",
+   "steps_ar": [
+    "جرّب كل لون ثم لونًا مخصصًا.",
+    "غيّر المظهر للداكن."
+   ],
+   "expected_ar": "تتطبق الألوان والنص مقروء، والمظهر الداكن لا يقلب لون الصفحة المختار.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "الإعدادات والمظهر",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-BG-02",
+   "char": "FUN",
+   "feature": "read.bg",
+   "title_ar": "لون فاتح جدًا أو غامق جدًا",
+   "steps_ar": [
+    "اختر لونًا قريبًا من لون الحبر."
+   ],
+   "expected_ar": "يُمنع أو يُعدَّل لضمان تباين مقروء.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-EDITION-01",
+   "char": "FUN",
+   "feature": "read.edition",
+   "title_ar": "تبديل الطبعة يفتح نفس الآية",
+   "steps_ar": [
+    "من الإعدادات بدّل الطبعة."
+   ],
+   "expected_ar": "يبقى الموضع على الآية نفسها في الطبعة الجديدة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "الإعدادات والمظهر",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-EDITION-02",
+   "char": "FUN",
+   "feature": "read.edition",
+   "title_ar": "الطبعة غير المنزّلة",
+   "steps_ar": [
+    "اختر طبعة غير منزّلة."
+   ],
+   "expected_ar": "تُعرض خطوة تنزيل لا صفحة فارغة، ويمكن الرجوع للنص.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-BRIGHTNESS-01",
+   "char": "FUN",
+   "feature": "read.brightness",
+   "title_ar": "السحب الرأسي على الحافة يغيّر الإضاءة",
+   "steps_ar": [
+    "فعّل «التحكم في الإضاءة بالسحب».",
+    "اسحب على الحافة اليسرى صعودًا ونزولًا."
+   ],
+   "expected_ar": "الإضاءة تتغير مع مؤشر، والسحب الأفقي لا يتأثر.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "سحب الإضاءة #18",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-BRIGHTNESS-02",
+   "char": "FUN",
+   "feature": "read.brightness",
+   "title_ar": "السحب لا يُفعّل رجوع أندرويد",
+   "steps_ar": [
+    "اسحب عدة مرات من الحافة."
+   ],
+   "expected_ar": "لا يخرج التطبيق ولا يرجع.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-TEXTVIEW-01",
+   "char": "FUN",
+   "feature": "read.textview",
+   "title_ar": "عرض النص: تغيير الحجم والتنقل بين السور",
+   "steps_ar": [
+    "بدّل إلى عرض النص.",
+    "غيّر حجم الخط.",
+    "انتقل للسورة التالية."
+   ],
+   "expected_ar": "النص يتغير حجمه ويتنقل بين السور بلا بسملة خاطئة (التوبة).",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "عرض النص",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-TEXTVIEW-02",
+   "char": "FUN",
+   "feature": "read.textview",
+   "title_ar": "الرجوع لعرض الصفحات",
+   "steps_ar": [
+    "بدّل من النص إلى الصفحات."
+   ],
+   "expected_ar": "يفتح نفس الموضع.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "عرض النص",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-QUOTECOLOR-01",
+   "char": "FUN",
+   "feature": "read.quotecolor",
+   "title_ar": "لون النص القرآني داخل التفسير والدروس",
+   "steps_ar": [
+    "افتح تفسيرًا فيه آيات بين ﴿ ﴾ في الفاتح والداكن."
+   ],
+   "expected_ar": "لون الآية موحّد وبتباين كافٍ (≥ ٤٫٥).",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "لون النص القرآني 5.43",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-SHARE-01",
+   "char": "FUN",
+   "feature": "read.share",
+   "title_ar": "مشاركة نص بالتشكيل وبدونه ونسخ الآية",
+   "steps_ar": [
+    "من شريط الآية اضغط مشاركة.",
+    "اختر النص بالتشكيل ثم بدونه.",
+    "اضغط نسخ."
+   ],
+   "expected_ar": "النص المنسوخ/المُشارك مطابق للآية والخيارات تعمل.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-SHARE-02",
+   "char": "FUN",
+   "feature": "read.share",
+   "title_ar": "مشاركة صورة الآية",
+   "steps_ar": [
+    "اختر مشاركة كصورة."
+   ],
+   "expected_ar": "تفتح قائمة المشاركة بصورة سليمة بلا تعطل.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-SEARCH-MAIN-01",
+   "char": "FUN",
+   "feature": "search.main",
+   "title_ar": "البحث بكلمة وبرقم سورة:آية وبأرقام عربية",
+   "steps_ar": [
+    "ابحث عن «الصمد» ثم «٢:٢٥٥» ثم «2:255»."
+   ],
+   "expected_ar": "تظهر النتائج وتفتح الآية مظللة بالكلمة المطلوبة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "البحث",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SEARCH-MAIN-02",
+   "char": "FUN",
+   "feature": "search.main",
+   "title_ar": "نتيجة غير موجودة وشروط OR و - وعبارة",
+   "steps_ar": [
+    "ابحث عن كلمة غير موجودة ثم عن «أ OR ب»."
+   ],
+   "expected_ar": "رسالة «لا توجد نتائج» أو نتائج الشروط الصحيحة بلا تعطل.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "البحث",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AYAH-PAGE-01",
+   "char": "FUN",
+   "feature": "ayah.page",
+   "title_ar": "صفحة الآية: التبويبات والتنقل بين الآيات",
+   "steps_ar": [
+    "افتح آية من الشريط ← تفسير.",
+    "اضغط كل تبويب.",
+    "اضغط التالية والسابقة."
+   ],
+   "expected_ar": "كل تبويب يحمّل محتواه، وأول آية وآخر آية تتعاملان مع الحد بلا خطأ.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "التفسير والإعراب والمعاني",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AYAH-PAGE-02",
+   "char": "FUN",
+   "feature": "ayah.page",
+   "title_ar": "آية بلا سبب نزول",
+   "steps_ar": [
+    "افتح تبويب أسباب النزول لآية بلا سبب."
+   ],
+   "expected_ar": "رسالة واضحة لا شاشة فارغة.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "التفسير والإعراب والمعاني",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AYAH-WORDS-01",
+   "char": "FUN",
+   "feature": "ayah.words",
+   "title_ar": "معاني الكلمات وتبديل الجذر",
+   "steps_ar": [
+    "افتح تبويب الكلمات واختر كلمة ثم أخرى."
+   ],
+   "expected_ar": "الجذر والمعجم يتغيران مع الكلمة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "التفسير والإعراب والمعاني",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AYAH-TRANSLATION-01",
+   "char": "FUN",
+   "feature": "ayah.translation",
+   "title_ar": "الترجمة الإنجليزية تحت الآيات",
+   "steps_ar": [
+    "فعّل الترجمة في الإعدادات وافتح عرض النص."
+   ],
+   "expected_ar": "تظهر الترجمة تحت كل آية وتُخفى عند الإيقاف.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-TAJWEED-LESSONS-01",
+   "char": "FUN",
+   "feature": "tajweed.lessons",
+   "title_ar": "دروس التجويد والمثال يفتح الآية",
+   "steps_ar": [
+    "افتح التجويد ← درسًا ← مثالًا."
+   ],
+   "expected_ar": "المثال يفتح موضع الآية.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "التجويد والقراءات والأذكار والقبلة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-QIRAAT-TEN-01",
+   "char": "FUN",
+   "feature": "qiraat.ten",
+   "title_ar": "القراءات العشر وأصولها",
+   "steps_ar": [
+    "افتح القراءات واستعرض الأصول."
+   ],
+   "expected_ar": "تظهر الأصول والترجمة بلا أخطاء.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "التجويد والقراءات والأذكار والقبلة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-TOPICS-INDEX-01",
+   "char": "FUN",
+   "feature": "topics.index",
+   "title_ar": "فهرس المواضيع وفتح الآيات",
+   "steps_ar": [
+    "افتح «مواضيع القرآن» واختر موضوعًا."
+   ],
+   "expected_ar": "الآيات المرتبطة تفتح.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.8",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AUDIO-PLAYER-01",
+   "char": "FUN",
+   "feature": "audio.player",
+   "title_ar": "تشغيل آية ثم الانتقال التلقائي وقلب الصفحة",
+   "steps_ar": [
+    "اضغط استماع تحت الصفحة.",
+    "اترك التلاوة تعبر نهاية الصفحة."
+   ],
+   "expected_ar": "البسملة ثم الآية، التظليل أخضر، وتنتقل للتالية وتقلب الصفحة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "التلاوة الصوتية",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AUDIO-PLAYER-02",
+   "char": "FUN",
+   "feature": "audio.player",
+   "title_ar": "انقطاع الإنترنت أثناء التلاوة",
+   "steps_ar": [
+    "شغّل تلاوة ثم اقطع الإنترنت قبل ملف غير مخزن."
+   ],
+   "expected_ar": "رسالة واضحة والمشغّل لا يعلق ولا يتعطل التطبيق.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-AUDIO-SLEEP-01",
+   "char": "FUN",
+   "feature": "audio.sleep",
+   "title_ar": "مؤقت النوم: ١٥ دقيقة وآخر السورة",
+   "steps_ar": [
+    "شغّل مؤقتًا واترك التلاوة."
+   ],
+   "expected_ar": "التلاوة تتوقف عند الموعد أو آخر السورة.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.17 (Sprint C)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AUDIO-SLEEP-02",
+   "char": "FUN",
+   "feature": "audio.sleep",
+   "title_ar": "تحميل السورة للاستماع بلا نت",
+   "steps_ar": [
+    "حمّل سورة ثم قطع الإنترنت وشغّلها."
+   ],
+   "expected_ar": "تعمل من التخزين المحلي.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.17 (Sprint C)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AUDIO-TTS-01",
+   "char": "FUN",
+   "feature": "audio.tts",
+   "title_ar": "نطق الأذكار والآيات بالصوت العربي",
+   "steps_ar": [
+    "في الأذكار اضغط «استمع للآيات»."
+   ],
+   "expected_ar": "يُنطق الذكر بصوت النظام العربي أو تظهر رسالة إن لم يتوفر.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-MARKS-BOOKMARKS-01",
+   "char": "FUN",
+   "feature": "marks.bookmarks",
+   "title_ar": "إضافة علامة وإعادة تسميتها وحذفها بتأكيد",
+   "steps_ar": [
+    "أضف علامة من الشريط.",
+    "غيّر اسمها.",
+    "احذفها."
+   ],
+   "expected_ar": "العلامة تظهر في الختمة وتفتح، والحذف يسأل أولًا.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "العلامات والختمة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-MARKS-BOOKMARKS-02",
+   "char": "FUN",
+   "feature": "marks.bookmarks",
+   "title_ar": "ملاحظة على آية",
+   "steps_ar": [
+    "أضف ملاحظة ثم أعد فتحها."
+   ],
+   "expected_ar": "الملاحظة تبقى بعد إعادة التشغيل.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-KHATMA-PLAN-01",
+   "char": "FUN",
+   "feature": "khatma.plan",
+   "title_ar": "بدء ختمة بعدد أيام وقراءة الورد",
+   "steps_ar": [
+    "ابدأ ختمة ٣٠ يومًا.",
+    "اقرأ الورد بتقليب الصفحات."
+   ],
+   "expected_ar": "العدّاد يحسب الصفحات والبطاقة تعرض الورد، وإلغاء الخطة بتأكيد.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "العلامات والختمة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-KHATMA-PLAN-02",
+   "char": "FUN",
+   "feature": "khatma.plan",
+   "title_ar": "ختمة منتهية وتعديل الموضع يدويًا",
+   "steps_ar": [
+    "أنهِ ختمة وعدّل الموضع يدويًا."
+   ],
+   "expected_ar": "تُحتسب الختمة، والموضع اليدوي يُحفظ.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "المكافآت 5.43",
+   "device": "any"
+  },
+  {
+   "id": "FUN-KHATMA-FAMILY-01",
+   "char": "FUN",
+   "feature": "khatma.family",
+   "title_ar": "ختمة العائلة: إضافة وتوزيع",
+   "steps_ar": [
+    "أضف أفرادًا ووزّع الأجزاء."
+   ],
+   "expected_ar": "التوزيع صحيح ويُحفظ ويمكن مشاركته كنص.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.8",
+   "device": "any"
+  },
+  {
+   "id": "FUN-STATS-MAIN-01",
+   "char": "FUN",
+   "feature": "stats.main",
+   "title_ar": "الإحصائيات تعدّ الصفحة مرة واحدة",
+   "steps_ar": [
+    "اقرأ صفحة وارجع إليها.",
+    "افتح الإحصائيات."
+   ],
+   "expected_ar": "الصفحة تُحسب مرة واحدة والأرقام صحيحة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 4.6 (قائمة 31 أكتوبر)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-STATS-MAIN-02",
+   "char": "FUN",
+   "feature": "stats.main",
+   "title_ar": "إحصائيات الكلمات والحروف والخصوصية",
+   "steps_ar": [
+    "افتح قسم الخصوصية في الإحصائيات."
+   ],
+   "expected_ar": "تظهر أرقام التبرع وتسجيلاتي بلا تعطل.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.6",
+   "device": "any"
+  },
+  {
+   "id": "FUN-STATS-REWARDS-01",
+   "char": "FUN",
+   "feature": "stats.rewards",
+   "title_ar": "السلاسل المتتالية وانقطاعها",
+   "steps_ar": [
+    "اقرأ ٣ أيام متتالية ثم تخطَّ يومًا."
+   ],
+   "expected_ar": "السلسلة تزيد ثم تنقطع بشكل صحيح.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "المكافآت 5.43",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-MODE-01",
+   "char": "FUN",
+   "feature": "hifz.mode",
+   "title_ar": "وضع الحفظ يخفي الآيات ويكشفها",
+   "steps_ar": [
+    "فعّل وضع الحفظ.",
+    "اضغط آية مخفية ثم «اكشف التالية»."
+   ],
+   "expected_ar": "الإخفاء والكشف يعملان وإنهاء الوضع يعيد النص.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "الحفظ والمراجعة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-MODE-02",
+   "char": "FUN",
+   "feature": "hifz.mode",
+   "title_ar": "أنماط إخفاء الكلمات",
+   "steps_ar": [
+    "غيّر شكل الإخفاء بين الأنماط الثلاثة."
+   ],
+   "expected_ar": "كل نمط يغير شكل القناع فعلًا.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.27 (C)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-TEST-01",
+   "char": "FUN",
+   "feature": "hifz.test",
+   "title_ar": "اختبار الحفظ بمدى وعشوائي",
+   "steps_ar": [
+    "ابدأ اختبار مصحف بمدى سورة.",
+    "جرّب العشوائي."
+   ],
+   "expected_ar": "الأسئلة ضمن المدى وتُحسب النتيجة وتُحفظ.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.13 (باتش 2)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-TEST-02",
+   "char": "FUN",
+   "feature": "hifz.test",
+   "title_ar": "الخروج من الاختبار بالرجوع والنتائج",
+   "steps_ar": [
+    "اخرج قبل النهاية بزر الرجوع."
+   ],
+   "expected_ar": "يسأل عن حفظ النتائج أو يعيدك للموضع الصحيح.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.15 (Sprint A)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-MAP-01",
+   "char": "FUN",
+   "feature": "hifz.map",
+   "title_ar": "خريطة الحفظ: بطاقة الوحدة والألوان",
+   "steps_ar": [
+    "افتح الخريطة واضغط مربعًا."
+   ],
+   "expected_ar": "تظهر بطاقة (سورة/ربع) وحالتها صحيحة، والجزء يفتح.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.30 S4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-MAP-02",
+   "char": "FUN",
+   "feature": "hifz.map",
+   "title_ar": "الترقية من إصدار قديم",
+   "steps_ar": [
+    "ثبّت نسخة قديمة بها حفظ ثم حدّث."
+   ],
+   "expected_ar": "بيانات الحفظ تُرحَّل ولا تضيع.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.30 S4",
+   "device": "emulator"
+  },
+  {
+   "id": "FUN-HIFZ-REVIEW-01",
+   "char": "FUN",
+   "feature": "hifz.review",
+   "title_ar": "المراجعة: ورد اليوم و«عليك مراجعة»",
+   "steps_ar": [
+    "افتح «المراجعة».",
+    "اختبر سورة مستحقة."
+   ],
+   "expected_ar": "الورد يُبنى بالأقدم أولًا والنتيجة تُسجَّل.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.15 (Sprint A)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-REVIEW-02",
+   "char": "FUN",
+   "feature": "hifz.review",
+   "title_ar": "مراجعة ثانية في اليوم نفسه",
+   "steps_ar": [
+    "راجع الوحدة ثانية."
+   ],
+   "expected_ar": "لا تتضاعف الفترة بلا داعٍ.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.30 S4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-SCHEDULE-01",
+   "char": "FUN",
+   "feature": "hifz.schedule",
+   "title_ar": "سلّم الفترات بعد النجاح والرسوب",
+   "steps_ar": [
+    "سجّل نجاحًا ≥٩٠٪ ثم رسوبًا."
+   ],
+   "expected_ar": "الفترة تتقدّم عند النجاح وتتراجع عند الرسوب حسب القاعدة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.30 S4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-SCHEDULE-02",
+   "char": "FUN",
+   "feature": "hifz.schedule",
+   "title_ar": "٢٠ يومًا بلا مراجعة",
+   "steps_ar": [
+    "قدّم التاريخ ٢٠ يومًا."
+   ],
+   "expected_ar": "تظهر الوحدة مستحقة بلا أخطاء.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.30 S4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-RESUME-01",
+   "char": "FUN",
+   "feature": "hifz.resume",
+   "title_ar": "زر «استئناف من المرة الماضية»",
+   "steps_ar": [
+    "ابدأ جلسة ثم اخرج وأعد الدخول."
+   ],
+   "expected_ar": "يظهر الزر ويستأنف من الموضع.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.26 (A)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-MUTASH-01",
+   "char": "FUN",
+   "feature": "hifz.mutash",
+   "title_ar": "اختبار المتشابهات: اختيار وتلوين",
+   "steps_ar": [
+    "افتح اختبار المتشابهات.",
+    "أجب."
+   ],
+   "expected_ar": "السؤال يعرض الآية، والإجابة تُلوَّن صح/خطأ.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.17 (Sprint C)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-MUTASH-02",
+   "char": "FUN",
+   "feature": "hifz.mutash",
+   "title_ar": "النطاق «من محفوظي» والفارغ",
+   "steps_ar": [
+    "اختر «من محفوظي» بلا محفوظ."
+   ],
+   "expected_ar": "شاشة فارغة بتلميح واضح.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "المتشابهات 5.43",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-TALQIN-01",
+   "char": "FUN",
+   "feature": "hifz.talqin",
+   "title_ar": "التلقين: اسمع ثم ردّد",
+   "steps_ar": [
+    "افتح التلقين لآية."
+   ],
+   "expected_ar": "الآية تُسمع ثم تُكشف والزر التالي يعمل.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.17 (Sprint C)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-HIFZ-STUDENTS-01",
+   "char": "FUN",
+   "feature": "hifz.students",
+   "title_ar": "طلابي: لصق رمز QK2",
+   "steps_ar": [
+    "الصق رمز طالب."
+   ],
+   "expected_ar": "الرمز يُقرأ ويُعرض كما هو والتالف يُرفض برسالة.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.18 (Sprint D)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-ASR-RECITE-01",
+   "char": "FUN",
+   "feature": "asr.recite",
+   "title_ar": "القراءة بالمايك تتبع الصفحة وتقلبها",
+   "steps_ar": [
+    "حمّل النموذج.",
+    "اضغط المايك واقرأ صفحة بوضوح."
+   ],
+   "expected_ar": "الكلمات تُظلَّل بترتيبها وتنقلب الصفحة عند آخرها.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-RECITE-02",
+   "char": "FUN",
+   "feature": "asr.recite",
+   "title_ar": "كلمة غلط أو ضجيج",
+   "steps_ar": [
+    "اقرأ كلمة خاطئة ثم اصمت."
+   ],
+   "expected_ar": "تظهر الكلمة الخاطئة بلون التنبيه، ولا يتقدم التظليل بالخطأ.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "نسخة 5.36",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-MODEL-01",
+   "char": "FUN",
+   "feature": "asr.model",
+   "title_ar": "تنزيل النموذج مع الإيقاف والاستئناف",
+   "steps_ar": [
+    "من الإعدادات حمّل النموذج.",
+    "اقطع الإنترنت ثم أعده."
+   ],
+   "expected_ar": "الشريط يتقدم ويستأنف تلقائيًا بعد عودة الشبكة.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "نسخة 5.11",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-MODEL-02",
+   "char": "FUN",
+   "feature": "asr.model",
+   "title_ar": "فحص إصدار النموذج بلا شبكة",
+   "steps_ar": [
+    "افتح الإعدادات بلا إنترنت."
+   ],
+   "expected_ar": "لا يظهر زر «تحديث» ولا رسالة خطأ مزعجة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.39 (D6 #22)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-ASR-PACE-01",
+   "char": "FUN",
+   "feature": "asr.pace",
+   "title_ar": "سرعة القراءة الافتراضية «تلقائي»",
+   "steps_ar": [
+    "على تثبيت جديد افتح الإعدادات.",
+    "اختر «عادي» وأعد التشغيل."
+   ],
+   "expected_ar": "الافتراضي «تلقائي»، واختيارك اليدوي يبقى.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "نسخة 5.36",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-PACE-02",
+   "char": "FUN",
+   "feature": "asr.pace",
+   "title_ar": "تنبيه الأخطاء بعد ٥ كلمات",
+   "steps_ar": [
+    "فعّل التنبيه واقرأ ٥ كلمات خاطئة."
+   ],
+   "expected_ar": "اهتزاز وصوت قصير مرة واحدة.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.36",
+   "device": "any"
+  },
+  {
+   "id": "FUN-ASR-MICSEL-01",
+   "char": "FUN",
+   "feature": "asr.micsel",
+   "title_ar": "اختبار الميكروفون واختياره",
+   "steps_ar": [
+    "من الإعدادات اضغط «اختبر».",
+    "بدّل بين ميكروفونين."
+   ],
+   "expected_ar": "تظهر نتيجة الاختبار والاختيار يُحفظ.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "نسخة 5.35",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-MICSEL-02",
+   "char": "FUN",
+   "feature": "asr.micsel",
+   "title_ar": "رفض إذن الميكروفون",
+   "steps_ar": [
+    "ارفض الإذن عند أول مرة."
+   ],
+   "expected_ar": "رسالة واضحة وطريق لفتح إعدادات التطبيق.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-VOICE-01",
+   "char": "FUN",
+   "feature": "asr.voice",
+   "title_ar": "الأوامر الصوتية: صفحة وسورة وآية",
+   "steps_ar": [
+    "قل «الصفحة التالية» ثم «سورة البقرة»."
+   ],
+   "expected_ar": "تُنفَّذ الأوامر وتنتظر تمام الجملة.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.4/5.5",
+   "device": "any"
+  },
+  {
+   "id": "FUN-DONATE-CONSENT-01",
+   "char": "FUN",
+   "feature": "donate.consent",
+   "title_ar": "سؤال الموافقة يظهر مرة واحدة",
+   "steps_ar": [
+    "على تثبيت جديد/قديم وافق سابقًا ابدأ القراءة بالمايك.",
+    "اختر «لا»."
+   ],
+   "expected_ar": "السؤال مرة واحدة، و«لا» لا يعيد السؤال والرفع متوقف.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "رفع التسجيلات من القراءة #3",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-DONATE-CONSENT-02",
+   "char": "FUN",
+   "feature": "donate.consent",
+   "title_ar": "«أوافق» ثم زيادة «بانتظار الرفع»",
+   "steps_ar": [
+    "وافق واقرأ صفحة."
+   ],
+   "expected_ar": "العداد يزيد بعد قراءة واضحة فقط.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "رفع التسجيلات من القراءة #3",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-DONATE-UPLOAD-01",
+   "char": "FUN",
+   "feature": "donate.upload",
+   "title_ar": "الرفع على واي فاي فقط وحذف كل تسجيلاتي",
+   "steps_ar": [
+    "ثبّت «واي فاي فقط».",
+    "اضغط «امسح تسجيلاتي»."
+   ],
+   "expected_ar": "لا رفع على الباقة، والحذف يمسح غير المرفوع.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "نسخة 5.11",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-DONATE-UPLOAD-02",
+   "char": "FUN",
+   "feature": "donate.upload",
+   "title_ar": "القارئ أو الإذاعة أثناء القراءة",
+   "steps_ar": [
+    "شغّل القارئ أثناء القراءة بالمايك."
+   ],
+   "expected_ar": "لا تُسجَّل قطع بصوت القارئ ولا تزيد العدّاد.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "رفع التسجيلات من القراءة #3",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-PRAYER-TIMES-01",
+   "char": "FUN",
+   "feature": "prayer.times",
+   "title_ar": "مواقيت الصلاة لمدينة محفوظة",
+   "steps_ar": [
+    "اختر القاهرة.",
+    "غيّر طريقة الحساب والعصر."
+   ],
+   "expected_ar": "تظهر الأوقات الخمس والعدّ التنازلي وتتغير بتغيير الطريقة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.6",
+   "device": "any"
+  },
+  {
+   "id": "FUN-PRAYER-TIMES-02",
+   "char": "FUN",
+   "feature": "prayer.times",
+   "title_ar": "بلا موقع محفوظ",
+   "steps_ar": [
+    "امسح الموقع وافتح المواقيت."
+   ],
+   "expected_ar": "تُطلب مدينة بوضوح ولا تظهر أوقات خاطئة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-PRAYER-ALARMS-01",
+   "char": "FUN",
+   "feature": "prayer.alarms",
+   "title_ar": "الأذان في موعده وصوت كل مؤذن",
+   "steps_ar": [
+    "اضبط أذانًا بعد دقيقتين.",
+    "جرّب زر المعاينة."
+   ],
+   "expected_ar": "يصل الإشعار بصوت المؤذن المختار.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-PRAYER-ALARMS-02",
+   "char": "FUN",
+   "feature": "prayer.alarms",
+   "title_ar": "بعد إعادة التشغيل وإذن الإشعارات مرفوض",
+   "steps_ar": [
+    "أعد تشغيل الهاتف.",
+    "ارفض إذن الإشعارات."
+   ],
+   "expected_ar": "التنبيهات تعاد جدولتها، ورسالة مع زر فتح الإعدادات عند الرفض.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-PRAYER-WIDGET-01",
+   "char": "FUN",
+   "feature": "prayer.widget",
+   "title_ar": "ودجت الصلاة القادمة والآية",
+   "steps_ar": [
+    "أضف الودجتين للشاشة.",
+    "اضغط عليهما."
+   ],
+   "expected_ar": "يعرضان بيانات اليوم ويفتحان الموضع الصحيح.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-PRAYER-WIDGET-02",
+   "char": "FUN",
+   "feature": "prayer.widget",
+   "title_ar": "بيانات الودجت بالإنجليزية",
+   "steps_ar": [
+    "بدّل اللغة للإنجليزية."
+   ],
+   "expected_ar": "لا نص عربي في بيانات الودجت الإنجليزية.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.7",
+   "device": "any"
+  },
+  {
+   "id": "FUN-PRAYER-LOG-01",
+   "char": "FUN",
+   "feature": "prayer.log",
+   "title_ar": "تعليم صلاة والبقاء بعد الخروج",
+   "steps_ar": [
+    "افتح متابعة الصلوات وعلّم صلاة مرّ وقتها.",
+    "اخرج وارجع."
+   ],
+   "expected_ar": "التعليم يبقى وخانات المستقبل معطّلة.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "متابعة الصلوات",
+   "device": "any"
+  },
+  {
+   "id": "FUN-PRAYER-LOG-02",
+   "char": "FUN",
+   "feature": "prayer.log",
+   "title_ar": "الأسبوع السابق وتضمين النسخة الاحتياطية",
+   "steps_ar": [
+    "علّم في الأسبوع السابق ثم أنشئ نسخة واستعدها."
+   ],
+   "expected_ar": "التعليمات تعود بعد الاستعادة.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "متابعة الصلوات",
+   "device": "any"
+  },
+  {
+   "id": "FUN-PRAYER-IMSAKIA-01",
+   "char": "FUN",
+   "feature": "prayer.imsakia",
+   "title_ar": "إمساكية رمضان",
+   "steps_ar": [
+    "افتح الإمساكية."
+   ],
+   "expected_ar": "تُعرض كل أيام الشهر بالأوقات.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.6",
+   "device": "any"
+  },
+  {
+   "id": "FUN-QIBLA-MAIN-01",
+   "char": "FUN",
+   "feature": "qibla.main",
+   "title_ar": "القبلة بمدينة مختارة",
+   "steps_ar": [
+    "اختر القاهرة."
+   ],
+   "expected_ar": "الاتجاه ≈ ١٣٦° والبوصلة تتبع الجهاز.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "التجويد والقراءات والأذكار والقبلة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-QIBLA-MAIN-02",
+   "char": "FUN",
+   "feature": "qibla.main",
+   "title_ar": "البوصلة الحقيقية والمستشعر مفقود",
+   "steps_ar": [
+    "افتح القبلة بالجي بي إس، ثم على جهاز بلا مستشعر."
+   ],
+   "expected_ar": "اتجاه صحيح أو رسالة بديلة بلا تعطل.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-AZKAR-MAIN-01",
+   "char": "FUN",
+   "feature": "azkar.main",
+   "title_ar": "أذكار الصباح والعدّ محفوظ",
+   "steps_ar": [
+    "افتح الأذكار واعدد.",
+    "أعد الفتح."
+   ],
+   "expected_ar": "العدّ محفوظ ولا يتأثر عدّ المساء.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "التجويد والقراءات والأذكار والقبلة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-AZKAR-MAIN-02",
+   "char": "FUN",
+   "feature": "azkar.main",
+   "title_ar": "إعادة البدء وترتيب الأذكار",
+   "steps_ar": [
+    "اضغط «ابدأ من جديد» ورتّب حسب التكرار."
+   ],
+   "expected_ar": "يُصفَّر العدّ ويتغير الترتيب.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.4",
+   "device": "any"
+  },
+  {
+   "id": "FUN-DUAS-MAIN-01",
+   "char": "FUN",
+   "feature": "duas.main",
+   "title_ar": "الأدعية: ٧ أقسام",
+   "steps_ar": [
+    "افتح الأدعية وتصفح الأقسام."
+   ],
+   "expected_ar": "تظهر الأقسام والآيات من نص المصحف.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.7",
+   "device": "any"
+  },
+  {
+   "id": "FUN-TASBIH-MAIN-01",
+   "char": "FUN",
+   "feature": "tasbih.main",
+   "title_ar": "السبحة: عدّ وذكر مخصص",
+   "steps_ar": [
+    "اضغط للعد.",
+    "أضف ذكرًا مخصصًا بعدد."
+   ],
+   "expected_ar": "يزيد العدّ ويهتز عند الهدف.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 4.6 (قائمة 31 أكتوبر)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-RADIO-MAIN-01",
+   "char": "FUN",
+   "feature": "radio.main",
+   "title_ar": "اختيار الدولة من الموقع وتشغيل إذاعة",
+   "steps_ar": [
+    "افتح الإذاعة.",
+    "غيّر الدولة يدويًا.",
+    "شغّل إذاعة."
+   ],
+   "expected_ar": "الدولة تُحدَّد من الموقع، ويُحفظ الاختيار اليدوي، وتشتغل المحطة.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "إذاعة القرآن #34",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-RADIO-MAIN-02",
+   "char": "FUN",
+   "feature": "radio.main",
+   "title_ar": "قطع الإنترنت أو محطة معطلة",
+   "steps_ar": [
+    "شغّل إذاعة ثم اقطع الإنترنت."
+   ],
+   "expected_ar": "رسالة «لا يوجد اتصال» ولا تعطل، ومحطة بديلة إن تعطلت الأولى.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "إذاعة القرآن #34",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-BACKUP-MAIN-01",
+   "char": "FUN",
+   "feature": "backup.main",
+   "title_ar": "حفظ نسخة واسترجاعها",
+   "steps_ar": [
+    "أنشئ نسخة من الإعدادات.",
+    "امسح بيانات التطبيق ثم استرجع."
+   ],
+   "expected_ar": "الإعدادات والتقدم يعودان كما كانا، وتاريخ آخر نسخة يتحدّث.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "نسخة 5.18 (Sprint D)",
+   "device": "phone"
+  },
+  {
+   "id": "FUN-BACKUP-MAIN-02",
+   "char": "FUN",
+   "feature": "backup.main",
+   "title_ar": "ملف نسخة تالف",
+   "steps_ar": [
+    "استرجع ملفًا ليس نسخة."
+   ],
+   "expected_ar": "رسالة خطأ واضحة ولا تُكتب بيانات جزئية.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-CORE-01",
+   "char": "FUN",
+   "feature": "settings.core",
+   "title_ar": "الإعدادات تفتح وتُحفظ وتُغلق بـ«تم»",
+   "steps_ar": [
+    "غيّر عدة إعدادات وأغلق.",
+    "أعد فتح التطبيق."
+   ],
+   "expected_ar": "القيم محفوظة والشاشة لا «تنط» عند التغيير.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "الإعدادات والمظهر",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-CORE-02",
+   "char": "FUN",
+   "feature": "settings.core",
+   "title_ar": "أقسام الإعدادات المنسدلة (الأكورديون)",
+   "steps_ar": [
+    "افتح قسمًا في الإعدادات ثم افتح قسمًا آخر."
+   ],
+   "expected_ar": "فتح قسم يُغلق القسم المفتوح قبله، فيبقى قسم واحد مفتوح، وتعمل أزراره كالمعتاد.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 4.6 (قائمة 31 أكتوبر)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-THEME-01",
+   "char": "FUN",
+   "feature": "settings.theme",
+   "title_ar": "الفاتح والداكن والمغرب",
+   "steps_ar": [
+    "بدّل المظهر بين الخيارات."
+   ],
+   "expected_ar": "يتغير التطبيق ويبقى لون الصفحة المختار.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "الإعدادات والمظهر",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-THEME-02",
+   "char": "FUN",
+   "feature": "settings.theme",
+   "title_ar": "شاشة الإقلاع في الوضع الداكن",
+   "steps_ar": [
+    "أطلق التطبيق من الهاتف في الوضع الداكن."
+   ],
+   "expected_ar": "يظهر الشعار على خلفية صحيحة لا رمادي فارغ.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-SETTINGS-HAPTICS-01",
+   "char": "FUN",
+   "feature": "settings.haptics",
+   "title_ar": "شدة الاهتزاز ٤ درجات",
+   "steps_ar": [
+    "غيّر الدرجة واضغط أزرارًا."
+   ],
+   "expected_ar": "الإحساس يتغير ويتوقف عند «بلا».",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-SETTINGS-DOWNLOADS-01",
+   "char": "FUN",
+   "feature": "settings.downloads",
+   "title_ar": "التحميلات: إيقاف مؤقت واستئناف وحذف",
+   "steps_ar": [
+    "نزّل طبعة ثم أوقفها مؤقتًا ثم استأنف.",
+    "احذفها."
+   ],
+   "expected_ar": "الشريط والنسبة صحيحان والحذف يحرر المساحة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.11",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-DOWNLOADS-02",
+   "char": "FUN",
+   "feature": "settings.downloads",
+   "title_ar": "مساحة التخزين ممتلئة",
+   "steps_ar": [
+    "نزّل طبعة بمساحة غير كافية."
+   ],
+   "expected_ar": "رسالة واضحة وبلا ملفات نصف مكتوبة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-SETTINGS-UPDATES-01",
+   "char": "FUN",
+   "feature": "settings.updates",
+   "title_ar": "فحص التحديثات: Play وGitHub",
+   "steps_ar": [
+    "على نسخة Play افتح الإعدادات.",
+    "على نسخة GitHub افتحها."
+   ],
+   "expected_ar": "Play يعرض التحديث عبر Play، وGitHub لا يعرض الصف.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.39 (D6 #22)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-UPDATES-02",
+   "char": "FUN",
+   "feature": "settings.updates",
+   "title_ar": "فشل الشبكة أثناء الفحص",
+   "steps_ar": [
+    "افتح الفحص بلا إنترنت."
+   ],
+   "expected_ar": "رسالة قصيرة لا تعطّل الإعدادات.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "نسخة 5.39 (D6 #22)",
+   "device": "any"
+  },
+  {
+   "id": "FUN-SETTINGS-PERMISSIONS-01",
+   "char": "FUN",
+   "feature": "settings.permissions",
+   "title_ar": "زر فتح إعدادات التطبيق عند رفض الإشعارات",
+   "steps_ar": [
+    "ارفض الإشعارات ثم اضغط الزر."
+   ],
+   "expected_ar": "تفتح صفحة إعدادات التطبيق في النظام.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-I18N-EN-01",
+   "char": "FUN",
+   "feature": "i18n.en",
+   "title_ar": "واجهة إنجليزية بلا نص عربي (الصلاة والإذاعة والمراجعة)",
+   "steps_ar": [
+    "بدّل اللغة للإنجليزية وافتح كل شاشة."
+   ],
+   "expected_ar": "لا يظهر نص واجهة عربي، وتبقى نصوص القرآن والكتب عربية.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "إذاعة القرآن #34",
+   "device": "any"
+  },
+  {
+   "id": "FUN-I18N-EN-02",
+   "char": "FUN",
+   "feature": "i18n.en",
+   "title_ar": "الرجوع للعربية",
+   "steps_ar": [
+    "بدّل للعربية."
+   ],
+   "expected_ar": "الاتجاه RTL يعود والنصوص كاملة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-NAV-ROUTER-01",
+   "char": "FUN",
+   "feature": "nav.router",
+   "title_ar": "التنقل بين الشاشات والرجوع",
+   "steps_ar": [
+    "افتح سلسلة شاشات ثم ارجع."
+   ],
+   "expected_ar": "كل رجوع يعيد الشاشة السابقة بلا حلقة.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "الرئيسية والفهرس",
+   "device": "any"
+  },
+  {
+   "id": "FUN-NAV-ROUTER-02",
+   "char": "FUN",
+   "feature": "nav.router",
+   "title_ar": "رابط عميق خاطئ",
+   "steps_ar": [
+    "افتح #/p/9999 و#/xyz."
+   ],
+   "expected_ar": "ينتقل لأقرب صفحة أو للرئيسية بلا شاشة بيضاء.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-CORE-STORAGE-01",
+   "char": "FUN",
+   "feature": "core.storage",
+   "title_ar": "الحفظ والاسترجاع في localStorage",
+   "steps_ar": [
+    "غيّر إعدادات وأعد تحميل الصفحة."
+   ],
+   "expected_ar": "المفاتيح q.* تُقرأ بلا خطأ والتالف يُتجاهل.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.4/5.5",
+   "device": "any"
+  },
+  {
+   "id": "FUN-CORE-STORAGE-02",
+   "char": "FUN",
+   "feature": "core.storage",
+   "title_ar": "حوار التأكيد (askYes) يعمل مع زر الرجوع",
+   "steps_ar": [
+    "افتح حوار حذف واضغط رجوع."
+   ],
+   "expected_ar": "الحوار يُغلق ولا يحذف.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-CORE-SW-01",
+   "char": "FUN",
+   "feature": "core.sw",
+   "title_ar": "عامل الخدمة في النسخة الويب",
+   "steps_ar": [
+    "قدّم الموقع من خادم وافصل الشبكة."
+   ],
+   "expected_ar": "التطبيق يعمل من الذاكرة المؤقتة.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-CORE-WEBVIEW-01",
+   "char": "FUN",
+   "feature": "core.webview",
+   "title_ar": "رسالة تحديث WebView على جهاز قديم",
+   "steps_ar": [
+    "افتح على WebView أقدم من ٨٥."
+   ],
+   "expected_ar": "تظهر رسالة التنبيه ولا تظهر على المتصفحات الحديثة.",
+   "priority": "P2",
+   "how": "both",
+   "ui_group": "الإعدادات والمظهر",
+   "device": "phone"
+  },
+  {
+   "id": "PER-HOME-MAIN-01",
+   "char": "PER",
+   "feature": "home.main",
+   "title_ar": "زمن الإقلاع البارد",
+   "steps_ar": [
+    "أغلق التطبيق تمامًا.",
+    "شغّله من الأيقونة ١٠ مرات واحسب الزمن (logcat QKStart)."
+   ],
+   "expected_ar": "الوسيط أقل من ~١٫٣ ثانية حتى ظهور الواجهة، بلا شاشة بيضاء.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "PER-READ-FLIP-01",
+   "char": "PER",
+   "feature": "read.flip",
+   "title_ar": "سلاسة التقليب والتمرير",
+   "steps_ar": [
+    "قلّب ٢٠ صفحة بسرعة وبتأثير الورقة.",
+    "مرّر العمودي طويلًا."
+   ],
+   "expected_ar": "لا تقطع ظاهر ولا تأخر أكبر من ٢٠٠ مللي ثانية للصفحة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "PER-ASR-RECITE-01",
+   "char": "PER",
+   "feature": "asr.recite",
+   "title_ar": "زمن استجابة التعرّف على التلاوة",
+   "steps_ar": [
+    "اقرأ آية وقِس الزمن حتى تظليل الكلمة."
+   ],
+   "expected_ar": "تظليل الكلمة خلال أقل من ثانية على الهاتف المستهدف.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "PER-ASR-RECITE-02",
+   "char": "PER",
+   "feature": "asr.recite",
+   "title_ar": "سباق المايك: تشغيل وإيقاف متكرر",
+   "steps_ar": [
+    "اضغط المايك وأوقفه بسرعة ١٠ مرات."
+   ],
+   "expected_ar": "لا تعطل ولا مايك عالق.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "نسخة 5.4/5.5",
+   "device": "phone"
+  },
+  {
+   "id": "PER-SEARCH-MAIN-01",
+   "char": "PER",
+   "feature": "search.main",
+   "title_ar": "سرعة البحث",
+   "steps_ar": [
+    "ابحث عن كلمة شائعة."
+   ],
+   "expected_ar": "النتائج خلال أقل من ثانيتين.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "البحث",
+   "device": "any"
+  },
+  {
+   "id": "PER-SETTINGS-DOWNLOADS-01",
+   "char": "PER",
+   "feature": "settings.downloads",
+   "title_ar": "سرعة التنزيل والاستئناف",
+   "steps_ar": [
+    "نزّل طبعة بشبكة بطيئة."
+   ],
+   "expected_ar": "يتقدم باستقرار بلا تحميل زائد للذاكرة.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "PER-CORE-STORAGE-01",
+   "char": "PER",
+   "feature": "core.storage",
+   "title_ar": "حجم التطبيق واستهلاك الذاكرة",
+   "steps_ar": [
+    "راقب حجم APK والذاكرة (adb dumpsys meminfo) بعد ٣٠ دقيقة."
+   ],
+   "expected_ar": "لا تسرب ظاهر والحجم ضمن حد Play.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "COM-READ-PAGE-01",
+   "char": "COM",
+   "feature": "read.page",
+   "title_ar": "الطبعات الأربع تعمل",
+   "steps_ar": [
+    "شغّل ui.js على kfgqpc وkfold وshamarly وharmain (run-parallel)."
+   ],
+   "expected_ar": "كل طبعة تنجح كاملة (٠ إخفاق).",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "COM-READ-PAGE-02",
+   "char": "COM",
+   "feature": "read.page",
+   "title_ar": "مقاسات الشاشة: صغير وتابلت وفولد",
+   "steps_ar": [
+    "افتح على مقاسات ٣٦٠ و٧٦٨ و٨٤١×٦٧٣."
+   ],
+   "expected_ar": "لا قصّ ولا تداخل.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "المقاسات والتابلت",
+   "device": "emulator"
+  },
+  {
+   "id": "COM-CORE-WEBVIEW-01",
+   "char": "COM",
+   "feature": "core.webview",
+   "title_ar": "إصدارات أندرويد: ٥ (21) حتى الأحدث",
+   "steps_ar": [
+    "ثبّت على أقل وأعلى إصدار متاح (Phone_API35)."
+   ],
+   "expected_ar": "يقلع ويعمل بلا FATAL في logcat.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "emulator"
+  },
+  {
+   "id": "COM-CORE-WEBVIEW-02",
+   "char": "COM",
+   "feature": "core.webview",
+   "title_ar": "إصدارات WebView القديمة (AVIF)",
+   "steps_ar": [
+    "جرّب WebView قديمًا."
+   ],
+   "expected_ar": "رسالة تحديث بدل صفحات فارغة.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "COM-SETTINGS-THEME-01",
+   "char": "COM",
+   "feature": "settings.theme",
+   "title_ar": "الأجهزة المخصصة: MIUI والحواف والقطع",
+   "steps_ar": [
+    "افتح على هاتف MIUI بالوضع الداكن وحافة كاملة."
+   ],
+   "expected_ar": "الشرائط لا تتداخل مع شريط النظام وتعمل إيماءة الرجوع.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "COM-I18N-EN-01",
+   "char": "COM",
+   "feature": "i18n.en",
+   "title_ar": "لغة النظام العربية/الإنجليزية",
+   "steps_ar": [
+    "غيّر لغة الهاتف."
+   ],
+   "expected_ar": "التطبيق يظل على اختياره الداخلي ولا يتبدل بشكل مفاجئ.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "USA-SETTINGS-CORE-01",
+   "char": "USA",
+   "feature": "settings.core",
+   "title_ar": "أهداف اللمس ≥ ٤٤ نقطة",
+   "steps_ar": [
+    "افحص الأزرار الأيقونية وصفوف الإعدادات."
+   ],
+   "expected_ar": "لا هدف لمس أصغر من ٤٤×٤٤ نقطة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "USA-SETTINGS-CORE-02",
+   "char": "USA",
+   "feature": "settings.core",
+   "title_ar": "التسميات (aria-label) للأزرار الأيقونية",
+   "steps_ar": [
+    "شغّل TalkBack وانتقل بين الأزرار."
+   ],
+   "expected_ar": "كل زر له اسم عربي مفهوم والحالة (مفعّل) تُنطق.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "USA-SETTINGS-CORE-03",
+   "char": "USA",
+   "feature": "settings.core",
+   "title_ar": "تضخيم خط النظام والعرض الكبير",
+   "steps_ar": [
+    "كبّر الخط ٢٠٠٪."
+   ],
+   "expected_ar": "لا قصّ للنصوص والأزرار قابلة للضغط.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "USA-READ-BG-01",
+   "char": "USA",
+   "feature": "read.bg",
+   "title_ar": "التباين WCAG 2.2 AA (≥ ٤٫٥ للنص)",
+   "steps_ar": [
+    "افحص النص على كل لون خلفية في الفاتح والداكن."
+   ],
+   "expected_ar": "التباين ≥ ٤٫٥:١ للنص العادي و٣:١ للكبير.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "لون النص القرآني 5.43",
+   "device": "any"
+  },
+  {
+   "id": "USA-READ-QUOTECOLOR-01",
+   "char": "USA",
+   "feature": "read.quotecolor",
+   "title_ar": "تباين لون الآية داخل الكتب",
+   "steps_ar": [
+    "افحص ﴿ ﴾ في التفسير بالمظهرين."
+   ],
+   "expected_ar": "اللون --quote بتباين ≥ ٤٫٥.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "لون النص القرآني 5.43",
+   "device": "any"
+  },
+  {
+   "id": "USA-I18N-EN-01",
+   "char": "USA",
+   "feature": "i18n.en",
+   "title_ar": "اتجاه RTL سليم في كل الشاشات",
+   "steps_ar": [
+    "افتح كل قسم بالعربية."
+   ],
+   "expected_ar": "الأيقونات والأسهم والمحاذاة تتبع RTL.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "USA-I18N-EN-02",
+   "char": "USA",
+   "feature": "i18n.en",
+   "title_ar": "جودة الفصحى والإنجليزية: لا نصوص مختلطة",
+   "steps_ar": [
+    "شغّل i18n_scan.js.",
+    "تصفح الشاشات."
+   ],
+   "expected_ar": "لا نص بلا ترجمة جديد (القاعدة: ١٥١٤ لا تزيد) والعربية فصحى.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "USA-READ-FULLSCREEN-01",
+   "char": "USA",
+   "feature": "read.fullscreen",
+   "title_ar": "تلميحات الضغط الطويل على الأزرار الأيقونية",
+   "steps_ar": [
+    "اضغط مطولًا على زر أيقوني."
+   ],
+   "expected_ar": "يظهر اسمه.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "USA-ONBOARD-TOUR-01",
+   "char": "USA",
+   "feature": "onboard.tour",
+   "title_ar": "وضوح التعليمات لأول مرة",
+   "steps_ar": [
+    "أعطِ التطبيق لمستخدم جديد."
+   ],
+   "expected_ar": "ينجز فتح صفحة وبدء الاستماع بدون مساعدة.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "REL-AUDIO-PLAYER-01",
+   "char": "REL",
+   "feature": "audio.player",
+   "title_ar": "مكالمة واردة أثناء التلاوة أو القراءة",
+   "steps_ar": [
+    "شغّل تلاوة ثم استقبل مكالمة."
+   ],
+   "expected_ar": "تتوقف التلاوة وتُستأنف أو تبقى متوقفة بلا تعطل (والمايك يتوقف).",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-RADIO-MAIN-01",
+   "char": "REL",
+   "feature": "radio.main",
+   "title_ar": "الإذاعة مع الأذان والمايك والخلفية",
+   "steps_ar": [
+    "شغّل إذاعة وانتظر الأذان.",
+    "اضغط الرئيسية ٢٠ ثانية.",
+    "ابدأ المايك."
+   ],
+   "expected_ar": "تتوقف عند الأذان وتعود، وتعمل في الخلفية بإشعار، وتتوقف مع المايك.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-PRAYER-ALARMS-01",
+   "char": "REL",
+   "feature": "prayer.alarms",
+   "title_ar": "المنبّه والتذكيرات مع إغلاق التطبيق",
+   "steps_ar": [
+    "أغلق التطبيق وانتظر موعد التذكير."
+   ],
+   "expected_ar": "يصل الإشعار في وقته.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-READ-PAGE-01",
+   "char": "REL",
+   "feature": "read.page",
+   "title_ar": "تدوير الشاشة وتبديل التطبيقات",
+   "steps_ar": [
+    "دوّر الشاشة أثناء القراءة.",
+    "بدّل لتطبيق آخر وارجع."
+   ],
+   "expected_ar": "يبقى الموضع ولا تعاد الواجهة للرئيسية.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-SETTINGS-DOWNLOADS-01",
+   "char": "REL",
+   "feature": "settings.downloads",
+   "title_ar": "فقدان الشبكة أثناء التنزيل",
+   "steps_ar": [
+    "اقطع الشبكة في منتصف تنزيل."
+   ],
+   "expected_ar": "يتوقف بوضوح ويستأنف تلقائيًا بلا ملف تالف.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-SETTINGS-DOWNLOADS-02",
+   "char": "REL",
+   "feature": "settings.downloads",
+   "title_ar": "مساحة قليلة",
+   "steps_ar": [
+    "نزّل بمساحة تقل عن الحجم."
+   ],
+   "expected_ar": "رسالة وليس تعطلًا.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-CORE-STORAGE-01",
+   "char": "REL",
+   "feature": "core.storage",
+   "title_ar": "العمل بلا شبكة تمامًا (وضع الطيران)",
+   "steps_ar": [
+    "فعّل وضع الطيران وتصفح القراءة والبحث والحفظ والمواقيت."
+   ],
+   "expected_ar": "كل شيء عدا الصوت والتنزيل والرفع يعمل.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-CORE-STORAGE-02",
+   "char": "REL",
+   "feature": "core.storage",
+   "title_ar": "لا أخطاء JavaScript في كل المسارات",
+   "steps_ar": [
+    "شغّل ui.js كاملًا."
+   ],
+   "expected_ar": "بند «لا أخطاء JS» ناجح وكل خطأ يُنسب لفحصه.",
+   "priority": "P0",
+   "how": "auto",
+   "ui_group": "نسخة 5.4/5.5",
+   "device": "any"
+  },
+  {
+   "id": "REL-HIFZ-MODE-01",
+   "char": "REL",
+   "feature": "hifz.mode",
+   "title_ar": "استمرار الجلسة عند قتل التطبيق",
+   "steps_ar": [
+    "أثناء الحفظ اقتل التطبيق ثم افتحه."
+   ],
+   "expected_ar": "تعليم الحفظ والاستئناف محفوظان.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-BACKUP-MAIN-01",
+   "char": "REL",
+   "feature": "backup.main",
+   "title_ar": "ترقية التطبيق تحفظ البيانات",
+   "steps_ar": [
+    "ثبّت النسخة الجديدة فوق القديمة."
+   ],
+   "expected_ar": "كل إعدادات q.* وبيانات الحفظ والختمة باقية.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "SEC-DONATE-CONSENT-01",
+   "char": "SEC",
+   "feature": "donate.consent",
+   "title_ar": "لا رفع بدون موافقة صريحة (donateV=2)",
+   "steps_ar": [
+    "اترك الموافقة مغلقة واقرأ بالمايك."
+   ],
+   "expected_ar": "لا رفع ولا حفظ قطع، والنسخة الاحتياطية لا تنقل الموافقة.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "رفع التسجيلات من القراءة #3",
+   "device": "any"
+  },
+  {
+   "id": "SEC-DONATE-UPLOAD-01",
+   "char": "SEC",
+   "feature": "donate.upload",
+   "title_ar": "لا بيانات شخصية في الرفع",
+   "steps_ar": [
+    "افحص حمولة الرفع (الوصف، المعرف)."
+   ],
+   "expected_ar": "معرّف عشوائي فقط بلا اسم/موقع/جهاز.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "SEC-DONATE-UPLOAD-02",
+   "char": "SEC",
+   "feature": "donate.upload",
+   "title_ar": "حذف التسجيلات يعمل",
+   "steps_ar": [
+    "اضغط «امسح كل تسجيلاتي»."
+   ],
+   "expected_ar": "تُمسح المحلية وتُطلب إزالة المرفوعة.",
+   "priority": "P0",
+   "how": "both",
+   "ui_group": "نسخة 5.11",
+   "device": "any"
+  },
+  {
+   "id": "SEC-PRAYER-ALARMS-01",
+   "char": "SEC",
+   "feature": "prayer.alarms",
+   "title_ar": "الأذونات بحد أدنى وبطلب عند الحاجة",
+   "steps_ar": [
+    "افحص manifest: المايك والموقع والإشعارات والمنبّه الدقيق."
+   ],
+   "expected_ar": "كل إذن مبرَّر ويُطلب عند أول استخدام ويعمل التطبيق بدونه ما أمكن.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "SEC-RADIO-MAIN-01",
+   "char": "SEC",
+   "feature": "radio.main",
+   "title_ar": "HTTP النصّي (cleartext) محصور بالقائمة المسموحة",
+   "steps_ar": [
+    "افحص network-security-config ومحطات الإذاعة."
+   ],
+   "expected_ar": "لا يُسمح بالنصّي إلا لنطاقات الإذاعة المسماة.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "SEC-READ-SHARE-01",
+   "char": "SEC",
+   "feature": "read.share",
+   "title_ar": "ShareProvider لا يكشف ملفات التطبيق",
+   "steps_ar": [
+    "افحص authority وpaths."
+   ],
+   "expected_ar": "يشارك الملفات المؤقتة فقط.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "SEC-BACKUP-MAIN-01",
+   "char": "SEC",
+   "feature": "backup.main",
+   "title_ar": "ملف النسخة لا يحتوي مفاتيح أو رموزًا",
+   "steps_ar": [
+    "افتح ملف النسخة."
+   ],
+   "expected_ar": "بيانات القراءة فقط بلا أسرار.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "SEC-SETTINGS-UPDATES-01",
+   "char": "SEC",
+   "feature": "settings.updates",
+   "title_ar": "التنزيلات الأصلية (.so) من الحزمة فقط",
+   "steps_ar": [
+    "افحص أن النموذج بيانات فقط والمكتبات داخل APK/AAB."
+   ],
+   "expected_ar": "لا تحميل شيفرة أصلية من الإنترنت (سياسة Play).",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-CORE-STORAGE-01",
+   "char": "MNT",
+   "feature": "core.storage",
+   "title_ar": "فحص البيانات data.py",
+   "steps_ar": [
+    "شغّل python3 tools/qa/data.py web."
+   ],
+   "expected_ar": "٢٨ ناجح و٠ إخفاق.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-CORE-STORAGE-02",
+   "char": "MNT",
+   "feature": "core.storage",
+   "title_ar": "تشغيل ui.js كاملًا على كل الطبعات",
+   "steps_ar": [
+    "شغّل node tools/qa/run-parallel.js."
+   ],
+   "expected_ar": "TOTAL بلا FAIL على الطبعات الأربع.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-CORE-STORAGE-03",
+   "char": "MNT",
+   "feature": "core.storage",
+   "title_ar": "اختبارات إضافية: matrix وfs-motion وrecite_sim",
+   "steps_ar": [
+    "شغّل matrix.js وfs-motion/measure.js وrecite_sim.js."
+   ],
+   "expected_ar": "matrix ٤٠/٤٠ وfs-motion ١٧/١٧ وrecite_sim بلا أخطاء.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-CORE-STORAGE-04",
+   "char": "MNT",
+   "feature": "core.storage",
+   "title_ar": "نهايات الأسطر LF وسلامة الصياغة",
+   "steps_ar": [
+    "شغّل node --check على web/*.js.",
+    "افحص CRLF في الملفات المعدّلة."
+   ],
+   "expected_ar": "لا خطأ صياغة ولا CRLF (وتعليق // بعد { يكسر السطر).",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-CORE-STORAGE-05",
+   "char": "MNT",
+   "feature": "core.storage",
+   "title_ar": "السجل المسجَّل يطابق الكود",
+   "steps_ar": [
+    "شغّل node tools/qa/impact.js --check-registry."
+   ],
+   "expected_ar": "REGISTRY OK بلا انجراف في المراسي.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-CORE-STORAGE-06",
+   "char": "MNT",
+   "feature": "core.storage",
+   "title_ar": "مفاتيح i18n بلا نقص جديد ولا تكرار",
+   "steps_ar": [
+    "شغّل i18n_scan.js."
+   ],
+   "expected_ar": "لا مفاتيح مفقودة جديدة عن i18n-missing.json.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "MNT-I18N-EN-01",
+   "char": "MNT",
+   "feature": "i18n.en",
+   "title_ar": "مفتاح مكرر مثل «إخفاء» و«تونس»",
+   "steps_ar": [
+    "ابحث في i18n.js عن مفاتيح مكررة بعد التعديل."
+   ],
+   "expected_ar": "لا تتعارض الترجمة بين سياقين.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "POR-SETTINGS-UPDATES-01",
+   "char": "POR",
+   "feature": "settings.updates",
+   "title_ar": "بناءا GitHub وPlay",
+   "steps_ar": [
+    "ابنِ APK عادي وPLAY=1 مع AAB."
+   ],
+   "expected_ar": "GitHub: com.quran.karim minSdk 21؛ Play: com.lawh.quran minSdk 24 ويمرّ bundletool validate.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "emulator"
+  },
+  {
+   "id": "POR-SETTINGS-UPDATES-02",
+   "char": "POR",
+   "feature": "settings.updates",
+   "title_ar": "التوقيع الموحّد للمسار الأصلي",
+   "steps_ar": [
+    "افحص apksigner verify على APK."
+   ],
+   "expected_ar": "التوقيع 7d8b31d2 للـ APK، ومفتاح الرفع للـ AAB.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "POR-SETTINGS-UPDATES-03",
+   "char": "POR",
+   "feature": "settings.updates",
+   "title_ar": "الترقية فوق إصدار سابق تحفظ البيانات",
+   "steps_ar": [
+    "ثبّت الإصدار السابق ثم الحالي بـ adb install -r."
+   ],
+   "expected_ar": "يبقى التقدم والإعدادات والطبعات المنزّلة.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "POR-READ-EDITION-01",
+   "char": "POR",
+   "feature": "read.edition",
+   "title_ar": "طبعة الحرمين مستبعدة من Play",
+   "steps_ar": [
+    "افحص محتوى AAB."
+   ],
+   "expected_ar": "لا حرمين ولا صوت أذان مسجّل ولا Darwish.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "PLY-SETTINGS-PERMISSIONS-01",
+   "char": "PLY",
+   "feature": "settings.permissions",
+   "title_ar": "إعلان الخدمة في المقدمة (FGS) والصوت الوسائطي",
+   "steps_ar": [
+    "افحص RadioService في manifest ونموذج Play Console."
+   ],
+   "expected_ar": "النوع mediaPlayback معلن ومبرَّر في إعلان Play.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "PLY-SETTINGS-PERMISSIONS-02",
+   "char": "PLY",
+   "feature": "settings.permissions",
+   "title_ar": "نموذج سلامة البيانات (Data safety)",
+   "steps_ar": [
+    "قارن النموذج بما يرسله التطبيق (الصوت الاختياري)."
+   ],
+   "expected_ar": "مطابق للسياسة وبلا إعلان ناقص.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "PLY-SETTINGS-PERMISSIONS-03",
+   "char": "PLY",
+   "feature": "settings.permissions",
+   "title_ar": "target SDK وسياسة الأذونات",
+   "steps_ar": [
+    "افحص targetSdk وقواعد Play الحالية."
+   ],
+   "expected_ar": "مستوى API المطلوب وإذن الإشعارات والمنبّه الدقيق مبرَّرة.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "PLY-SETTINGS-PERMISSIONS-04",
+   "char": "PLY",
+   "feature": "settings.permissions",
+   "title_ar": "تقرير ما قبل الإطلاق (Pre-launch)",
+   "steps_ar": [
+    "ارفع AAB للمسار الداخلي وانتظر التقرير."
+   ],
+   "expected_ar": "لا انهيارات ولا مشكلات إتاحة حرجة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "PLY-SETTINGS-PERMISSIONS-05",
+   "char": "PLY",
+   "feature": "settings.permissions",
+   "title_ar": "سياسة الخصوصية وصفحة المتجر",
+   "steps_ar": [
+    "افتح رابط السياسة من الإعدادات والمتجر."
+   ],
+   "expected_ar": "تفتح وتطابق سلوك التطبيق، واسم «لوح» موحّد.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "FUN-PRAYER-LOG-03",
+   "char": "FUN",
+   "feature": "prayer.log",
+   "title_ar": "الدخول إلى متابعة الصلوات من المواقيت ومن «المزيد»",
+   "steps_ar": [
+    "افتح «مواقيت الصلاة» وادخل إلى «متابعة الصلوات».",
+    "ارجع وافتحها من «المزيد»."
+   ],
+   "expected_ar": "تفتح الشاشة (#/prayerlog) من المكانين.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-2"
+  },
+  {
+   "id": "FUN-PRAYER-LOG-04",
+   "char": "FUN",
+   "feature": "prayer.log",
+   "title_ar": "صلاة لم يحن وقتها معطّلة",
+   "steps_ar": [
+    "حاول الضغط على صلاة لم يحن وقتها اليوم."
+   ],
+   "expected_ar": "لا يمكن تعليمها.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-4"
+  },
+  {
+   "id": "FUN-READ-BRIGHTNESS-03",
+   "char": "FUN",
+   "feature": "read.brightness",
+   "title_ar": "الخيار موجود ويبقى مفعّلًا",
+   "steps_ar": [
+    "فعّل «التحكم في الإضاءة بالسحب» وأغلق الإعدادات."
+   ],
+   "expected_ar": "يبقى مفعّلًا.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-7"
+  },
+  {
+   "id": "FUN-READ-BRIGHTNESS-04",
+   "char": "FUN",
+   "feature": "read.brightness",
+   "title_ar": "بقية الإيماءات تعمل والخيار مفعّل",
+   "steps_ar": [
+    "اقلب الصفحة أفقيًا ومرّر عموديًا وكبّر بإصبعين وابدأ المايك."
+   ],
+   "expected_ar": "كلها تعمل كما قبل التفعيل.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-10"
+  },
+  {
+   "id": "FUN-READ-BRIGHTNESS-05",
+   "char": "FUN",
+   "feature": "read.brightness",
+   "title_ar": "إيقاف الخيار وخروج التطبيق يعيدان إضاءة النظام",
+   "steps_ar": [
+    "غيّر الإضاءة بالسحب ثم أوقف الخيار.",
+    "فعّله ثم اخرج للشاشة الرئيسية."
+   ],
+   "expected_ar": "تعود إضاءة الهاتف الأصلية في الحالتين.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-11"
+  },
+  {
+   "id": "FUN-RADIO-MAIN-03",
+   "char": "FUN",
+   "feature": "radio.main",
+   "title_ar": "تشغيل كل إذاعة من الإذاعات التسع والانتقال بينها",
+   "steps_ar": [
+    "اختر كل دولة يدويًا بالترتيب: مصر، تونس، قطر (إذاعتان)، السعودية، الأردن، الجزائر، عُمان، البحرين.",
+    "شغّل كل إذاعة ثم انتقل إلى التي بعدها."
+   ],
+   "expected_ar": "كل محطة من التسع يُسمع صوتها خلال ثوانٍ، والانتقال إلى محطة يوقف السابقة.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-14"
+  },
+  {
+   "id": "FUN-RADIO-MAIN-04",
+   "char": "FUN",
+   "feature": "radio.main",
+   "title_ar": "إشعار الوسائط والشاشة المقفلة",
+   "steps_ar": [
+    "شغّل إذاعة واسحب الإشعارات واضغط إيقاف/تشغيل.",
+    "اقفل الشاشة وكرر."
+   ],
+   "expected_ar": "الإشعار يعمل والشاشة مقفلة أيضًا.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-15"
+  },
+  {
+   "id": "FUN-RADIO-MAIN-05",
+   "char": "FUN",
+   "feature": "radio.main",
+   "title_ar": "الأذان والمايك يوقفان الإذاعة",
+   "steps_ar": [
+    "شغّل إذاعة قبل الأذان.",
+    "ابدأ القراءة بالمايك."
+   ],
+   "expected_ar": "تتوقف عند الأذان وتعود بعده، وتتوقف عند المايك.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-17"
+  },
+  {
+   "id": "FUN-DONATE-CONSENT-03",
+   "char": "FUN",
+   "feature": "donate.consent",
+   "title_ar": "مستخدم وافق سابقًا يُسأل مرة واحدة فقط",
+   "steps_ar": [
+    "بعد التحديث ابدأ أول قراءة بالمايك."
+   ],
+   "expected_ar": "يظهر السؤال مرة واحدة فقط.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-19"
+  },
+  {
+   "id": "FUN-SETTINGS-CORE-03",
+   "char": "FUN",
+   "feature": "settings.core",
+   "title_ar": "الشكل: عناوين الأقسام وبطاقة البحث والحواشي في الفاتح والداكن",
+   "steps_ar": [
+    "افتح الإعدادات ونتائج البحث وتفسيرًا فيه حواشٍ في الوضعين."
+   ],
+   "expected_ar": "عناوين الأقسام بلا خط جانبي، وبطاقة النتيجة بإطار ذهبي رفيع، والحواشي بلا خط جانبي.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-23"
+  },
+  {
+   "id": "FUN-SETTINGS-CORE-04",
+   "char": "FUN",
+   "feature": "settings.core",
+   "title_ar": "تحديث التطبيق عبر Play (In-App Updates)",
+   "steps_ar": [
+    "لا يُختبر من APK؛ يُختبر على مسار Play."
+   ],
+   "expected_ar": "يظهر طلب التحديث من Play ويكتمل.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone",
+   "src": "pt543-26"
+  },
+  {
+   "id": "FUN-BACKUP-MAIN-03",
+   "char": "FUN",
+   "feature": "backup.main",
+   "title_ar": "حفظ النسخة إلى Drive واسترجاعها من منتقي الملفات",
+   "steps_ar": [
+    "احفظ نسخة في Drive.",
+    "استرجعها من منتقي الملفات."
+   ],
+   "expected_ar": "يتم الحفظ والاسترجاع بلا خطأ.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-PRAYER-ALARMS-03",
+   "char": "FUN",
+   "feature": "prayer.alarms",
+   "title_ar": "إذن الإشعارات على أندرويد 13+ وزر فتح الإعدادات",
+   "steps_ar": [
+    "على أندرويد 13 ثبّت جديدًا وافتح المواقيت."
+   ],
+   "expected_ar": "يُطلب الإذن عند الحاجة ولا يظهر تعطل.",
+   "priority": "P0",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-QIBLA-MAIN-03",
+   "char": "FUN",
+   "feature": "qibla.main",
+   "title_ar": "سهم القبلة والهاتف مسطّح وواقف",
+   "steps_ar": [
+    "افتح القبلة والهاتف مسطّحًا ثم رأسيًا."
+   ],
+   "expected_ar": "السهم يتبع الاتجاه الحقيقي.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-HOME-CONTINUE-03",
+   "char": "FUN",
+   "feature": "home.continue",
+   "title_ar": "الودجت بعد قتل النظام للتطبيق (MIUI)",
+   "steps_ar": [
+    "ضع التطبيق في الخلفية و am kill ثم افتحه من ودجت «كمّل القراءة»."
+   ],
+   "expected_ar": "يفتح صفحة الودجت لا آخر شاشة.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-ASR-MODEL-03",
+   "char": "FUN",
+   "feature": "asr.model",
+   "title_ar": "تحديث النموذج v2 بتنزيل مقطوع",
+   "steps_ar": [
+    "حدّث النموذج واقطع النت في المنتصف ثم أعده."
+   ],
+   "expected_ar": "التنزيل يُستأنف ويكتمل بلا فساد.",
+   "priority": "P1",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "FUN-READ-AYAHBAR-03",
+   "char": "FUN",
+   "feature": "read.ayahbar",
+   "title_ar": "«علامة» من شريط الآية بلمسة واحدة",
+   "steps_ar": [
+    "اضغط على آية في صفحة المصحف.",
+    "اضغط «علامة» في شريط الآية.",
+    "افتح شاشة الختمة والعلامات."
+   ],
+   "expected_ar": "تُحفظ العلامة فورًا بلا نافذة تسمية، وتظهر في قائمة العلامات وتفتح موضعها.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "FUN-MARKS-BOOKMARKS-03",
+   "char": "FUN",
+   "feature": "marks.bookmarks",
+   "title_ar": "العلامة السريعة تظهر في شاشة الختمة",
+   "steps_ar": [
+    "أضف علامة بلمسة من شريط الآية.",
+    "افتح «الختمة والعلامات»."
+   ],
+   "expected_ar": "العلامة الجديدة في القائمة باسم السورة والآية، ويمكن إعادة تسميتها وحذفها بعد تأكيد.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "العلامات والختمة",
+   "device": "any"
+  },
+  {
+   "id": "FUN-READ-SHARE-03",
+   "char": "FUN",
+   "feature": "read.share",
+   "title_ar": "مشاركة «نص بدون تشكيل»",
+   "steps_ar": [
+    "اضغط على آية ثم «مشاركة».",
+    "اختر «نص بدون تشكيل»."
+   ],
+   "expected_ar": "النص المرسل بلا حركات ولا علامات وقف، ومعه اسم السورة ورقم الآية.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "FUN-ONBOARD-WELCOME-03",
+   "char": "FUN",
+   "feature": "onboard.welcome",
+   "title_ar": "اختيار خيار داخل خطوة الترحيب لا يعيد حركة البطاقة",
+   "steps_ar": [
+    "في شاشة الترحيب اختر طبعة ثم اختر أخرى في الخطوة نفسها."
+   ],
+   "expected_ar": "تتغير الإشارة على الخيار فقط ولا تنزلق البطاقة من جديد (الصنف wel-still)، والانتقال إلى الخطوة التالية يحرّكها.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.7",
+   "device": "any"
+  },
+  {
+   "id": "REL-HOME-HIJRI-01",
+   "char": "REL",
+   "feature": "home.hijri",
+   "title_ar": "التاريخ الهجري بالإنجليزية",
+   "steps_ar": [
+    "اختر الإنجليزية لغةً للتطبيق.",
+    "افتح الرئيسية وشاشة المواقيت."
+   ],
+   "expected_ar": "يظهر اسم الشهر الهجري ثم AH، ولا يظهر BC.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "متابعة الصلوات",
+   "device": "any"
+  },
+  {
+   "id": "REL-READ-THEMATIC-01",
+   "char": "REL",
+   "feature": "read.thematic",
+   "title_ar": "إيقاف ألوان المصحف الموضوعي",
+   "steps_ar": [
+    "فعّل ألوان المصحف الموضوعي ثم أوقفها من الإعدادات."
+   ],
+   "expected_ar": "تختفي الطبقة الملونة فورًا، ولا تقفز قائمة الإعدادات من مكانها.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.11",
+   "device": "any"
+  },
+  {
+   "id": "REL-AYAH-WORDS-01",
+   "char": "REL",
+   "feature": "ayah.words",
+   "title_ar": "كلمة بلا جذر في معاني الكلمات",
+   "steps_ar": [
+    "افتح تبويب معاني الكلمات لآية فيها كلمة بلا جذر."
+   ],
+   "expected_ar": "تُعرض الكلمة بلون النص القرآني مع رسالة واضحة بدل معجم فارغ، ولا خطأ في الصفحة.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "لون النص القرآني 5.43",
+   "device": "any"
+  },
+  {
+   "id": "REL-AYAH-TRANSLATION-01",
+   "char": "REL",
+   "feature": "ayah.translation",
+   "title_ar": "إيقاف الترجمة الإنجليزية تحت الآيات",
+   "steps_ar": [
+    "أوقف «الترجمة الإنجليزية تحت الآيات» في الإعدادات وافتح عرض النص."
+   ],
+   "expected_ar": "لا تظهر الترجمة، وتعود عند التشغيل دون إعادة فتح التطبيق.",
+   "priority": "P2",
+   "how": "both",
+   "ui_group": "مزايا نسخة 3.4",
+   "device": "any"
+  },
+  {
+   "id": "REL-TAJWEED-LESSONS-01",
+   "char": "REL",
+   "feature": "tajweed.lessons",
+   "title_ar": "مثال درس التجويد يفتح آيته",
+   "steps_ar": [
+    "افتح درسًا واضغط على مثال، ثم ارجع."
+   ],
+   "expected_ar": "تفتح الآية في موضعها، والرجوع يعيد إلى الدرس نفسه.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "التجويد والقراءات والأذكار والقبلة",
+   "device": "any"
+  },
+  {
+   "id": "REL-QIRAAT-TEN-01",
+   "char": "REL",
+   "feature": "qiraat.ten",
+   "title_ar": "ألوان النص في أصول القراءات",
+   "steps_ar": [
+    "افتح #/qiraat في الوضعين الفاتح والداكن."
+   ],
+   "expected_ar": "الآيات بين الأقواس بلون النص القرآني وتباين لا يقل عن 4.5:1، والترجمة بلا لون.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "لون النص القرآني 5.43",
+   "device": "any"
+  },
+  {
+   "id": "REL-TOPICS-INDEX-01",
+   "char": "REL",
+   "feature": "topics.index",
+   "title_ar": "موضوع يفتح الآية الصحيحة",
+   "steps_ar": [
+    "افتح «مواضيع القرآن» ثم موضوعًا ثم آية منه."
+   ],
+   "expected_ar": "تفتح الآية الصحيحة مظللة، والرجوع يعيد إلى الموضوع.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.8",
+   "device": "any"
+  },
+  {
+   "id": "REL-AUDIO-TTS-01",
+   "char": "REL",
+   "feature": "audio.tts",
+   "title_ar": "صوت الأذكار بلا محرك نطق عربي",
+   "steps_ar": [
+    "على هاتف بلا صوت عربي في محرك النطق شغّل «استمع للآيات» في الأذكار."
+   ],
+   "expected_ar": "تُقرأ الآيات فقط، ولا يتعطل التطبيق إن غاب المحرك.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "phone"
+  },
+  {
+   "id": "REL-KHATMA-FAMILY-01",
+   "char": "REL",
+   "feature": "khatma.family",
+   "title_ar": "رمز ختمة جماعية تالف",
+   "steps_ar": [
+    "ألصق رمز ختمة جماعية ناقصًا أو معدّلًا في الاستيراد."
+   ],
+   "expected_ar": "يُرفض الرمز برسالة واضحة، ولا تتغير الختمة الحالية.",
+   "priority": "P2",
+   "how": "both",
+   "ui_group": "مزايا نسخة 3.8",
+   "device": "any"
+  },
+  {
+   "id": "REL-STATS-REWARDS-01",
+   "char": "REL",
+   "feature": "stats.rewards",
+   "title_ar": "ختمة منتهية وتقدّم على الخطة",
+   "steps_ar": [
+    "أنهِ ختمة بالقراءة، ثم ابدأ خطة جديدة واقرأ أكثر من ورد اليوم."
+   ],
+   "expected_ar": "عدّاد الختمات يزيد مرة واحدة، والصفحات الزائدة تُحتسب دون تكرار، وبلا خطة يظهر تلميح بدل الأرقام.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "المكافآت 5.43",
+   "device": "any"
+  },
+  {
+   "id": "REL-HIFZ-RESUME-01",
+   "char": "REL",
+   "feature": "hifz.resume",
+   "title_ar": "الاستئناف بعد الخروج من الاختبار",
+   "steps_ar": [
+    "ابدأ اختبار حفظ ثم اخرج منه.",
+    "افتح «المراجعة» واضغط «استئناف من المرة الماضية»."
+   ],
+   "expected_ar": "يعود الاختبار إلى الموضع نفسه، ولا يظهر الزر في الرئيسية ولا في «اختبار الحفظ».",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.26 (A)",
+   "device": "any"
+  },
+  {
+   "id": "REL-HIFZ-TALQIN-01",
+   "char": "REL",
+   "feature": "hifz.talqin",
+   "title_ar": "التلقين لمجموعة آيات مع كلمة منسية",
+   "steps_ar": [
+    "افتح التلقين لآيات من 1 إلى 3.",
+    "استمع ثم سمّع مع نسيان كلمة."
+   ],
+   "expected_ar": "القارئ يقرأ المجموعة، والكلمة المنسية تُحتسب خطأً، و«الآية التالية» تنتقل صحيحًا.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.17 (Sprint C)",
+   "device": "any"
+  },
+  {
+   "id": "REL-HIFZ-STUDENTS-01",
+   "char": "REL",
+   "feature": "hifz.students",
+   "title_ar": "رمز طالب تالف",
+   "steps_ar": [
+    "في «طلابي» ألصق رسالة فيها رمز QK2 معدّل."
+   ],
+   "expected_ar": "يُرفض الرمز ولا يُضاف طالب، والرمز السليم يعود كما هو.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 5.18 (Sprint D)",
+   "device": "any"
+  },
+  {
+   "id": "REL-ASR-VOICE-01",
+   "char": "REL",
+   "feature": "asr.voice",
+   "title_ar": "أمر صوتي غير مفهوم",
+   "steps_ar": [
+    "قل «الصفحة التالية» ثم كلامًا غير مفهوم بالمايك."
+   ],
+   "expected_ar": "الأمر المفهوم يقلب الصفحة بمسار التقليب نفسه، وغير المفهوم لا يغيّر الصفحة.",
+   "priority": "P2",
+   "how": "both",
+   "ui_group": "نسخة 5.34",
+   "device": "any"
+  },
+  {
+   "id": "REL-PRAYER-IMSAKIA-01",
+   "char": "REL",
+   "feature": "prayer.imsakia",
+   "title_ar": "الإمساكية بلا موقع محفوظ",
+   "steps_ar": [
+    "افتح إمساكية رمضان بلا مدينة محفوظة."
+   ],
+   "expected_ar": "تطلب الشاشة اختيار مدينة بدل جدول فارغ، ومشاركتها صورةً تعمل بعد الاختيار.",
+   "priority": "P2",
+   "how": "both",
+   "ui_group": "مزايا نسخة 3.6",
+   "device": "any"
+  },
+  {
+   "id": "REL-DUAS-MAIN-01",
+   "char": "REL",
+   "feature": "duas.main",
+   "title_ar": "دعاء قرآني يطابق نص المصحف",
+   "steps_ar": [
+    "افتح «أدعية مختارة» ثم دعاءً قرآنيًا في كل قسم."
+   ],
+   "expected_ar": "نص الآيات مطابق لنص المصحف، والأقسام السبعة كلها تفتح.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "مزايا نسخة 3.7",
+   "device": "any"
+  },
+  {
+   "id": "REL-TASBIH-MAIN-01",
+   "char": "REL",
+   "feature": "tasbih.main",
+   "title_ar": "السبحة بذكر وعدد مخصّصين",
+   "steps_ar": [
+    "أضف ذكرًا من عندك بعدد 33 وعدّ حتى الهدف.",
+    "أعد فتح التطبيق."
+   ],
+   "expected_ar": "هزة طويلة واحدة عند الهدف، والعدد محفوظ بعد إعادة الفتح.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "نسخة 4.6 (قائمة 31 أكتوبر)",
+   "device": "any"
+  },
+  {
+   "id": "REL-SETTINGS-HAPTICS-01",
+   "char": "REL",
+   "feature": "settings.haptics",
+   "title_ar": "الاهتزاز مُطفأ",
+   "steps_ar": [
+    "اختر «بلا اهتزاز» ثم اضغط الأزرار وقلّب الصفحة."
+   ],
+   "expected_ar": "لا اهتزاز إطلاقًا، وتقليب الصفحة لا يهتز في أي درجة.",
+   "priority": "P2",
+   "how": "both",
+   "ui_group": "مزايا نسخة 3.4",
+   "device": "any"
+  },
+  {
+   "id": "REL-CORE-SW-01",
+   "char": "REL",
+   "feature": "core.sw",
+   "title_ar": "نسخة الويب بلا إنترنت",
+   "steps_ar": [
+    "افتح نسخة الويب مرة، ثم اقطع الإنترنت وأعد تحميلها."
+   ],
+   "expected_ar": "تفتح من ذاكرة service worker، واسم الذاكرة quran-vNN زِيد في هذا الإصدار.",
+   "priority": "P2",
+   "how": "manual",
+   "ui_group": null,
+   "device": "any"
+  },
+  {
+   "id": "REL-READ-FLIP-01",
+   "char": "REL",
+   "feature": "read.flip",
+   "title_ar": "قلب بالثني يُترك في منتصفه",
+   "steps_ar": [
+    "ابدأ سحب الصفحة بتأثير ثني الورقة.",
+    "وأنت تسحب: انتقل إلى تطبيق آخر أو افتح لوحة الإشعارات."
+   ],
+   "expected_ar": "تعود الصفحة مسطّحة على الصفحة نفسها، ولا تبقى طيّة معلّقة.",
+   "priority": "P1",
+   "how": "both",
+   "ui_group": "قراءة صفحات المصحف",
+   "device": "any"
+  },
+  {
+   "id": "FUN-STATS-REWARDS-02",
+   "char": "FUN",
+   "feature": "stats.rewards",
+   "title_ar": "التعديل اليدوي للموضع لا يُحتسب قراءة",
+   "steps_ar": [
+    "من «الختمة والعلامات» اختر «تعديل موضعي» واكتب آخر صفحة في المصحف."
+   ],
+   "expected_ar": "تتحرك الخطة فقط: لا يزيد عدّاد الختمات ولا أيام الورد، ولا تُحتسب الختمة لاحقًا.",
+   "priority": "P1",
+   "how": "auto",
+   "ui_group": "المكافآت 5.43",
+   "device": "any"
+  },
+  {
+   "id": "FUN-STATS-REWARDS-03",
+   "char": "FUN",
+   "feature": "stats.rewards",
+   "title_ar": "الصفحة الأخيرة من ورد اليوم",
+   "steps_ar": [
+    "افتح الصفحة التي تُتمّ ورد اليوم، واتركها ٦ ثوانٍ ثم أغلقها.",
+    "كرّر مع صفحة عادية."
+   ],
+   "expected_ar": "صفحة إتمام الورد أو الختمة تُحتسب بعد ٥ ثوانٍ، وأي صفحة أخرى تحتاج ٢٠ ثانية.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "المكافآت 5.43",
+   "device": "any"
+  },
+  {
+   "id": "USA-STATS-REWARDS-01",
+   "char": "USA",
+   "feature": "stats.rewards",
+   "title_ar": "اسما العدّادين المتتاليين",
+   "steps_ar": [
+    "افتح الإحصائيات بالعربية ثم بالإنجليزية."
+   ],
+   "expected_ar": "«أيام قراءة متتالية» في الإحصائيات و«أيام ورد متتالية» في المكافآت مع تلميح، ولكلٍّ ترجمة إنجليزية.",
+   "priority": "P2",
+   "how": "auto",
+   "ui_group": "المكافآت 5.43",
+   "device": "any"
+  }
+ ]
+}
