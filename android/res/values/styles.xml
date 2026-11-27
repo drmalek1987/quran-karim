@@ -7,4 +7,6 @@
         <item name="android:windowBackground">@color/bg</item>
     </style>
     <color name="bg">#f7f2e7</color>
+    <!-- 5.43 (user): the system's first frame is the app's blue in light and dark (no black then white) -->
+    <color name="brand">#1e3a5f</color>
 </resources>

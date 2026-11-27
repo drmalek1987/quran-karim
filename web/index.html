@@ -55,14 +55,20 @@
         <button data-v="v">عمودي</button>
       </div>
     </div>
-    <div class="row">صفحتان متجاورتان على التابلت والفولد بالعرض
-      <div class="seg" id="spreadSet">
+    <div class="row">تعليم الآية عند اللمس
+      <div class="seg" id="tapSet">
         <button data-v="on">تشغيل</button>
         <button data-v="off">إيقاف</button>
       </div>
     </div>
-    <div class="row">تعليم الآية عند اللمس
-      <div class="seg" id="tapSet">
+    <div class="row">الترجمة الإنجليزية تحت الآيات
+      <div class="seg" id="trSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
+    <div class="row">صفحتان متجاورتان على التابلت والفولد بالعرض
+      <div class="seg" id="spreadSet">
         <button data-v="on">تشغيل</button>
         <button data-v="off">إيقاف</button>
       </div>
@@ -74,16 +80,16 @@
         <button data-v="text">النص فقط</button>
       </div>
     </div>
-    <div class="row">إبقاء الشاشة مضيئة
-      <div class="seg" id="keepSet">
-        <button data-v="on">تشغيل</button>
-        <button data-v="off">إيقاف</button>
-      </div>
-    </div>
     <div class="row">شريط الهاتف في ملء الشاشة
       <div class="seg" id="fsStatSet">
         <button data-v="on">إظهار</button>
         <button data-v="off">إخفاء</button>
+      </div>
+    </div>
+    <div class="row">إبقاء الشاشة مضيئة
+      <div class="seg" id="keepSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
       </div>
     </div>
     <div class="row row-col" id="brightRow">التحكم في الإضاءة بالسحب<small class="hint">اسحب لأعلى أو لأسفل على الحافة اليسرى من الصفحة لتغيير الإضاءة داخل التطبيق فقط.</small>
@@ -92,13 +98,15 @@
         <button data-v="off">إيقاف</button>
       </div>
     </div>
-    <div class="row">الترجمة الإنجليزية تحت الآيات
-      <div class="seg" id="trSet">
-        <button data-v="on">تشغيل</button>
-        <button data-v="off">إيقاف</button>
+    <h3 class="set-group">الألوان والمظهر</h3>
+    <div class="row">مظهر التطبيق
+      <div class="seg" id="theme">
+        <button data-v="auto">مثل الهاتف</button>
+        <button data-v="sun">مع المغرب</button>
+        <button data-v="light">فاتح</button>
+        <button data-v="dark">داكن</button>
       </div>
     </div>
-    <h3 class="set-group">الألوان والمظهر</h3>
     <div class="row">لون صفحة المصحف
       <div class="swatches" id="pageBg">
         <button data-v="#fbf7ee" style="background:#fbf7ee" aria-label="ورقي"></button>
@@ -111,21 +119,11 @@
         <label aria-label="لون من اختيارك"><input type="color" id="pageBgPick"></label>
       </div>
     </div>
-    <div class="row row-col">شكل إخفاء الكلمات في الحفظ والمراجعة
-      <div class="swatches" id="maskSet">
-        <button type="button" data-v="def" class="mk-sw" aria-label="رمادي (الأصلي)" title="رمادي (الأصلي)"><i class="mk-def"></i></button>
-        <button type="button" data-v="comp" class="mk-sw" aria-label="وردي بنفسجي" title="وردي بنفسجي"><i class="mk-comp"></i></button>
-        <button type="button" data-v="anal" class="mk-sw" aria-label="أخضر مزرق" title="أخضر مزرق"><i class="mk-anal"></i></button>
-      </div>
-    </div>
+    <label class="row">حجم خط النص
+      <input id="fontSize" type="range" min="18" max="48" step="1">
+    </label>
     <div class="row">ألوان التجويد
       <div class="seg" id="tjSet">
-        <button data-v="on">تشغيل</button>
-        <button data-v="off">إيقاف</button>
-      </div>
-    </div>
-    <div class="row">ظل الكعب
-      <div class="seg" id="spineSet">
         <button data-v="on">تشغيل</button>
         <button data-v="off">إيقاف</button>
       </div>
@@ -138,15 +136,17 @@
       <details class="thm-key"><summary>معاني الألوان</summary><ul id="thmLegend"></ul>
         <p class="hint">تقسيم «التفصيل الموضوعي» بإذن دار الفجر الإسلامي، فكرة وإعداد الأستاذ مروان نور الدين سوار. لكل موضوع درجتان من لونه ليظهر أوله وآخره.</p></details>
     </div>
-    <label class="row">حجم خط النص
-      <input id="fontSize" type="range" min="18" max="48" step="1">
-    </label>
-    <div class="row">مظهر التطبيق
-      <div class="seg" id="theme">
-        <button data-v="auto">مثل الهاتف</button>
-        <button data-v="sun">مع المغرب</button>
-        <button data-v="light">فاتح</button>
-        <button data-v="dark">داكن</button>
+    <div class="row">ظل الكعب
+      <div class="seg" id="spineSet">
+        <button data-v="on">تشغيل</button>
+        <button data-v="off">إيقاف</button>
+      </div>
+    </div>
+    <div class="row row-col">شكل إخفاء الكلمات في الحفظ والمراجعة
+      <div class="swatches" id="maskSet">
+        <button type="button" data-v="def" class="mk-sw" aria-label="رمادي (الأصلي)" title="رمادي (الأصلي)"><i class="mk-def"></i></button>
+        <button type="button" data-v="comp" class="mk-sw" aria-label="وردي بنفسجي" title="وردي بنفسجي"><i class="mk-comp"></i></button>
+        <button type="button" data-v="anal" class="mk-sw" aria-label="أخضر مزرق" title="أخضر مزرق"><i class="mk-anal"></i></button>
       </div>
     </div>
     <h3 class="set-group">الصوت والتلاوة</h3>
@@ -156,12 +156,6 @@
     <details class="row row-col dl-box asr-box" id="asrBox"><summary><span>التعرّف على التلاوة<small class="hint" id="asrSum"></small></span></summary>
       <div id="asrDl" class="dl-list"></div>
     </details>
-    <div class="row row-col" id="micRow" hidden>اختيار الميكروفون
-      <select id="micSel" class="sel-field" aria-label="اختيار الميكروفون"></select>
-    </div>
-    <div class="row">اختبار الميكروفون<small class="hint" id="micTestSum"></small>
-      <button class="sel-field" id="micTestBtn">اختبر</button>
-    </div>
     <div class="row row-col" id="paceRow" hidden>سرعة القراءة
       <div class="seg" id="paceSet">
         <button data-v="normal">عادي</button>
@@ -175,18 +169,24 @@
         <button data-v="off">إيقاف</button>
       </div>
     </div>
+    <div class="row row-col" id="micRow" hidden>اختيار الميكروفون
+      <select id="micSel" class="sel-field" aria-label="اختيار الميكروفون"></select>
+    </div>
+    <div class="row">اختبار الميكروفون<small class="hint" id="micTestSum"></small>
+      <button class="sel-field" id="micTestBtn">اختبر</button>
+    </div>
     <h3 class="set-group">التطبيق</h3>
+    <div class="row">لغة التطبيق
+      <div class="seg" id="langSet">
+        <button data-v="ar">العربية</button>
+        <button data-v="en">English</button>
+      </div>
+    </div>
     <div class="row">عند فتح التطبيق
       <div class="seg" id="openSet">
         <button data-v="home">الواجهة الرئيسية</button>
         <button data-v="last">آخر موضع في المصحف</button>
       </div>
-    </div>
-    <div class="row">الجولة التعريفية في التطبيق
-      <div class="seg"><button id="tourBtn">عرض الشرح</button></div>
-    </div>
-    <div class="row row-col" id="updRow" hidden>التحقق من التحديثات<small class="hint" id="updMsg" aria-live="polite"></small>
-      <div class="seg"><button id="updBtn">تحقّق</button><button id="updGo" hidden>تحديث الآن</button></div>
     </div>
     <div class="row row-col">اهتزاز عند الضغط على الأزرار والآيات
       <div class="seg" id="hapticSet">
@@ -196,6 +196,12 @@
         <button data-v="3">قوي</button>
       </div>
     </div>
+    <div class="row">الجولة التعريفية في التطبيق
+      <div class="seg"><button id="tourBtn">عرض الشرح</button></div>
+    </div>
+    <div class="row row-col" id="updRow" hidden>التحقق من التحديثات<small class="hint" id="updMsg" aria-live="polite"></small>
+      <div class="seg"><button id="updBtn">تحقّق</button><button id="updGo" hidden>تحديث الآن</button></div>
+    </div>
     <div class="row row-col">نسخة احتياطية (العلامات والختمة والملاحظات والحفظ والإعدادات)
       <div class="seg">
         <button id="bkOut">حفظ نسخة</button>
@@ -204,12 +210,6 @@
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
       <p class="hint" id="bkAge"></p>
       <label class="rem-row"><span class="rem-sw"><input type="checkbox" id="bkRem"><span></span>ذكّرني بإنشاء نسخة كل شهر</span></label>
-    </div>
-    <div class="row">لغة التطبيق
-      <div class="seg" id="langSet">
-        <button data-v="ar">العربية</button>
-        <button data-v="en">English</button>
-      </div>
     </div>
     <details class="dl-box" id="dlGroup"><summary class="set-group">التحميلات</summary>
     <div class="row row-col" id="dlRow">

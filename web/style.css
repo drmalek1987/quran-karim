@@ -317,6 +317,8 @@ mark { background: #ffe14d; color: #1d1a14; border-radius: 4px; padding: 0 1px; 
 .ab-btns button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 10px 4px; white-space: nowrap; border-radius: 14px; border: 0;
   background: var(--soft); color: var(--accent); cursor: pointer; font-size: 13px; font-weight: 600; }
 .ab-btns button[data-c="x"] { flex: none; width: 44px; background: var(--bg); color: var(--muted); }
+.ab-btns button[data-c="b"].on { background: var(--gold-soft, #f4e6c4); color: var(--gold); }   /* 5.43: this ayah is bookmarked */
+.ab-btns button[data-c="b"].on .ic { fill: currentColor; }
 .ab-btns button[data-c="f"] { flex-basis: 100%; background: var(--grad); color: #fff; font-size: 15px; box-shadow: 0 6px 16px rgba(30, 58, 95, .3); }
 .ab-btns .ic { width: 17px; height: 17px; }
 body.has-bar main { padding-bottom: 190px; }
@@ -1438,3 +1440,6 @@ p.wel-err { margin: 0; } .wel-retry { display: block; margin-top: 4px; font-size
 .result .txt, .tp-a p, .z-quran, .mt-full, .tj-words, .tj-ex, .words button, .mut-text, .hm-row .qq { color: var(--quote); }
 .words button.noroot { color: var(--muted); }
 .mut-text mark { color: var(--text); }
+/* 5.43: the whole switch row is the touch target (title included), and the switch itself reaches 44 px high */
+#settings .row.row-sw { cursor: pointer; }
+.seg-sw::before { content: ""; position: absolute; inset: -9px -8px; }

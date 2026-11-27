@@ -398,6 +398,8 @@
       if (bs.length !== 2 || !row) return;
       var k = [bs[0].dataset.v, bs[1].dataset.v].sort().join();
       if (k !== "off,on" && k !== "0,1" && k !== "false,true") return;
+      if (seg.dataset.sw) return;   // already a switch: a second set of listeners would flip it twice, i.e. not at all
+      seg.dataset.sw = "1";
       var onB = /^(on|1|true)$/.test(bs[0].dataset.v) ? bs[0] : bs[1], offB = onB === bs[0] ? bs[1] : bs[0], t = "";
       seg.classList.add("seg-sw"); row.classList.add("row-sw"); row.classList.remove("row-col");
       row.childNodes.forEach(function (c) { if (c.nodeType === 3) t += c.nodeValue; });
@@ -405,9 +407,14 @@
       Array.prototype.forEach.call(bs, function (x) { x.tabIndex = -1; x.setAttribute("aria-hidden", "true"); });
       function sync() { var on = onB.classList.contains("on"); seg.setAttribute("aria-checked", on ? "true" : "false"); seg.classList.toggle("is-on", on); }
       new MutationObserver(sync).observe(seg, { subtree: true, attributes: true, attributeFilter: ["class"] }); sync();
-      function flip() { (onB.classList.contains("on") ? offB : onB).click(); }
+      // 5.43 (user): a tap anywhere on the switch, or anywhere on its row, flips it. Before, the switch was two transparent
+      // halves and a tap on the half of the button already on did nothing, so about every other tap was lost.
+      var flipping = false;
+      function flip() { flipping = true; try { (onB.classList.contains("on") ? offB : onB).click(); } finally { flipping = false; } }
       seg.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); } });
-      seg.addEventListener("click", function (e) { if (e.target === seg) flip(); });
+      // the half that is not on sets its own value as before; the half already on (or the track around them) flips it
+      seg.addEventListener("click", function (e) { var t = e.target.closest && e.target.closest("button"); if (flipping || (t && !t.classList.contains("on"))) return; e.stopPropagation(); e.preventDefault(); flip(); }, true);
+      row.addEventListener("click", function (e) { if (!seg.contains(e.target) && !e.target.closest("a, button, select, input, details, summary")) flip(); });
     });
   })();
   (function () {
@@ -845,6 +852,7 @@
   document.querySelectorAll("#tapSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       tapMark = b.dataset.v === "on"; save("tapMark", tapMark); applySettings();
+      if (!tapMark) abClose();   // 5.43: switching marking off also clears the ayah chosen before (else nothing could clear it)
       if (/^#\/p\//.test(location.hash)) routeKeepSheet();   // the tip under the page depends on it
     });
   });
@@ -1391,7 +1399,8 @@
     }
     pageWordPress(list);
     list.addEventListener("click", function (e) {
-      if (Date.now() - lpPageAt < 700 || Date.now() - pinchAt < 500 || !tapMark) return;   // the click that ends a long press (word meaning); marking is off
+      if (Date.now() - lpPageAt < 700 || Date.now() - pinchAt < 500) return;   // the click that ends a long press (word meaning)
+      if (!tapMark) { abClose(); return; }   // marking is off: a tap only clears a choice left from before
       var bx = e.target.closest(".page-box"); if (!bx) return;
       var r = bx.getBoundingClientRect(), hit = ayahAt(+bx.dataset.p, (e.clientX - r.left) / r.width * 1000, (e.clientY - r.top) / r.height * 1000);
       if (!hit || (hl0 && hl0.s === hit[0] && hl0.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
@@ -1718,7 +1727,7 @@
         var r = bx.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
         var hit = ayahAt(+bx.dataset.p, x, y);
         if (hifz.on) { hzTap(+bx.dataset.p, x, y, hit); return; }
-        if (!tapMark) return;
+        if (!tapMark) { abClose(); return; }   // marking is off: a tap only clears a choice left from before
         if (!hit || (hl && hl.s === hit[0] && hl.a === hit[1])) mark(null); else mark(hit[0], hit[1]);
       });
     });
@@ -1788,7 +1797,9 @@
     wrap.addEventListener("pointercancel", function (e) { release(e, true); });
     // 5.43: a turn left half-way (the page stayed folded) if the lift never reached wrap: the capture was lost, or the window
     // lost focus mid-drag (app switch, a system sheet). Either one now lays the page back flat.
-    wrap.addEventListener("lostpointercapture", function (e) { if (g && g.c) release(e, true); });
+    // Only wrap's own capture: on touch the page image holds the implicit capture until wrap takes it (setPointerCapture
+    // above), and the image's lostpointercapture bubbles up here; taking that for a lost turn cancelled every touch flip.
+    wrap.addEventListener("lostpointercapture", function (e) { if (e.target === wrap && g && g.c) release(e, true); });
     window.addEventListener("blur", function () { if (g && g.c) { g.c.finish(false); g = null; } });
   }
 
@@ -2203,7 +2214,7 @@
     if (trOn && !window.TR_EN) withTranslation(function () { var b2 = document.getElementById("ayahBar"); if (b2 && !b2.querySelector(".tr-en")) b2.querySelector(".ab-ref").insertAdjacentHTML("afterend", trOf(s, a)); });
     bar.innerHTML = '<div class="ab-ref">سورة ' + Q.s[s - 1][0] + " · الآية " + ar(a) + "</div>" + trOf(s, a) + '<div class="ab-btns">' +
       '<button data-c="f">' + ic("book") + "تفسير وإعراب ومعاني</button>" +
-      '<button data-c="l">' + ic("aplay") + "استماع</button>" + '<button data-c="r">' + ic("rep") + "تكرار مقطع</button>" + '<button data-c="b">' + ic("mark") + "علامة</button>" +
+      '<button data-c="l">' + ic("aplay") + "استماع</button>" + '<button data-c="r">' + ic("rep") + "تكرار مقطع</button>" + '<button data-c="b"' + (isMarked(s, a) ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">" + ic("mark") + "علامة</button>" +
       '<button data-c="sh">' + ic("share") + "مشاركة</button>" +
       '<button data-c="x" aria-label="إغلاق">' + ic("x") + "</button></div>";   // 5.43: copying is in «مشاركة»; «في النص» removed (user)
     document.body.appendChild(bar);
@@ -2213,7 +2224,7 @@
       else if (c === "f") location.hash = "#/a/" + s + "/" + a;
       else if (c === "l") { ayahBar(null); if (onClose) onClose(); player.play(s, a); }
       else if (c === "r") { ayahBar(null); if (onClose) onClose(); rangeDialog(s, a); }
-      else if (c === "b") addBookmark(s, a);
+      else if (c === "b") { var on = toggleBookmark(s, a); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); }
       else if (c === "sh") shareDialog(s, a);
     };
   }
@@ -3706,12 +3717,20 @@
   function marks() { return load("marks", []); }
   // 5.43 (user): one tap saves the bookmark at once, named after the ayah, with no name dialog; tapping again on the same ayah
   // does not add a copy.
-  function addBookmark(s, a) {
-    var name = "سورة " + Q.s[s - 1][0] + " · الآية " + ar(a), m = marks();
-    if (m.some(function (x) { return x.s === s && x.a === a && !x.p; })) return toast(window.LANG === "en" ? "Already bookmarked" : "العلامة محفوظة من قبل");
-    m.unshift({ n: name, s: s, a: a, t: Date.now() }); save("marks", m);
-    toast(window.LANG === "en" ? "Bookmark saved" : "حُفظت العلامة");
+  function isMarked(s, a) { return marks().some(function (x) { return x.s === s && x.a === a && !x.p; }); }
+  // 5.43 (user): the ayah bar's «علامة» is a toggle: a tap saves the bookmark at once (named after the ayah, no dialog) and the
+  // button turns on; a tap on a bookmarked ayah removes it. Page bookmarks of the corner button (x.p) are left alone.
+  function toggleBookmark(s, a) {
+    var m = marks();
+    if (isMarked(s, a)) {
+      save("marks", m.filter(function (x) { return !(x.s === s && x.a === a && !x.p); }));
+      toast(window.LANG === "en" ? "Bookmark removed" : "أُزيلت العلامة"); return false;
+    }
+    m.unshift({ n: "سورة " + Q.s[s - 1][0] + " · الآية " + ar(a), s: s, a: a, t: Date.now() }); save("marks", m);
+    toast(window.LANG === "en" ? "Bookmark saved" : "حُفظت العلامة"); return true;
   }
+  // Close the ayah bar through its own ✕, so the screen's onClose clears the highlight and ?a= as usual.
+  function abClose() { var x = document.querySelector('#ayahBar button[data-c="x"]'); if (x) x.click(); }
   // 5.23 #16: a corner button on the mushaf: one tap bookmarks / un-bookmarks the page on screen, no dialog. Its entries
   // carry p (the page) so only these are toggled off, never a bookmark the reader named by hand.
   var mkBtn = document.createElement("button");
@@ -6463,7 +6482,7 @@
       var o = q.opts[i], ok = !!o.ok;
       mtq.n++; if (ok) mtq.ok++;
       hifzMark(q.k, ok);
-      view.querySelectorAll(".mt-ch").forEach(function (b, j) { b.disabled = true; b.querySelector(".mt-src").hidden = false; b.querySelector(".ay-text").innerHTML = q.opts[j].marked; if (q.opts[j].ok) b.classList.add("ok"); else if (j === i) b.classList.add("miss"); });
+      view.querySelectorAll(".mt-ch").forEach(function (b, j) { b.disabled = true; b.querySelector(".mt-src").hidden = false; b.querySelector(".ay-text").innerHTML = q.opts[j].marked.replace(/ ?<mark class="mt-end">[^<]*<\/mark>/, "").replace(/<\/?mark>/g, "");   /* 5.43 (user): no word highlighting after the answer */ if (q.opts[j].ok) b.classList.add("ok"); else if (j === i) b.classList.add("miss"); });
       document.getElementById("mtScore").textContent = "صح " + ar(mtq.ok) + " من " + ar(mtq.n);
       document.getElementById("mtRes").innerHTML = (ok ? "<b>صح</b>ما شاء الله" : "<b>خطأ</b>هذه تكملة سورة " + Q.s[o.v[0] - 1][0] + " · الآية " + ar(o.v[1])) +
         '<span class="ay-text mt-full" lang="ar">' + esc(Q.t[q.s - 1][q.a - 1]) + ' <span class="ayah-no">﴿' + ar(q.a) + "﴾</span></span>";
