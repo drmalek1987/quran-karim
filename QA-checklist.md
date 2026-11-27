@@ -836,3 +836,6 @@ On the phone:
 - Emulator smoke (Phone_API35): radio Qatar 1 PLAYING after 15 s and after HOME 20 s, RadioService foreground (type 0x2), media notification with pause/stop, no FATAL.
 - Phone (user): plans/phone-test-5.43.html, 28 items (brightness back-gesture, real streams + HLS, adhan pause, mic pause, one-time consent ask, «بانتظار الرفع» counter).
 - Not checked: tools/qa/donate.js stops at #htMic (old 5.16 tool, no baseline run possible); In-App Updates only from Play.
+- Phone-test round 1 (user): 17 pass / 8 notes / 1 untested (#18 mic pauses radio). Fixes in cea22de; rebuilt 5.43 (91), 70,151,681 B, signer 7d8b31d2.
+- After fixes: run-parallel 456/0 kfgqpc, kfold, harmain; shamarly 456/1 = 5.29 #11 (passes alone). New: accordion check (G17), counter repaint + rdStop send (#3), month line + Quran colour contrast (G30), Cairo station (#34).
+- Emulator: Cairo radiojar stream PLAYING via http redirect (no Cleartext error); splash dark (15,19,27) / light (247,242,231); first ~300 ms frame is the system launch window (follows the phone's night mode, not the app theme).
