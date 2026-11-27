@@ -1745,6 +1745,7 @@
       var c = flipMode !== "off" && pageTurnFx(box, n, k, function () { goTo(k); });
       if (c) { c.grab(box.getBoundingClientRect().height); c.finish(null); } else goTo(k);
     }
+    window.qkTurn = turn;   // 5.43: a sideways swipe that starts on the brightness strip still turns the page
     document.getElementById("pPlay").onclick = function () {
       if (hl) { var t = hl; mark(null); player.play(t.s, t.a); return; }
       var f = firstAyahOfPage(n); if (f) player.play(f[0], f[1]);
@@ -1854,20 +1855,34 @@
       e.stopPropagation(); e.preventDefault();
       if (!e.isPrimary || brightDownN > 1 || brightDrag) return;
       var h = brightEl.getBoundingClientRect().height || 200;
-      brightDrag = { id: e.pointerId, y: e.clientY, v: brightVal, h: h };
+      brightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, v: brightVal, h: h, mode: "" };   // mode: "" until it moves, then v (brightness) or h (page turn)
       try { brightEl.setPointerCapture(e.pointerId); } catch (err) {}
       brightShowPill(brightVal);
     });
     brightEl.addEventListener("pointermove", function (e) {
       e.stopPropagation();
       var d = brightDrag; if (!d || e.pointerId !== d.id) return;
+      // 5.43 (phone): in RTL the next page is a left-to-right swipe that often starts at the left edge, right on the strip.
+      // The first 12 px decide: mostly sideways = a page turn (brightness untouched), mostly up/down = brightness.
+      var ax = Math.abs(e.clientX - d.x), ay = Math.abs(e.clientY - d.y);
+      if (!d.mode) { if (ax < 12 && ay < 12) return; d.mode = ay >= ax ? "v" : "h"; if (d.mode === "h") brightPill.classList.remove("show"); }
+      if (d.mode === "h") return;
       brightVal = Math.max(0.02, Math.min(1, d.v + (d.y - e.clientY) / d.h));
       brightShowPill(brightVal);
       var now = Date.now(), wait = 33 - (now - brightLastT);
       if (wait <= 0) { brightLastT = now; brightSend(brightVal); }
       else if (!brightPendT) brightPendT = setTimeout(function () { brightPendT = 0; brightLastT = Date.now(); if (brightDrag) brightSend(brightVal); }, wait);
     });
-    brightEl.addEventListener("pointerup", function (e) { e.stopPropagation(); e.preventDefault(); if (brightDrag && e.pointerId === brightDrag.id) brightEnd(false); });
+    brightEl.addEventListener("pointerup", function (e) {
+      e.stopPropagation(); e.preventDefault(); var d = brightDrag; if (!d || e.pointerId !== d.id) return;
+      if (d.mode === "h") {   // a sideways swipe: turn the page like a swipe on the page itself, leave the brightness as it was
+        brightDrag = null; try { brightEl.releasePointerCapture(d.id); } catch (err) {}
+        var dx = e.clientX - d.x, dy = e.clientY - d.y;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > 1.5 * Math.abs(dy) && window.qkTurn) window.qkTurn(dx > 0 ? 1 : -1);
+        return;
+      }
+      brightEnd(false);
+    });
     brightEl.addEventListener("pointercancel", function (e) { e.stopPropagation(); if (brightDrag && e.pointerId === brightDrag.id) brightEnd(true); });
     brightEl.addEventListener("click", function (e) { e.stopPropagation(); e.preventDefault(); });
     window.addEventListener("resize", brightRect);
@@ -7305,6 +7320,7 @@
     if (htRecNow) { try { htRecNow.stop(); } catch (e) {} }
   }
   function route() {
+    window.qkTurn = null;   // set again only by the mushaf page view (the strip turns pages there, not in vertical reading)
     var wasHome = homeShown; homeShown = false;   // only the home branch below restores it, so entering home from another screen resets the scroll
     testMicOff();
     // the backup reminder (S10): home, then Settings opened at the backup row

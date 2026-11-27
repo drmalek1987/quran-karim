@@ -1003,7 +1003,7 @@
    "anchors": {
     "js": [
      "marks",
-     "addBookmark",
+     "toggleBookmark",
      "noteDialog",
      "rangeDialog",
      "mkPage",

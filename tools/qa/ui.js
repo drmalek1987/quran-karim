@@ -2143,6 +2143,20 @@ async function fresh(ctx, vp) {
   await ev(() => { for (const k of ['q.openAt', 'q.tapMark', 'q.turn', 'q.flipMode', 'q.qiblaLoc', 'q.keepOn', 'q.fsStatus', 'q.micId', 'q.fsFit', 'q.spine', 'q.asrPace', 'q.asr']) localStorage.removeItem(k); localStorage.setItem('q.spread', 'true'); }); await p.goto('about:blank'); await p.goto(W); await wait(500);
   // ---------- #18: التحكم في الإضاءة بالسحب (AppBridge.setBrightness / brightStrip are stubbed) ----------
   const GBRIGHT = 'سحب الإضاءة #18';
+  // 5.43 (phone): in RTL the next page is a left-to-right swipe from the left edge, where the strip sits; a sideways swipe that
+  // starts on the strip turns the page and leaves the brightness alone. Real touch over CDP.
+  await check(GBRIGHT, 'سحبة أفقية بتبدأ على شريط الإضاءة بتقلب الصفحة ومابتغيّرش الإضاءة (لمس حقيقي)', async () => {
+    const tc = await b.newContext({ viewport: { width: 412, height: 860 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 }), tp = await tc.newPage();
+    await tp.addInitScript(ed => { window.QA_NOFS = true; window.__br = []; window.AppBridge = { setBrightness: v => window.__br.push(v), brightStrip() {} };
+      localStorage.setItem('q.onboarded', 'true'); localStorage.setItem('q.micTips', '1'); localStorage.setItem('q.edition', JSON.stringify(ed)); localStorage.setItem('q.mode', '"pages"');
+      localStorage.setItem('q.flipMode', '"slide"'); localStorage.setItem('q.brightSwipe', 'true'); localStorage.setItem('q.bright', '0.5'); }, ED);
+    await tp.goto(W + '#/p/50'); await tp.waitForTimeout(2500); const c = await tc.newCDPSession(tp);
+    const s = await tp.evaluate(() => { const r = document.getElementById('brightStrip').getBoundingClientRect(); window.__br.length = 0; return [r.left + r.width / 2, r.top + r.height / 2, !document.getElementById('brightStrip').hidden]; });
+    await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: s[0], y: s[1] }] });
+    for (const dx of [20, 50, 90, 140, 200]) { await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: s[0] + dx, y: s[1] + 3 }] }); await tp.waitForTimeout(30); }
+    await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(1200);
+    const r = await tp.evaluate(() => [location.hash, window.__br.filter(v => v !== 0.5).length, localStorage.getItem('q.bright')]); await tc.close();
+    return assert(s[2] && (r[0] === '#/p/51' || r[0] === '#/p/49') && r[1] === 0 && r[2] === '0.5', JSON.stringify([s, r])); });
   const stubBr = () => ev(() => { window.__br = []; const my = { setBrightness: v => __br.push(v), brightStrip: (x, y, w, h) => __br.push(['r', x, y, w, h]) };
     window.AppBridge = new Proxy(my, { get: (t, k) => k in t ? t[k] : (k === 'insets' ? () => '' : () => {}) }); });
   const brCalls = () => ev(() => window.__br.filter(v => typeof v === 'number'));
