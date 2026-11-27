@@ -274,7 +274,7 @@
     "رواه #": "Narrated by #",
     "الترجمة الإنجليزية": "English translation", "إخفاء الترجمة الإنجليزية": "Hide English translation",
     "استمع للكل": "Listen to all", "عدد مرات الذكر": "Times to say it", "الأصلي": "Original", "عدد آخر": "Other number", "تخصيص العدد": "Set the count", "إيقاف الاستماع": "Stop listening",
-    "ثني الورقة": "Paper curl", "ملاحظتي": "My note", "مواقيت الصلاة": "Prayer times", "الصلاة القادمة": "Next prayer", "الفجر": "Fajr", "الشروق": "Sunrise", "الظهر": "Dhuhr", "العصر": "Asr", "المغرب": "Maghrib", "العشاء": "Isha", "طريقة الحساب": "Calculation method", "الجمهور": "Standard", "الحنفي": "Hanafi", "التذكيرات": "Reminders", "ورد الختمة اليومي": "Daily khatma portion", "اتجاه القبلة": "Qibla direction", "مواقيت الصلاة لهذا الموقع": "Prayer times for this location", "الترجمة": "Translation", "ملاحظة": "Note", "أضف ملاحظة": "Add a note", "تعديل ملاحظتي": "Edit my note", "مشاركة": "Share", "نص بالتشكيل": "Text with diacritics", "صورة بخط المصحف": "Image in mushaf script", "حذف": "Delete", "اكتب ملاحظتك…": "Write your note…", "حُفظت الملاحظة": "Note saved", "حُذفت الملاحظة": "Note deleted", "إخفاء الترجمة": "Hide translation", "السبحة": "Tasbih counter", "الهدف": "Target", "بلا حد": "No limit", "تصفير": "Reset", "سبّح": "Count", "أفقي بدون تأثير": "Sideways, no effect", "لون الصفحة": "Page colour", "اهتزاز عند الضغط على الأزرار والآيات": "Vibration on button and verse taps", "خفيف": "Light", "متوسط": "Medium", "قوي": "Strong", "انزلاق أفقي": "Sideways slide", "بدون": "None", "تكرار مقطع": "Repeat passage", "سرعة التلاوة": "Recitation speed",
+    "ثني الورقة": "Paper curl", "ملاحظتي": "My note", "مواقيت الصلاة": "Prayer times", "الصلاة القادمة": "Next prayer", "الفجر": "Fajr", "الشروق": "Sunrise", "الظهر": "Dhuhr", "العصر": "Asr", "المغرب": "Maghrib", "العشاء": "Isha", "طريقة الحساب": "Calculation method", "الجمهور": "Standard", "الحنفي": "Hanafi", "التذكيرات": "Reminders", "ورد الختمة اليومي": "Daily khatma portion", "اتجاه القبلة": "Qibla direction", "مواقيت الصلاة لهذا الموقع": "Prayer times for this location", "الترجمة": "Translation", "ملاحظة": "Note", "أضف ملاحظة": "Add a note", "تعديل ملاحظتي": "Edit my note", "مشاركة": "Share", "نص بالتشكيل": "Text with diacritics", "نص بدون تشكيل": "Text without diacritics", "صورة بخط المصحف": "Image in mushaf script", "حذف": "Delete", "اكتب ملاحظتك…": "Write your note…", "حُفظت الملاحظة": "Note saved", "حُذفت الملاحظة": "Note deleted", "إخفاء الترجمة": "Hide translation", "السبحة": "Tasbih counter", "الهدف": "Target", "بلا حد": "No limit", "تصفير": "Reset", "سبّح": "Count", "أفقي بدون تأثير": "Sideways, no effect", "لون الصفحة": "Page colour", "اهتزاز عند الضغط على الأزرار والآيات": "Vibration on button and verse taps", "خفيف": "Light", "متوسط": "Medium", "قوي": "Strong", "انزلاق أفقي": "Sideways slide", "بدون": "None", "تكرار مقطع": "Repeat passage", "سرعة التلاوة": "Recitation speed",
     "تكرار مجموعة آيات · سورة @": "Repeat a group of verses · Surah @", "من الآية": "From verse", "إلى الآية": "To verse",
     "عدد مرات تكرار المجموعة": "Times to repeat the group", "رقم آية غير صحيح": "Not a valid verse number",
     "الترتيب": "Order", "كما في الكتاب": "As in the book", "الأقل تكرارًا": "Fewest repeats first", "الأكثر تكرارًا": "Most repeats first",
@@ -283,7 +283,7 @@
     "البحث بالشروط": "Search with conditions", "الآيات التي فيها الكلمتان معًا": "verses that have both words",
     "أيٌّ منهما، ويصلح": "either one; you can also write", "مكان OR": "instead of OR", "فيها الجنة وليس فيها الأنهار": "has الجنة but not الأنهار", "الكلمات متتالية بنفس الترتيب": "the words together, in this order",
     "الأقواس لتجميع الشروط": "brackets group conditions", "أو": "or",
-    "المكافآت": "Rewards", "مكافأة جديدة": "New reward", "أيام متتالية": "Days in a row", "أيام التزام": "Days kept", "ختمات": "Khatmas",
+    "المكافآت": "Rewards", "أيام قراءة متتالية": "Reading days in a row", "أيام ورد متتالية": "Wird days in a row", "تُحتسب أيام الورد حين تُتمّ ورد اليوم.": "Wird days count when you finish the day's wird.", "تُحتسب الأيام والمكافآت مع خطة الختمة: ابدأ خطة من «الختمة والعلامات».": "Days and rewards count with a khatma plan: start one from «Khatma & bookmarks».", "مكافأة جديدة": "New reward", "أيام متتالية": "Days in a row", "أيام التزام": "Days kept", "ختمات": "Khatmas",
     "أول ورد": "First portion", "أتممت ورد اليوم لأول مرة": "You finished a day's portion for the first time",
     "ثلاثة أيام": "Three days", "التزمت بالورد # أيام متتالية": "Kept the portion # days in a row", "أسبوع كامل": "A full week",
     "أسبوعان": "Two weeks", "التزمت بالورد # يومًا متتالية": "Kept the portion # days in a row", "شهر من الالتزام": "A month of commitment",
@@ -343,7 +343,7 @@
     "جاري تحميل نموذج التعرّف على التلاوة…": "Downloading the recitation recognition model…", "نموذج التعرّف على التلاوة": "Recitation recognition model",
     "الألوان والمظهر": "Colours & look", "الصوت والتلاوة": "Audio & recitation", "التطبيق": "App",
     "wifi فقط": "Wi-Fi only", "مسموح": "Allowed", "امسح كل تسجيلاتي": "Delete all my recordings", "قرأت بشكل صحيح": "I read it right",
-    "توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟": "Allow the app to keep clips of your voice while you recite and read with the mic, and send them, with no personal data, to improve recitation recognition?",
+    "أوافق على أن يحفظ التطبيق مقاطع من صوتي أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة.": "I agree that the app keeps clips of my voice while I recite and read with the mic, and sends them with no personal data, to improve recitation recognition.",
     "نسعى لتحسين تجربة التلاوة بمساعدتك: هل توافق على حفظ مقاطع قصيرة من قراءتك بالمايك وإرسالها دون أي بيانات شخصية؟": "Help us improve recitation: may we save short clips of your mic reading and send them without any personal data?", "لا، شكرًا": "No, thanks",
     "تمسح كل المقاطع التي أُرسلت من هذا الجهاز والتي لم تُرسل بعد؟ وسيتوقف التبرّع أيضًا.": "Delete every clip sent from this phone and those still waiting? This also stops sharing.",
     "المسح متاح في تطبيق الهاتف فقط": "Deleting works only in the phone app", "جارٍ المسح…": "Deleting…", "تم مسح كل تسجيلاتك": "All your recordings were deleted",
@@ -381,7 +381,7 @@
     "كل مربع صفحة، وللصفحة التي فيها أكثر من سورة مربع لكل سورة. اضغط على المربع لتفتح آياته في المصحف مظلّلة، وبعدها اضغط «اختبرني» بجانب الميكروفون لتختبر نفسك فيها. «محتاجة مراجعة» إذا كان الربع مستحقًا في ورد المراجعة أو كانت آخر نتيجة له أقل من #٪.": "Each box is a page; a page with more than one surah has a box per surah. Tap a box to open its ayat in the mushaf, highlighted, then tap «Test me» next to the mic to test yourself on them. «Needs review» if the quarter is due in the review ward or its last score is under #%.",
     "الاختبار حتى": "Test up to", "الموضع # من #": "Place # of #", "الموضع التالي": "Next place", "نتيجة الاختبار كله:": "Whole test score:", "(تذكّرت # من # كلمة)": "(remembered # of # words)" };
   // 5.17 Sprint C: S3 mutashabihat test, S5 talqin, S8 offline audio + sleep timer
-  var D517 = { "اختبار المتشابهات": "Similar-verses test", "التلقين": "Talqin (listen and repeat)", "من محفوظي": "From what I memorised", "كل القرآن": "Whole Quran",
+  var D517 = { "تخصيص": "Custom", "نطاق متصل": "Continuous range", "اختيار متفرق": "Scattered picks", "لا توجد سور محفوظة أو قيد المراجعة بعد، فلا أسئلة هنا. سجّل محفوظك من «خريطة الحفظ»، أو اختر «كل القرآن» أو «تخصيص».": "Nothing memorised or under review yet, so there are no questions here. Record what you know in the Memorisation map, or choose Whole Quran or Custom.", "اختر سورة أو جزءًا واحدًا على الأقل لتبدأ الأسئلة.": "Pick at least one surah or juz to start the questions.", "اختبار المتشابهات": "Similar-verses test", "التلقين": "Talqin (listen and repeat)", "من محفوظي": "From what I memorised", "كل القرآن": "Whole Quran",
     "لا توجد سور محفوظة بعد، فالأسئلة من القرآن كله.": "No memorised surahs yet, so the questions come from the whole Quran.",
     "أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت.": "Continue this ayah correctly: pick its continuation, or recite it.",
     "صح # من #": "# of # right", "السؤال التالي": "Next question", "افتح الآية": "Open the ayah", "صح": "Right", "خطأ": "Wrong", "ما شاء الله": "Masha'Allah",
@@ -398,7 +398,7 @@
     "# من #": "# of #", "فشل #": "# failed", "أُلغي": "cancelled", "اكتمل": "done", "يوجد تحميل جارٍ": "A download is already running", "أُلغي التحميل": "Download cancelled",
     "حُفظت سورة @ للاستماع بدون إنترنت": "Surah @ saved for offline listening", "حُفظت الجزء % للاستماع بدون إنترنت": "Juz % saved for offline listening",
     "مؤقت النوم": "Sleep timer", "# دقيقة": "# min", "ساعة": "1 hour", "آخر السورة": "End of the surah", "إلغاء المؤقت": "Cancel the timer", "قفل": "Close",
-    "النوم بعد # د": "Sleep in # min", "النوم آخر السورة": "Sleep at surah end", "ستتوقف التلاوة بعد # دقيقة": "Recitation stops in # min",
+    "النوم بعد # د": "Sleep in # min", "المقطع #–#": "Section #–#", "مسح": "Clear", "النوم آخر السورة": "Sleep at surah end", "ستتوقف التلاوة بعد # دقيقة": "Recitation stops in # min",
     "ستتوقف التلاوة في آخر السورة": "Recitation stops at the end of the surah", "أُلغي مؤقت النوم": "Sleep timer cancelled", "أُوقفت التلاوة، تصبح على خير": "Recitation stopped, good night",
     "@ · آية #": "@ · ayah #", "الآية": "Ayah", "حتى الآية #": "To ayah #", "حتى الآية": "To ayah", "من الآية": "From ayah", "الآيات التالية": "Next ayat", "أعد الآيات": "Repeat the ayat",
     "استمع إلى القارئ وهو يقرأ الآيات # مرة، والآيات مخفية.": "Listen to the reciter read the ayat # time, with the ayat hidden.",
@@ -423,14 +423,19 @@
     "السبت": "Sat", "الأحد": "Sun", "الاثنين": "Mon", "الثلاثاء": "Tue", "الأربعاء": "Wed", "الخميس": "Thu", "الجمعة": "Fri",
     "اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.": "Tap each prayer you have prayed. A box opens when its time arrives.", "مؤدّاة": "prayed", "غير مؤدّاة": "not prayed" };
   for (var c30 in D30) if (D[c30] === undefined) D[c30] = D30[c30];
-  var D34 = { "إذاعة القرآن الكريم": "Quran Karim radio", "الدولة": "Country", "مصر": "Egypt", "تونس": "Tunisia", "قطر": "Qatar", "دولة أخرى": "Another country",
+  var D34 = { "إذاعة القرآن الكريم": "Quran Karim radio", "الدولة": "Country", "مصر": "Egypt", "قطر": "Qatar", "دولة أخرى": "Another country",
     "لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.": "No official radio for your country is in the app yet; these are the stations available.",
     "الإذاعة متاحة في تطبيق أندرويد فقط.": "The radio is available in the Android app only.", "جارٍ الاتصال…": "Connecting…",
     "لا يوجد اتصال بالإنترنت.": "No internet connection.", "تعذّر الاتصال بالإذاعة الآن، حاول لاحقًا.": "Could not connect to the radio now, try again later.",
     "تشغيل الإذاعة": "Play radio", "إيقاف الإذاعة": "Stop radio", "المصدر:": "Source:", "الصفحة الرسمية": "Official page",
     "إذاعة الزيتونة للقرآن الكريم": "Zaitouna Radio for the Holy Quran", "الإذاعة التونسية": "Radio Tunisienne",
     "إذاعة القرآن الكريم من القاهرة": "Quran Karim Radio from Cairo", "الهيئة الوطنية للإعلام (ماسبيرو)": "National Media Authority (Maspero)", "مؤسسة قطر للإعلام": "Qatar Media Corporation (QMC)",
-    "إذاعة القرآن الكريم – القناة الثانية": "Quran Karim Radio - Channel 2" };
+    "إذاعة القرآن الكريم – القناة الثانية": "Quran Karim Radio - Channel 2",
+    "إذاعة القرآن الكريم من السعودية": "Quran Karim Radio from Saudi Arabia", "هيئة الإذاعة والتلفزيون": "Saudi Broadcasting Authority",
+    "إذاعة القرآن الكريم الأردنية": "Jordan Quran Karim Radio", "مؤسسة الإذاعة والتلفزيون الأردنية": "Jordan Radio and Television Corporation",
+    "إذاعة القرآن الكريم من الجزائر": "Quran Karim Radio from Algeria", "الإذاعة الجزائرية": "Algerian Radio",
+    "إذاعة القرآن الكريم من سلطنة عُمان": "Quran Karim Radio from Oman", "وزارة الإعلام العُمانية": "Oman Ministry of Information",
+    "إذاعة القرآن الكريم من البحرين": "Quran Karim Radio from Bahrain", "هيئة شؤون الإعلام": "Information Affairs Authority (Bahrain)" };
   for (var c34 in D34) if (D[c34] === undefined) D[c34] = D34[c34];
   var DUPD = { "يتوفر إصدار جديد من لوْح": "A new version of Lawh is available", "تحديث الآن": "Update now", "لاحقًا": "Later", "التحقق من التحديثات": "Check for updates", "تحقّق": "Check",
     "جارٍ التحقق…": "Checking…", "لديك أحدث إصدار (#)": "You have the latest version (#)", "يتوفر إصدار جديد (#)": "A new version is available (#)", "تعذّر الاتصال، حاول لاحقًا": "Couldn't connect, try again later" };

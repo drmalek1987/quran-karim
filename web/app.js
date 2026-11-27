@@ -339,27 +339,53 @@
       save("lang", b.dataset.v); location.reload();
     });
   });
-  // 5.43: Settings sections fold (accordion; the open ones are kept in q.setOpen) and every on/off pair of buttons draws as a switch.
+  var CHEV = '<svg class="ic set-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  // 5.43: Settings sections fold like an accordion: one open at a time (the user's ask), opening with a short height glide,
+  // and all of them fold again when Settings closes. Every on/off pair of buttons draws as a switch.
   // The buttons stay in the DOM and keep their own handlers; the switch only restyles them and clicks the other one on tap or Space.
   (function () {
-    var body = document.querySelector("#settings .sheet-body"), heads = [], open = load("setOpen", null);
-    if (!Array.isArray(open)) open = window.QA_NOFS && open === null ? "all" : [0];
+    var body = document.querySelector("#settings .sheet-body"), heads = [], folds = [];
+    var qaAll = !!window.QA_NOFS;   // the UI checks click rows in every section, so there they all start open
+    var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     Array.prototype.slice.call(body.children).forEach(function (h) { if (h.tagName === "H3" && h.classList.contains("set-group")) heads.push(h); });
+    // Glide a section's height between 0 and its content (or jump when motion is reduced / not wanted).
+    function glide(sec, on, anim) {
+      sec.style.transition = ""; sec.style.height = ""; sec.style.overflow = "";
+      if (!anim || calm) { sec.hidden = !on; return; }
+      sec.hidden = false; var full = sec.scrollHeight;
+      sec.style.overflow = "hidden"; sec.style.height = (on ? 0 : full) + "px";
+      sec.offsetHeight;   // commit the start height before the transition
+      sec.style.transition = "height .26s ease"; sec.style.height = (on ? full : 0) + "px";
+      sec.addEventListener("transitionend", function end(e) {
+        if (e.target !== sec) return; sec.removeEventListener("transitionend", end);
+        sec.style.transition = ""; sec.style.height = ""; sec.style.overflow = ""; if (!on) sec.hidden = true;
+      });
+    }
     heads.forEach(function (h, i) {
       var sec = document.createElement("div"), nx = h.nextElementSibling, label = h.textContent;
       sec.className = "set-sec"; sec.id = "sec" + i;
-      while (nx && !(nx.tagName === "H3" && nx.classList.contains("set-group")) && nx.tagName !== "DETAILS") { var n2 = nx.nextElementSibling; sec.appendChild(nx); nx = n2; }
+      // a <details> row (التعرّف على التلاوة) stays in its section; a <details> group (التحميلات، الخصوصية، حول) ends it
+      while (nx && !(nx.tagName === "H3" && nx.classList.contains("set-group")) && !(nx.tagName === "DETAILS" && !nx.classList.contains("row"))) { var n2 = nx.nextElementSibling; sec.appendChild(nx); nx = n2; }
       h.after(sec);
       var b = document.createElement("button"); b.type = "button"; b.className = "set-tg"; b.setAttribute("aria-controls", sec.id);
-      b.innerHTML = '<span></span><svg class="ic set-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>'; b.firstChild.textContent = label;
+      b.innerHTML = '<span></span>' + CHEV; b.firstChild.textContent = label;
       h.textContent = ""; h.appendChild(b);
-      function paint(on) { b.setAttribute("aria-expanded", on ? "true" : "false"); sec.hidden = !on; h.classList.toggle("open", on); }
-      paint(open === "all" || open.indexOf(i) >= 0);
-      b.onclick = function () {
-        paint(b.getAttribute("aria-expanded") !== "true");
-        save("setOpen", heads.map(function (x, k) { return x.classList.contains("open") ? k : -1; }).filter(function (k) { return k >= 0; }));
-      };
+      var f = { el: h, isOpen: function () { return h.classList.contains("open"); },
+        set: function (on, anim) { b.setAttribute("aria-expanded", on ? "true" : "false"); h.classList.toggle("open", on); glide(sec, on, anim); } };
+      folds.push(f); f.set(qaAll, false);
+      b.onclick = function () { var on = !f.isOpen(); if (on) foldOthers(f); f.set(on, true); };
     });
+    // The <details> groups (التحميلات، الخصوصية، حول التطبيق) join the same accordion and wear the same chevron.
+    Array.prototype.slice.call(body.querySelectorAll(":scope > details:not(.row)")).forEach(function (d) {
+      var sm = d.querySelector(":scope > summary"); if (!sm) return;
+      sm.classList.add("set-sum"); sm.insertAdjacentHTML("beforeend", CHEV);
+      var f = { el: d, isOpen: function () { return d.open; }, set: function (on) { d.open = on; } };
+      folds.push(f);
+      d.addEventListener("toggle", function () { if (d.open) foldOthers(f); });
+    });
+    function foldOthers(keep) { if (qaAll && !window.QA_FOLD) return; folds.forEach(function (f) { if (f !== keep && f.isOpen()) f.set(false, true); }); }
+    // Settings closed: everything folds (the user opens the one he needs next time). The UI checks keep them open.
+    window.setFoldAll = function () { if (!qaAll || window.QA_FOLD) folds.forEach(function (f) { if (f.isOpen()) f.set(false, false); }); };
     // Open whatever holds el (a folded section or a closed <details>) so it can be scrolled to or lit up.
     window.setOpenFor = function (el) {
       if (!el) return;
@@ -780,7 +806,7 @@
   document.querySelectorAll("#donateSet button").forEach(function (b) {
     b.addEventListener("click", function () {
       function setDonate() { donateSet(+b.dataset.v); donatePaint(); donateSend(); }
-      if (b.dataset.v === "1") return askYes((window.T || String)("توافق على أن يحفظ التطبيق مقاطع من صوتك أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة؟"), setDonate, "أوافق");
+      if (b.dataset.v === "1") return askYes((window.T || String)("أوافق على أن يحفظ التطبيق مقاطع من صوتي أثناء التسميع والقراءة بالمايك ويرسلها دون أي بيانات شخصية لتحسين التعرّف على التلاوة."), setDonate, "أوافق");
       setDonate();
     });
   });
@@ -855,7 +881,7 @@
   // Open drop-downs (downloads, colour key, about) fold again whenever Settings closes; the page mic hides under it.
   new MutationObserver(function () {
     document.body.classList.toggle("sheet-open", !sheet.hidden);
-    if (sheet.hidden) sheet.querySelectorAll("details[open]").forEach(function (d) { d.open = false; });
+    if (sheet.hidden) { sheet.querySelectorAll("details[open]").forEach(function (d) { d.open = false; }); if (window.setFoldAll) setFoldAll(); }
   }).observe(sheet, { attributes: true, attributeFilter: ["hidden"] });
   document.getElementById("btnSettings").onclick = function () { var sb = sheet.querySelector(".sheet-body"); if (sb) sb.classList.remove("still"); sheet.hidden = false; paintEdDl(); paintBk(); micPaint(); donatePaint(); };
   document.getElementById("closeSettings").onclick = function () { sheet.hidden = true; };
@@ -1001,7 +1027,7 @@
         JUZ.forEach(function (p, i) {
           var txt = Q.t[p[0] - 1][p[1] - 1].split(" ").slice(0, 4).join(" ");
           out += '<li data-s="' + p[0] + '" data-a="' + p[1] + '"><div class="num"><span>' + ar(i + 1) + '</span></div><div class="name">الجزء ' +
-            JUZ_NAMES[i] + '</div><div class="meta">' + Q.s[p[0] - 1][0] + " " + ar(p[1]) + " · صفحة " + ar(pageOf(p[0], p[1])) + "<br>" + esc(txt) + "…</div></li>";
+            JUZ_NAMES[i] + '</div><div class="meta">' + Q.s[p[0] - 1][0] + " " + ar(p[1]) + " · صفحة " + ar(pageOf(p[0], p[1])) + "<br>" + '<span class="qq">' + esc(txt) + "…</span></div></li>";
         });
       }
       list.innerHTML = out;
@@ -1760,6 +1786,10 @@
     wrap.addEventListener("dragstart", function (e) { e.preventDefault(); });
     wrap.addEventListener("pointerup", function (e) { release(e, false); });
     wrap.addEventListener("pointercancel", function (e) { release(e, true); });
+    // 5.43: a turn left half-way (the page stayed folded) if the lift never reached wrap: the capture was lost, or the window
+    // lost focus mid-drag (app switch, a system sheet). Either one now lays the page back flat.
+    wrap.addEventListener("lostpointercapture", function (e) { if (g && g.c) release(e, true); });
+    window.addEventListener("blur", function () { if (g && g.c) { g.c.finish(false); g = null; } });
   }
 
   // ---------- #18: brightness by swipe ----------
@@ -2175,19 +2205,16 @@
       '<button data-c="f">' + ic("book") + "تفسير وإعراب ومعاني</button>" +
       '<button data-c="l">' + ic("aplay") + "استماع</button>" + '<button data-c="r">' + ic("rep") + "تكرار مقطع</button>" + '<button data-c="b">' + ic("mark") + "علامة</button>" +
       '<button data-c="sh">' + ic("share") + "مشاركة</button>" +
-      '<button data-c="t">' + ic("copy") + 'بالتشكيل</button><button data-c="p">' + ic("copy") + "بدون تشكيل</button>" +
-      (onText ? '<button data-c="v">' + ic("text") + "في النص</button>" : "") + '<button data-c="x" aria-label="إغلاق">' + ic("x") + "</button></div>";
+      '<button data-c="x" aria-label="إغلاق">' + ic("x") + "</button></div>";   // 5.43: copying is in «مشاركة»; «في النص» removed (user)
     document.body.appendChild(bar);
     bar.onclick = function (e) {
       var b = e.target.closest("button"), c = b && b.dataset.c; if (!c) return;
       if (c === "x") { ayahBar(null); if (onClose) onClose(); }
-      else if (c === "v") onText();
       else if (c === "f") location.hash = "#/a/" + s + "/" + a;
       else if (c === "l") { ayahBar(null); if (onClose) onClose(); player.play(s, a); }
       else if (c === "r") { ayahBar(null); if (onClose) onClose(); rangeDialog(s, a); }
       else if (c === "b") addBookmark(s, a);
       else if (c === "sh") shareDialog(s, a);
-      else copyText(ayahForCopy(s, a, c === "t"), c === "t" ? "نُسخت الآية بالتشكيل" : "نُسخت الآية بدون تشكيل");
     };
   }
   // With tashkeel: the Uthmani text as printed. Without: the standard spelling with every mark removed.
@@ -2378,8 +2405,8 @@
         };
       }
       bar.classList.toggle("rates", ratesOpen);
-      bar.innerHTML = '<div class="pl-info"><b>' + Q.s[cur.s - 1][0] + " · " + (cur.step === "b" ? "البسملة" : "آية " + ar(cur.a)) + (reps !== 1 && cur.step === "a" ? " · " + ar(Math.min(heard + 1, reps || heard + 1)) + (reps ? "/" + ar(reps) : "") : "") + "</b><span>" + (sleep ? "<em>" + (sleep.sura ? "النوم آخر السورة" : "النوم بعد " + ar(Math.max(1, Math.ceil((sleep.at - Date.now()) / 60000))) + " د") + "</em> · " : "") + (range ? "المقطع " + ar(range.from) + "–" + ar(range.to) +
-        (range.times !== 1 ? " · " + (range.times ? ar(range.done + 1) + "/" + ar(range.times) : "∞") : "") + " · " : "") + reciterName() + "</span></div>" +
+      bar.innerHTML = '<div class="pl-info"><b>' + Q.s[cur.s - 1][0] + " · " + (cur.step === "b" ? "البسملة" : "آية " + ar(cur.a)) + (reps !== 1 && cur.step === "a" ? " · " + ar(Math.min(heard + 1, reps || heard + 1)) + (reps ? "/" + ar(reps) : "") : "") + "</b><span>" + (sleep ? "<em>" + (sleep.sura ? "النوم آخر السورة" : "النوم بعد " + ar(Math.max(1, Math.ceil((sleep.at - Date.now()) / 60000))) + " د") + "</em> · " : "") + (range ? "<bdi>المقطع " + ar(range.from) + "–" + ar(range.to) + "</bdi>" +
+        (range.times !== 1 ? " · <bdi>" + (range.times ? ar(range.done + 1) + "/" + ar(range.times) : "∞") + "</bdi>" : "") + " · " : "") + "<bdi>" + reciterName() + "</bdi></span></div>" +   // 5.43: each part its own node, so the English page translates them
         (ratesOpen ? '<div class="pl-rates">' + RATES.map(function (r) { return '<button data-c="r" data-r="' + r + '"' + (r === rate ? ' class="on"' : "") + ">" + rateText(r) + "</button>"; }).join("") + "</div>" : "") +
         '<div class="pl-btns"><button data-c="sp" class="pl-sp' + (rate !== 1 ? " on" : "") + '" aria-label="سرعة التلاوة">' + rateText(rate) + "</button>" +
         '<button data-c="rp" class="pl-rep' + (reps !== 1 ? " on" : "") + '" aria-label="تكرار الآية">' + ic("rep") + (reps === 1 ? "" : "<i>" + (reps ? ar(reps) : "∞") + "</i>") + "</button>" +
@@ -3677,11 +3704,13 @@
   function todayStr() { var d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
   function parseDay(t) { var p = t.split("-"); return dayNum(new Date(+p[0], +p[1] - 1, +p[2])); }
   function marks() { return load("marks", []); }
+  // 5.43 (user): one tap saves the bookmark at once, named after the ayah, with no name dialog; tapping again on the same ayah
+  // does not add a copy.
   function addBookmark(s, a) {
-    askText("اسم العلامة", "سورة " + Q.s[s - 1][0] + " · الآية " + ar(a), function (name) {
-      var m = marks(); m.unshift({ n: name, s: s, a: a, t: Date.now() }); save("marks", m);
-      toast(window.LANG === "en" ? "Bookmark «" + name + "» saved" : "حُفظت العلامة «" + name + "»");
-    });
+    var name = "سورة " + Q.s[s - 1][0] + " · الآية " + ar(a), m = marks();
+    if (m.some(function (x) { return x.s === s && x.a === a && !x.p; })) return toast(window.LANG === "en" ? "Already bookmarked" : "العلامة محفوظة من قبل");
+    m.unshift({ n: name, s: s, a: a, t: Date.now() }); save("marks", m);
+    toast(window.LANG === "en" ? "Bookmark saved" : "حُفظت العلامة");
   }
   // 5.23 #16: a corner button on the mushaf: one tap bookmarks / un-bookmarks the page on screen, no dialog. Its entries
   // carry p (the page) so only these are toggled off, never a bookmark the reader named by hand.
@@ -3750,14 +3779,14 @@
   // ---------- share an ayah: as text with tashkeel and its reference, or as a picture in the mushaf font ----------
   function shareDialog(s, a) {
     var d = el('<div class="dlg-back"><div class="dlg"><b>مشاركة سورة ' + Q.s[s - 1][0] + " · الآية " + ar(a) + "</b>" +
-      '<div class="sh-opts"><button data-k="txt">' + ic("text") + "نص بالتشكيل</button><button data-k=\"img\">" + ic("share") + "صورة بخط المصحف</button></div>" +
+      '<div class="sh-opts"><button data-k="txt">' + ic("text") + "نص بالتشكيل</button><button data-k=\"plain\">" + ic("text") + "نص بدون تشكيل</button><button data-k=\"img\">" + ic("share") + "صورة بخط المصحف</button></div>" +
       '<div class="dlg-btns"><button type="button" class="dlg-no">إلغاء</button></div></div></div>').firstChild;
     document.body.appendChild(d);
     d.querySelector(".dlg-no").onclick = function () { d.remove(); };
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     d.querySelectorAll(".sh-opts button").forEach(function (b) { b.onclick = function () {
       d.remove();
-      if (b.dataset.k === "txt") return shareText(ayahForCopy(s, a, true));
+      if (b.dataset.k === "txt" || b.dataset.k === "plain") return shareText(ayahForCopy(s, a, b.dataset.k === "txt"));   // 5.43: «بدون تشكيل» moved here from the ayah bar
       ayahImage(s, a, function (url) { shareImage(url, "ayah-" + s + "-" + a + ".png"); });
     }; });
   }
@@ -3834,11 +3863,17 @@
     var k = load(edKey("khatma"), null);
     if (!k) return;
     if (n - 1 >= k.from && n - 1 > k.done && n - 1 <= k.done + 2) { k.done = Math.min(k.to, n - 1); save(edKey("khatma"), k); rewardCheck(); }
+    // 5.43 (user): the page that completes today's wird or the khatma counts after 5 s (last pages are often short);
+    // every other page keeps the 20 s rule against quick paging.
+    var P0 = plan(), lastOfWird = P0 && (n === P0.dueEnd || n === k.to);   // exactly the closing page: pages read ahead of the plan keep 20 s
     if (n >= k.from && n === k.done + 1 && n <= k.to) wirdT = setTimeout(function () {
       var k2 = load(edKey("khatma"), null), m = /^#\/p\/(\d+)/.exec(location.hash);
       if (!k2 || k2.done !== n - 1 || !m || Math.abs(+m[1] - n) > 1 || document.hidden) return;
       k2.done = n; save(edKey("khatma"), k2); rewardCheck();
-    }, 20000);
+    }, lastOfWird ? 5000 : 20000);
+    // 5.43: a day with nothing left to read (khatma finished, or ahead of the plan) still counts once a page is opened
+    var P3 = plan();
+    if (P3 && !P3.left) rewardCheck();
   }
   // A short burst of stars and a message, for a reached goal or a finished wird.
   function cheer(msg) {
@@ -3892,7 +3927,7 @@
     });
     return '<section class="kh-sec"><h3>' + ic("chart") + "إحصائيات القراءة</h3>" +
       '<div class="st-nums"><div><b>' + ar(cnt(today)) + "</b><small>صفحة اليوم</small></div><div><b>" + ar(week) + "</b><small>آخر ٧ أيام</small></div><div><b>" + ar(month) +
-      "</b><small>آخر ٣٠ يوم</small></div><div><b>" + ar(run) + "</b><small>يوم متتالي</small></div><div><b>" + ar(best) + "</b><small>أطول مدة</small></div></div>" +
+      "</b><small>آخر ٣٠ يوم</small></div><div><b>" + ar(run) + "</b><small>أيام قراءة متتالية</small></div><div><b>" + ar(best) + "</b><small>أطول مدة</small></div></div>" +
       '<div class="st-wl"><span>' + ic("book") + "اليوم: <b>" + ar(wlSum(today, 1)[0]) + "</b> كلمة و<b>" + ar(wlSum(today, 1)[1]) + "</b> حرف</span><span>آخر ٣٠ يوم: <b>" + ar(wlSum(today, 30)[0]) + "</b> كلمة و<b>" + ar(wlSum(today, 30)[1]) + "</b> حرف</span></div>" +
       '<div class="st-bars">' + bars + '</div><p class="hint">تُحسب الصفحات التي فتحتها في المصحف (كل صفحة مرة واحدة في اليوم).</p></section>';
   }
@@ -3997,8 +4032,9 @@
   function rewardsHtml() {
     var r = rewards(), st = streak(r);
     return '<section class="kh-sec"><h3>' + ic("medal") + "المكافآت</h3>" +
-      '<div class="rw-stats"><div><b>' + ar(st) + "</b><small>أيام متتالية</small></div><div><b>" + ar(Object.keys(r.days).length) +
+      '<div class="rw-stats"><div><b>' + ar(st) + "</b><small>أيام ورد متتالية</small></div><div><b>" + ar(Object.keys(r.days).length) +
       "</b><small>أيام التزام</small></div><div><b>" + ar(r.khatmas) + "</b><small>ختمات</small></div></div>" +
+      (plan() ? '<p class="hint rw-note">تُحتسب أيام الورد حين تُتمّ ورد اليوم.</p>' : '<p class="hint">تُحتسب الأيام والمكافآت مع خطة الختمة: ابدأ خطة من «الختمة والعلامات».</p>') +
       '<div class="rw-grid">' + BADGES.map(function (b) {
         var got = r.got.indexOf(b[0]) >= 0;
         return '<div class="rw' + (got ? " got" : "") + '"><span class="rw-ic">' + ic("medal") + "</span><b>" + b[1] + "</b><small>" + b[2] + "</small></div>";
@@ -4094,7 +4130,9 @@
     if (q("kAt")) q("kAt").onclick = function () {
       askText("آخر صفحة قرأتها في الختمة", ar(P.k.done), function (v) {
         var n = parseInt(en(v), 10); if (!(n >= P.k.from - 1 && n <= P.k.to)) return toast("رقم صفحة غير صحيح");
-        var k = load(edKey("khatma")); k.done = n; save(edKey("khatma"), k); rewardCheck(); showKhatma();
+        // 5.43 (user): a typed position only moves the plan. It marks no wird day and counts no khatma; reaching the end this
+        // way sets `counted`, so the khatma can't be counted later either (a khatma counts only when its last page is read).
+        var k = load(edKey("khatma")); k.done = n; if (n >= k.to) k.counted = true; save(edKey("khatma"), k); showKhatma();
       });
     };
     if (q("kStop")) q("kStop").onclick = function () {
@@ -5446,7 +5484,7 @@
     var rows = hzUnits().filter(function (u) { return u.juz === j; }).map(function (u) {
       var t = hzUnitTip(u), inf = hzUnitInfo(u);
       var sub = u.kind === "s" ? ar(u.n) + " آية · " + inf : t[2] + " · " + inf;
-      return '<div class="hm-row"><i class="hm-c hm-s c' + us.s[u.id].c + '"></i><div><b>' + (u.kind === "s" ? t[0] : t[0] + " · " + t[1]) + "</b><small>" + sub + '</small></div><button class="hm-tb" data-test="' + u.id + '">اختبرني</button></div>';
+      return '<div class="hm-row"><i class="hm-c hm-s c' + us.s[u.id].c + '"></i><div><b>' + (u.kind === "s" ? t[0] : t[0] + ' · <span class="qq">' + t[1] + "</span>") + "</b><small>" + sub + '</small></div><button class="hm-tb" data-test="' + u.id + '">اختبرني</button></div>';
     }).join("");
     view.innerHTML = '<div class="hm hm-j">' + hzNav("#/hifzmap") + '<h3 class="hz-h">جزء ' + ar(j) + "</h3>" + rows + "</div>";
     view.querySelectorAll("[data-test]").forEach(function (b) { b.onclick = function () { hzTestStart({ k: "u", id: b.dataset.test, w: load("hzWardWay", "o") }, "m"); }; });
@@ -5666,14 +5704,14 @@
     if (a[1] === b[1]) return a[0] + sep + b[0] + " " + y(a[1]) + yr;
     return a[0] + " " + y(a[1]) + sep + b[0] + " " + y(b[1]) + yr;
   }
-  function plMonths(d1, d2) {
+  // The two parts are buttons: they pick the day numbers under the weekday names (q.plCal "g" | "h").
+  function plMonths(d1, d2, cal) {
     var en = window.LANG === "en", g = function (d) { return [(en ? PL_GM_EN : PL_GM_AR)[d.getMonth()], d.getFullYear()]; },
       out = plSpan(g(d1), g(d2), ""), h1 = hijri(d1), h2 = hijri(d2);
-    if (h1 && h2) {
-      var hm = function (h, d) { return [en ? HIJRI_EN[h.month - 1] : new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "long" }).format(d), h.year]; };
-      out += " · " + plSpan(hm(h1, d1), hm(h2, d2), en ? " AH" : " هـ");
-    }
-    return out;
+    if (!(h1 && h2)) return out;
+    var hm = function (h, d) { return [en ? HIJRI_EN[h.month - 1] : new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "long" }).format(d), h.year]; },
+      btn = function (k, t) { return '<button type="button" class="pl-cal' + (cal === k ? " on" : "") + '" data-cal="' + k + '" aria-pressed="' + (cal === k ? "true" : "false") + '">' + t + "</button>"; };
+    return btn("g", out) + " · " + btn("h", plSpan(hm(h1, d1), hm(h2, d2), en ? " AH" : " هـ"));
   }
   function showPrayerLog() {
     titleEl.textContent = "متابعة الصلوات";
@@ -5683,8 +5721,9 @@
       var now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), log = load("prayLog", {}), loc = load("qiblaLoc", null), cfg = prayerCfg();
       var start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() + 1) % 7 + off * 7), days = [], done = 0, elig = 0;
       for (var i = 0; i < 7; i++) days.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
-      var html = '<div class="pl"><p class="pl-mo" id="plMonth">' + plMonths(days[0], days[6]) + '</p><p class="hint">اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.</p><div class="pl-grid" role="group" aria-label="متابعة الصلوات"><span></span>' +
-        days.map(function (d) { return '<span class="pl-h' + (d.getTime() === today.getTime() ? " pl-t" : "") + '">' + PL_DAYS[(d.getDay() + 1) % 7] + "<b>" + ar(d.getDate()) + "</b></span>"; }).join("");
+      var cal = load("plCal", "g") === "h" && hijri(days[0]) ? "h" : "g";
+      var html = '<div class="pl"><p class="pl-mo" id="plMonth">' + plMonths(days[0], days[6], cal) + '</p><p class="hint">اضغط على الصلاة التي أدّيتها. تُفتح الخانة عند دخول وقتها.</p><div class="pl-grid" role="group" aria-label="متابعة الصلوات"><span></span>' +
+        days.map(function (d) { return '<span class="pl-h' + (d.getTime() === today.getTime() ? " pl-t" : "") + '">' + PL_DAYS[(d.getDay() + 1) % 7] + "<b>" + ar(cal === "h" ? hijri(d).day : d.getDate()) + "</b></span>"; }).join("");
       pr.forEach(function (p, k) {
         html += '<span class="pl-n">' + p[1] + "</span>";
         days.forEach(function (d) {
@@ -5701,6 +5740,7 @@
         var lg = load("prayLog", {}), v = (lg[b.dataset.d] || 0) ^ (1 << +b.dataset.k);
         if (v) lg[b.dataset.d] = v; else delete lg[b.dataset.d];
         save("prayLog", lg); draw(); }; });
+      view.querySelectorAll(".pl-cal").forEach(function (b) { b.onclick = function () { save("plCal", b.dataset.cal); draw(); }; });
       document.getElementById("plPrev").onclick = function () { off--; draw(); };
       document.getElementById("plNext").onclick = function () { if (off < 0) { off++; draw(); } };
     }
@@ -5711,9 +5751,22 @@
     { id: "eg-quran", c: "eg", name: "إذاعة القرآن الكريم من القاهرة", owner: "الهيئة الوطنية للإعلام (ماسبيرو)", src: "https://www.maspero.eg/stream/7", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
     { id: "tn-zaitouna", c: "tn", name: "إذاعة الزيتونة للقرآن الكريم", owner: "الإذاعة التونسية", src: "https://radiotunisienne.tn", url: "https://radio.radiotunisienne.tn/radiozaitouna" },
     { id: "qa-1", c: "qa", name: "إذاعة القرآن الكريم", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8" },
-    { id: "qa-2", c: "qa", name: "إذاعة القرآن الكريم – القناة الثانية", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradio2live/quranradio2/playlist.m3u8" }];
-  var RADIO_BOX = { eg: [22.0, 31.7, 24.7, 36.9], tn: [30.2, 37.6, 7.5, 11.6], qa: [24.4, 26.2, 50.7, 51.7] };   // lat min/max, lon min/max
-  var RADIO_C = [["eg", "مصر"], ["tn", "تونس"], ["qa", "قطر"], ["other", "دولة أخرى"]];
+    { id: "qa-2", c: "qa", name: "إذاعة القرآن الكريم – القناة الثانية", owner: "مؤسسة قطر للإعلام", src: "https://quranradio.qa/", url: "https://live.kwikmotion.com/qmcquranradio2live/quranradio2/playlist.m3u8" },
+    // 5.43 (user: more Quran-only stations, each stream checked 4 times on 2026-11-27, plans/radio-more-5.43.html, and playing
+    // in the app on the emulator; Sharjah left out: its icecast audio/aacp stream never starts in Android MediaPlayer)
+    { id: "sa-quran", c: "sa", name: "إذاعة القرآن الكريم من السعودية", owner: "هيئة الإذاعة والتلفزيون", src: "https://aloula.sba.sa/ar/live/quranradio", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
+    { id: "jo-quran", c: "jo", name: "إذاعة القرآن الكريم الأردنية", owner: "مؤسسة الإذاعة والتلفزيون الأردنية", src: "https://www.jrtv.gov.jo/radio", url: "https://jrtv-live.ercdn.net/jrradio/quranradio.m3u8" },
+    { id: "dz-quran", c: "dz", name: "إذاعة القرآن الكريم من الجزائر", owner: "الإذاعة الجزائرية", src: "https://my.radioalgerie.dz/fr/coran", url: "https://webradio1.tda.dz:8001/Coran_64K.mp3" },
+    { id: "om-quran", c: "om", name: "إذاعة القرآن الكريم من سلطنة عُمان", owner: "وزارة الإعلام العُمانية", src: "https://ayn.om/", url: "https://partwota.cdn.mgmlcdn.com/quranrdoorg/quranrdo.stream_aac/chunklist.m3u8" },
+    { id: "bh-quran", c: "bh", name: "إذاعة القرآن الكريم من البحرين", owner: "هيئة شؤون الإعلام", src: "https://www.mia.gov.bh/media-center/quran-kareem-106-1", url: "https://5c7b683162943.streamlock.net/live/ngrp:radio-106-1_all/playlist.m3u8" }];
+  // lat min/max, lon min/max. Checked in this order: the small countries first, since the boxes of their big neighbours overlap them.
+  // Egypt ends at 35.0 E (Taba) so north-west Saudi Arabia (Tabuk) is not taken for Egypt.
+  var RADIO_BOX = { bh: [25.5, 26.4, 50.3, 50.9], qa: [24.4, 26.2, 50.7, 51.7], jo: [29.2, 33.4, 34.9, 39.3],
+    tn: [30.2, 37.6, 7.5, 11.6], om: [16.6, 26.4, 52.0, 59.9], dz: [18.9, 37.1, -8.7, 12.0], eg: [22.0, 31.7, 24.7, 35.0], sa: [16.3, 32.2, 34.5, 55.7] };
+  // Arabic and English names side by side: «تونس» and «الجزائر» are also city names in i18n.js (Tunis, Algiers), so the
+  // country list does not go through the text translation.
+  var RADIO_C = [["jo", "الأردن", "Jordan"], ["bh", "البحرين", "Bahrain"], ["dz", "الجزائر", "Algeria"], ["sa", "السعودية", "Saudi Arabia"],
+    ["tn", "تونس", "Tunisia"], ["om", "عُمان", "Oman"], ["qa", "قطر", "Qatar"], ["eg", "مصر", "Egypt"], ["other", "دولة أخرى", "Another country"]];
   var radioSt = { st: "stopped", id: "", reason: "" };
   function radioBridge() { try { return typeof AppBridge !== "undefined" && AppBridge.radioPlay ? AppBridge : null; } catch (e) { return null; } }
   function radioCountry() {
@@ -5732,7 +5785,7 @@
     function draw() {
       var cc = radioCountry(), list = RADIO.filter(function (s) { return s.c === cc; }), note = "";
       if (!list.length) { list = RADIO; note = '<p class="hint" id="rdNote">لا تتوفر إذاعة رسمية لدولتك في التطبيق بعد، وهذه الإذاعات المتاحة.</p>'; }
-      var html = '<div class="rd"><label class="rd-c"><span>الدولة</span><select id="rdCountry">' + RADIO_C.map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === cc ? " selected" : "") + ">" + c[1] + "</option>"; }).join("") + "</select></label>" + note +
+      var html = '<div class="rd"><label class="rd-c"><span>الدولة</span><select id="rdCountry">' + RADIO_C.map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === cc ? " selected" : "") + ">" + (window.LANG === "en" ? c[2] : c[1]) + "</option>"; }).join("") + "</select></label>" + note +
         (br ? "" : '<p class="hint" id="rdNoBridge">الإذاعة متاحة في تطبيق أندرويد فقط.</p>') + '<div id="rdList">';
       list.forEach(function (s) {
         var mine = radioSt.id === s.id, st = mine ? radioSt.st : "stopped", msg = "";
@@ -5803,7 +5856,9 @@
         if (bar) { bar.querySelector("i").style.width = pc + "%"; bar.nextElementSibling.textContent = pc + "%"; }
       }
     };
+    var shownStep = -1;   // the step on screen: a repaint of the same step (a choice tapped) must not replay the card's slide-in
     function paint() {
+      var still = step === shownStep; shownStep = step;
       var LAST = 3, dots = '<div class="wel-dots">' + [0, 1, 2, 3].map(function (i) { return "<i" + (i === step ? ' class="on"' : "") + "></i>"; }).join("") + "</div>", body;
       if (step === 0) body = '<div class="wel-ic">' + ic("book") + "</div><h2>أهلًا بك في «لوْح»</h2><p>اختر المصحف الذي اعتدت القراءة فيه. يمكنك تغييره لاحقًا من الإعدادات.</p>" +
         '<div class="wel-opts">' + ["kfgqpc", "kfold", "shamarly", "harmain"].filter(function (k) { return EDS[k]; }).map(function (k) {
@@ -5834,7 +5889,7 @@
           return '<label class="rem-row"><span class="rem-sw"><input type="checkbox" data-w="' + r[0] + '"' + (on ? " checked" : "") + "><span></span>" + r[1] + "</span></label>";
         }).join("");
       // 5.11 G3: «تخطي» skips this step (the last one finishes); «تخطي الكل» leaves the welcome at once.
-      d.innerHTML = '<div class="wel-card">' + dots + body + '<div class="wel-btns"><button class="wel-skip">تخطي</button><button class="wel-next">' + (step < LAST ? "التالي" : "هيا نبدأ") + "</button></div>" +
+      d.innerHTML = '<div class="wel-card' + (still ? " wel-still" : "") + '">' + dots + body + '<div class="wel-btns"><button class="wel-skip">تخطي</button><button class="wel-next">' + (step < LAST ? "التالي" : "هيا نبدأ") + "</button></div>" +
         (step < LAST ? '<button class="wel-all">تخطي الكل</button>' : "") + "</div>";
       // 5.23: a tap selects the edition at once; a missing one shows «جاري التحميل» + its bar and is applied when it arrives.
       d.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () {
@@ -6276,7 +6331,7 @@
   function mutKey(w) { var n = norm(w); return n.length > 3 ? n.replace(/^[وف]/, "") : n; }
   // letter for letter (no vowels): «وما» and «فما», «يعملون» and «تعملون» are different words here
   function mutX(w) { return norm(w); }
-  function mutBuild(k) {
+  function mutBuild(k, inS) {
     var p = k.split(":").map(Number), T = Q.t[p[0] - 1][p[1] - 1].split(" "), TX = T.map(mutX), TK = T.map(mutKey), seen = {};
     var mine = {}; TK.forEach(function (w) { mine[w] = 1; });
     var nextOf = function (v) { return v[1] < Q.s[v[0] - 1][3] ? [v[0], v[1] + 1] : null; };
@@ -6297,7 +6352,7 @@
     if (cs.some(function (c) { return c.same; })) {
       // an ayah repeated word for word (فبأي آلاء ربكما تكذبان): only what comes after tells them apart, so the question
       // is the whole ayah and the choices are the ayah after it in each place
-      var nT = nextOf(p); if (!nT) return null;
+      var nT = nextOf(p); if (!nT || (inS && !inS(nT[0], nT[1]))) return null;   // the correct choice (the ayah after) must be in scope too
       after = true; pre = T.length;
       list = [{ v: nT, W: Q.t[nT[0] - 1][nT[1] - 1].split(" "), ok: 1 }];
       cs.filter(function (c) { return c.same; }).sort(function (x, y) { return x.r - y.r; }).forEach(function (c) { var nv = nextOf(c.v); if (nv) list.push({ v: nv, W: Q.t[nv[0] - 1][nv[1] - 1].split(" "), ok: 0 }); });
@@ -6328,16 +6383,39 @@
     return { k: k, s: p[0], a: p[1], pre: T.slice(0, pre).join(" "), after: after, opts: opts, ctx: p[1] > 1 ? Q.t[p[0] - 1][p[1] - 2] : "" };
   }
   if (window.QA_NOFS) window.QA_mut = mutBuild;   // the UI checks (tools/qa/ui.js) build every question
-  function mutPool() {
-    var memo = load("mutAll", 0) ? {} : hifzLogData(), all = Object.keys(MUTASH);
-    var keys = Object.keys(memo).length ? all.filter(function (k) { return memo[k.split(":")[0]]; }) : all;
-    return keys.length ? keys : all;
+  // 5.43: the scope q.mutScope = {m: "mine" | "all" | "custom", by: "s" | "j", rg: 1 range | 0 scattered, f, t (range ends), sel: [numbers]}.
+  // Without it the old q.mutAll (0 / 1) decides. «من محفوظي» = the surahs of q.hifzLog and q.hzRev plus the ayat of the q.hzSched units
+  // (what is memorised or under review); nothing memorised = an empty state, never the whole Quran. The question ayah and the correct
+  // choice must be in scope; the look-alikes (wrong choices) may be anywhere.
+  function mutSc() { var v = load("mutScope", null); return v && v.m ? v : { m: load("mutAll", 0) ? "all" : "mine" }; }
+  function mutScopeFn(sc) {
+    if (sc.m === "all") return null;
+    var fn;
+    if (sc.m === "mine") {
+      var ss = {}, ks = {}, S = load("hzSched", {});
+      [hifzLogData(), load("hzRev", {})].forEach(function (o) { Object.keys(o || {}).forEach(function (s) { ss[s] = 1; }); });
+      Object.keys(S || {}).forEach(function (id) { var u = hzUnit(id); if (u) hzUAyat(u).forEach(function (k) { ks[k] = 1; }); });
+      fn = function (s, a) { return !!(ss[s] || ks[s + ":" + a]); };
+      fn.empty = !Object.keys(ss).length && !Object.keys(ks).length;
+    } else {
+      var by = sc.by === "j" ? "j" : "s", ids = {}, mx = by === "j" ? 30 : 114;
+      if (sc.rg) { var f = Math.min(sc.f || 1, sc.t || mx), t = Math.max(sc.f || 1, sc.t || mx); for (var i = f; i <= t; i++) ids[i] = 1; }
+      else (sc.sel || []).forEach(function (i) { ids[i] = 1; });
+      fn = function (s, a) { return !!ids[by === "j" ? juzOf(s, a) : s]; };
+      fn.empty = !Object.keys(ids).length;
+    }
+    return fn;
+  }
+  function mutPool(inS) {
+    return Object.keys(MUTASH).filter(function (k) { if (!inS) return true; var p = k.split(":"); return inS(+p[0], +p[1]); });
   }
   function mutNext() {
-    var keys = mutPool(), HA = load("hifzAyat", {}), bad = keys.filter(function (k) { return HA[k] && HA[k].ok === 0; });
-    for (var t = 0; t < 60; t++) { var L = bad.length && Math.random() < 0.4 ? bad : keys, q = mutBuild(L[Math.floor(Math.random() * L.length)]); if (q) return q; }
+    var inS = mutScopeFn(mutSc()), keys = mutPool(inS), HA = load("hifzAyat", {}), bad = keys.filter(function (k) { return HA[k] && HA[k].ok === 0; });
+    if (!keys.length) return null;
+    for (var t = 0; t < 60; t++) { var L = bad.length && Math.random() < 0.4 ? bad : keys, q = mutBuild(L[Math.floor(Math.random() * L.length)], inS); if (q) return q; }
     return null;
   }
+  if (window.QA_NOFS) window.QA_mutNext = mutNext;
   // how much of a choice was said: the longest run of its words heard in order (LCS), over its length
   function mutHit(hw, cw) {
     var m = hw.length, n = cw.length, D = []; if (!n) return 0;
@@ -6351,17 +6429,33 @@
     if (!window.MUTASH) { view.innerHTML = '<p class="hint">جارٍ التحميل…</p>'; need("mut", "mutashabihat.js", function () { if (window.MUTASH && location.hash.indexOf("#/mutash") === 0) showMutashTest(); }); return; }
     mtvOff();
     if (!mtq.q || mtq.q.done) mtq.q = mutNext();
-    var q = mtq.q, all = !!load("mutAll", 0), memoN = Object.keys(hifzLogData()).length;
+    var sc = mutSc(), inS = mutScopeFn(sc), q = inS && inS.empty ? null : mtq.q;
+    var sn = sc.by === "j" ? 30 : 114, nm = function (i) { return sc.by === "j" ? "الجزء " + ar(i) : Q.s[i - 1][0] + " " + ar(i); };
+    var cust = "";
+    if (sc.m === "custom") {
+      var opt = function (v) { var o = ""; for (var i = 1; i <= sn; i++) o += '<option value="' + i + '"' + (i === v ? " selected" : "") + ">" + nm(i) + "</option>"; return o; };
+      cust = '<div class="mt-cust"><div class="z-sort mt-by"><button data-by="s"' + (sc.by === "j" ? "" : ' class="on"') + '>السور</button><button data-by="j"' + (sc.by === "j" ? ' class="on"' : "") + ">الأجزاء</button></div>" +
+        '<div class="z-sort mt-rg"><button data-rg="1"' + (sc.rg ? ' class="on"' : "") + '>نطاق متصل</button><button data-rg="0"' + (sc.rg ? "" : ' class="on"') + ">اختيار متفرق</button></div>" +
+        (sc.rg ? '<div class="rg-row"><label>من<select class="input" id="mtF">' + opt(sc.f || 1) + '</select></label><label>إلى<select class="input" id="mtT">' + opt(sc.t || sn) + "</select></label></div>"
+          : '<div class="z-sort mt-chips" id="mtSel">' + Array.apply(null, Array(sn)).map(function (x, i) { var on = (sc.sel || []).indexOf(i + 1) >= 0; return '<button data-i="' + (i + 1) + '" aria-pressed="' + on + '"' + (on ? ' class="on"' : "") + ">" + nm(i + 1) + "</button>"; }).join("") + "</div>") + "</div>";
+    }
     view.innerHTML = '<div class="ht mt">' + hzNav("") +
-      '<div class="z-sort mt-scope"><button data-m="0"' + (all ? "" : ' class="on"') + '>من محفوظي</button><button data-m="1"' + (all ? ' class="on"' : "") + ">كل القرآن</button></div>" +
-      (!all && !memoN ? '<p class="hint">لا توجد سور محفوظة بعد، فالأسئلة من القرآن كله.</p>' : "") +
-      '<p class="hint">أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت. <b class="mt-score" id="mtScore">صح ' + ar(mtq.ok) + " من " + ar(mtq.n) + "</b></p>" +
+      '<div class="z-sort mt-scope"><button data-m="mine"' + (sc.m === "mine" ? ' class="on"' : "") + '>من محفوظي</button><button data-m="all"' + (sc.m === "all" ? ' class="on"' : "") + '>كل القرآن</button><button data-m="custom"' + (sc.m === "custom" ? ' class="on"' : "") + ">تخصيص</button></div>" + cust +
+      (inS && inS.empty ? (sc.m === "mine" ? '<div class="mt-empty"><p class="hint">لا توجد سور محفوظة أو قيد المراجعة بعد، فلا أسئلة هنا. سجّل محفوظك من «خريطة الحفظ»، أو اختر «كل القرآن» أو «تخصيص».</p><div class="ht-foot"><a class="continue" href="#/hifzmap">خريطة الحفظ</a><button class="continue" id="mtAllBtn">كل القرآن</button></div></div>' : '<p class="hint mt-empty">اختر سورة أو جزءًا واحدًا على الأقل لتبدأ الأسئلة.</p>') : "") +
+      (inS && inS.empty ? "" : '<p class="hint">أكمل هذه الآية: اختر التكملة، أو سمّعها بالصوت. <b class="mt-score" id="mtScore">صح ' + ar(mtq.ok) + " من " + ar(mtq.n) + "</b></p>" +
       (q ? '<div class="mt-q"><span class="mut-ref" id="mtRef">سورة ' + Q.s[q.s - 1][0] + " · الآية " + ar(q.a) + "</span>" + (q.ctx ? '<div class="ay-text mt-ctx" lang="ar">' + esc(q.ctx) + ' <span class="ayah-no">﴿' + ar(q.a - 1) + "﴾</span></div>" : "") + '<div class="ay-text mt-pre" lang="ar">' + esc(q.pre) + (q.after ? ' <span class="ayah-no">﴿' + ar(q.a) + '﴾</span></div><p class="hint mt-aft">هذه الآية مكررة بنصها، فما الآية التالية هنا؟</p></div>' : " …</div></div>") + '<div class="mt-opts">' +
         q.opts.map(function (o, i) { return '<button class="mt-ch" data-i="' + i + '"><span class="ay-text" lang="ar">' + esc(o.txt) + '</span><small class="mt-src" hidden>سورة ' + Q.s[o.v[0] - 1][0] + " · الآية " + ar(o.v[1]) + "</small></button>"; }).join("") + "</div>" +
         (window.ReciteBridge ? '<button class="continue ht-mic" id="mtMic">' + ic("mic") + " سمّع التكملة</button>" : "") +
         '<p class="ht-res" id="mtRes"></p><div class="ht-foot"><button class="continue" id="mtNext">' + ic("anext") + ' السؤال التالي</button><button class="continue" id="mtOpen" data-s="' + q.s + '" data-a="' + q.a + '">' + ic("book") + " افتح الآية</button></div>"
-        : '<p class="hint">لا توجد أسئلة هنا.</p>') + "</div>";
-    view.querySelectorAll(".mt-scope button").forEach(function (b) { b.onclick = function () { save("mutAll", +b.dataset.m); mtq.q = null; showMutashTest(); }; });
+        : '<p class="hint">لا توجد أسئلة هنا.</p>')) + "</div>";
+    var scSet = function (o) { save("mutScope", Object.assign({}, sc, o)); mtq.q = null; showMutashTest(); };
+    view.querySelectorAll(".mt-scope button").forEach(function (b) { b.onclick = function () { var m = b.dataset.m; save("mutAll", m === "all" ? 1 : 0); scSet(m === "custom" ? { m: m, by: sc.by || "s", rg: sc.rg == null ? 1 : sc.rg, f: sc.f || 1, t: sc.t || (sc.by === "j" ? 30 : 114), sel: sc.sel || [] } : { m: m }); }; });
+    var eb = document.getElementById("mtAllBtn"); if (eb) eb.onclick = function () { save("mutAll", 1); scSet({ m: "all" }); };
+    view.querySelectorAll(".mt-by button").forEach(function (b) { b.onclick = function () { scSet({ by: b.dataset.by, f: 1, t: b.dataset.by === "j" ? 30 : 114, sel: [] }); }; });
+    view.querySelectorAll(".mt-rg button").forEach(function (b) { b.onclick = function () { scSet({ rg: +b.dataset.rg }); }; });
+    var sf = document.getElementById("mtF"), st2 = document.getElementById("mtT");
+    if (sf) sf.onchange = st2.onchange = function () { scSet({ f: +sf.value, t: +st2.value }); };
+    view.querySelectorAll("#mtSel button").forEach(function (b) { b.onclick = function () { var i = +b.dataset.i, a = (sc.sel || []).slice(), x = a.indexOf(i); if (x >= 0) a.splice(x, 1); else a.push(i); a.sort(function (u, v) { return u - v; }); var sy = window.scrollY, bx = document.getElementById("mtSel").scrollTop; scSet({ sel: a }); window.scrollTo(0, sy); document.getElementById("mtSel").scrollTop = bx; }; });
     if (!q) return;
     var answered = false;
     function pick(i) {
@@ -6794,13 +6888,30 @@
   }
   function mutashSrc() { return '<p class="about">المصدر: بيانات Quran_Mutashabihat_Data (رخصة CC0) المبنية على عمل القارئ إدريس العاصم، وتشمل أكثر المتشابهات التي يخطئ فيها الحفاظ وليست حصرًا لكل المتشابهات. نص الآيات من المصحف نفسه.</p>'; }
   // Paragraphs, the editors' footnotes [[...]] in small type, and Quran quotes ﴿...﴾ in the mushaf font.
-  function richText(t) {
+  // 5.43: every Quran quote inside other text gets the .qq colour (--quote). ﴿…﴾ and {…} mark Quran by themselves; ( ) and « » only
+  // when the words inside are really in the Quran (so a «الأول» numbering or a (جيد) gloss stays plain). one = a single word is enough
+  // (i'rab headers, tajweed lessons); otherwise two words or more.
+  var qAll = null, qMemo = {};
+  function quranHas(txt, one) {
+    var n = norm(txt);
+    if (n.length < 2 || (!one && n.indexOf(" ") < 0)) return false;
+    if (!qAll) { qAll = " "; for (var s = 0; s < 114; s++) for (var a = 0; a < Q.q[s].length; a++) qAll += norm(Q.q[s][a]) + " "; }
+    var r = qMemo[n];
+    if (r === undefined) r = qMemo[n] = qAll.indexOf(" " + n + " ") >= 0;
+    return r;
+  }
+  function qmark(h, one) {
+    var wrap = function (m, g) { return g.indexOf("<") < 0 && quranHas(g, one) ? '<span class="qq">' + m + "</span>" : m; };
+    return h.replace(/\(([^()]+)\)/g, wrap).replace(/«([^«»]+)»/g, wrap);
+  }
+  function richText(t, one) {
     return esc(t).split(/\n+/).map(function (p) {
       p = p.replace(/\[\[([\s\S]*?)\]\]/g, '<span class="fn">$1</span>').replace(/﴿([^﴾]*)﴾/g, '<span class="qq">﴿$1﴾</span>')
         .replace(/\{([^{}\d][^{}]*)\}/g, '<span class="qq">﴿$1﴾</span>');
-      return "<p>" + p + "</p>";
+      return "<p>" + qmark(p, one) + "</p>";
     }).join("");
   }
+  window.QA_richText = richText; window.QA_qmark = qmark;
   function showAyah(s, a, tab) {
     var meta = Q.s[s - 1];
     titleEl.textContent = "سورة " + meta[0] + " · " + ar(a);
@@ -6884,7 +6995,7 @@
         var what = { irab: "إعراب", tafsir: "تفسير", asbab: "سبب نزول", balagha: "بلاغة" }[kind];
         box.innerHTML = hits.map(function (hit) {
           var span = hit[0] === hit[1] ? "" : hit[0] === 1 && hit[1] === Q.s[s - 1][3] ? "عن السورة كلها" : what + " الآيات " + ar(hit[0]) + "–" + ar(hit[1]) + " معًا";
-          return (span ? '<p class="span-note">' + span + "</p>" : "") + richText(hit[2]);
+          return (span ? '<p class="span-note">' + span + "</p>" : "") + richText(hit[2], kind === "irab" || kind === "balagha" || book.id === "tanwir");
         }).join('<hr class="sep">');
       });
     }
@@ -6908,7 +7019,7 @@
         var les = lessons.filter(function (l) { return l.rule === r; })[0];
         return '<div class="tj-rule"><div class="tj-head"><i class="tj-dot tjb' + r + '"></i>' + tjName(r) + "</div>" +
           '<div class="tj-words">' + by[r].join('<span class="tj-sep">،</span> ') + "</div>" +
-          (les ? '<p class="tj-why">' + les.p[0] + "</p>" : "") + "</div>";
+          (les ? '<p class="tj-why">' + qmark(les.p[0], true) + "</p>" : "") + "</div>";
       }).join("") +
       '<a class="learn-link" href="#/tajweed">دروس أحكام التجويد لرواية حفص ‹</a>' +
       '<p class="hint">المد الطبيعي (حركتان) غير ملوّن. ألوان التجويد مأخوذة من بيانات مشروع quran-tajweed المفتوحة.</p>';
@@ -6934,7 +7045,7 @@
         L.map(function (l, i) {
           return '<details class="learn-card"' + (i === 0 ? " open" : "") + "><summary>" +
             (l.rule !== undefined ? '<i class="tj-dot tjb' + l.rule + '"></i>' : "") + l.t + "</summary>" +
-            l.p.map(function (x) { return "<p>" + x + "</p>"; }).join("") +
+            l.p.map(function (x) { return "<p>" + qmark(x, true) + "</p>"; }).join("") +
             (l.ex ? '<div class="tj-examples">' + l.ex.map(function (e) {
               var words = Q.t[e[0] - 1][e[1] - 1].split(" "), from = words.slice(0, e[2]).join(" ").length + (e[2] ? 1 : 0),
                 to = from + words.slice(e[2], e[2] + e[3]).join(" ").length;
@@ -6962,7 +7073,7 @@
     var html = '<div class="learn-hero"><b>القراءات العشر</b><span>من «تحبير التيسير في القراءات العشر» لابن الجزري (ت ٨٣٣هـ)</span></div>' +
       '<div class="learn-card"><h3>القراء العشرة ورواتهم</h3><div class="readers">' +
       READERS.map(function (r, i) { return '<div><span class="num"><span>' + ar(i + 1) + "</span></span><b>" + r[0] + "</b><small>" + r[1] + " · " + r[2] + "</small></div>"; }).join("") +
-      '</div><p class="hint">المصحف في هذا التطبيق برواية حفص عن عاصم.</p></div>' +
+      '</div><div class="hint">المصحف في هذا التطبيق برواية حفص عن عاصم.</div></div>' +   // a div: .learn-card p is book text the translation skips
       '<div class="learn-card"><h3>رموز يستعملها الكتاب</h3><div class="terms">' +
       TERMS.map(function (t) { return "<div><b>" + t[0] + "</b><span>" + t[1] + "</span></div>"; }).join("") +
       '</div><p class="hint">أصل الكتاب «التيسير» لأبي عمرو الداني في القراءات السبع، وزاد عليه ابن الجزري القراءات الثلاث (أبا جعفر ويعقوب وخلفًا) وما يبدأ بقوله «قلت».</p></div>' +
@@ -6973,7 +7084,7 @@
       var box = document.getElementById("usul"); if (!box) return;
       if (!u) { box.innerHTML = '<p class="hint">تعذّر التحميل.</p>'; return; }
       box.innerHTML = u.map(function (c) {
-        return '<details class="learn-card"><summary>' + esc(c[0]) + '</summary><div class="book-text">' + richText(c[1].replace(/\(([^()\d]+)\)/g, "{$1}")) + "</div></details>";
+        return '<details class="learn-card"><summary>' + esc(c[0]) + '</summary><div class="book-text">' + richText(c[1]) + "</div></details>";
       }).join("");
     });
   }
@@ -6997,7 +7108,7 @@
         }).join("") + "</div>";
         var w = words[pick];
         if (!w) { body.innerHTML = html + '<p class="hint">لا توجد في هذه الآية كلمات لها جذر.</p>'; return; }
-        if (w[1] < 0) { body.innerHTML = html + '<p class="hint">«' + w[0] + "» حرف أو ضمير، وليس لها جذر في المعاجم.</p>"; bind(); return; }
+        if (w[1] < 0) { body.innerHTML = html + '<p class="hint">«<span class="qq">' + w[0] + "</span>» حرف أو ضمير، وليس لها جذر في المعاجم.</p>"; bind(); return; }
         var root = BK.roots[w[1]];
         if (BK.lex.length && !BK.lex.some(function (l) { return l.id === dict; })) dict = BK.lex[0].id;
         html += '<p class="root">الجذر: <b>' + root.split("").join(" ") + "</b></p>" +

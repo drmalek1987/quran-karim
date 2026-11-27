@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إذاعات قرآن إضافية — اختبار البث — 5.43</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:Tahoma,Arial,sans-serif;margin:20px;line-height:1.7;color:#222;background:#fafafa}
+h1{color:#0b5a3a} h2{color:#0b5a3a;border-bottom:2px solid #0b5a3a;padding-bottom:4px;margin-top:32px}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:13px}
+th,td{border:1px solid #ccc;padding:6px;vertical-align:top;text-align:right}
+th{background:#0b5a3a;color:#fff}
+td.u{font-family:Consolas,monospace;font-size:11px;word-break:break-all;text-align:left;min-width:180px}
+td.g{background:#d8f3dc} td.y{background:#fff3cd} td.r{background:#f8d7da}
+.box{background:#fff;border:1px solid #ccc;border-radius:6px;padding:10px 16px;margin:10px 0}
+.wrap{overflow-x:auto} code{background:#eee;padding:1px 4px}
+</style></head><body>
+<h1>إذاعات قرآن إضافية مرشّحة للتطبيق — اختبار البث الفعلي — 5.43</h1>
+<div class="box">
+<b>الملخص:</b> نجح <b>9</b> بثوث (8 محطات + قناتا ليبيا) (كل واحد 3 مرات على الأقل، وأغلبها 4): الأردن، الشارقة، الجزائر، عُمان، البحرين، باكستان، السعودية (radiojar)، ليبيا «المنير» (بنغازي + طرابلس). فشل: المغرب (403 في كل المحاولات). لم يُعثر على بث عامل للكويت والسودان.<br>
+<b>تاريخ الاختبار:</b> 2026-11-27، من 04:17Z إلى 04:29Z، بفواصل 3–5 دقائق.<br>
+<b>معيار النجاح:</b> <code>curl -sS -L -m 12 -r 0-60000</code>؛ HTTP 200/206 مع audio/* أو HLS صالح وقطعة (segment) تُجلب؛ لا أقل من 40 KB صوت؛ في كل المحاولات. لقوائم HLS جُلبت القائمة (وقائمة فرعية إن وُجدت) ثم قطعة واحدة 60001 بايت.<br>
+<b>ملاحظات منهج:</b> رابط radiojar يحوّل 302 إلى <b>http://nXX.radiojar.com</b> (نص صريح cleartext) بتوكن مؤقت (rj-tok)، فيجب السماح بالنص الصريح لنطاق <code>*.radiojar.com</code> ويفضّل تتبّع التحويل من طبقة الشبكة. قائمة عُمان تُخدَم مضغوطة gzip (يلزم <code>--compressed</code>؛ أول جولة لم تستخدمه فسُجّلت جزئية).<br>
+<b>أمانة المصدر:</b> أغلب الروابط ظهرت عبر مجمّع radio-browser.info (غير رسمي)؛ صفحات الإذاعات الرسمية مبنية بـ JS أو تحجب curl، فلم يمكن تأكيد الرابط من صفحة رسمية إلا في الحالات المذكورة. لم يُجرَّب أي تحايل على الحماية (المغرب تُرك محجوبًا).
+</div>
+<h2>نجحت في الاختبار (PASS)</h2>
+<div class="wrap"><table><tr><th>الدولة</th><th>الاسم</th><th>المالك</th><th>رابط الـ stream</th><th>الصفحة الرسمية / المصدر</th><th>نتائج الاختبار (UTC، 27-11-2026)</th><th>Cleartext</th><th>دليل «قرآن فقط»</th><th>التوصية</th></tr>
+
+<tr><td>الأردن</td><td>إذاعة القرآن الكريم الأردنية</td><td>مؤسسة الإذاعة والتلفزيون الأردنية (JRTV)</td><td class=u dir=ltr>https://jrtv-live.ercdn.net/jrradio/quranradio.m3u8</td><td>https://www.jrtv.gov.jo/radio (الصفحة المسجلة في radio-browser أعطت 404 اليوم؛ الرابط من مجمّع غير رسمي)</td><td>04:18:16 — 200 mpegurl، قطعة 206 video/mp2t 60001 ✔<br>04:21:22 ✔ نفسه<br>04:23:51 ✔<br>04:28:18 ✔</td><td>لا (HTTPS)</td><td>اسم المسار quranradio ووسم الإذاعة «Quran Radio (JO)»؛ لم أتحقق من الجدول من صفحة رسمية</td><td class=g><b>إدراج</b> (بعد إشعار)</td></tr>
+
+<tr><td>الإمارات (الشارقة)</td><td>إذاعة القرآن الكريم من الشارقة</td><td>مؤسسة الشارقة للإعلام (مستنتج من المسار smcquranlive — غير مؤكد)</td><td class=u dir=ltr>https://l3.itworkscdn.net/smcquranlive/quranradiolive/icecast.audio</td><td>مجمّع radio-browser.info فقط؛ لا صفحة رسمية محلولة</td><td>04:18:17 — 200 audio/aacp 1,151,972 B ✔<br>04:21:23 — 1,151,695 B ✔<br>04:23:52 — 1,151,913 B ✔<br>04:28:19 — 1,152,088 B ✔</td><td>لا (HTTPS)</td><td>اسم المسار «quranradiolive»؛ لا برنامج مرئي</td><td class=y><b>إدراج بعد إذن</b> (المالك غير مؤكد)</td></tr>
+
+<tr><td>الجزائر</td><td>إذاعة القرآن الكريم (Radio Coran)</td><td>الإذاعة الجزائرية (TDA)</td><td class=u dir=ltr>https://webradio1.tda.dz:8001/Coran_64K.mp3</td><td>https://my.radioalgerie.dz/fr/coran — الصفحة موجودة (200) عنوانها «Radio Coran | Radio Algérienne»؛ الرابط غير ظاهر في HTML</td><td>04:18:30 — 206 audio/mpeg 60001 ✔<br>04:21:35 ✔<br>04:24:04 ✔<br>04:28:31 ✔ (icy-name Coran_64K.mp3، Icecast)</td><td>لا (HTTPS)</td><td>عنوان الصفحة الرسمية «Radio Coran» + اسم المسار Coran</td><td class=g><b>إدراج</b> (مضيف حكومي + صفحة رسمية)</td></tr>
+
+<tr><td>سلطنة عُمان</td><td>إذاعة القرآن الكريم — سلطنة عُمان</td><td>وزارة الإعلام العُمانية — المديرية العامة للإذاعة (حسب Oman Observer)، وتبث أيضًا عبر منصة «عين» ayn.om</td><td class=u dir=ltr>https://partwota.cdn.mgmlcdn.com/quranrdoorg/quranrdo.stream_aac/chunklist.m3u8</td><td>https://ayn.om/ (الصفحة تعمل؛ الرابط من radio-browser)، وتأكيد الجهة: https://www.omanobserver.om/article/1193579/oman/holy-quran-radio-marks-20-years-of-spreading-the-message-of-quran</td><td>04:18:31 — جزئية (قائمة gzip بلا --compressed)<br>04:21:36 — قائمة 200 + قطعة 206 audio/x-aac 60001 ✔<br>04:24:05 ✔<br>04:28:32 ✔</td><td>لا (HTTPS)</td><td>Oman Observer: «مخصصة للقرآن الكريم وعلومه» — تلاوات وبرامج علوم القرآن (ليست تلاوة فقط)؛ 24 ساعة منذ 2014</td><td class=g><b>إدراج</b> (جهة رسمية؛ البرامج قرآنية الطابع)</td></tr>
+
+<tr><td>البحرين</td><td>إذاعة القرآن الكريم 106.1 FM</td><td>هيئة شؤون الإعلام (MIA)</td><td class=u dir=ltr>https://5c7b683162943.streamlock.net/live/ngrp:radio-106-1_all/playlist.m3u8</td><td>https://www.mia.gov.bh/media-center/quran-kareem-106-1 (الموقع يطلب «Human Verification» لـ curl، فلم يُقرأ)</td><td>04:18:31 — master 206 → chunklist → قطعة audio/x-aac 60001 ✔<br>04:21:37 ✔<br>04:24:06 ✔<br>04:28:33 ✔</td><td>لا (HTTPS، Wowza)</td><td>عنوان صفحة الهيئة «quran-kareem-106-1»؛ اسم المسار radio-106-1</td><td class=g><b>إدراج</b> (بعد إشعار؛ المصدر عبر مجمّع)</td></tr>
+
+<tr><td>باكستان</td><td>صوت القرآن PBC FM 93.4 إسلام آباد</td><td>هيئة الإذاعة الباكستانية (Radio Pakistan)</td><td class=u dir=ltr>https://whmsonic.radio.gov.pk:7002/stream?type=http&amp;nocache=12</td><td>https://radio.gov.pk/ (رُصد الرابط في HTML في التقرير السابق)؛ مضيف gov.pk</td><td>04:18:33 — 200 audio/mpeg 293,900 B ✔<br>04:21:39 — 293,908 B ✔<br>04:24:08 ✔<br>04:28:35 — 293,932 B ✔</td><td>لا (HTTPS)</td><td>الاسم «Soutul Quran» (صوت القرآن)</td><td class=g><b>إدراج</b></td></tr>
+
+<tr><td>السعودية</td><td>إذاعة القرآن الكريم من المملكة</td><td>هيئة الإذاعة والتلفزيون السعودية (SBA) — منسوب لها عبر صفحة aloula</td><td class=u dir=ltr>https://stream.radiojar.com/0tpy1h0kxtzuv</td><td>https://aloula.sba.sa/ar/live/quranradio (200، Nuxt/JS؛ لم يظهر الرابط في الصفحة ولا في ملفات JS)؛ الرابط من radio-browser وحقل الصفحة فيه يشير للعلا</td><td>04:17:38 — 302 ثم 200 audio/mpeg 260,457 B ✔<br>04:20:45 — 254,631 B ✔<br>04:23:13 — 261,425 B ✔<br>04:27:41 — 248,642 B ✔ (icy-name عام: «Mini2's Broadcast»)</td><td><b>نعم</b>: بعد التحويل http://n0X.radiojar.com (نطاق *.radiojar.com، التوكن rj-tok مؤقت)</td><td>صفحة SBA «quranradio»؛ المعرّف نفسه يتكرر عند مجمّعات أخرى</td><td class=y><b>إدراج بعد إذن</b> (ملكية حساب radiojar غير مثبتة؛ cleartext)</td></tr>
+
+<tr><td>ليبيا (بنغازي)</td><td>إذاعة المنير — القرآن الكريم (94.9 FM)</td><td>إذاعة المنير (جهة غير حكومية على ما يظهر؛ البريد contact@munir.ly)</td><td class=u dir=ltr>https://live.munir.ly/proxy/almunir/stream</td><td>https://munir.ly/ (الرابط الثاني مضمَّن في صفحة الموقع نفسه)</td><td>04:21:51 — 200 audio/mpeg 436,349 B ✔<br>04:24:20 — 432,588 B ✔<br>04:28:48 — 436,768 B ✔ (icy-name «Almunir - Quran Radio»، icy-genre Quran)</td><td>لا (HTTPS)</td><td>صفحة الموقع: «تُعنى ببث القرآن الكريم بأصوات مختارة من القرّاء»؛ icy-genre: Quran</td><td class=y><b>إدراج بعد إذن</b> (ليست إذاعة دولة لكنها قرآن فقط ومالكها معروف)</td></tr>
+
+<tr><td>ليبيا (طرابلس)</td><td>إذاعة المنير — القرآن الكريم (94.5 FM)</td><td>إذاعة المنير</td><td class=u dir=ltr>https://live.munir.ly/proxy/almunirtip/stream</td><td>https://munir.ly/ (الرابط مذكور في HTML الصفحة)</td><td>04:22:04 — 200 audio/mpeg 436,349 B ✔<br>04:24:33 — 436,349 B ✔<br>04:29:00 — 436,350 B ✔</td><td>لا (HTTPS)</td><td>كما سبق</td><td class=y><b>إدراج بعد إذن</b></td></tr>
+</table></div>
+
+<h2>فشلت أو مستبعدة</h2>
+<div class="wrap"><table><tr><th>الدولة</th><th>الإذاعة</th><th>الرابط</th><th>النتيجة</th><th>السبب</th></tr>
+<tr><td>المغرب</td><td>إذاعة محمد السادس للقرآن الكريم (SNRT)</td><td dir=ltr class=u>https://cdn.live.easybroadcast.io/live/radio_med_VI/playlist.m3u8</td><td>403 text/html في 4 من 4 (04:18:15، 04:21:21، 04:23:50، 04:28:17)</td><td>الرابط مرصود في سكربت المشغّل الرسمي (libs.easybroadcast.io/snrt/karim/EBquranAlKarim.js) ويعتمد على توكن/نطاق من خدمة EasyBroadcast؛ لم أحاول تجاوز الحماية. يلزم اتفاق مع SNRT. <b>رفض</b>.</td></tr>
+<tr><td>السعودية</td><td>«إذاعة القرآن (مكة المكرمة)»</td><td dir=ltr class=u>https://n05.radiojar.com/4wqre23fytzuv</td><td>يعمل 4 من 4 (04:18–04:28)</td><td>مالك غير معروف ولا صفحة رسمية — <b>استبعاد</b> (كما في التقرير الأول).</td></tr>
+<tr><td>مصر</td><td>القاهرة radiojar 8s5u5tpdtwzuv</td><td dir=ltr class=u>https://stream.radiojar.com/8s5u5tpdtwzuv</td><td>يعمل 4 من 4</td><td>موجودة في التطبيق مسبقًا — لم تُضَف.</td></tr>
+<tr><td>فلسطين</td><td>Quran Radio Nablus</td><td dir=ltr class=u>http://www.quran-radio.org:8002/</td><td>يردّ HTML (index.html?sid=1) بدل الصوت في هذا الاختبار</td><td>محطة خاصة، HTTP، لا نجاح.</td></tr>
+<tr><td>الكويت</td><td>إذاعة القرآن الكريم (وزارة الإعلام)</td><td>—</td><td>لا يوجد رابط</td><td>البحث (radio-browser + ويب) لم يجد بثًا رسميًا؛ الموجود سلاسل خاصة (quran-uni.com، mp3islam.com، islamina.com). لم يُدرج.</td></tr>
+<tr><td>السودان</td><td>إذاعة القرآن الكريم — أم درمان</td><td>—</td><td>لا يوجد رابط</td><td>قوائم mytuner/streema فقط بلا رابط مباشر؛ لم أخمّن.</td></tr>
+<tr><td>العراق / موريتانيا / سوريا / لبنان</td><td>—</td><td>—</td><td>لا يوجد بث رسمي موثّق</td><td>العراق «السراج» خاصة وعنوان IP؛ لبنان «Quran Radio 93.3» خاصة. لم يُدرج شيء.</td></tr>
+<tr><td>مواقع «ترتيل» وmp3quran وOmniRadio</td><td>مجمّعات تلاوات</td><td>—</td><td>لم تُختبر</td><td>مجمّعات خاصة وليست إذاعات دول.</td></tr>
+</table></div>
+<div class="box"><b>تنبيه قانوني:</b> نفس ملاحظة التقرير الأول — نشر الرابط لا يمنح حق إعادة البث؛ يُنصح بإشعار الجهات المالكة (مع إبقاء اسم الجهة ظاهرًا) قبل النشر على Google Play.</div>
+</body></html>
